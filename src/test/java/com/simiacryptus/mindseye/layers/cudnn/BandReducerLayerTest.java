@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Img band bias layer run.
+ * The type Img band bias layer apply.
  */
 public abstract class BandReducerLayerTest extends CudaLayerTestBase {
   
@@ -35,47 +35,62 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
    * The Precision.
    */
   final Precision precision;
+  private final double alpha;
   
   /**
-   * Instantiates a new Img band bias layer run.
+   * Instantiates a new Img band bias layer apply.
    *
    * @param precision the precision
+   * @param alpha     the alpha
    */
-  public BandReducerLayerTest(final Precision precision) {
+  public BandReducerLayerTest(final Precision precision, final double alpha) {
     this.precision = precision;
+    this.alpha = alpha;
   }
   
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+      {4, 4, 1}
     };
   }
   
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new BandReducerLayer().setPrecision(precision);
+    return new BandReducerLayer().setAlpha(alpha).setPrecision(precision);
   }
   
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+      {100, 100, 3}
     };
   }
   
   /**
-   * Basic run in double (64-bit) precision
+   * Basic apply in double (64-bit) precision
    */
   public static class Double extends BandReducerLayerTest {
     /**
      * Instantiates a new Double.
      */
     public Double() {
-      super(Precision.Double);
+      super(Precision.Double, 1.0);
+    }
+  }
+  
+  /**
+   * Basic apply in double (64-bit) precision
+   */
+  public static class Negative extends BandReducerLayerTest {
+    /**
+     * Instantiates a new Double.
+     */
+    public Negative() {
+      super(Precision.Double, -5.0);
     }
   }
   
@@ -87,7 +102,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Asymmetric() {
-      super(Precision.Double);
+      super(Precision.Double, 1.0);
     }
   
     @Nonnull
@@ -102,21 +117,21 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {100, 60, 3}
+        {200, 100, 3}
       };
     }
     
   }
   
   /**
-   * Basic run using float (32-bit) precision.
+   * Basic apply using float (32-bit) precision.
    */
   public static class Float extends BandReducerLayerTest {
     /**
      * Instantiates a new Float.
      */
     public Float() {
-      super(Precision.Float);
+      super(Precision.Float, 1.0);
     }
   
     @Override

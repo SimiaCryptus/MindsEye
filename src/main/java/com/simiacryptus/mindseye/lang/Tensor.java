@@ -564,6 +564,8 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @Nullable
   public Tensor addAndFree(@Nonnull final Tensor right) {
+    assertAlive();
+    right.assertAlive();
     if (1 == currentRefCount()) {
       addInPlace(right);
       return this;
@@ -1167,8 +1169,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @param value  the value
    */
   public void set(@Nonnull final Coordinate coords, final double value) {
-    assert Double.isFinite(value);
-    set(coords.getIndex(), value);
+    if (Double.isFinite(value)) set(coords.getIndex(), value);
   }
   
   /**
@@ -1318,16 +1319,6 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public Tensor setByCoord(@Nonnull final ToDoubleFunction<Coordinate> f, boolean parallel) {
     coordStream(parallel).forEach(c -> set(c, f.applyAsDouble(c)));
     return this;
-  }
-  
-  /**
-   * Size int.
-   *
-   * @return the int
-   */
-  public int size() {
-    assertAlive();
-    return null == data ? Tensor.length(dimensions) : data.length;
   }
   
   /**
@@ -1719,6 +1710,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     });
   }
   
+  /**
+   * Dot double.
+   *
+   * @param right the right
+   * @return the double
+   */
   public double dot(final Tensor right) {
     double[] l = getData();
     double[] r = right.getData();
@@ -1729,6 +1726,11 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return v;
   }
   
+  /**
+   * Unit tensor.
+   *
+   * @return the tensor
+   */
   public Tensor unit() {
     return scale(1.0 / Math.sqrt(sumSq()));
   }

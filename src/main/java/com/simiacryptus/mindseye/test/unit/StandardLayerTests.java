@@ -53,7 +53,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type LayerBase run base.
+ * The type LayerBase apply base.
  */
 public abstract class StandardLayerTests extends NotebookReportBase {
   
@@ -357,7 +357,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       if (smallLayer instanceof DAGNetwork) {
         try {
           log.h1("Network Diagram");
-          log.p("This is a network with the following layout:");
+          log.p("This is a network apply the following layout:");
           log.code(() -> {
             return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) smallLayer))
               .height(400).width(600).render(Format.PNG).toImage();
@@ -371,7 +371,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           Layer explode = ((Explodable) smallLayer).explode();
           if (explode instanceof DAGNetwork) {
             log.h1("Exploded Network Diagram");
-            log.p("This is a network with the following layout:");
+            log.p("This is a network apply the following layout:");
             @Nonnull DAGNetwork network = (DAGNetwork) explode;
             log.code(() -> {
               @Nonnull Graphviz graphviz = Graphviz.fromGraph(TestUtil.toGraph(network)).height(400).width(600);

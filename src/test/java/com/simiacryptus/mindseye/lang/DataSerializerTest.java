@@ -31,7 +31,7 @@ import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
 /**
- * The type Tensor eval.
+ * The type Tensor apply.
  */
 public class DataSerializerTest {
   private static final Logger log = LoggerFactory.getLogger(DataSerializerTest.class);
@@ -43,7 +43,7 @@ public class DataSerializerTest {
    */
   @Test
   @Category(TestCategories.UnitTest.class)
-  public void testDouble() throws Exception {
+  public void testDouble() {
     test(SerialPrecision.Double);
   }
   
@@ -54,7 +54,7 @@ public class DataSerializerTest {
    */
   @Test
   @Category(TestCategories.UnitTest.class)
-  public void testFloat() throws Exception {
+  public void testFloat() {
     test(SerialPrecision.Float);
   }
   
@@ -65,7 +65,7 @@ public class DataSerializerTest {
    */
   @Test
   @Category(TestCategories.UnitTest.class)
-  public void testUniform32() throws Exception {
+  public void testUniform32() {
     test(SerialPrecision.Uniform32);
   }
   
@@ -76,7 +76,7 @@ public class DataSerializerTest {
    */
   @Test
   @Category(TestCategories.UnitTest.class)
-  public void testUniform16() throws Exception {
+  public void testUniform16() {
     test(SerialPrecision.Uniform16);
   }
   
@@ -87,7 +87,7 @@ public class DataSerializerTest {
    */
   @Test
   @Category(TestCategories.UnitTest.class)
-  public void testUniform8() throws Exception {
+  public void testUniform8() {
     test(SerialPrecision.Uniform8);
   }
   

@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Owlqn run.
+ * The type Owlqn apply.
  */
 public class OWLQNTest extends MnistTestBase {
   

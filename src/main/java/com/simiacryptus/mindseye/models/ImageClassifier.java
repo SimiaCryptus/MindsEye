@@ -77,7 +77,7 @@ public abstract class ImageClassifier implements NetworkFactory {
   /**
    * The Network.
    */
-  protected volatile Layer network;
+  protected volatile Layer cachedLayer;
   /**
    * The Prototype.
    */
@@ -304,7 +304,7 @@ public abstract class ImageClassifier implements NetworkFactory {
       clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
       @Nonnull PipelineNetwork supervised = new PipelineNetwork(1);
       supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0)));
-//      CudaTensorList gpuInput = CudnnHandle.eval(gpu -> {
+//      CudaTensorList gpuInput = CudnnHandle.apply(gpu -> {
 //        Precision precision = Precision.Float;
 //        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(image), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
 //      });
@@ -406,6 +406,52 @@ public abstract class ImageClassifier implements NetworkFactory {
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {deepDream(log, image, targetCategoryIndex, totalCategories, config, getNetwork(), new EntropyLossLayer(), -1.0);}
   
   /**
+   * Sets precision.
+   *
+   * @param model     the model
+   * @param precision the precision
+   */
+  public static void setPrecision(DAGNetwork model, final Precision precision) {
+    model.visitLayers(layer -> {
+      if (layer instanceof MultiPrecision) {
+        ((MultiPrecision) layer).setPrecision(precision);
+      }
+    });
+  }
+  
+  @Nonnull
+  @Override
+  public Layer getNetwork() {
+    if (null == cachedLayer) {
+      synchronized (this) {
+        if (null == cachedLayer) {
+          try {
+            cachedLayer = buildNetwork();
+            setPrecision((DAGNetwork) cachedLayer);
+            if (null != prototype) prototype.freeRef();
+            prototype = null;
+            return cachedLayer;
+          } catch (@Nonnull final RuntimeException e) {
+            throw e;
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+    }
+    return cachedLayer;
+    
+    
+  }
+  
+  /**
+   * Build network layer.
+   *
+   * @return the layer
+   */
+  protected abstract Layer buildNetwork();
+  
+  /**
    * Deep dream.
    *
    * @param log                 the log
@@ -414,8 +460,8 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param totalCategories     the total categories
    * @param config              the config
    * @param network             the network
-   * @param lossLayer
-   * @param targetValue
+   * @param lossLayer           the loss layer
+   * @param targetValue         the target value
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config, final Layer network, final Layer lossLayer, final double targetValue) {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
@@ -443,7 +489,7 @@ public abstract class ImageClassifier implements NetworkFactory {
           supervised.wrap(clamp, supervised.getInput(0))),
         supervised.getInput(1));
 //      TensorList[] gpuInput = data.stream().map(data1 -> {
-//        return CudnnHandle.eval(gpu -> {
+//        return CudnnHandle.apply(gpu -> {
 //          Precision precision = Precision.Float;
 //          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
 //        });
@@ -462,49 +508,11 @@ public abstract class ImageClassifier implements NetworkFactory {
     });
   }
   
-  @Nonnull
-  @Override
-  public Layer getNetwork() {
-    if (null == network) {
-      synchronized (this) {
-        if (null == network) {
-          try {
-            network = buildNetwork();
-            setPrecision((DAGNetwork) network);
-            if (null != prototype) prototype.freeRef();
-            prototype = null;
-            return network;
-          } catch (@Nonnull final RuntimeException e) {
-            throw e;
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }
-      }
-    }
-    return network;
-    
-    
-  }
-  
-  /**
-   * Build network layer.
-   *
-   * @return the layer
-   */
-  protected abstract Layer buildNetwork();
-  
   /**
    * Sets precision.
    *
    * @param model the model
    */
-  protected void setPrecision(DAGNetwork model) {
-    model.visitLayers(layer -> {
-      if (layer instanceof MultiPrecision) {
-        ((MultiPrecision) layer).setPrecision(precision);
-      }
-    });
-  }
+  protected void setPrecision(DAGNetwork model) {setPrecision(model, precision);}
   
 }

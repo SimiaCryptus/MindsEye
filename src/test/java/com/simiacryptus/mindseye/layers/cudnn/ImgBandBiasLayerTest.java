@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Img band bias layer run.
+ * The type Img band bias layer apply.
  */
 public abstract class ImgBandBiasLayerTest extends CudaLayerTestBase {
   
@@ -37,7 +37,7 @@ public abstract class ImgBandBiasLayerTest extends CudaLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Img band bias layer run.
+   * Instantiates a new Img band bias layer apply.
    *
    * @param precision the precision
    */
@@ -63,12 +63,12 @@ public abstract class ImgBandBiasLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+      {1200, 1200, 3}
     };
   }
   
   /**
-   * Basic 64-bit run
+   * Basic 64-bit apply
    */
   public static class Double extends ImgBandBiasLayerTest {
     /**
@@ -80,7 +80,7 @@ public abstract class ImgBandBiasLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Basic 32-bit run
+   * Basic 32-bit apply
    */
   public static class Float extends ImgBandBiasLayerTest {
     /**

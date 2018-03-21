@@ -33,14 +33,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * The type Simple gpu eval.
+ * The type Simple gpu apply.
  */
 public class SimpleGpuEval extends SimpleListEval {
   
   private final CudnnHandle gpu;
   
   /**
-   * Instantiates a new Simple gpu eval.
+   * Instantiates a new Simple gpu apply.
    *
    * @param layer the layer
    * @param gpu   the gpu
@@ -77,7 +77,7 @@ public class SimpleGpuEval extends SimpleListEval {
    */
   @Nonnull
   public CudaTensorList toGpu(final TensorArray tensorArray) {
-    @Nullable CudaTensor cudaMemory = gpu.getTensor(tensorArray, Precision.Double, MemoryType.Managed, false);
+    @Nullable CudaTensor cudaMemory = gpu.getTensor(tensorArray, Precision.Double, MemoryType.Managed.normalize(), false);
     tensorArray.freeRef();
     return CudaTensorList.wrap(cudaMemory, tensorArray.length(), tensorArray.getDimensions(), Precision.Double);
   }

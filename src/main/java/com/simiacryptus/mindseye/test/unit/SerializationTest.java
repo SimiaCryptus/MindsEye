@@ -42,7 +42,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 /**
- * The type Json run.
+ * The type Json apply.
  */
 public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
@@ -81,7 +81,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, final Tensor... inputPrototype) {
     log.h1("Serialization");
-    log.p("This run will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
+    log.p("This apply will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
     
     String prettyPrint = "";
     log.h2("Raw Json");
@@ -115,7 +115,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
           getModels().put(precision, echo);
           synchronized (outSync) {
             log.h2(String.format("Zipfile %s", precision.name()));
-            log.p(log.link(file, String.format("Wrote Model with %s precision to %s; %.3fMiB bytes", precision, file.getName(), file.length() * 1.0 / (0x100000))));
+            log.p(log.link(file, String.format("Wrote Model apply %s precision to %s; %.3fMiB bytes", precision, file.getName(), file.length() * 1.0 / (0x100000))));
           }
           if (!isPersist()) file.delete();
           if (echo == null) throw new AssertionError("Failed to deserialize");

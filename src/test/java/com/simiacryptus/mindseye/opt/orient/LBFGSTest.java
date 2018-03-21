@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Lbfgs run.
+ * The type Lbfgs apply.
  */
 public class LBFGSTest extends MnistTestBase {
   

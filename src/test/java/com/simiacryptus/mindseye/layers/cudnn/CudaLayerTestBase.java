@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.CudaLayerTester;
+import com.simiacryptus.mindseye.test.unit.PerformanceTester;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
@@ -36,12 +37,12 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 
 /**
- * The type Cudnn layer eval base.
+ * The type Cudnn layer apply base.
  */
 public abstract class CudaLayerTestBase extends LayerTestBase {
   
   /**
-   * Instantiates a new Cudnn layer eval base.
+   * Instantiates a new Cudnn layer apply base.
    */
   public CudaLayerTestBase() {
   }
@@ -50,7 +51,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
     @Nonnull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
-    if (CudaSystem.getPool().size() > 1) copy.add(new CudaLayerTester(1e-3));
+    if (CudaSystem.isEnabled()) copy.add(new CudaLayerTester(1e-3));
     return copy;
   }
   
@@ -99,10 +100,15 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
     };
   }
   
+  /**
+   * The Testing batch size.
+   */
+  protected int testingBatchSize = 5;
+  
   @Nullable
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    @Nullable ComponentTest<ToleranceStatistics> inner = super.getPerformanceTester();
+    @Nullable ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setBatches(testingBatchSize);
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
       protected void _free() {

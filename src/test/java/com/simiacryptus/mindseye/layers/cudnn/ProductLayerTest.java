@@ -21,18 +21,15 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Product layer run.
+ * The type Product layer apply.
  */
-public abstract class GateProductLayerTest extends CudaLayerTestBase {
+public abstract class ProductLayerTest extends CudaLayerTestBase {
   
   /**
    * The Precision.
@@ -40,11 +37,11 @@ public abstract class GateProductLayerTest extends CudaLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Product layer run.
+   * Instantiates a new Product layer apply.
    *
    * @param precision the precision
    */
-  public GateProductLayerTest(final Precision precision) {
+  public ProductLayerTest(final Precision precision) {
     this.precision = precision;
   }
   
@@ -56,23 +53,23 @@ public abstract class GateProductLayerTest extends CudaLayerTestBase {
     };
   }
   
+  @Override
+  public int[][] getLargeDims(final Random random) {
+    return new int[][]{
+      {400, 400, 30}, {1, 1, 30}
+    };
+  }
+  
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new GateProductLayer().setPrecision(precision);
-  }
-  
-  @Nullable
-  @Override
-  public ComponentTest<ToleranceStatistics> getDerivativeTester() {
-    if (!validateDifferentials) return null;
-    return new SingleDerivativeTester(1e-3, 1e-4).setTestFeedback(false);
+    return new ProductLayer().setPrecision(precision);
   }
   
   /**
    * Multiplication of 2 inputs using 64-bit precision
    */
-  public static class Double extends GateProductLayerTest {
+  public static class Double extends ProductLayerTest {
     /**
      * Instantiates a new Double.
      */
@@ -84,7 +81,7 @@ public abstract class GateProductLayerTest extends CudaLayerTestBase {
   /**
    * Multiplication of 2 inputs using 32-bit precision
    */
-  public static class Float extends GateProductLayerTest {
+  public static class Float extends ProductLayerTest {
     /**
      * Instantiates a new Float.
      */

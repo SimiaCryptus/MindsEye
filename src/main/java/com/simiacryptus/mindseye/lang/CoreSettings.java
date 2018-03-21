@@ -40,10 +40,10 @@ public class CoreSettings implements Settings {
   
   private CoreSettings() {
     System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", Integer.toString(Settings.get("THREADS", 64)));
-    this.singleThreaded = Settings.get("CONSERVATIVE", false);
-    this.lifecycleDebug = Settings.get("DEBUG_LIFECYCLE", false);
+    this.singleThreaded = Settings.get("SINGLE_THREADED", false);
+    this.lifecycleDebug = Settings.get("DEBUG_LIFECYCLE", true);
     this.doubleCacheMode = Settings.get("DOUBLE_CACHE_MODE", PersistanceMode.WEAK);
-    this.backpropAggregationSize = Settings.get("BACKPROP_AGG_SIZE", 4);
+    this.backpropAggregationSize = Settings.get("BACKPROP_AGG_SIZE", 2);
     MarkdownNotebookOutput.MAX_OUTPUT = Settings.get("MAX_OUTPUT", 100 * 1024);
     if (CudaSettings.INSTANCE == null) throw new RuntimeException();
   }

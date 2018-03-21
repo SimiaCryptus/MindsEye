@@ -40,7 +40,7 @@ import java.io.PrintStream;
 import java.util.Random;
 
 /**
- * The type Simple convolution layer run.
+ * The type Simple convolution layer apply.
  */
 public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   
@@ -67,7 +67,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   
   
   /**
-   * Instantiates a new Simple convolution layer run.
+   * Instantiates a new Simple convolution layer apply.
    *
    * @param radius    the radius
    * @param bands     the bands
@@ -80,7 +80,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     layer = new SimpleConvolutionLayer(radius, radius, bands * bands).setPrecision(precision).setStrideX(stride).setStrideY(stride);
     layer.kernel.set(() -> random());
     smallRadius = this.radius;
-    largeRadius = 100;
+    largeRadius = 800;
   }
   
   @Nonnull
@@ -144,7 +144,8 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
      */
     public Image() {
       super(3, 3, Precision.Double, 1);
-      largeRadius = smallRadius = 5;
+      largeRadius = 800;
+      smallRadius = 5;
     }
   }
   
@@ -238,7 +239,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Demonstration of a suspected CudaSystem bug when using 0 padding with the GPU convolution operation.
+   * Demonstration of a suspected CudaSystem bug when using 0 padding apply the GPU convolution operation.
    */
   public static class PaddingBug extends Bug_Control {
     /**
@@ -261,7 +262,8 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     public SpanBug() {
       layer.setStrideX(2);
       layer.setStrideY(2);
-      largeRadius = smallRadius = 5;
+      largeRadius = 800;
+      smallRadius = 5;
     }
   }
   

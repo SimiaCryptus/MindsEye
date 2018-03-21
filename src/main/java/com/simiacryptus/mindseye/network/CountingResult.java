@@ -149,6 +149,7 @@ public class CountingResult extends Result {
       else {
         @Nonnull TensorList reduced = null;
         synchronized (passbackBuffers) {
+          assert passbackBuffers.stream().allMatch(x -> x.assertAlive());
           passbackBuffers.add(data);
           data.addRef();
           if (passbackBuffers.size() > CoreSettings.INSTANCE.backpropAggregationSize) {
@@ -164,6 +165,7 @@ public class CountingResult extends Result {
             //passbackBuffers.stream().distinct().filter((TensorList x) -> x != reduced).forEach(t -> t.freeRef());
             passbackBuffers.clear();
             passbackBuffers.add(compacted);
+            assert passbackBuffers.stream().allMatch(x -> x.assertAlive());
           }
           if (accumulations.incrementAndGet() == references.get()) {
             Stream<TensorList> stream = passbackBuffers.stream();
@@ -176,6 +178,7 @@ public class CountingResult extends Result {
             }).get();
             passbackBuffers.clear();
           }
+          assert passbackBuffers.stream().allMatch(x -> x.assertAlive());
         }
         if (null != reduced) {
           inner.accumulate(buffer, reduced);

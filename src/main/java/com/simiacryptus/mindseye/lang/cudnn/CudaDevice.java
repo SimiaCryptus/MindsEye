@@ -84,10 +84,10 @@ public class CudaDevice extends CudaSystem {
    * @param devPtr   the dev ptr
    * @return the int
    */
-  public static synchronized int cudaFree(int deviceId, final CudaPointer devPtr) {
+  public static int cudaFree(int deviceId, final CudaPointer devPtr) {
     long startTime = System.nanoTime();
     if (null == devPtr) return 0;
-    Function<CudaDevice, Integer> fn = dev -> {
+    Function<CudnnHandle, Integer> fn = dev -> {
       final int result = JCuda.cudaFree(devPtr);
       log("cudaFree", result, new Object[]{devPtr});
       cudaFree_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -134,9 +134,9 @@ public class CudaDevice extends CudaSystem {
    *
    * @param cudaDeviceId the cuda device id
    */
-  public static synchronized void setDevice(final int cudaDeviceId) {
+  public static void setDevice(final int cudaDeviceId) {
     if (cudaDeviceId < 0) throw new IllegalArgumentException("cudaDeviceId=" + cudaDeviceId);
-    if (cudaDeviceId != getThreadDeviceId()) {
+    if (!isThreadDeviceId(cudaDeviceId)) {
       long startTime = System.nanoTime();
       final int result = JCuda.cudaSetDevice(cudaDeviceId);
       setDevice_execution.accept((System.nanoTime() - startTime) / 1e9);
@@ -156,7 +156,7 @@ public class CudaDevice extends CudaSystem {
    */
   @Nonnull
   CudaPointer acquire(long size, @Nonnull MemoryType type, int retries) {
-    assert CudaSystem.getThreadDeviceId() == getDeviceId();
+    assert CudaSystem.isThreadDeviceId(getDeviceId());
     if (retries < 0) throw new IllegalArgumentException();
     final DeviceMetrics metrics = ensureCapacity(size, type);
     try {
@@ -305,6 +305,7 @@ public class CudaDevice extends CudaSystem {
    */
   @Nonnull
   public CudaMemory allocate(final long size, @Nonnull MemoryType type, boolean dirty) {
+    assert CudaSystem.isThreadDeviceId(getDeviceId());
     @Nonnull CudaMemory obtain = new CudaMemory(this, size, type);
     if (!dirty) obtain.clear();
     return obtain;
@@ -506,11 +507,7 @@ public class CudaDevice extends CudaSystem {
    */
   public cudaDeviceProp getDeviceProperties() {
     if (null == deviceProperties) {
-      synchronized (this) {
-        if (null == deviceProperties) {
-          deviceProperties = getDeviceProperties(getDeviceId());
-        }
-      }
+      deviceProperties = getDeviceProperties(getDeviceId());
     }
     return deviceProperties;
   }
@@ -605,6 +602,15 @@ public class CudaDevice extends CudaSystem {
       this.hStride = hStride;
       this.wStride = wStride;
     }
-    
+  
+    /**
+     * Copy cuda tensor descriptor.
+     *
+     * @param device the device
+     * @return the cuda tensor descriptor
+     */
+    public CudaTensorDescriptor copy(CudaDevice device) {
+      return device.newTensorDescriptor(dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
+    }
   }
 }

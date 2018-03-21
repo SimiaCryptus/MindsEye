@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.lang;
 import javax.annotation.Nonnull;
 
 /**
- * Represents an evaluation record used during optimization of a function with one scalar output and many inputs. We
+ * Represents an evaluation record used during optimization of a function apply one scalar output and many inputs. We
  * track both a record of the network's state, and a record of the gradient evaluated at that point.
  */
 public final class PointSample extends ReferenceCountingBase {

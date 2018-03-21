@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Simple stochastic gradient descent run.
+ * The type Simple stochastic gradient descent apply.
  */
 public class SimpleStochasticGradientDescentTest extends MnistTestBase {
   

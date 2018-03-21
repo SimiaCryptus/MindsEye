@@ -115,25 +115,23 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    final TensorList prototype = inObj[0].getData();
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
+    final TensorList inputData = inObj[0].getData();
     if (1 == inObj.length) {
-      inObj[0].addRef();
-      prototype.addRef();
       return inObj[0];
     }
-    int[] inputDimensions = prototype.getDimensions();
+    int[] inputDimensions = inputData.getDimensions();
     assert 3 == inputDimensions.length;
-    final int length = prototype.length();
+    final int length = inputData.length();
     int[] outputDims = getOutputDims(inObj);
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final TensorList outputData = CudaSystem.eval(gpu -> {
+    final TensorList outputData = CudaSystem.run(gpu -> {
+      assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       assert outputDims[0] > 0;
       assert outputDims[1] > 0;
       assert outputDims[2] > 0;
       @Nonnull final CudaMemory outputBuffer = gpu.allocate(
-        (long) length * outputDims[2] * outputDims[1] * outputDims[0] * precision.size, MemoryType.Managed, false);
+        (long) length * outputDims[2] * outputDims[1] * outputDims[0] * precision.size, MemoryType.Managed.normalize(), false);
       int totalWidth = 0;
       int totalHeight = 0;
       int inputIndex = 0;
@@ -148,13 +146,16 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
           copies.add(new CopyParams(gpu, inObj, outputBuffer, length, outputDims, tileDimensions, inputIndex, positionX, totalHeight));
           positionX += tileDimensions[0];
           inputIndex += 1;
+          assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         }
         totalHeight += rowHeight;
         totalWidth = Math.max(totalWidth, positionX);
       }
+      assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       Stream<CopyParams> stream = copies.stream();
       if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
       stream.forEach(this::copy);
+  
       CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision, length, outputDims[2], outputDims[1], outputDims[0]);
       CudaTensor ptr = CudaTensor.wrap(outputBuffer, descriptor, precision);
       return CudaTensorList.wrap(ptr, length, outputDims, precision);
@@ -168,7 +169,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       if (error.length() != outputData.length()) {
         throw new AssertionError(error.length() + " != " + outputData.length());
       }
-      assert error.length() == prototype.length();
+      assert error.length() == length;
       
       
       int totalHeight = 0;
@@ -212,7 +213,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
    * @param backpropParams the backprop params
    */
   public void backprop(final BackpropParams backpropParams) {
-    final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
+    final TensorList passbackTensorList = CudaSystem.run(gpu -> {
       CudaTensor ptr = copy(gpu, backpropParams.getError(), backpropParams.getTileDimensions(), backpropParams.getOutputDims(), backpropParams.getLength(), -backpropParams.getPositionX(), -backpropParams.getTotalHeight());
       return CudaTensorList.wrap(ptr, backpropParams.getLength(), backpropParams.getTileDimensions(), precision);
     }, backpropParams.getError());
@@ -234,7 +235,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   public CudaTensor copy(final CudnnHandle gpu, final TensorList error, final int[] tileDimensions, final int[] outputDims, final int length, final int positionX, final int positionY) {
     @Nullable final CudaTensor errorPtr = gpu.getTensor(error, precision, MemoryType.Device, false);
     @Nonnull final CudaMemory passbackBuffer = gpu.allocate(
-      (long) length * tileDimensions[2] * tileDimensions[1] * tileDimensions[0] * precision.size, MemoryType.Managed, false);
+      (long) length * tileDimensions[2] * tileDimensions[1] * tileDimensions[0] * precision.size, MemoryType.Managed.normalize(), false);
     copy(gpu, length, outputDims, errorPtr, tileDimensions, passbackBuffer, positionX, positionY);
     errorPtr.freeRef();
     CudaDevice.CudaTensorDescriptor descriptor = gpu.newTensorDescriptor(precision, length, tileDimensions[2], tileDimensions[1], tileDimensions[0]);
@@ -248,6 +249,8 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
    */
   public void copy(final CopyParams copyParams) {
     CudnnHandle gpu = copyParams.getGpu();
+    gpu.initThread();
+    assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
     Result[] inObj = copyParams.getInObj();
     int inputIndex = copyParams.getInputIndex();
     int length = copyParams.getLength();
@@ -348,6 +351,9 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       precision.getPointer(1.0),
       destinationViewDescriptor.getPtr(), destination.getPtr().withByteOffset(destinationOffset * precision.size)
     ));
+    assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+    sourceMemory.dirty();
+    destination.dirty();
     sourceMemory.freeRef();
     Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor, destinationViewDescriptor}).forEach(ReferenceCounting::freeRef);
     return viewDim;

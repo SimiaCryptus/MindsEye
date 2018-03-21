@@ -26,12 +26,12 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer eval.
+ * The type Img crop layer apply.
  */
 public abstract class ImgZeroPaddingLayerTest extends CudaLayerTestBase {
   
   /**
-   * Instantiates a new Img crop layer eval.
+   * Instantiates a new Img crop layer apply.
    */
   public ImgZeroPaddingLayerTest() {
     validateBatchExecution = false;
@@ -49,7 +49,7 @@ public abstract class ImgZeroPaddingLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+      {1200, 1200, 3}
     };
   }
   

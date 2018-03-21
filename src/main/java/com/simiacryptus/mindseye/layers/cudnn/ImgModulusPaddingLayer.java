@@ -106,7 +106,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     assert inObj.length == 1;
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
     int inputWidth = dimensions[0];
@@ -130,14 +130,12 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
     assert outputHeight > 0;
     if (ouputWidth == inputWidth) {
       if (outputHeight == inputHeight) {
-        inObj[0].getData().addRef();
-        inObj[0].addRef();
         return inObj[0];
       }
     }
     
     @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(ouputWidth, outputHeight).setPrecision(precision);
-    @Nullable Result eval = imgCropLayer.eval(inObj);
+    @Nullable Result eval = imgCropLayer.evalAndFree(inObj);
     imgCropLayer.freeRef();
     return eval;
   }

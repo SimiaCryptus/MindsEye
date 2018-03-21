@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer run.
+ * The type Activation layer apply.
  */
 public abstract class ActivationLayerTest extends CudaLayerTestBase {
   
@@ -51,7 +51,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   private final int largeSize;
   
   /**
-   * Instantiates a new Activation layer run.
+   * Instantiates a new Activation layer apply.
    *
    * @param mode      the mode
    * @param precision the precision
@@ -121,14 +121,14 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Configured with double (64-bit) precision, y=x&lt;0?0:x
+   * Configured apply double (64-bit) precision, y=x&lt;0?0:x
    */
   public static class ReLu_Double extends ActivationLayerTest {
     /**
      * Instantiates a new Re lu double.
      */
     public ReLu_Double() {
-      super(ActivationLayer.Mode.RELU, Precision.Double, 2, 2);
+      super(ActivationLayer.Mode.RELU, Precision.Double, 2, 800);
     }
   
     @Override
@@ -138,14 +138,14 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Configured with float (32-bit) precision, y=x&lt;0?0:x
+   * Configured apply float (32-bit) precision, y=x&lt;0?0:x
    */
   public static class ReLu_Float extends ActivationLayerTest {
     /**
      * Instantiates a new Re lu float.
      */
     public ReLu_Float() {
-      super(ActivationLayer.Mode.RELU, Precision.Float, 8, 200);
+      super(ActivationLayer.Mode.RELU, Precision.Float, 2, 1200);
     }
   
     @Override
@@ -155,14 +155,14 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Configured with double (64-bit) precision using the Sigmoid function
+   * Configured apply double (64-bit) precision using the Sigmoid function
    */
   public static class Sigmoid_Double extends ActivationLayerTest {
     /**
      * Instantiates a new Sigmoid double.
      */
     public Sigmoid_Double() {
-      super(ActivationLayer.Mode.SIGMOID, Precision.Double, 8, 200);
+      super(ActivationLayer.Mode.SIGMOID, Precision.Double, 2, 1200);
     }
   
     @Override
@@ -172,14 +172,14 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Configured with float (32-bit) precision using the Sigmoid function
+   * Configured apply float (32-bit) precision using the Sigmoid function
    */
   public static class Sigmoid_Float extends ActivationLayerTest {
     /**
      * Instantiates a new Sigmoid float.
      */
     public Sigmoid_Float() {
-      super(ActivationLayer.Mode.SIGMOID, Precision.Float, 8, 200);
+      super(ActivationLayer.Mode.SIGMOID, Precision.Float, 2, 1200);
     }
   
     @Override

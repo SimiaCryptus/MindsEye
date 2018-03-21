@@ -169,10 +169,10 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   
   @Nullable
   @Override
-  public Result eval(final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     Layer explode = explode();
-    Result eval = explode.eval(inObj);
+    Result eval = explode.evalAndFree(inObj);
     explode.freeRef();
     return eval;
   }

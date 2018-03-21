@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Product layer run.
+ * The type Product layer apply.
  */
 public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
   
@@ -42,10 +42,10 @@ public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
   private final double alpha;
   
   /**
-   * Instantiates a new Product layer run.
+   * Instantiates a new Product layer apply.
    *
    * @param precision the precision
-   * @param alpha
+   * @param alpha     the alpha
    */
   public SquareActivationLayerTest(final Precision precision, final double alpha) {
     this.precision = precision;
@@ -57,6 +57,13 @@ public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
   public int[][] getSmallDims(Random random) {
     return new int[][]{
       {4, 4, 1}
+    };
+  }
+  
+  @Override
+  public int[][] getLargeDims(final Random random) {
+    return new int[][]{
+      {1200, 1200, 3}
     };
   }
   

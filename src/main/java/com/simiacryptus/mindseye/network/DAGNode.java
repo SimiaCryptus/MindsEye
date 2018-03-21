@@ -29,7 +29,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * This is a logical node used within a network graph definition. It is associated with a LayerBase WITHOUT a 1:1
+ * This is a logical node used within a network graph definition. It is associated apply a LayerBase WITHOUT a 1:1
  * relation assumtion; i.e. the same logical layer CAN be used twice in the same graph. Also, the layer assigned to a
  * node can be updated, which can be useful for adding/removing instrumentation wrappers.
  */

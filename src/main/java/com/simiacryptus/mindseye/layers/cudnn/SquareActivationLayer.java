@@ -96,8 +96,8 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     if (inObj.length != 1) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
@@ -108,10 +108,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
     }
-    inputData.addRef();
-    input.addRef();
-//   assert !right.isAlive();
-    return new Result(CudaSystem.eval(gpu -> {
+    return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
         dimensions[2], dimensions[1], dimensions[0],
@@ -127,6 +124,10 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
         precision.getPointer(alpha), inputTensor.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+      assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+      outputPtr.dirty();
+      lPtrMemory.dirty();
+      outputPtr.dirty();
       lPtrMemory.freeRef();
       inputTensor.freeRef();
       opDescriptor.freeRef();
@@ -134,7 +135,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
       return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
     }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
-        @Nonnull TensorList data = CudaSystem.eval(gpu -> {
+        @Nonnull TensorList data = CudaSystem.run(gpu -> {
           @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
           @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
             dimensions[2], dimensions[1], dimensions[0],
@@ -142,7 +143,8 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
             dimensions[1] * dimensions[0],
             dimensions[0],
             1);
-          @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+          @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
+          delta.freeRef();
           @Nullable final CudaTensor inputTensor = gpu.getTensor(input.getData(), precision, MemoryType.Device, false);
           //assert deltaTensor.size == inputTensor.size;
           @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
@@ -152,6 +154,9 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
             precision.getPointer(2), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
             precision.getPointer(alpha), inputTensor.descriptor.getPtr(), rightTensorMemory.getPtr(),
             precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+          deltaTensorMemory.dirty();
+          rightTensorMemory.dirty();
+          outputPtr.dirty();
           deltaTensorMemory.freeRef();
           rightTensorMemory.freeRef();
           CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor, precision);
@@ -161,8 +166,17 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
         }, delta);
         input.accumulate(buffer, data);
       }
+      else {
+        delta.freeRef();
+      }
     }) {
-      
+  
+      @Override
+      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
+  
       @Override
       protected void _free() {
         inputData.freeRef();
@@ -209,10 +223,21 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
     return Arrays.asList();
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
   
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
   public SquareActivationLayer setAlpha(double alpha) {
     this.alpha = alpha;
     return this;

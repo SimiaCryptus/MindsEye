@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
@@ -97,8 +98,8 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     if (inObj.length <= 1) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
@@ -107,17 +108,13 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
     }
-    for (int i = 0; i < inObj.length; i++) {
-      inObj[i].getData().addRef();
-    }
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
     for (int i = 1; i < inObj.length; i++) {
       TensorList data = inObj[i].getData();
       if (Tensor.length(dimensions) != Tensor.length(data.getDimensions())) {
         throw new IllegalArgumentException(Arrays.toString(dimensions) + " != " + Arrays.toString(data.getDimensions()));
       }
     }
-    return new Result(CudaSystem.eval(gpu -> {
+    return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
         length, dimensions[2], dimensions[1], dimensions[0],
@@ -137,6 +134,9 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
           precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
           precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
           precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+        lPtrMemory.dirty();
+        rPtrMemory.dirty();
+        outputPtr.dirty();
         lPtrMemory.freeRef();
         rPtrMemory.freeRef();
         Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, l, r}).forEach(ReferenceCounting::freeRef);
@@ -155,7 +155,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
             tensorList.addRef();
             return tensorList;
           }).reduce((l, r) -> {
-            return CudaSystem.eval(gpu -> {
+            return CudaSystem.run(gpu -> {
               @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
               @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length, dimensions[2], dimensions[1], dimensions[0], dimensions[2] * dimensions[1] * dimensions[0], dimensions[1] * dimensions[0], dimensions[0], 1);
               
@@ -169,17 +169,26 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
                 precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
                 precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
                 precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+              lPtrMemory.dirty();
+              rPtrMemory.dirty();
+              outputPtr.dirty();
               lPtrMemory.freeRef();
               rPtrMemory.freeRef();
-              Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, l, r}).forEach(ReferenceCounting::freeRef);
+              Stream.of(lPtr, rPtr, opDescriptor, l, r).forEach(ReferenceCounting::freeRef);
               return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
             }, l, r);
           }).get();
           input.accumulate(buffer, data);
         }
       }
+      delta.freeRef();
     }) {
-      
+  
+      @Override
+      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

@@ -31,7 +31,7 @@ import java.io.PrintStream;
 import java.util.Random;
 
 /**
- * The type Rescaled subnet layer run.
+ * The type Rescaled subnet layer apply.
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudaLayerTestBase
 {
@@ -65,6 +65,13 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudaLayer
   public int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}
+    };
+  }
+  
+  @Override
+  public int[][] getLargeDims(final Random random) {
+    return new int[][]{
+      {1200, 1200, 3}
     };
   }
   

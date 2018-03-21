@@ -31,9 +31,9 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import javax.annotation.Nonnull;
 
 /**
- * This strategy uses finite-difference methods to estimate a numerical derivative, and compares it with the derivative
+ * This strategy uses finite-difference methods to estimate a numerical derivative, and compares it apply the derivative
  * supplied by the heapCopy's cursor. This is a diagnostic tool; extra processing is used to estimate derivatives which
- * should agree with the programmatic derivatives to an appropriate degree.
+ * should agree apply the programmatic derivatives to an appropriate degree.
  */
 public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSearchCursor> {
   

@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,11 +56,7 @@ public class CaltechProblemData implements ImageProblemData {
   
   @Override
   public Stream<LabeledObject<Tensor>> trainingData() {
-    try {
-      return Caltech101.trainingDataStream().parallel().map(x -> x.map(y -> Tensor.fromRGB(TestUtil.resize(y.get(), getImageSize()))));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return Caltech101.trainingDataStream().parallel().map(x -> x.map(y -> Tensor.fromRGB(TestUtil.resize(y.get(), getImageSize()))));
   }
   
   @Override

@@ -25,12 +25,12 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import javax.annotation.Nullable;
 
 /**
- * The type Meta layer eval base.
+ * The type Meta layer apply base.
  */
 public abstract class MetaLayerTestBase extends LayerTestBase {
   
   /**
-   * Instantiates a new Meta layer eval base.
+   * Instantiates a new Meta layer apply base.
    */
   public MetaLayerTestBase() {
     validateBatchExecution = false;

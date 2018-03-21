@@ -37,7 +37,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 import javax.annotation.Nonnull;
 
 /**
- * The type Mnist eval base.
+ * The type Mnist apply base.
  */
 public class CifarTests {
   
@@ -165,7 +165,7 @@ public class CifarTests {
   }
   
   /**
-   * Quadratic Quasi-Newton optimization applied to basic problems with the CIFAR10 image dataset.
+   * Quadratic Quasi-Newton optimization applied to basic problems apply the CIFAR10 image dataset.
    */
   public static class QQN extends All_CIFAR_Tests {
     /**
@@ -183,7 +183,7 @@ public class CifarTests {
   }
   
   /**
-   * Classic Stochastic Gradient Descent optimization applied to basic problems with the CIFAR10 image dataset.
+   * Classic Stochastic Gradient Descent optimization applied to basic problems apply the CIFAR10 image dataset.
    */
   public static class SGD extends All_CIFAR_Tests {
     /**

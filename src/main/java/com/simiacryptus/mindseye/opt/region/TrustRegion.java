@@ -23,10 +23,10 @@ import com.simiacryptus.util.lang.NotImplementedException;
 
 /**
  * The base class for the component representing the trust region volumes used for optimization. This interface provides
- * optional use of a position history, describing previous iterations' position, along with the current position. These
+ * optional use of a position history, describing previous iterations' position, along apply the current position. These
  * states can be used to define the relevant trust region. The trust region is implemented as a projection function
  * which ensures a candidate state is either within the trust region volume, or on the boundary. If projection is
- * needed, it must end up at the boundary and it must be the closest point, with the vector from the input to point
+ * needed, it must end up at the boundary and it must be the closest point, apply the vector from the input to point
  * point being normal to the trust region surface at the position of the output.
  */
 public interface TrustRegion {

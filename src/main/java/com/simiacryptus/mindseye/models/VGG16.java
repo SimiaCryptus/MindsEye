@@ -1088,10 +1088,10 @@ public abstract class VGG16 extends ImageClassifier {
    */
   static class Static extends VGG16 {
   
-    private Static(Layer network) {this.network = network;}
+    private Static(Layer network) {this.cachedLayer = network;}
     
     @Override
-    public Layer buildNetwork() { return network;}
+    public Layer buildNetwork() { return cachedLayer;}
   }
   
 }

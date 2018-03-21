@@ -79,6 +79,10 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    */
   public ConvolutionLayer(final int width, final int height, final int inputBands, final int outputBands) {
     super();
+    assert 0 < width;
+    assert 0 < height;
+    assert 0 < inputBands;
+    assert 0 < outputBands;
     this.kernel = new Tensor(width, height, inputBands * outputBands);
     if (getKernel().getDimensions().length != 3) throw new IllegalArgumentException();
     if (getKernel().getDimensions()[0] <= 0) throw new IllegalArgumentException();
@@ -223,20 +227,20 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     final Tensor kernel = getKernel();
     kernel.addRef();
     assert kernel.isValid();
     assert 1 == inObj.length;
     assert 3 == inObj[0].getData().getDimensions().length;
     assert inputBands == inObj[0].getData().getDimensions()[2] : Arrays.toString(inObj[0].getData().getDimensions()) + "[2] != " + inputBands;
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     @Nonnull ExplodedConvolutionGrid grid = getExplodedNetwork();
     @Nonnull PipelineNetwork network = grid.getNetwork();
     if (isFrozen()) {
       network.freeze();
     }
-    final Result result = network.eval(inObj);
+    final Result result = network.evalAndFree(inObj);
     network.freeRef();
     final TensorList resultData = result.getData();
     assert inObj[0].getData().length() == resultData.length();
@@ -244,7 +248,6 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     assert outputBands == resultData.getDimensions()[2];
     ConvolutionLayer.this.addRef();
     return new Result(resultData, (@Nonnull final DeltaSet<Layer> deltaSet, @Nonnull final TensorList delta) -> {
-      delta.addRef();
       result.accumulate(deltaSet, delta);
       if (!isFrozen()) {
         Tensor read = grid.read(deltaSet, true);
@@ -252,7 +255,12 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
         read.freeRef();
       }
     }) {
-      
+
+      @Override
+      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
       @Override
       protected void _free() {
         grid.freeRef();

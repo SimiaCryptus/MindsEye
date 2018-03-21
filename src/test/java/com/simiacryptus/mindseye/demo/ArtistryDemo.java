@@ -29,12 +29,14 @@ import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.JsonUtil;
+import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.hadoop.yarn.webapp.MimeType;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -177,8 +179,10 @@ public class ArtistryDemo extends NotebookReportBase {
   
   /**
    * Init.
+   *
+   * @param log the log
    */
-  public void init() {
+  public void init(final NotebookOutput log) {
     try {
       server = new StreamNanoHTTPD(9090).init();
       server.addSyncHandler("gpu.json", MimeType.JSON, out -> {
@@ -196,5 +200,8 @@ public class ArtistryDemo extends NotebookReportBase {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    @Nonnull String logName = "cuda_" + log.getName() + ".log";
+    log.p(log.file((String) null, logName, "GPU Log"));
+    CudaSystem.addLog(new PrintStream(log.file(logName)));
   }
 }

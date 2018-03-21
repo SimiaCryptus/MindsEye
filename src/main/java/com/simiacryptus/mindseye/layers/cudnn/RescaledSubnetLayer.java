@@ -100,10 +100,10 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   
   @Nullable
   @Override
-  public Result eval(final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     log.warn("Not Implemented: " + getClass().getCanonicalName());
-    return getCompatibilityLayer().eval(inObj);
+    return getCompatibilityLayer().evalAndFree(inObj);
   }
   
   @Nonnull

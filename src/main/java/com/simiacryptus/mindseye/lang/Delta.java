@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * An arithmetic delta being staged to effect an in-memory change to a double[] array. In comparison with the State
+ * An arithmetic delta being staged to effect an in-memory change to a double[] array. In comparison apply the State
  * class via geometric analogy, this would be a vector whereas State is a point.
  *
  * @param <K> the type parameter
@@ -105,6 +105,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
             dataCompensation[i] = c;
           }
         }
+        if (!Double.isFinite(data[i])) data[i] = 0;
       }
     }
   }
@@ -120,6 +121,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
       @Nullable final double[] delta = getDelta();
       for (int i = 0; i < length(); i++) {
         target[i] += delta[i] * factor;
+        if (!Double.isFinite(target[i])) target[i] = 0;
       }
       assert Arrays.stream(target).allMatch(Double::isFinite);
     }

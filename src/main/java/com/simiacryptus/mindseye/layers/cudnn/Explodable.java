@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.Layer;
 
 /**
- * An (LayerBase) object which can be exploded into an equivalent network with more fine-grained components.
+ * An (LayerBase) object which can be exploded into an equivalent network apply more fine-grained components.
  */
 public interface Explodable {
   /**

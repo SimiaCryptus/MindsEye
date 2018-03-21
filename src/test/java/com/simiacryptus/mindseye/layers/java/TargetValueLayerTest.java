@@ -26,11 +26,11 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Target value layer eval.
+ * The type Target value layer apply.
  */
 public class TargetValueLayerTest {
   /**
-   * Basic eval.
+   * Basic apply.
    */
   public static class Normal extends LayerTestBase {
   

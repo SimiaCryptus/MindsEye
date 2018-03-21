@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Variable layer eval.
+ * The type Variable layer apply.
  */
 public abstract class VariableLayerTest extends LayerTestBase {
   

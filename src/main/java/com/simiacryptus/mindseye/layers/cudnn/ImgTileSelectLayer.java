@@ -117,58 +117,40 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     return this.as(com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer.class);
   }
   
-  @Nullable
-  @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    assert 1 == inObj.length;
-    final Result input = inObj[0];
-    assert 3 == input.getData().getDimensions().length;
-    final int length = input.getData().length();
-    @Nonnull int[] dimIn = input.getData().getDimensions();
-    if (dimIn[0] == sizeY && dimIn[1] == sizeX) {
-      input.addRef();
-      input.getData().addRef();
-      return input;
-    }
-    @Nonnull final int[] dimOut = getViewDimensions(dimIn, new int[]{sizeY, sizeX, dimIn[2]}, new int[]{positionX, positionY, 0});
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final TensorList outputData = CudaSystem.eval(gpu -> {
-      assert dimOut[0] > 0;
-      assert dimOut[1] > 0;
-      assert dimOut[2] > 0;
-      boolean dirty = dimOut[0] == dimIn[0] && dimOut[1] == dimIn[1];
-      CudaTensor cudaTensor = copy(gpu, input.getData(), length, dimIn, dimOut, dirty, this.positionX, this.positionY);
-      return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
-    }, input.getData());
-    return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
-      if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
-        throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
-      }
-      if (error.length() != outputData.length()) {
-        throw new AssertionError(error.length() + " != " + outputData.length());
-      }
-      assert error.length() == input.getData().length();
-      if (input.isAlive()) {
-        final TensorList passbackTensorList = CudaSystem.eval(gpu -> {
-          boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
-          CudaTensor cudaTensor = copy(gpu, error, length, dimOut, dimIn, dirty, -this.positionX, -this.positionY);
-          return CudaTensorList.wrap(cudaTensor, length, dimIn, precision);
-        }, error);
-        input.accumulate(buffer, passbackTensorList);
-      }
-    }) {
+  /**
+   * Copy cuda tensor.
+   *
+   * @param gpu              the gpu
+   * @param input            the input
+   * @param inputDimensions  the input dimensions
+   * @param outputDimensions the output dimensions
+   * @param precision        the precision
+   * @param positionX        the position x
+   * @param positionY        the position y
+   * @param dirty            the dirty
+   * @return the cuda tensor
+   */
+  public static CudaTensor copy(final CudnnHandle gpu, @Nonnull final TensorList input, final int[] inputDimensions, final int[] outputDimensions, Precision precision, final int positionX, final int positionY, final boolean dirty) {
+    @Nonnull final CudaMemory outputPtr = gpu.allocate((long) input.length() * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, MemoryType.Managed.normalize(), dirty);
+    return copy(gpu, input, inputDimensions, outputDimensions, positionX, positionY, precision, outputPtr);
+  }
   
-      @Override
-      protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
-      }
-  
-      @Override
-      public boolean isAlive() {
-        return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
-      }
-    };
+  /**
+   * Copy cuda tensor.
+   *
+   * @param gpu             the gpu
+   * @param input           the input
+   * @param inputDimensions the input dimensions
+   * @param positionX       the position x
+   * @param positionY       the position y
+   * @param precision       the precision
+   * @param output          the output
+   * @return the cuda tensor
+   */
+  public static CudaTensor copy(final CudnnHandle gpu, @Nonnull final TensorList input, final int[] inputDimensions, final int positionX, final int positionY, Precision precision, final CudaTensor output) {
+    return copy(gpu, input, inputDimensions,
+      new int[]{output.descriptor.width, output.descriptor.height, output.descriptor.channels},
+      positionX, positionY, precision, output.getMemory(gpu));
   }
   
   /**
@@ -176,15 +158,16 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    *
    * @param gpu              the gpu
    * @param input            the input
-   * @param length           the length
    * @param inputDimensions  the input dimensions
    * @param outputDimensions the output dimensions
-   * @param dirty            the dirty
    * @param positionX        the position x
    * @param positionY        the position y
+   * @param precision        the precision
+   * @param outputPtr        the output ptr
    * @return the cuda tensor
    */
-  public CudaTensor copy(final CudnnHandle gpu, @Nonnull final TensorList input, final int length, final int[] inputDimensions, final int[] outputDimensions, final boolean dirty, final int positionX, final int positionY) {
+  public static CudaTensor copy(final CudnnHandle gpu, @Nonnull final TensorList input, final int[] inputDimensions, final int[] outputDimensions, final int positionX, final int positionY, final Precision precision, final CudaMemory outputPtr) {
+    final int length = input.length();
     if (3 != inputDimensions.length) throw new IllegalArgumentException("inputDimensions.length");
     if (3 != outputDimensions.length) throw new IllegalArgumentException("dimOut.length");
     int bands = inputDimensions[2];
@@ -193,7 +176,6 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     //log.info(String.format("offset=%d,%d", offsetX, offsetY));
     @Nonnull final int[] viewDim = getViewDimensions(inputDimensions, outputDimensions, new int[]{positionX, positionY, 0});
     @Nullable final CudaTensor inputTensor = gpu.getTensor(input, precision, MemoryType.Device, false);
-    
     int sourceOffset = 0;
     int destinationOffset = 0;
     if (positionX < 0) {
@@ -231,7 +213,6 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
         return CudaTensor.wrap(inputTensorMemory.withByteOffset(sourceOffset * precision.size), sourceViewDescriptor, precision);
       }
       
-      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) length * outputDimensions[2] * outputDimensions[1] * outputDimensions[0] * precision.size, MemoryType.Managed, dirty);
       @Nonnull final CudaDevice.CudaTensorDescriptor destinationViewDescriptor = gpu.newTensorDescriptor(
         precision,//
         length,//
@@ -248,6 +229,9 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
         precision.getPointer(1.0),
         destinationViewDescriptor.getPtr(), outputPtr.getPtr().withByteOffset(destinationOffset * precision.size)
       ));
+      assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+      outputPtr.dirty();
+      inputTensorMemory.dirty();
       Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor}).forEach(ReferenceCounting::freeRef);
       
       @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
@@ -276,13 +260,67 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    * @return the int [ ]
    */
   @Nonnull
-  public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
+  public static int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
     @Nonnull final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i ->
       Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) -
         Math.max(offset[i], 0)
     );
     return viewDim;
+  }
+  
+  @Nullable
+  @Override
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
+    assert 1 == inObj.length;
+    final Result input = inObj[0];
+    final TensorList inputData = input.getData();
+    assert 3 == inputData.getDimensions().length;
+    final int length = inputData.length();
+    @Nonnull int[] dimIn = inputData.getDimensions();
+    if (dimIn[0] == sizeY && dimIn[1] == sizeX) {
+      return input;
+    }
+    @Nonnull final int[] dimOut = getViewDimensions(dimIn, new int[]{sizeY, sizeX, dimIn[2]}, new int[]{positionX, positionY, 0});
+    final TensorList outputData = CudaSystem.run(gpu -> {
+      assert dimOut[0] > 0;
+      assert dimOut[1] > 0;
+      assert dimOut[2] > 0;
+      boolean dirty = dimOut[0] == dimIn[0] && dimOut[1] == dimIn[1];
+      CudaTensor cudaTensor = copy(gpu, inputData, dimIn, dimOut, precision, this.positionX, this.positionY, dirty);
+      return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
+    }, inputData);
+    int[] outputDimensions = outputData.getDimensions();
+    assert length == outputData.length();
+    return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+      if (!Arrays.equals(error.getDimensions(), outputDimensions)) {
+        throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputDimensions));
+      }
+      if (error.length() != length) {
+        throw new AssertionError(error.length() + " != " + length);
+      }
+      assert error.length() == inputData.length();
+      if (input.isAlive()) {
+        final TensorList passbackTensorList = CudaSystem.run(gpu -> {
+          boolean dirty = dimOut[0] >= dimIn[0] && dimOut[1] >= dimIn[1];
+          CudaTensor cudaTensor = copy(gpu, error, dimOut, dimIn, precision, -this.positionX, -this.positionY, dirty);
+          return CudaTensorList.wrap(cudaTensor, length, dimIn, precision);
+        }, error);
+        input.accumulate(buffer, passbackTensorList);
+      }
+    }) {
+      
+      @Override
+      protected void _free() {
+        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+      }
+      
+      @Override
+      public boolean isAlive() {
+        return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
+      }
+    };
   }
   
   @Nonnull

@@ -66,8 +66,16 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    *
    * @param bands the bands
    */
-  public ImgBandBiasLayer(int bands) {
-    this.bias = new Tensor(1, 1, bands);
+  public ImgBandBiasLayer(int bands) {this(new Tensor(1, 1, bands));}
+  
+  /**
+   * Instantiates a new Product inputs layer.
+   *
+   * @param bias the bias
+   */
+  public ImgBandBiasLayer(final Tensor bias) {
+    this.bias = bias;
+    this.bias.addRef();
   }
   
   /**
@@ -106,8 +114,8 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     if (inObj.length != 1) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
@@ -118,10 +126,8 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     if (3 != inputDimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(inputDimensions));
     }
-    leftData.addRef();
-    input.addRef();
 //   assert !right.isAlive();
-    return new Result(CudaSystem.eval(gpu -> {
+    return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
         inputDimensions[2], inputDimensions[1], inputDimensions[0],
@@ -130,17 +136,21 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
         inputDimensions[0],
         1);
       @Nullable final CudaTensor inputTensor = gpu.getTensor(leftData, precision, MemoryType.Device, false);
-      CudaMemory biasMem = gpu.allocate(bias.size() * precision.size, MemoryType.Device, true).write(precision, bias.getData());
+      CudaMemory biasMem = gpu.allocate(bias.length() * precision.size, MemoryType.Device, true).write(precision, bias.getData());
       int[] biasDim = bias.getDimensions();
       CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision, 1, biasDim[2], biasDim[1], biasDim[0],
         biasDim[2] * biasDim[1] * biasDim[0], biasDim[1] * biasDim[0], biasDim[0], 1);
       //assert lPtr.size == rPtr.size;
-      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Managed, true);
+      @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Managed.normalize(), true);
       CudaMemory inputMemory = inputTensor.getMemory(gpu);
       CudaSystem.handle(gpu.cudnnOpTensor(opDescriptor.getPtr(),
         precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
         precision.getPointer(1.0), biasDescriptor.getPtr(), biasMem.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+      assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+      inputMemory.dirty();
+      biasMem.dirty();
+      outputPtr.dirty();
       inputMemory.freeRef();
       biasMem.freeRef();
       biasDescriptor.freeRef();
@@ -150,11 +160,10 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       return CudaTensorList.wrap(cudaTensor, length, inputDimensions, precision);
     }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
-        @Nonnull double[] biasDelta = CudaSystem.eval(gpu -> {
-          @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
+        @Nonnull double[] biasDelta = CudaSystem.run(gpu -> {
           @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
   
-          CudaMemory biasMem = gpu.allocate(bias.size() * precision.size, MemoryType.Device, true).write(precision, bias.getData());
+          CudaMemory biasMem = gpu.allocate(bias.length() * precision.size, MemoryType.Device, true).write(precision, bias.getData());
           int[] biasDim = bias.getDimensions();
           CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision,
             1, biasDim[2], biasDim[1], biasDim[0],
@@ -162,9 +171,11 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
           CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
           gpu.cudnnConvolutionBackwardBias(precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
             precision.getPointer(0.0), biasDescriptor.getPtr(), biasMem.getPtr());
+          assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+          biasMem.dirty();
           double[] biasV = new double[bias.length()];
           biasMem.read(precision, biasV);
-          Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, opDescriptor, biasDescriptor).forEach(ReferenceCounting::freeRef);
+          Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, biasDescriptor).forEach(ReferenceCounting::freeRef);
           return biasV;
         }, delta);
         buffer.get(ImgBandBiasLayer.this, bias).addInPlace(biasDelta).freeRef();
@@ -178,10 +189,10 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     }) {
   
       @Override
-      protected boolean autofree() {
-        return false;
+      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+        getAccumulator().accept(buffer, delta);
       }
-      
+  
       @Override
       protected void _free() {
         leftData.freeRef();
@@ -200,6 +211,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   
     };
   }
+  
   
   @Nonnull
   @Override

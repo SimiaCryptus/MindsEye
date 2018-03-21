@@ -118,7 +118,7 @@ public class TextbookOptimizers extends OptimizerComparison {
    */
   @Nonnull
   public static OptimizationStrategy stochastic_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
-    log.p("Optimized via the Stochastic Gradient Descent method with momentum and adaptve learning rate:");
+    log.p("Optimized via the Stochastic Gradient Descent method apply momentum and adaptve learning rate:");
     return log.code(() -> {
       final double carryOver = 0.5;
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)

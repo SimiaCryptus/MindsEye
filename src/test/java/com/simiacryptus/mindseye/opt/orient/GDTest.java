@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Gd run.
+ * The type Gd apply.
  */
 public class GDTest extends MnistTestBase {
   

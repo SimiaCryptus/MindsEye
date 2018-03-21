@@ -25,7 +25,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Softmax activation layer eval.
+ * The type Softmax activation layer apply.
  */
 public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
   
@@ -51,7 +51,7 @@ public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
   
   @Override
   public int[][] getLargeDims(final Random random) {
-    return new int[][]{{200, 200, 3}};
+    return new int[][]{{1200, 1200, 3}};
   }
   
   @Nonnull

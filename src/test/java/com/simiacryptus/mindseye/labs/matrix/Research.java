@@ -61,7 +61,7 @@ public class Research extends OptimizerComparison {
         .setOrientation(new RecursiveSubspace() {
           @Override
           public void train(TrainingMonitor monitor, Layer subspace) {
-            //new SingleDerivativeTester(1e-3,1e-4).run(subspace, new Tensor[]{new Tensor()});
+            //new SingleDerivativeTester(1e-3,1e-4).apply(subspace, new Tensor[]{new Tensor()});
             super.train(monitor, subspace);
           }
         })
@@ -82,7 +82,7 @@ public class Research extends OptimizerComparison {
         .setOrientation(new RecursiveSubspace() {
           @Override
           public void train(TrainingMonitor monitor, Layer subspace) {
-            //new SingleDerivativeTester(1e-3,1e-4).run(subspace, new Tensor[]{new Tensor()});
+            //new SingleDerivativeTester(1e-3,1e-4).apply(subspace, new Tensor[]{new Tensor()});
             @Nonnull ArrayTrainable trainable = new ArrayTrainable(new BasicTrainable(subspace), new Tensor[][]{{new Tensor()}});
             new IterativeTrainer(trainable)
               .setOrientation(new QQN())

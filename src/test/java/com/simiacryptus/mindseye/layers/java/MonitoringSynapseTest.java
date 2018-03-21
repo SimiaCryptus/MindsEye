@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Monitoring synapse eval.
+ * The type Monitoring synapse apply.
  */
 public abstract class MonitoringSynapseTest extends LayerTestBase {
   

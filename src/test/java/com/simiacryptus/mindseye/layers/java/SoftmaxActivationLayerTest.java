@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Softmax activation layer eval.
+ * The type Softmax activation layer apply.
  */
 public abstract class SoftmaxActivationLayerTest extends LayerTestBase {
   

@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Bisection line search run.
+ * The type Bisection line search apply.
  */
 public class BisectionLineSearchTest extends MnistTestBase {
   

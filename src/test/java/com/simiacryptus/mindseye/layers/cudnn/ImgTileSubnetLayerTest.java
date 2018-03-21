@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Rascaled subnet layer eval.
+ * The type Rascaled subnet layer apply.
  */
 public abstract class ImgTileSubnetLayerTest extends CudaLayerTestBase {
   
@@ -37,6 +37,13 @@ public abstract class ImgTileSubnetLayerTest extends CudaLayerTestBase {
   public int[][] getSmallDims(Random random) {
     return new int[][]{
       {5, 5, 1}
+    };
+  }
+  
+  @Override
+  public int[][] getLargeDims(final Random random) {
+    return new int[][]{
+      {1200, 1200, 1}
     };
   }
   

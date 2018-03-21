@@ -43,6 +43,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   
   private PoolingLayer.PoolingMode mode = PoolingLayer.PoolingMode.Max;
   private Precision precision = Precision.Double;
+  private double alpha = 1.0;
   
   /**
    * Instantiates a new Pooling layer.
@@ -60,6 +61,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     super(json);
     mode = Arrays.stream(PoolingLayer.PoolingMode.values()).filter(i -> i.id == json.get("mode").getAsInt()).findFirst().get();
     precision = Precision.valueOf(json.get("precision").getAsString());
+    alpha = json.get("alpha").getAsDouble();
   }
   
   /**
@@ -85,15 +87,16 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   
   @Nullable
   @Override
-  public Result eval(final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     final Result input = inObj[0];
     final TensorList batch = input.getData();
     @Nonnull final int[] inputSize = batch.getDimensions();
     @Nonnull PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
       .setWindowX(inputSize[1])
-      .setWindowY(inputSize[0]);
-    @Nullable Result result = impl.eval(inObj);
+      .setWindowY(inputSize[0])
+      .setAlpha(alpha);
+    @Nullable Result result = impl.evalAndFree(inObj);
     impl.freeRef();
     return result;
   }
@@ -102,6 +105,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
+    json.addProperty("alpha", alpha);
     json.addProperty("mode", mode.id);
     json.addProperty("precision", precision.name());
     return json;
@@ -147,4 +151,23 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     return Arrays.asList();
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
+  public double getAlpha() {
+    return alpha;
+  }
+  
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
+  public BandReducerLayer setAlpha(double alpha) {
+    this.alpha = alpha;
+    return this;
+  }
 }

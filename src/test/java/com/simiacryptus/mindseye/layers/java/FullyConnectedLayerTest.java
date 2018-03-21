@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Fully connected layer eval.
+ * The type Fully connected layer apply.
  */
 public abstract class FullyConnectedLayerTest extends LayerTestBase {
   

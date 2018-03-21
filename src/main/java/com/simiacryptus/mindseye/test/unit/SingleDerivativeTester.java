@@ -175,7 +175,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
   
   /**
-   * Is run feedback boolean.
+   * Is apply feedback boolean.
    *
    * @return the boolean
    */
@@ -184,10 +184,10 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
   
   /**
-   * Sets run feedback.
+   * Sets apply feedback.
    *
-   * @param testFeedback the run feedback
-   * @return the run feedback
+   * @param testFeedback the apply feedback
+   * @return the apply feedback
    */
   @Nonnull
   public SingleDerivativeTester setTestFeedback(final boolean testFeedback) {
@@ -196,7 +196,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
   
   /**
-   * Is run learning boolean.
+   * Is apply learning boolean.
    *
    * @return the boolean
    */
@@ -205,10 +205,10 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   }
   
   /**
-   * Sets run learning.
+   * Sets apply learning.
    *
-   * @param testLearning the run learning
-   * @return the run learning
+   * @param testLearning the apply learning
+   * @return the apply learning
    */
   @Nonnull
   public SingleDerivativeTester setTestLearning(final boolean testLearning) {
@@ -274,18 +274,22 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       @Nonnull final Tensor[] copyInput = Arrays.copyOf(inputPrototype, inputPrototype.length);
       copyInput[inputIndex] = inputProbe;
       Result[] input1 = ConstantResult.batchResultArray(new Tensor[][]{copyInput});
-      @Nullable final Tensor evalProbe = component.eval(input1).getDataAndFree().getAndFree(0);
-      inputProbe.freeRef();
-      for (@Nonnull Result result : input1) {
-        result.freeRef();
-        result.getData().freeRef();
+      try {
+        @Nullable final Tensor evalProbe = component.eval(input1).getDataAndFree().getAndFree(0);
+        @Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
+        for (int j = 0; j < delta.length(); j++) {
+          measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
+        }
+        evalProbe.freeRef();
+        delta.freeRef();
+      } finally {
+        inputProbe.freeRef();
+        for (@Nonnull Result result : input1) {
+          result.freeRef();
+          result.getData().freeRef();
+        }
+        
       }
-      @Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
-      evalProbe.freeRef();
-      for (int j = 0; j < delta.length(); j++) {
-        measuredGradient.set(new int[]{i, j}, delta.getData()[j]);
-      }
-      delta.freeRef();
     }
     baseOutput.freeRef();
     return measuredGradient;
@@ -343,7 +347,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
     if (isTestFeedback()) {
       output.h2("Feedback Validation");
-      output.p("We validate the agreement between the implemented derivative _of the inputs_ with finite difference estimations:");
+      output.p("We validate the agreement between the implemented derivative _of the inputs_ apply finite difference estimations:");
       final ToleranceStatistics statistics = _statistics;
       _statistics = output.code(() -> {
         return testFeedback(statistics, component, inputPrototype, outputPrototype);
@@ -351,7 +355,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
     if (isTestLearning()) {
       output.h2("Learning Validation");
-      output.p("We validate the agreement between the implemented derivative _of the internal weights_ with finite difference estimations:");
+      output.p("We validate the agreement between the implemented derivative _of the internal weights_ apply finite difference estimations:");
       final ToleranceStatistics statistics = _statistics;
       _statistics = output.code(() -> {
         return testLearning(statistics, component, inputPrototype, outputPrototype);
@@ -571,19 +575,21 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     Result[] inputs = inputCopies.stream().map(tensor -> new Result(tensor, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-    
       @Override
       public boolean isAlive() {
         return true;
       }
-    
     }).toArray(i -> new Result[i]);
-    @Nullable final Result eval = frozen.eval(inputs);
-    for (@Nonnull Result result : inputs) {
-      result.freeRef();
-    }
-    for (@Nonnull TensorArray tensorArray : inputCopies) {
-      tensorArray.freeRef();
+    @Nullable final Result eval;
+    try {
+      eval = frozen.eval(inputs);
+    } finally {
+      for (@Nonnull Result result : inputs) {
+        result.freeRef();
+      }
+      for (@Nonnull TensorArray tensorArray : inputCopies) {
+        tensorArray.freeRef();
+      }
     }
     @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
     TensorList tensorList = eval.getData();

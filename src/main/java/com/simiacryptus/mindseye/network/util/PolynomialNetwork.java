@@ -205,7 +205,7 @@ public class PolynomialNetwork extends DAGNetwork {
       elements.add(c.getJson());
     }
     json.add("corrections", elements);
-    assert null != Layer.fromJson(json) : "Smoke eval deserialization";
+    assert null != Layer.fromJson(json) : "Smoke apply deserialization";
     return json;
   }
   

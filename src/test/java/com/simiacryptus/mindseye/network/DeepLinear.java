@@ -29,7 +29,7 @@ import com.simiacryptus.util.Util;
 import javax.annotation.Nonnull;
 
 /**
- * The type Convolution network eval.
+ * The type Convolution network apply.
  */
 public abstract class DeepLinear extends NLayerTest {
   

@@ -348,20 +348,14 @@ public class EncodingUtil {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
     });
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    try {
-      return Caltech101.trainingDataStream().filter(x -> {
-        return categories.length == 0 || Arrays.asList(categories).contains(x.label);
-      }).parallel().map(labeledObj -> {
-        return new Tensor[]{
-          new Tensor(Math.max(1, categories.length)).set(Math.max(0, Arrays.asList(categories).indexOf(labeledObj.label)), 1.0),
-          Tensor.fromRGB(fn.apply(labeledObj.data.get()))
-        };
-      }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
-    } catch (@Nonnull final RuntimeException e) {
-      throw e;
-    } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
-    }
+    return Caltech101.trainingDataStream().filter(x -> {
+      return categories.length == 0 || Arrays.asList(categories).contains(x.label);
+    }).parallel().map(labeledObj -> {
+      return new Tensor[]{
+        new Tensor(Math.max(1, categories.length)).set(Math.max(0, Arrays.asList(categories).indexOf(labeledObj.label)), 1.0),
+        Tensor.fromRGB(fn.apply(labeledObj.data.get()))
+      };
+    }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
   }
   
   /**
@@ -454,10 +448,9 @@ public class EncodingUtil {
    * @param featureSpace     the feature space
    */
   public static void setInitialFeatureSpace(@Nonnull final ConvolutionLayer convolutionLayer, @Nonnull final ImgBandBiasLayer biasLayer, @Nonnull final FindFeatureSpace featureSpace) {
-    @Nonnull final int[] filterDimensions = convolutionLayer.getKernel().getDimensions();
+    Tensor kernel = convolutionLayer.getKernel();
     final int outputBands = biasLayer.getBias().length;
     assert outputBands == biasLayer.getBias().length;
-    final int inputBands = filterDimensions[2] / outputBands;
     biasLayer.setWeights(i -> {
       final double v = featureSpace.getAverages()[i];
       return Double.isFinite(v) ? v : biasLayer.getBias()[i];
@@ -466,21 +459,9 @@ public class EncodingUtil {
     for (@Nonnull final Tensor t : featureSpaceVectors) {
       log.info(String.format("Feature Vector %s%n", t.prettyPrint()));
     }
-    convolutionLayer.getKernel().setByCoord(c -> {
-      final int kband = c.getCoords()[2];
-      final int outband = kband % outputBands;
-      final int inband = (kband - outband) / outputBands;
-      assert outband < outputBands;
-      assert inband < inputBands;
-      int x = c.getCoords()[0];
-      int y = c.getCoords()[1];
-      x = filterDimensions[0] - (x + 1);
-      y = filterDimensions[1] - (y + 1);
-      final double v = featureSpaceVectors[inband].get(x, y, outband);
-      return Double.isFinite(v) ? v : convolutionLayer.getKernel().get(c);
-    });
+    PCAUtil.populatePCAKernel_1(kernel, featureSpaceVectors);
     log.info(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
-    log.info(String.format("Kernel: %s%n", convolutionLayer.getKernel().prettyPrint()));
+    log.info(String.format("Kernel: %s%n", kernel.prettyPrint()));
   }
   
   /**

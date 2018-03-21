@@ -42,7 +42,7 @@ import java.util.stream.IntStream;
  * A lower level of convolution desconstruction logic, implements support for an arbitrary number of output bands by
  * splitting the convolution into even batches of input x input kernel dimensions. These results are then concatenated
  * together as successive image bands. Even at small scale, this breakdown is required because CuDNN only supports
- * convolutions with equal input/output band counts.
+ * convolutions apply equal input/output band counts.
  */
 class ExplodedConvolutionLeg extends ReferenceCountingBase {
   private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionLeg.class);

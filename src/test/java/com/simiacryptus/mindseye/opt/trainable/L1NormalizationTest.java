@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type L 1 normalization run.
+ * The type L 1 normalization apply.
  */
 public class L1NormalizationTest extends MnistTestBase {
   

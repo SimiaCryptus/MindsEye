@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Qqn run.
+ * The type Qqn apply.
  */
 public class QQNTest extends MnistTestBase {
   

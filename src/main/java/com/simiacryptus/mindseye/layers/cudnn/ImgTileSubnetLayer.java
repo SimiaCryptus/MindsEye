@@ -21,12 +21,16 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.java.WrapperLayer;
-import com.simiacryptus.mindseye.network.DAGNode;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
@@ -93,8 +98,6 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
     width = json.getAsJsonPrimitive("width").getAsInt();
     strideX = json.getAsJsonPrimitive("strideX").getAsInt();
     strideY = json.getAsJsonPrimitive("strideY").getAsInt();
-    setParallel(json.get("parallel").getAsBoolean());
-    JsonObject subnetwork = json.getAsJsonObject("subnetwork");
     this.parallel = json.get("parallel").getAsBoolean();
   }
   
@@ -118,16 +121,28 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
     assert 1 == inObj.length;
-    @Nonnull final int[] inputDims = inObj[0].getData().getDimensions();
+    Result input = inObj[0];
+    TensorList inputData = input.getData();
+    @Nonnull final int[] inputDims = inputData.getDimensions();
     assert 3 == inputDims.length;
-    @Nonnull final PipelineNetwork network = new PipelineNetwork();
+    int bands = inputDims[2];
+    int length = inputData.length();
+    CudaTensor passback = CudaSystem.run(gpu -> {
+      return CudaTensor.wrap(
+        gpu.allocate(inputData.getElements() * precision.size, MemoryType.Managed, true),
+        gpu.newTensorDescriptor(precision, length, inputDims[2], inputDims[1], inputDims[0]),
+        precision);
+    });
     try {
+      AtomicInteger counter = new AtomicInteger(0);
       int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
       int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
       if (cols == 1 && rows == 1) return getInner().evalAndFree(inObj);
-      DAGNode input = network.getInput(0);
-      ArrayList<DAGNode> nodes = new ArrayList<>();
+      ArrayList<CudaTensor> tiles = new ArrayList<>();
+      int[] tileDimensions = {width, height, bands};
+      Result[][] tileResults = new Result[rows][];
       for (int row = 0; row < rows; row++) {
+        tileResults[row] = new Result[cols];
         for (int col = 0; col < cols; col++) {
           int positionX = col * strideX;
           int positionY = row * strideY;
@@ -135,19 +150,38 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
           assert positionY >= 0;
           assert positionX < inputDims[0];
           assert positionY < inputDims[1];
-          nodes.add(
-            network.add(getInner(),
-              network.wrap(
-                new ImgTileSelectLayer(width, height, positionX, positionY).setPrecision(precision),
-                input))
-          );
+  
+          CudaTensor tile = CudaSystem.run(gpu -> {
+            return ImgTileSelectLayer.copy(gpu, inputData,
+              inputData.getDimensions(), tileDimensions, precision, positionX, positionY, true
+            );
+          });
+  
+          passback.addRef();
+          tileResults[row][col] = getInner().eval(new Result(CudaTensorList.wrap(tile, length, tileDimensions, precision),
+            (DeltaSet<Layer> ctx, TensorList delta) -> {
+              CudaSystem.run(gpu -> {
+                ImgTileSelectLayer.copy(gpu, delta, tileDimensions, -positionX, -positionY, precision, passback);
+              });
+              if (counter.incrementAndGet() >= rows * cols) {
+                counter.set(0);
+                input.accumulate(ctx, CudaTensorList.create(passback, length, inputDims, precision));
+              }
+            }) {
+            @Override
+            protected void _free() {
+              super._free();
+              passback.freeRef();
+            }
+          });
         }
       }
       logger.debug(String.format("Broke input %s into %s rows, %s cols", Arrays.toString(inputDims), rows, cols));
-      network.wrap(new ImgTileAssemblyLayer(cols, rows).setParallel(parallel).setPrecision(precision), nodes.toArray(new DAGNode[]{})).setParallel(parallel);
-      return network.evalAndFree(inObj);
+      return new ImgTileAssemblyLayer(cols, rows).setParallel(parallel).setPrecision(precision).evalAndFree(
+        Arrays.stream(tileResults).flatMap(Arrays::stream).toArray(i -> new Result[i])
+      );
     } finally {
-      network.freeRef();
+      passback.freeRef();
     }
   }
   
@@ -160,8 +194,6 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     json.addProperty("precision", precision.name());
-    json.addProperty("parallel", isParallel());
-    json.add("subnetwork", getInner().getJson(resources, dataSerializer));
     json.addProperty("parallel", isParallel());
     return json;
   }

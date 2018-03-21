@@ -23,12 +23,12 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgMinSizeLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgModulusPaddingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer;
 import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
@@ -57,7 +57,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   /**
    * The Pipeline network.
    */
-  protected final PipelineNetwork pipelineNetwork = new PipelineNetwork();
+  protected final PipelineNetwork pipeline = new PipelineNetwork();
   /**
    * The Hdf 5.
    */
@@ -92,7 +92,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * @param layer the layer
    */
   protected void add(@Nonnull Layer layer) {
-    this.prototype = evaluatePrototype(add(layer, pipelineNetwork), this.prototype, cnt++);
+    this.prototype = evaluatePrototype(add(layer, pipeline), this.prototype, cnt++);
   }
   
   public Layer buildNetwork() {
@@ -101,7 +101,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     phase1();
     phase2();
     phase3();
-    return pipelineNetwork;
+    return pipeline;
   }
   
   /**
@@ -116,19 +116,27 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   }
   
   /**
+   * Phase 0.
+   */
+  protected void phase0() {
+    add(new ImgMinSizeLayer(226, 226));
+  }
+  
+  /**
+   * Phase 1 a.
+   */
+  protected void phase1a() {
+    addConvolutionLayer(3, 3, 64, ActivationLayer.Mode.RELU, "layer_1");
+    addConvolutionLayer(3, 64, 64, ActivationLayer.Mode.RELU, "layer_3");
+  }
+  
+  /**
    * Phase 1 b.
    */
   protected void phase1b() {
     addPoolingLayer(2);
     addConvolutionLayer(3, 64, 128, ActivationLayer.Mode.RELU, "layer_6");
     addConvolutionLayer(3, 128, 128, ActivationLayer.Mode.RELU, "layer_8");
-  }
-  
-  /**
-   * Phase 0.
-   */
-  protected void phase0() {
-    add(new ImgMinSizeLayer(226, 226));
   }
   
   /**
@@ -139,14 +147,6 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     addConvolutionLayer(3, 128, 256, ActivationLayer.Mode.RELU, "layer_11");
     addConvolutionLayer(3, 256, 256, ActivationLayer.Mode.RELU, "layer_13");
     addConvolutionLayer(3, 256, 256, ActivationLayer.Mode.RELU, "layer_15");
-  }
-  
-  /**
-   * Phase 1 a.
-   */
-  protected void phase1a() {
-    addConvolutionLayer(3, 3, 64, ActivationLayer.Mode.RELU, "layer_1");
-    addConvolutionLayer(3, 64, 64, ActivationLayer.Mode.RELU, "layer_3");
   }
   
   /**
@@ -491,8 +491,8 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
         .set((hdf5.readDataSet("param_1", "layer_36")))
         .setName("bias_36"));
       add(new SoftmaxActivationLayer());
-      setPrecision(pipelineNetwork);
-      return pipelineNetwork;
+      setPrecision(pipeline);
+      return pipeline;
     }
     
     public void addPoolingLayer(final int size) {
@@ -537,7 +537,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       PipelineNetwork stochasticNet = new PipelineNetwork(1);
       
       DAGNode prev = stochasticNet.getHead();
-      stochasticNet.wrap(new GateProductLayer(), prev,
+      stochasticNet.wrap(new ProductLayer(), prev,
         stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{}));
       
       stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 4096)
@@ -551,7 +551,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
         .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
       
       prev = stochasticNet.getHead();
-      stochasticNet.wrap(new GateProductLayer(), prev,
+      stochasticNet.wrap(new ProductLayer(), prev,
         stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{}));
       
       stochasticNet.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));

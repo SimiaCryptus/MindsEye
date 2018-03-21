@@ -19,26 +19,27 @@
 
 package com.simiacryptus.mindseye.demo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.SampledArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.labs.encoding.PCAUtil;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
+import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer;
-import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayer;
-import com.simiacryptus.mindseye.layers.java.SumReducerLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
@@ -50,12 +51,13 @@ import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.opt.orient.RecursiveSubspace;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.lang.TimedResult;
+import com.simiacryptus.util.lang.Tuple2;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -63,17 +65,18 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Image classifier run base.
+ * The type Image classifier apply base.
  */
 public class StyleTransferDemo extends ArtistryDemo {
   
@@ -81,156 +84,20 @@ public class StyleTransferDemo extends ArtistryDemo {
   /**
    * The Texture netork.
    */
-  Layer textureNetwork;
+  int imageSize = 600;
   
   /**
-   * Test.
+   * With clamp pipeline network.
    *
-   * @throws Throwable the throwable
+   * @param network1 the network 1
+   * @return the pipeline network
    */
-  @Test
-  public void run() {
-    run(this::run);
-  }
-  
-  /**
-   * Test.
-   *
-   * @param log the log
-   */
-  public void run(@Nonnull NotebookOutput log) {
-    init();
-    
-    List<String> control = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\photos");
-    List<String> target = Arrays.asList("H:\\SimiaCryptus\\Artistry\\portraits\\picasso");
-    String input = "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg";
-  
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
-    log.p(log.file((String) null, logName, "GPU Log"));
-    CudaSystem.addLog(new PrintStream(log.file(logName)));
-  
-    Precision precision = Precision.Float;
-    log.h1("Model");
-    Layer trainedCategorizer = buildCategorizer(precision);
-    
-    Layer fullNetwork = log.code(() -> {
-      try {
-        return new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase3() {
-            textureNetwork = pipelineNetwork.copy().freeze();
-            add(trainedCategorizer);
-          }
-        };
-      } catch (@Nonnull final RuntimeException e) {
-        throw e;
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    }).getNetwork().freeze();
-    //textureNetork = new RescaledSubnetLayer(2,textureNetork);
-  
-    Tensor[][] rawTrainingData = Stream.concat(
-      control.stream().flatMap(f -> loadTiles(f, 1.0, 0.0)),
-      target.stream().flatMap(f -> loadTiles(f, 0.0, 1.0))
-    ) //
-      .limit(10)
-      .toArray(i -> new Tensor[i][]);
-  
-    Tensor[][] inputData = Stream.concat(
-      Stream.of(input).map(img -> {
-        try {
-          BufferedImage image = ImageIO.read(new File(img));
-          image = TestUtil.resize(image, 600, true);
-          return new Tensor[]{Tensor.fromRGB(image), new Tensor(new double[]{0.0, 1.0}, 1, 1, 2)};
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }),
-      Stream.empty()
-    ) //
-      //.flatMap(ts -> ImageTiles.toTiles(ts[0].toImage(), 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> new Tensor[]{t, ts[1]}))
-      .toArray(i -> new Tensor[i][]);
-  
-    Tensor[][] preprocessedTrainingData = IntStream.range(0, rawTrainingData.length).mapToObj(i -> {
-      Tensor[] x = rawTrainingData[i];
-      TimedResult<Tensor[]> timedResult = TimedResult.time(() -> new Tensor[]{textureNetwork.eval(x[0]).getDataAndFree().getAndFree(0), x[1]});
-      logger.info(String.format("Preprocessed record %d/%d in %.3f", i, rawTrainingData.length, timedResult.seconds()));
-      return timedResult.result;
-    }).toArray(i -> new Tensor[i][]);
-  
-    log.h1("Model Training");
-  
-    @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    @Nonnull PipelineNetwork supervised1 = new PipelineNetwork(2);
-    supervised1.wrap(getLossLayer(),
-      supervised1.add(trainedCategorizer, supervised1.getInput(0)),
-      supervised1.getInput(1));
-    supervised1.setFrozen(false);
-    setPrecision(supervised1, precision);
-    TestUtil.instrumentPerformance(log, supervised1);
-    addLayersHandler(supervised1, server);
-    SampledArrayTrainable sampledArrayTrainable = new SampledArrayTrainable(preprocessedTrainingData, supervised1, 10, 1);
-    sampledArrayTrainable.getInner().setVerbose(true);
-    double terminateThreshold = 1e-3;
-    new IterativeTrainer(sampledArrayTrainable)
-      .setMonitor(getTrainingMonitor(history))
-      .setOrientation(new RecursiveSubspace().setTerminateThreshold(terminateThreshold))
-      .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-      .setTimeout(60, TimeUnit.MINUTES)
-      .setTerminateThreshold(terminateThreshold)
-      .runAndFree();
-    log.code(() -> {
-      return TestUtil.plot(history);
-    });
-    fullNetwork.freeze();
-  
-    log.h1("Output Processing");
-    for (int itemNumber = 0; itemNumber < inputData.length; itemNumber++) {
-      log.h1("Image " + itemNumber);
-      @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(inputData[itemNumber]);
-      log.code(() -> {
-        for (Tensor[] tensors : data) {
-          try {
-            logger.info(log.image(tensors[0].toImage(), "") + tensors[1]);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-      });
-      history.clear();
-      @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      @Nonnull PipelineNetwork supervised2 = new PipelineNetwork(2);
-      InnerNode clamped = supervised2.wrap(clamp, supervised2.getInput(0));
-      supervised2.wrap(getLossLayer(),
-        supervised2.add(fullNetwork, clamped),
-        supervised2.getInput(1));
-      TestUtil.monitorImage(data.get(0)[0], false);
-      @Nonnull Trainable trainable = new ArrayTrainable(supervised2, 1).setVerbose(true).setMask(true, false).setData(data);
-      TestUtil.instrumentPerformance(log, supervised2);
-      addLayersHandler(supervised2, server);
-      new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history))
-        .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(180, TimeUnit.MINUTES)
-        .runAndFree();
-      log.code(() -> {
-        return TestUtil.plot(history);
-      });
-  
-      try {
-        log.p(log.image(inputData[itemNumber][0].toImage(), "result"));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-  
-    log.setFrontMatterProperty("status", "OK");
+  @Nonnull
+  public static PipelineNetwork withClamp(final PipelineNetwork network1) {
+    PipelineNetwork network = new PipelineNetwork(1);
+    network.wrap(getClamp(255));
+    network.wrap(network1);
+    return network;
   }
   
   /**
@@ -239,7 +106,7 @@ public class StyleTransferDemo extends ArtistryDemo {
    * @param network   the network
    * @param precision the precision
    */
-  public void setPrecision(final DAGNetwork network, final Precision precision) {
+  public static void setPrecision(final DAGNetwork network, final Precision precision) {
     network.visitLayers(layer -> {
       if (layer instanceof MultiPrecision) {
         ((MultiPrecision) layer).setPrecision(precision);
@@ -247,55 +114,456 @@ public class StyleTransferDemo extends ArtistryDemo {
     });
   }
   
-  private Stream<Tensor[]> loadTiles(final String f, final double... category) {
-    return Arrays.stream(new File(f).listFiles()).flatMap(img -> {
-      BufferedImage image;
+  /**
+   * Pca tensor.
+   *
+   * @param cov   the cov
+   * @param power the power
+   * @return the tensor
+   */
+  @Nonnull
+  public static Tensor pca(final Tensor cov, final double power) {
+    final int inputbands = (int) Math.sqrt(cov.getDimensions()[2]);
+    final int outputbands = inputbands;
+    Array2DRowRealMatrix realMatrix = new Array2DRowRealMatrix(inputbands, inputbands);
+    cov.coordStream(false).forEach(c -> {
+      double v = cov.get(c);
+      int x = c.getIndex() % inputbands;
+      int y = (c.getIndex() - x) / inputbands;
+      realMatrix.setEntry(x, y, v);
+    });
+    Tensor[] features = PCAUtil.pcaFeatures(realMatrix, outputbands, new int[]{1, 1, inputbands}, power);
+    Tensor kernel = new Tensor(1, 1, inputbands * outputbands);
+    PCAUtil.populatePCAKernel_1(kernel, features);
+    return kernel;
+  }
+  
+  /**
+   * Randomize buffered image.
+   *
+   * @param contentImage the content image
+   * @return the buffered image
+   */
+  @Nonnull
+  public BufferedImage randomize(final BufferedImage contentImage) {
+    return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random() * 100).toRgbImage();
+  }
+  
+  /**
+   * Gets clamp.
+   *
+   * @param max the max
+   * @return the clamp
+   */
+  @Nonnull
+  public static PipelineNetwork getClamp(final int max) {
+    @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(max).setScale(-1).freeze());
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(max).setScale(-1).freeze());
+    return clamp;
+  }
+  
+  /**
+   * To json string.
+   *
+   * @param styleParameters the style parameters
+   * @return the string
+   */
+  public static String toJson(final StyleSetup styleParameters) {
+    String json;
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+      json = mapper.writeValueAsString(styleParameters);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+    return json;
+  }
+  
+  /**
+   * Load buffered image.
+   *
+   * @param image     the style
+   * @param imageSize the image size
+   * @return the buffered image
+   */
+  @Nonnull
+  public static BufferedImage load(final String image, final int imageSize) {
+    BufferedImage bufferedImage;
+    try {
+      bufferedImage = ImageIO.read(new File(image));
+      bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return bufferedImage;
+  }
+  
+  /**
+   * Load buffered image.
+   *
+   * @param imageFile the style
+   * @param width     the width
+   * @param height    the height
+   * @return the buffered image
+   */
+  @Nonnull
+  public static BufferedImage load(final String imageFile, final int width, final int height) {
+    BufferedImage image;
+    try {
+      image = ImageIO.read(new File(imageFile));
+      image = TestUtil.resize(image, width, height);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return image;
+  }
+  
+  /**
+   * Test.
+   *
+   * @throws Throwable the throwable
+   */
+  @Test
+  public void run() {
+    run(this::run, "StyleTransfer_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
+  }
+  
+  /**
+   * Style transfer buffered image.
+   *
+   * @param log             the log
+   * @param canvasImage     the canvas image
+   * @param styleParameters the style parameters
+   * @param trainingMinutes the training minutes
+   * @return the buffered image
+   */
+  @Nonnull
+  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup styleParameters, final int trainingMinutes) {
+    NeuralSetup neuralSetup = new NeuralSetup(log, styleParameters).init();
+    PipelineNetwork network = neuralSetup.fitnessNetwork(log);
+    log.p("Input: ");
+    log.code(() -> {
+      return toJson(styleParameters);
+    });
+    try {
+      log.p(log.image(styleParameters.contentImage, "Content Image"));
+      styleParameters.styleImages.forEach(styleImage -> {
+        try {
+          log.p(log.image(styleImage, "Style Image"));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+      log.p(log.image(canvasImage, "Input Canvas"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    BufferedImage result = train(log, canvasImage, network, styleParameters.precision, trainingMinutes);
+    try {
+      log.p(log.image(result, "Output Canvas"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return result;
+  }
+  
+  /**
+   * Texture 1 d pipeline network.
+   *
+   * @param log the log
+   * @return the pipeline network
+   */
+  public PipelineNetwork texture_0(@Nonnull final NotebookOutput log) {
+    final PipelineNetwork[] layers = new PipelineNetwork[1];
+    log.code(() -> {
       try {
-        image = ImageIO.read(img);
-      } catch (IOException e) {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase0() {
+            super.phase0();
+            layers[0] = (PipelineNetwork) pipeline.freeze();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.setLarge(true).getNetwork();
+      } catch (@Nonnull final RuntimeException e) {
+      } catch (Throwable e) {
         throw new RuntimeException(e);
       }
-      return Stream.<Tensor[]>of(new Tensor[]{
-        Tensor.fromRGB(TestUtil.resize(image, 600, true)),
-        new Tensor(category, 1, 1, category.length)
-      });
-
-//      Stream<Tensor[]> stream = ImageTiles.toTiles(image, 250, 250, 250, 250, Integer.MAX_VALUE, Integer.MAX_VALUE).stream().map(t -> {
-//        return new Tensor[]{t, new Tensor(category)};
-//      });
-//      return stream;
     });
+    return layers[0];
   }
   
   /**
-   * Gets loss layer.
+   * Texture 1 d pipeline network.
    *
-   * @return the loss layer
+   * @param log the log
+   * @return the pipeline network
    */
-  @Nonnull
-  public Layer getLossLayer() {
-    return new EntropyLossLayer();
+  public PipelineNetwork texture_1a(@Nonnull final NotebookOutput log) {
+    final PipelineNetwork[] layers = new PipelineNetwork[1];
+    log.code(() -> {
+      try {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase1a() {
+            super.phase1a();
+            layers[0] = (PipelineNetwork) pipeline.freeze();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.setLarge(true).getNetwork();
+      } catch (@Nonnull final RuntimeException e) {
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+    });
+    return layers[0];
   }
   
   /**
-   * Build categorizer com . simiacryptus . mindseye . lang . layer.
+   * Texture 1 d pipeline network.
    *
-   * @param precision the precision
-   * @return the com . simiacryptus . mindseye . lang . layer
+   * @param log the log
+   * @return the pipeline network
+   */
+  public PipelineNetwork texture_1b(@Nonnull final NotebookOutput log) {
+    final PipelineNetwork[] layers = new PipelineNetwork[1];
+    log.code(() -> {
+      try {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase1b() {
+            super.phase1b();
+            layers[0] = (PipelineNetwork) pipeline.freeze();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.setLarge(true).getNetwork();
+      } catch (@Nonnull final RuntimeException e) {
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+    });
+    return layers[0];
+  }
+  
+  /**
+   * Texture 1 d pipeline network.
+   *
+   * @param log the log
+   * @return the pipeline network
+   */
+  public PipelineNetwork texture_1c(@Nonnull final NotebookOutput log) {
+    final PipelineNetwork[] layers = new PipelineNetwork[1];
+    log.code(() -> {
+      try {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase1c() {
+            super.phase1c();
+            layers[0] = (PipelineNetwork) pipeline.freeze();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.setLarge(true).getNetwork();
+      } catch (@Nonnull final RuntimeException e) {
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+    });
+    return layers[0];
+  }
+  
+  /**
+   * Texture 1 d pipeline network.
+   *
+   * @param log the log
+   * @return the pipeline network
+   */
+  public PipelineNetwork texture_1d(@Nonnull final NotebookOutput log) {
+    final PipelineNetwork[] layers = new PipelineNetwork[1];
+    log.code(() -> {
+      try {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase1d() {
+            super.phase1d();
+            layers[0] = (PipelineNetwork) pipeline.freeze();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.getNetwork();
+      } catch (@Nonnull final RuntimeException e) {
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+    });
+    return layers[0];
+  }
+  
+  /**
+   * Texture 1 d pipeline network.
+   *
+   * @param log the log
+   * @return the pipeline network
+   */
+  public PipelineNetwork texture_1e(@Nonnull final NotebookOutput log) {
+    final PipelineNetwork[] layers = new PipelineNetwork[1];
+    log.code(() -> {
+      try {
+        new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase1e() {
+            super.phase1e();
+            layers[0] = (PipelineNetwork) pipeline.freeze();
+            throw new RuntimeException("Abort Network Construction");
+          }
+        }.getNetwork();
+      } catch (@Nonnull final RuntimeException e) {
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+    });
+    return layers[0];
+  }
+  
+  /**
+   * Gram pipeline network.
+   *
+   * @param network the network
+   * @param mean    the mean
+   * @return the pipeline network
    */
   @Nonnull
-  protected Layer buildCategorizer(final Precision precision) {
-    PipelineNetwork trainedCategorizer = new PipelineNetwork();
-//    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 4096)
-//      .setPaddingXY(0, 0).setWeightsLog(-4));
-//    trainedCategorizer.add(new ImgBandBiasLayer(4096).setWeightsLog(-4));
-//    trainedCategorizer.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
-      .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-    trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-    trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-    trainedCategorizer.add(new SoftmaxActivationLayer());
-    return trainedCategorizer;
+  public PipelineNetwork gram(final PipelineNetwork network, Tensor mean) {
+    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
+    network.wrap(new GramianLayer());
+    return network;
+  }
+  
+  /**
+   * Load list.
+   *
+   * @param style     the style
+   * @param imageSize the image size
+   * @return the list
+   */
+  @Nonnull
+  public List<BufferedImage> load(final List<String> style, final int imageSize) {
+    return style.stream().map(x -> load(x, imageSize)).collect(Collectors.toList());
+  }
+  
+  /**
+   * Test.
+   *
+   * @param log the log
+   */
+  public void run(@Nonnull NotebookOutput log) {
+    init(log);
+    Precision precision = Precision.Float;
+    imageSize = 400;
+    double growthFactor = Math.sqrt(1.5);
+//    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
+    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+//    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+  
+    List<String> styles = Arrays.asList(content,
+      //"H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\1280px-Van_Gogh_-_Kauernder_Junge_mit_Sichel.jpg",
+      "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg"
+    );
+    double contentGate = 1e5;
+    ContentCoefficients contentCoefficients = new ContentCoefficients(
+      contentGate * 0,
+      contentGate * 0,
+      contentGate * 1e-2,
+      contentGate * 1e-2,
+      contentGate * 1e-2,
+      contentGate * 1e-2);
+    StyleCoefficients styleCoefficients_content = new StyleCoefficients(
+      1e2, 1e1,
+      0, 0,
+      0, 0,
+      0, 0,
+      0, 0,
+      0, 0, false);
+    StyleCoefficients styleCoefficients1 = new StyleCoefficients(
+      1e-2, 1e-3,
+      1e-3, 1e-7,
+      1e-5, 1e-3,
+      1e-3, 1e-7,
+      1e-3, 1e-7,
+      1e-3, 1e-7, false);
+    double power = 0.0;
+    List<StyleCoefficients> styleCoefficientsList = Stream.concat(
+      Stream.of(styleCoefficients_content),
+      IntStream.range(0, styles.size() - 1).mapToObj(img1 -> styleCoefficients1)
+    ).collect(Collectors.toList());
+    int trainingMinutes = 90;
+  
+    log.h1("Input");
+    BufferedImage canvasImage = load(content, imageSize);
+    canvasImage = randomize(canvasImage);
+    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+    BufferedImage contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+    List<BufferedImage> styleImages = styles.stream().map(x -> load(x, x == content ? ((int) (imageSize * 1.5)) : imageSize)).collect(Collectors.toList());
+    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficientsList, power), trainingMinutes);
+    for (int i = 0; i < 10; i++) {
+      imageSize = (int) (imageSize * growthFactor);
+      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+      contentImage = load(content, canvasImage.getWidth(), canvasImage.getHeight());
+      styleImages = styles.stream().map(x -> load(x, x == content ? ((int) (imageSize * 1.5)) : imageSize)).collect(Collectors.toList());
+      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styleCoefficientsList, power), trainingMinutes);
+    }
+    
+    log.setFrontMatterProperty("status", "OK");
+  }
+  
+  /**
+   * Avg pipeline network.
+   *
+   * @param network the network
+   * @return the pipeline network
+   */
+  @Nonnull
+  public PipelineNetwork avg(final PipelineNetwork network) {
+    network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
+    return network;
+  }
+  
+  /**
+   * Train buffered image.
+   *
+   * @param log             the log
+   * @param canvasImage     the canvas image
+   * @param network         the network
+   * @param precision       the precision
+   * @param trainingMinutes the training minutes
+   * @return the buffered image
+   */
+  @Nonnull
+  public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
+    log.h1("Output");
+    System.gc();
+    Tensor canvas = Tensor.fromRGB(canvasImage);
+    TestUtil.monitorImage(canvas, false, false);
+    network.setFrozen(true);
+    setPrecision(network, precision);
+    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+    TestUtil.instrumentPerformance(log, network);
+    addLayersHandler(network, server);
+  
+    log.code(() -> {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      new IterativeTrainer(trainable)
+        .setMonitor(getTrainingMonitor(history))
+        .setOrientation(new QQN())
+        //.setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+        .setTimeout(trainingMinutes, TimeUnit.MINUTES)
+        .runAndFree();
+      return TestUtil.plot(history);
+    });
+    return canvas.toImage();
   }
   
   /**
@@ -307,17 +575,6 @@ public class StyleTransferDemo extends ArtistryDemo {
   @Nonnull
   public TrainingMonitor getTrainingMonitor(@Nonnull ArrayList<StepRecord> history) {
     return TestUtil.getMonitor(history);
-  }
-  
-  /**
-   * Gets shuffle comparator.
-   *
-   * @param <T> the type parameter
-   * @return the shuffle comparator
-   */
-  public <T> Comparator<T> getShuffleComparator() {
-    final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
-    return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
   
   /**
@@ -337,89 +594,678 @@ public class StyleTransferDemo extends ArtistryDemo {
   }
   
   /**
-   * The type Variant 1.
+   * Gram pipeline network.
+   *
+   * @param network      the network
+   * @param mean         the mean
+   * @param pcaTransform the pca transform
+   * @return the pipeline network
    */
-  public static class Variant1 extends StyleTransferDemo {
-    @Nonnull
-    @Override
-    public Layer getLossLayer() {
-      return new EntropyLossLayer();
-    }
-    
-    @Nonnull
-    @Override
-    protected Layer buildCategorizer(final Precision precision) {
-      PipelineNetwork trainedCategorizer = new PipelineNetwork();
-      
-      trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
-        .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-      trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-      trainedCategorizer.add(new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
-      trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-      return trainedCategorizer;
-    }
+  @Nonnull
+  public PipelineNetwork gram(final PipelineNetwork network, Tensor mean, Tensor pcaTransform) {
+    int[] dimensions = pcaTransform.getDimensions();
+    int inputBands = mean.getDimensions()[2];
+    int pcaBands = dimensions[2];
+    int outputBands = pcaBands / inputBands;
+    int width = dimensions[0];
+    int height = dimensions[1];
+    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
+    network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform));
+    network.wrap(new GramianLayer());
+    return network;
   }
   
   /**
-   * The type Variant 3.
+   * The type Content coefficients.
    */
-  public static class Variant3 extends StyleTransferDemo {
-    @Nonnull
-    @Override
-    public Layer getLossLayer() {
-      return new EntropyLossLayer();
+  public static class ContentCoefficients {
+    /**
+     * The Coeff content 0.
+     */
+    public final double coeff_content_0;
+    /**
+     * The Coeff content 1 a.
+     */
+    public final double coeff_content_1a;
+    /**
+     * The Coeff content 1 b.
+     */
+    public final double coeff_content_1b;
+    /**
+     * The Coeff content 1 c.
+     */
+    public final double coeff_content_1c;
+    /**
+     * The Coeff content 1 d.
+     */
+    public final double coeff_content_1d;
+    /**
+     * The Coeff content 1 e.
+     */
+    public final double coeff_content_1e;
+  
+    /**
+     * Instantiates a new Content coefficients.
+     *
+     * @param coeff_content_0  the coeff content 0
+     * @param coeff_content_1a the coeff content 1 a
+     * @param coeff_content_1b the coeff content 1 b
+     * @param coeff_content_1c the coeff content 1 c
+     * @param coeff_content_1d the coeff content 1 d
+     * @param coeff_content_1e the coeff content 1 e
+     */
+    public ContentCoefficients(final double coeff_content_0, final double coeff_content_1a, final double coeff_content_1b, final double coeff_content_1c, final double coeff_content_1d, final double coeff_content_1e) {
+      this.coeff_content_0 = coeff_content_0;
+      this.coeff_content_1a = coeff_content_1a;
+      this.coeff_content_1b = coeff_content_1b;
+      this.coeff_content_1c = coeff_content_1c;
+      this.coeff_content_1d = coeff_content_1d;
+      this.coeff_content_1e = coeff_content_1e;
     }
     
-    @Nonnull
-    @Override
-    protected Layer buildCategorizer(final Precision precision) {
-      PipelineNetwork trainedCategorizer = new PipelineNetwork();
-      
-      double density = 0.5;
-      int hiddenBands = 4096;
-      trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, hiddenBands)
-        .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-      InnerNode node1 = trainedCategorizer.add(new ImgBandBiasLayer(hiddenBands).setWeightsLog(-4));
-      trainedCategorizer.wrap(new GateProductLayer(), node1,
-        trainedCategorizer.wrap(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, hiddenBands), new DAGNode[]{}));
-      trainedCategorizer.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));
-      
-      trainedCategorizer.add(new ConvolutionLayer(1, 1, hiddenBands, 2)
-        .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-      trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-      trainedCategorizer.add(new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
-      trainedCategorizer.add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
-      setPrecision(trainedCategorizer, precision);
-  
-      return new StochasticSamplingSubnetLayer(trainedCategorizer, 3);
-    }
   }
   
   /**
-   * The type Variant 2.
+   * The type Style coefficients.
    */
-  public static class Variant2 extends StyleTransferDemo {
+  public static class StyleCoefficients {
+    /**
+     * The Coeff style mean 0.
+     */
+    public final double coeff_style_mean_0;
+    /**
+     * The Coeff style cov 0.
+     */
+    public final double coeff_style_cov_0;
+    /**
+     * The Coeff style mean 1 a.
+     */
+    public final double coeff_style_mean_1a;
+    /**
+     * The Coeff style cov 1 a.
+     */
+    public final double coeff_style_cov_1a;
+    /**
+     * The Coeff style mean 1 b.
+     */
+    public final double coeff_style_mean_1b;
+    /**
+     * The Coeff style cov 1 b.
+     */
+    public final double coeff_style_cov_1b;
+    /**
+     * The Coeff style mean 1 c.
+     */
+    public final double coeff_style_mean_1c;
+    /**
+     * The Coeff style cov 1 c.
+     */
+    public final double coeff_style_cov_1c;
+    /**
+     * The Coeff style mean 1 d.
+     */
+    public final double coeff_style_mean_1d;
+    /**
+     * The Coeff style cov 1 d.
+     */
+    public final double coeff_style_cov_1d;
+    /**
+     * The Coeff style mean 1 e.
+     */
+    public final double coeff_style_mean_1e;
+    /**
+     * The Coeff style cov 1 e.
+     */
+    public final double coeff_style_cov_1e;
+    /**
+     * The Dynamic center.
+     */
+    public final boolean dynamic_center;
+  
+    /**
+     * Instantiates a new Style coefficients.
+     *
+     * @param coeff_style_mean_0  the coeff style mean 0
+     * @param coeff_style_cov_0   the coeff style cov 0
+     * @param coeff_style_mean_1a the coeff style mean 1 a
+     * @param coeff_style_cov_1a  the coeff style cov 1 a
+     * @param coeff_style_mean_1b the coeff style mean 1 b
+     * @param coeff_style_cov_1b  the coeff style cov 1 b
+     * @param coeff_style_mean_1c the coeff style mean 1 c
+     * @param coeff_style_cov_1c  the coeff style cov 1 c
+     * @param coeff_style_mean_1d the coeff style mean 1 d
+     * @param coeff_style_cov_1d  the coeff style cov 1 d
+     * @param coeff_style_mean_1e the coeff style mean 1 e
+     * @param coeff_style_cov_1e  the coeff style cov 1 e
+     * @param dynamic_center      the dynamic center
+     */
+    public StyleCoefficients(final double coeff_style_mean_0, final double coeff_style_cov_0, final double coeff_style_mean_1a, final double coeff_style_cov_1a, final double coeff_style_mean_1b, final double coeff_style_cov_1b, final double coeff_style_mean_1c, final double coeff_style_cov_1c, final double coeff_style_mean_1d, final double coeff_style_cov_1d, final double coeff_style_mean_1e, final double coeff_style_cov_1e, final boolean dynamic_center) {
+      this.coeff_style_mean_0 = coeff_style_mean_0;
+      this.coeff_style_cov_0 = coeff_style_cov_0;
+      this.coeff_style_mean_1a = coeff_style_mean_1a;
+      this.coeff_style_cov_1a = coeff_style_cov_1a;
+      this.coeff_style_mean_1b = coeff_style_mean_1b;
+      this.coeff_style_cov_1b = coeff_style_cov_1b;
+      this.coeff_style_mean_1c = coeff_style_mean_1c;
+      this.coeff_style_cov_1c = coeff_style_cov_1c;
+      this.coeff_style_mean_1d = coeff_style_mean_1d;
+      this.coeff_style_cov_1d = coeff_style_cov_1d;
+      this.coeff_style_mean_1e = coeff_style_mean_1e;
+      this.coeff_style_cov_1e = coeff_style_cov_1e;
+      this.dynamic_center = dynamic_center;
+    }
+    
+  }
+  
+  /**
+   * The type Style setup.
+   */
+  public static class StyleSetup {
+    /**
+     * The Precision.
+     */
+    public final Precision precision;
+    /**
+     * The Content image.
+     */
+    public final BufferedImage contentImage;
+    /**
+     * The Style image.
+     */
+    public final List<BufferedImage> styleImages;
+    /**
+     * The Styles.
+     */
+    public final List<StyleCoefficients> styles;
+    /**
+     * The Content.
+     */
+    public final ContentCoefficients content;
+    /**
+     * The Power.
+     */
+    public double power;
+  
+  
+    /**
+     * Instantiates a new Style setup.
+     *
+     * @param precision           the precision
+     * @param contentImage        the content image
+     * @param contentCoefficients the content coefficients
+     * @param styleImages         the style image
+     * @param styles              the styles
+     * @param power               the power
+     */
+    public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients, final List<BufferedImage> styleImages, final List<StyleCoefficients> styles, final double power) {
+      this.precision = precision;
+      this.contentImage = contentImage;
+      this.styleImages = styleImages;
+      this.styles = styles;
+      this.content = contentCoefficients;
+      this.power = power;
+    }
+    
+  }
+  
+  /**
+   * The type Content target.
+   */
+  public static class ContentTarget {
+    /**
+     * The Target content 0.
+     */
+    public Tensor target_content_0;
+    /**
+     * The Target content 1 a.
+     */
+    public Tensor target_content_1a;
+    /**
+     * The Target content 1 b.
+     */
+    public Tensor target_content_1b;
+    /**
+     * The Target content 1 c.
+     */
+    public Tensor target_content_1c;
+    /**
+     * The Target content 1 d.
+     */
+    public Tensor target_content_1d;
+    /**
+     * The Target content 1 e.
+     */
+    public Tensor target_content_1e;
+  }
+  
+  /**
+   * The type Style target.
+   */
+  public class StyleTarget {
+    /**
+     * The Target style cov 0.
+     */
+    public Tensor target_style_cov_0;
+    /**
+     * The Target style cov 1 a.
+     */
+    public Tensor target_style_cov_1a;
+    /**
+     * The Target style cov 1 b.
+     */
+    public Tensor target_style_cov_1b;
+    /**
+     * The Target style cov 1 c.
+     */
+    public Tensor target_style_cov_1c;
+    /**
+     * The Target style cov 1 d.
+     */
+    public Tensor target_style_cov_1d;
+    /**
+     * The Target style cov 1 e.
+     */
+    public Tensor target_style_cov_1e;
+    /**
+     * The Target style mean 0.
+     */
+    public Tensor target_style_mean_0;
+    /**
+     * The Target style mean 1 a.
+     */
+    public Tensor target_style_mean_1a;
+    /**
+     * The Target style mean 1 b.
+     */
+    public Tensor target_style_mean_1b;
+    /**
+     * The Target style mean 1 c.
+     */
+    public Tensor target_style_mean_1c;
+    /**
+     * The Target style mean 1 d.
+     */
+    public Tensor target_style_mean_1d;
+    /**
+     * The Target style mean 1 e.
+     */
+    public Tensor target_style_mean_1e;
+  
+    /**
+     * The Target style pca 0.
+     */
+    public Tensor target_style_pca_0;
+    /**
+     * The Target style pca cov 0.
+     */
+    public Tensor target_style_pca_cov_0;
+    /**
+     * The Target style pca 1 a.
+     */
+    public Tensor target_style_pca_1a;
+    /**
+     * The Target style pca cov 1 a.
+     */
+    public Tensor target_style_pca_cov_1a;
+    /**
+     * The Target style pca 1 b.
+     */
+    public Tensor target_style_pca_1b;
+    /**
+     * The Target style pca cov 1 b.
+     */
+    public Tensor target_style_pca_cov_1b;
+    /**
+     * The Target style pca 1 c.
+     */
+    public Tensor target_style_pca_1c;
+    /**
+     * The Target style pca cov 1 c.
+     */
+    public Tensor target_style_pca_cov_1c;
+    /**
+     * The Target style pca 1 d.
+     */
+    public Tensor target_style_pca_1d;
+    /**
+     * The Target style pca cov 1 d.
+     */
+    public Tensor target_style_pca_cov_1d;
+    /**
+     * The Target style pca 1 e.
+     */
+    public Tensor target_style_pca_1e;
+    /**
+     * The Target style pca cov 1 e.
+     */
+    public Tensor target_style_pca_cov_1e;
+  }
+  
+  private class NeuralSetup {
+  
+    /**
+     * The Log.
+     */
+    public final NotebookOutput log;
+    /**
+     * The Style parameters.
+     */
+    public final StyleSetup style;
+    /**
+     * The Content target.
+     */
+    ContentTarget contentTarget = new ContentTarget();
+    /**
+     * The Style targets.
+     */
+    List<StyleTarget> styleTargets = new ArrayList<>();
+  
+    /**
+     * Instantiates a new Neural setup.
+     *
+     * @param log   the log
+     * @param style the style parameters
+     */
+    public NeuralSetup(final NotebookOutput log, final StyleSetup style) {
+      this.log = log;
+      this.style = style;
+    }
+  
+    /**
+     * Init neural setup.
+     *
+     * @return the neural setup
+     */
+    public NeuralSetup init() {
+      final PipelineNetwork content_0 = texture_0(log);
+      final PipelineNetwork content_1a = texture_1a(log);
+      final PipelineNetwork content_1b = texture_1b(log);
+      final PipelineNetwork content_1c = texture_1c(log);
+      final PipelineNetwork content_1d = texture_1d(log);
+      final PipelineNetwork content_1e = texture_1e(log);
+      
+      Tensor contentInput = Tensor.fromRGB(style.contentImage);
+      try {
+        log.p(log.image(contentInput.toImage(), "content"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+  
+      List<Tensor> styleInputs = style.styleImages.stream().map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
+      styleInputs.forEach(styleInput -> {
+        try {
+          log.p(log.image(styleInput.toImage(), "style"));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+        styleTargets.add(new StyleTarget());
+      });
+      contentTarget = new ContentTarget();
+  
+      System.gc();
+      contentTarget.target_content_0 = content_0.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_0=" + contentTarget.target_content_0.prettyPrint());
+      for (int i = 0; i < styleInputs.size(); i++) {
+        Tensor styleInput = styleInputs.get(i);
+        StyleTarget styleTarget = styleTargets.get(i);
+        System.gc();
+        styleTarget.target_style_mean_0 = avg((PipelineNetwork) content_0.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_mean_0=" + styleTarget.target_style_mean_0.prettyPrint());
+        System.gc();
+        styleTarget.target_style_cov_0 = gram((PipelineNetwork) content_0.copy(), styleTarget.target_style_mean_0).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_cov_0=" + styleTarget.target_style_cov_0.prettyPrint());
+        styleTarget.target_style_pca_0 = pca(styleTarget.target_style_cov_0, style.power);
+        logger.info("target_style_pca_0=" + styleTarget.target_style_pca_0.prettyPrint());
+        styleTarget.target_style_pca_cov_0 = gram((PipelineNetwork) content_0.copy(), styleTarget.target_style_mean_0, styleTarget.target_style_pca_0).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_pca_cov_0=" + styleTarget.target_style_pca_cov_0.prettyPrint());
+      }
+  
+      System.gc();
+      contentTarget.target_content_1a = content_1a.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1a=" + contentTarget.target_content_1a.prettyPrint());
+      for (int i = 0; i < styleInputs.size(); i++) {
+        Tensor styleInput = styleInputs.get(i);
+        StyleTarget styleTarget = styleTargets.get(i);
+        System.gc();
+        styleTarget.target_style_mean_1a = avg((PipelineNetwork) content_1a.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_mean_1a=" + styleTarget.target_style_mean_1a.prettyPrint());
+        System.gc();
+        styleTarget.target_style_cov_1a = gram((PipelineNetwork) content_1a.copy(), styleTarget.target_style_mean_1a).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_cov_1a=" + styleTarget.target_style_cov_1a.prettyPrint());
+        styleTarget.target_style_pca_1a = pca(styleTarget.target_style_cov_1a, style.power);
+        logger.info("target_style_pca_1a=" + styleTarget.target_style_pca_1a.prettyPrint());
+        styleTarget.target_style_pca_cov_1a = gram((PipelineNetwork) content_1a.copy(), styleTarget.target_style_mean_1a, styleTarget.target_style_pca_1a).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_pca_cov_1a=" + styleTarget.target_style_pca_cov_1a.prettyPrint());
+      }
+  
+      System.gc();
+      contentTarget.target_content_1b = content_1b.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1b=" + contentTarget.target_content_1b.prettyPrint());
+      for (int i = 0; i < styleInputs.size(); i++) {
+        Tensor styleInput = styleInputs.get(i);
+        StyleTarget styleTarget = styleTargets.get(i);
+        System.gc();
+        styleTarget.target_style_mean_1b = avg((PipelineNetwork) content_1b.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_mean_1b=" + styleTarget.target_style_mean_1b.prettyPrint());
+        System.gc();
+        styleTarget.target_style_cov_1b = gram((PipelineNetwork) content_1b.copy(), styleTarget.target_style_mean_1b).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_cov_1b=" + styleTarget.target_style_cov_1b.prettyPrint());
+        styleTarget.target_style_pca_1b = pca(styleTarget.target_style_cov_1b, style.power);
+        logger.info("target_style_pca_1b=" + styleTarget.target_style_pca_1b.prettyPrint());
+        styleTarget.target_style_pca_cov_1b = gram((PipelineNetwork) content_1b.copy(), styleTarget.target_style_mean_1b, styleTarget.target_style_pca_1b).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_pca_cov_1b=" + styleTarget.target_style_pca_cov_1b.prettyPrint());
+      }
+  
+      System.gc();
+      contentTarget.target_content_1c = content_1c.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1c=" + contentTarget.target_content_1c.prettyPrint());
+      for (int i = 0; i < styleInputs.size(); i++) {
+        Tensor styleInput = styleInputs.get(i);
+        StyleTarget styleTarget = styleTargets.get(i);
+        System.gc();
+        styleTarget.target_style_mean_1c = avg((PipelineNetwork) content_1c.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_mean_1c=" + styleTarget.target_style_mean_1c.prettyPrint());
+        System.gc();
+        styleTarget.target_style_cov_1c = gram((PipelineNetwork) content_1c.copy(), styleTarget.target_style_mean_1c).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_cov_1c=" + styleTarget.target_style_cov_1c.prettyPrint());
+        styleTarget.target_style_pca_1c = pca(styleTarget.target_style_cov_1c, style.power);
+        logger.info("target_style_pca_1c=" + styleTarget.target_style_pca_1c.prettyPrint());
+        styleTarget.target_style_pca_cov_1c = gram((PipelineNetwork) content_1c.copy(), styleTarget.target_style_mean_1c, styleTarget.target_style_pca_1c).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_pca_cov_1c=" + styleTarget.target_style_pca_cov_1c.prettyPrint());
+      }
+  
+      System.gc();
+      contentTarget.target_content_1d = content_1d.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1d=" + contentTarget.target_content_1d.prettyPrint());
+      for (int i = 0; i < styleInputs.size(); i++) {
+        Tensor styleInput = styleInputs.get(i);
+        StyleTarget styleTarget = styleTargets.get(i);
+        System.gc();
+        styleTarget.target_style_mean_1d = avg((PipelineNetwork) content_1d.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_mean_1d=" + styleTarget.target_style_mean_1d.prettyPrint());
+        System.gc();
+        styleTarget.target_style_cov_1d = gram((PipelineNetwork) content_1d.copy(), styleTarget.target_style_mean_1d).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_cov_1d=" + styleTarget.target_style_cov_1d.prettyPrint());
+        styleTarget.target_style_pca_1d = pca(styleTarget.target_style_cov_1d, style.power);
+        logger.info("target_style_pca_1d=" + styleTarget.target_style_pca_1d.prettyPrint());
+        styleTarget.target_style_pca_cov_1d = gram((PipelineNetwork) content_1d.copy(), styleTarget.target_style_mean_1d, styleTarget.target_style_pca_1d).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_pca_cov_1d=" + styleTarget.target_style_pca_cov_1d.prettyPrint());
+      }
+  
+      System.gc();
+      contentTarget.target_content_1e = content_1e.eval(contentInput).getDataAndFree().getAndFree(0);
+      logger.info("target_content_1e=" + contentTarget.target_content_1e.prettyPrint());
+      for (int i = 0; i < styleInputs.size(); i++) {
+        Tensor styleInput = styleInputs.get(i);
+        StyleTarget styleTarget = styleTargets.get(i);
+        System.gc();
+        styleTarget.target_style_mean_1e = avg((PipelineNetwork) content_1e.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_mean_1e=" + styleTarget.target_style_mean_1e.prettyPrint());
+        System.gc();
+        styleTarget.target_style_cov_1e = gram((PipelineNetwork) content_1e.copy(), styleTarget.target_style_mean_1e).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_cov_1e=" + styleTarget.target_style_cov_1e.prettyPrint());
+        styleTarget.target_style_pca_1e = pca(styleTarget.target_style_cov_1e, style.power);
+        logger.info("target_style_pca_1e=" + styleTarget.target_style_pca_1e.prettyPrint());
+        styleTarget.target_style_pca_cov_1e = gram((PipelineNetwork) content_1e.copy(), styleTarget.target_style_mean_1e, styleTarget.target_style_pca_1e).eval(styleInput).getDataAndFree().getAndFree(0);
+        logger.info("target_style_pca_cov_1e=" + styleTarget.target_style_pca_cov_1e.prettyPrint());
+      }
+  
+      return this;
+    }
+  
+    /**
+     * Fitness function pipeline network.
+     *
+     * @param log the log
+     * @return the pipeline network
+     */
     @Nonnull
-    @Override
-    public Layer getLossLayer() {
-      PipelineNetwork network = new PipelineNetwork(2);
-      InnerNode mode1 = network.wrap(new SumReducerLayer(),
-        network.wrap(new GateProductLayer(),
-          network.getInput(0),
-          network.getInput(1)));
-      network.wrap(new LinearActivationLayer().setScale(-1).freeze(), mode1);
+    public PipelineNetwork fitnessNetwork(final NotebookOutput log) {
+      final PipelineNetwork[] layerBuffer = new PipelineNetwork[1];
+      final DAGNode[] nodes = new DAGNode[6];
+      log.code(() -> {
+        try {
+          new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+            @Override
+            protected void phase0() {
+              super.phase0();
+              nodes[0] = pipeline.getHead();
+            }
+            
+            @Override
+            protected void phase1a() {
+              super.phase1a();
+              nodes[1] = pipeline.getHead();
+            }
+            
+            @Override
+            protected void phase1b() {
+              super.phase1b();
+              nodes[2] = pipeline.getHead();
+            }
+            
+            @Override
+            protected void phase1c() {
+              super.phase1c();
+              nodes[3] = pipeline.getHead();
+            }
+            
+            @Override
+            protected void phase1d() {
+              super.phase1d();
+              nodes[4] = pipeline.getHead();
+            }
+            
+            @Override
+            protected void phase1e() {
+              super.phase1e();
+              nodes[5] = pipeline.getHead();
+              layerBuffer[0] = (PipelineNetwork) pipeline.freeze();
+              throw new RuntimeException("Abort Network Construction");
+            }
+          }.getNetwork();
+        } catch (@Nonnull final RuntimeException e1) {
+        } catch (Throwable e11) {
+          throw new RuntimeException(e11);
+        }
+      });
+      List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
+  
+      {
+        ContentCoefficients c = this.style.content;
+        functions.addAll(getContentComponents(nodes[0], c.coeff_content_0, contentTarget.target_content_0));
+        functions.addAll(getContentComponents(nodes[1], c.coeff_content_1a, contentTarget.target_content_1a));
+        functions.addAll(getContentComponents(nodes[2], c.coeff_content_1b, contentTarget.target_content_1b));
+        functions.addAll(getContentComponents(nodes[3], c.coeff_content_1c, contentTarget.target_content_1c));
+        functions.addAll(getContentComponents(nodes[4], c.coeff_content_1d, contentTarget.target_content_1d));
+        functions.addAll(getContentComponents(nodes[5], c.coeff_content_1e, contentTarget.target_content_1e));
+      }
+  
+      for (int i = 0; i < this.style.styles.size(); i++) {
+        StyleTarget t = this.styleTargets.get(i);
+        StyleCoefficients c = this.style.styles.get(i);
+        functions.addAll(getStyleComponents(nodes[0], c.dynamic_center, c.coeff_style_mean_0, t.target_style_mean_0, c.coeff_style_cov_0, t.target_style_pca_cov_0, t.target_style_pca_0));
+        functions.addAll(getStyleComponents(nodes[1], c.dynamic_center, c.coeff_style_mean_1a, t.target_style_mean_1a, c.coeff_style_cov_1a, t.target_style_pca_cov_1a, t.target_style_pca_1a));
+        functions.addAll(getStyleComponents(nodes[2], c.dynamic_center, c.coeff_style_mean_1b, t.target_style_mean_1b, c.coeff_style_cov_1b, t.target_style_pca_cov_1b, t.target_style_pca_1b));
+        functions.addAll(getStyleComponents(nodes[3], c.dynamic_center, c.coeff_style_mean_1c, t.target_style_mean_1c, c.coeff_style_cov_1c, t.target_style_pca_cov_1c, t.target_style_pca_1c));
+        functions.addAll(getStyleComponents(nodes[4], c.dynamic_center, c.coeff_style_mean_1d, t.target_style_mean_1d, c.coeff_style_cov_1d, t.target_style_pca_cov_1d, t.target_style_pca_1d));
+        functions.addAll(getStyleComponents(nodes[5], c.dynamic_center, c.coeff_style_mean_1e, t.target_style_mean_1e, c.coeff_style_cov_1e, t.target_style_pca_cov_1e, t.target_style_pca_1e));
+      }
+  
+      PipelineNetwork network1 = layerBuffer[0];
+      functions.stream().filter(x -> x._1 != 0)
+        .reduce((a, b) -> new Tuple2<>(1.0, network1.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
+  
+      PipelineNetwork network = withClamp(network1);
+      setPrecision(network, this.style.precision);
       return network;
     }
-    
-    @Nonnull
-    @Override
-    protected Layer buildCategorizer(final Precision precision) {
-      PipelineNetwork trainedCategorizer = new PipelineNetwork();
-      trainedCategorizer.add(new ConvolutionLayer(1, 1, 4096, 2)
-        .setPaddingXY(0, 0).setWeightsLog(-4).explode());
-      trainedCategorizer.add(new ImgBandBiasLayer(2).setWeightsLog(-4));
-      trainedCategorizer.add(new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL).setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.LOG));
-      return trainedCategorizer;
+  
+    /**
+     * Gets style components.
+     *
+     * @param node              the node
+     * @param dynamic_center    the dynamic center
+     * @param coeff_style_mean  the coeff style mean
+     * @param target_style_mean the target style mean
+     * @param coeff_style_cov   the coeff style cov
+     * @param target_style_cov  the target style cov
+     * @param target_style_pca  the target style pca
+     * @return the style components
+     */
+    public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final boolean dynamic_center, final double coeff_style_mean, final Tensor target_style_mean, final double coeff_style_cov, final Tensor target_style_cov, final Tensor target_style_pca) {
+      ArrayList<Tuple2<Double, DAGNode>> list = new ArrayList<>();
+      final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
+      if (coeff_style_cov != 0 || coeff_style_mean != 0) {
+        DAGNode negTarget = network.wrap(new ValueLayer(target_style_mean.scale(-1)), new DAGNode[]{});
+        InnerNode negAvg = network.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
+        if (coeff_style_cov != 0) {
+          InnerNode recentered;
+          if (dynamic_center) {
+            recentered = network.wrap(new GateBiasLayer(), node, negAvg);
+          }
+          else {
+            recentered = network.wrap(new GateBiasLayer(), node, negTarget);
+          }
+          int[] pcaDim = target_style_pca.getDimensions();
+          assert 0 < pcaDim[2] : Arrays.toString(pcaDim);
+          int inputBands = target_style_mean.getDimensions()[2];
+          assert 0 < inputBands : Arrays.toString(target_style_mean.getDimensions());
+          int outputBands = pcaDim[2] / inputBands;
+          assert 0 < outputBands : Arrays.toString(pcaDim) + " / " + inputBands;
+          list.add(new Tuple2<>(coeff_style_cov, network.wrap(new MeanSqLossLayer(),
+            network.wrap(new ValueLayer(target_style_cov), new DAGNode[]{}),
+            network.wrap(new GramianLayer(),
+              network.wrap(new ConvolutionLayer(pcaDim[0], pcaDim[1], inputBands, outputBands).set(target_style_pca),
+                recentered)))
+          ));
+        }
+        if (coeff_style_mean != 0) {
+          list.add(new Tuple2<>(coeff_style_mean,
+            network.wrap(new MeanSqLossLayer(), negAvg, negTarget)
+          ));
+        }
+      }
+      return list;
     }
+  
+    /**
+     * Gets content components.
+     *
+     * @param node           the node
+     * @param coeff_content  the coeff content
+     * @param target_content the target content
+     * @return the content components
+     */
+    public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(final DAGNode node, final double coeff_content, final Tensor target_content) {
+      ArrayList<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
+      final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
+      if (coeff_content != 0) {
+        functions.add(new Tuple2<>(coeff_content, network.wrap(new MeanSqLossLayer(),
+          node, network.wrap(new ValueLayer(target_content), new DAGNode[]{}))));
+      }
+      return functions;
+    }
+  
   }
 }

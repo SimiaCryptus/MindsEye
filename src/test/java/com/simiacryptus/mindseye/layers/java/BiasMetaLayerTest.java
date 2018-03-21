@@ -26,11 +26,11 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Bias meta layer eval.
+ * The type Bias meta layer apply.
  */
 public abstract class BiasMetaLayerTest extends LayerTestBase {
   /**
-   * Instantiates a new Bias meta layer eval.
+   * Instantiates a new Bias meta layer apply.
    */
   public BiasMetaLayerTest() {
     validateBatchExecution = false;

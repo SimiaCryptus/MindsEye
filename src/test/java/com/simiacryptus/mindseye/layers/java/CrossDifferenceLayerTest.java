@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Cross difference layer eval.
+ * The type Cross difference layer apply.
  */
 public abstract class CrossDifferenceLayerTest extends LayerTestBase {
   

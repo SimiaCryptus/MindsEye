@@ -27,12 +27,12 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer eval.
+ * The type Img crop layer apply.
  */
 public abstract class ImgTileAssemblyLayerTest extends LayerTestBase {
   
   /**
-   * Instantiates a new Img crop layer eval.
+   * Instantiates a new Img crop layer apply.
    */
   public ImgTileAssemblyLayerTest() {
     validateBatchExecution = false;

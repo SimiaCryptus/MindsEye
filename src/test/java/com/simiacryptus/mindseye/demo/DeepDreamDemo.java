@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
@@ -77,12 +78,27 @@ public class DeepDreamDemo extends ArtistryDemo {
   }
   
   /**
+   * Gets clamp.
+   *
+   * @return the clamp
+   */
+  @Nonnull
+  public static PipelineNetwork getClamp() {
+    @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+    return clamp;
+  }
+  
+  /**
    * Run.
    *
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    init();
+    init(log);
   
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
@@ -98,15 +114,16 @@ public class DeepDreamDemo extends ArtistryDemo {
             add(new SquareActivationLayer().setAlpha(-1.0));
             add(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
             add(new SumReducerLayer());
-            dreamNet[0] = (DAGNetwork) pipelineNetwork.copy();
+            dreamNet[0] = (DAGNetwork) pipeline.copy();
             throw new RuntimeException("Abort Network Construction");
           }
         }.setLarge(true).setFinalPoolingMode(PoolingLayer.PoolingMode.Avg).getNetwork();
+        throw new IllegalStateException();
       } catch (@Nonnull final RuntimeException e) {
-        // Ignore
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
+        if (null == e.getMessage() || !e.getMessage().equals("Abort Network Construction")) throw e;
       }
+      assert null != dreamNet[0];
+      ImageClassifier.setPrecision(dreamNet[0], Precision.Float);
       return dreamNet[0];
     });
 
@@ -116,7 +133,7 @@ public class DeepDreamDemo extends ArtistryDemo {
     for (int itemNumber = 0; itemNumber < images.length; itemNumber++) {
       log.h1("Image " + itemNumber);
       Tensor image = images[itemNumber];
-      TestUtil.monitorImage(image, false);
+      TestUtil.monitorImage(image, false, true);
       Function<IterativeTrainer, IterativeTrainer> config = train -> train
         .setTimeout(90, TimeUnit.MINUTES)
         .setIterationsPerSample(5);
@@ -137,26 +154,24 @@ public class DeepDreamDemo extends ArtistryDemo {
       PipelineNetwork normalized = new PipelineNetwork(2);
       normalized.wrap(dreamer, normalized.getInput(0));
       normalized.wrap(new ProductInputsLayer(), // new BinarySumLayer(0.99,0.1),
-        normalized.wrap(dreamer, normalized.getInput(0)),
+        normalized.add(dreamer, normalized.getInput(0)),
         normalized.wrap(new NthPowerActivationLayer().setPower(-1),
           normalized.wrap(new LinearActivationLayer().setBias(1000.0).freeze(),
             normalized.wrap(new MeanSqLossLayer(),
               normalized.getInput(1),
               normalized.getInput(0)
             ))));
+      ImageClassifier.setPrecision(normalized, Precision.Float);
   
   
       log.code(() -> {
         @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-        @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-        clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-        clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+        @Nonnull PipelineNetwork clamp = getClamp();
         @Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
         supervised.add(normalized.freeze(),
           supervised.wrap(clamp, supervised.getInput(0)),
           supervised.getInput(1));
+        ImageClassifier.setPrecision(supervised, Precision.Float);
         @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
         config.apply(new IterativeTrainer(trainable)
           .setMonitor(ImageClassifier.getTrainingMonitor(history, supervised))
@@ -185,11 +200,15 @@ public class DeepDreamDemo extends ArtistryDemo {
    */
   public Tensor[] getImages_Artistry(@Nonnull final NotebookOutput log) {
     return Stream.of(
-      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0005.JPG",
-      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0127.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170423_200559814.jpg",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\img11262015_0046.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\img11252015_0009.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00097.JPG",
-      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00152.JPG",
       "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00200.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC00152.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0127.JPG",
+      "H:\\SimiaCryptus\\Artistry\\Owned\\DSC_0005.JPG",
       "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg",
       "H:\\SimiaCryptus\\Artistry\\landscape.jpg",
       "H:\\SimiaCryptus\\Artistry\\chimps\\winner.jpg",
@@ -198,7 +217,7 @@ public class DeepDreamDemo extends ArtistryDemo {
     ).map(file -> {
       try {
         BufferedImage image = ImageIO.read(new File(file));
-        image = TestUtil.resize(image, 600, true);
+        image = TestUtil.resize(image, 1000, true);
         return Tensor.fromRGB(image);
       } catch (IOException e) {
         throw new RuntimeException(e);

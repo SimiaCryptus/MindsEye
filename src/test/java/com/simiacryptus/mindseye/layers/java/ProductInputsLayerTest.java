@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Product inputs layer eval.
+ * The type Product inputs layer apply.
  */
 public abstract class ProductInputsLayerTest extends LayerTestBase {
   @Nonnull
@@ -43,7 +43,7 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
   }
   
   /**
-   * Multiply one multivariate input with a univariate input
+   * Multiply one multivariate input apply a univariate input
    */
   public static class N1Test extends ProductInputsLayerTest {
     @Nonnull

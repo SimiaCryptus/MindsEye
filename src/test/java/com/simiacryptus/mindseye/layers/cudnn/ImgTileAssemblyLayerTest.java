@@ -27,12 +27,12 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer eval.
+ * The type Img crop layer apply.
  */
 public abstract class ImgTileAssemblyLayerTest extends CudaLayerTestBase {
   
   /**
-   * Instantiates a new Img crop layer eval.
+   * Instantiates a new Img crop layer apply.
    */
   public ImgTileAssemblyLayerTest() {
     validateBatchExecution = false;
@@ -45,6 +45,14 @@ public abstract class ImgTileAssemblyLayerTest extends CudaLayerTestBase {
       {2, 2, 1}, {1, 2, 1}, {2, 2, 1}, {1, 2, 1}, {2, 1, 1}, {1, 1, 1}
 //      {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}
     };
+  }
+  
+  @Override
+  public int[][] getLargeDims(final Random random) {
+    return new int[][]{
+      {200, 200, 100}, {100, 200, 100}, {200, 200, 100}, {100, 200, 100}, {200, 100, 100}, {100, 100, 100}
+    };
+    
   }
   
   @Nonnull

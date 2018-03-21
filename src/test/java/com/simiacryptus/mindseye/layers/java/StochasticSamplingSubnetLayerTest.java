@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
-import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Rascaled subnet layer eval.
+ * The type Rascaled subnet layer apply.
  */
 public abstract class StochasticSamplingSubnetLayerTest extends LayerTestBase {
   
@@ -45,7 +45,7 @@ public abstract class StochasticSamplingSubnetLayerTest extends LayerTestBase {
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     PipelineNetwork subnetwork = new PipelineNetwork(1);
-    subnetwork.wrap(new GateProductLayer(),
+    subnetwork.wrap(new ProductLayer(),
       subnetwork.getInput(0),
       subnetwork.add(new StochasticBinaryNoiseLayer(0.5, 1.0, inputSize[0]), new DAGNode[]{}));
     

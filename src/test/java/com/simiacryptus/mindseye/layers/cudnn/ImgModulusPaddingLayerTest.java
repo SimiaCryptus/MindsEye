@@ -26,14 +26,10 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer eval.
+ * The type Img crop layer apply.
  */
 public abstract class ImgModulusPaddingLayerTest extends CudaLayerTestBase {
   
-  /**
-   * The Input size.
-   */
-  final int inputSize;
   /**
    * The Modulus.
    */
@@ -52,7 +48,6 @@ public abstract class ImgModulusPaddingLayerTest extends CudaLayerTestBase {
    */
   public ImgModulusPaddingLayerTest(int inputSize, int modulus, int offset) {
     validateBatchExecution = false;
-    this.inputSize = inputSize;
     this.modulus = modulus;
     this.offset = offset;
   }
@@ -61,7 +56,7 @@ public abstract class ImgModulusPaddingLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {inputSize, inputSize, 1}
+      {2, 2, 1}
     };
   }
   
@@ -69,7 +64,7 @@ public abstract class ImgModulusPaddingLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {inputSize, inputSize, 1}
+      {1200, 1200, 1}
     };
   }
   

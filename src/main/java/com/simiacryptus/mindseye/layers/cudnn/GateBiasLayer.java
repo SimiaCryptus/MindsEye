@@ -36,28 +36,34 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.java.ProductInputsLayer;
+import jcuda.jcudnn.cudnnIndicesType;
+import jcuda.jcudnn.cudnnNanPropagation;
 import jcuda.jcudnn.cudnnOpTensorDescriptor;
 import jcuda.jcudnn.cudnnOpTensorOp;
+import jcuda.jcudnn.cudnnReduceTensorDescriptor;
+import jcuda.jcudnn.cudnnReduceTensorIndices;
+import jcuda.jcudnn.cudnnReduceTensorOp;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
  * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
-public class GateProductLayer extends LayerBase implements MultiPrecision<GateProductLayer> {
+public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasLayer> {
   
   private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Product inputs layer.
    */
-  public GateProductLayer() {
+  public GateBiasLayer() {
   }
   
   /**
@@ -65,7 +71,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
    *
    * @param id the id
    */
-  protected GateProductLayer(@Nonnull final JsonObject id) {
+  protected GateBiasLayer(@Nonnull final JsonObject id) {
     super(id);
     this.precision = Precision.valueOf(id.getAsJsonPrimitive("precision").getAsString());
   }
@@ -77,8 +83,8 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static GateProductLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
-    return new GateProductLayer(json);
+  public static GateBiasLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    return new GateBiasLayer(json);
   }
   
   /**
@@ -94,14 +100,13 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
-    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     if (inObj.length != 2) {
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
     Result left = inObj[0];
     Result right = inObj[1];
-    assert !right.isAlive();
     final TensorList leftData = left.getData();
     final TensorList rightData = right.getData();
     @Nonnull final int[] leftDimensions = leftData.getDimensions();
@@ -110,13 +115,8 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
     if (3 != leftDimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(leftDimensions));
     }
-    leftData.addRef();
-    rightData.addRef();
-    left.addRef();
-    right.addRef();
-//   assert !right.isAlive();
-    return new Result(CudaSystem.eval(gpu -> {
-      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
+    return new Result(CudaSystem.run(gpu -> {
+      @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
         leftDimensions[2], leftDimensions[1], leftDimensions[0],
         leftDimensions[2] * leftDimensions[1] * leftDimensions[0],
@@ -133,6 +133,10 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
         precision.getPointer(1.0), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
         precision.getPointer(1.0), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
+      assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+      lPtrMemory.dirty();
+      rPtrMemory.dirty();
+      outputPtr.dirty();
       lPtrMemory.freeRef();
       rPtrMemory.freeRef();
       rPtr.freeRef();
@@ -142,35 +146,59 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
       return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
     }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (left.isAlive()) {
-        @Nonnull TensorList data = CudaSystem.eval(gpu -> {
-          @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
-          @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
-            leftDimensions[2], leftDimensions[1], leftDimensions[0],
-            leftDimensions[2] * leftDimensions[1] * leftDimensions[0],
-            leftDimensions[1] * leftDimensions[0],
-            leftDimensions[0],
-            1);
-          @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
-          @Nullable final CudaTensor rightTensor = gpu.getTensor(right.getData(), precision, MemoryType.Device, false);
+        delta.addRef();
+        left.accumulate(buffer, delta);
+      }
+      if (right.isAlive()) {
+        @Nonnull TensorList data = CudaSystem.run(gpu -> {
           //assert deltaTensor.size == rightTensor.size;
-          @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
-          CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
-          CudaMemory rightTensorMemory = rightTensor.getMemory(gpu);
-          CudaSystem.handle(gpu.cudnnOpTensor(opDescriptor.getPtr(),
-            precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
-            precision.getPointer(1.0), rightTensor.descriptor.getPtr(), rightTensorMemory.getPtr(),
-            precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr()));
-          deltaTensorMemory.freeRef();
-          rightTensorMemory.freeRef();
-          CudaTensor cudaTensor = new CudaTensor(outputPtr, outputDescriptor, precision);
-          Arrays.stream(new ReferenceCounting[]{deltaTensor, rightTensor, opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
-          outputPtr.freeRef();
-          return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
+          if (Arrays.equals(rightDimensions, leftDimensions) && length == rightData.length()) {
+            assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+            delta.addRef();
+            return delta;
+          }
+          else {
+            @Nonnull final CudaDevice.CudaTensorDescriptor reducedOutputDescriptor = gpu.newTensorDescriptor(precision, rightData.length(),
+              rightDimensions[2], rightDimensions[1], rightDimensions[0],
+              rightDimensions[2] * rightDimensions[1] * rightDimensions[0],
+              rightDimensions[1] * rightDimensions[0],
+              rightDimensions[0],
+              1);
+            long size = (long) precision.size * reducedOutputDescriptor.nStride * rightData.length();
+            @Nonnull final CudaMemory reducedOutputPtr = gpu.allocate(size, MemoryType.Managed, true);
+            CudaResource<cudnnReduceTensorDescriptor> reduceTensorDescriptor = gpu.cudnnCreateReduceTensorDescriptor(
+              cudnnReduceTensorOp.CUDNN_REDUCE_TENSOR_ADD, precision.code, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN,
+              cudnnReduceTensorIndices.CUDNN_REDUCE_TENSOR_NO_INDICES, cudnnIndicesType.CUDNN_32BIT_INDICES);
+        
+            @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+            CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
+            @Nonnull final CudaMemory workspacePtr = gpu.allocate(deltaTensorMemory.size, MemoryType.Device, true);
+            @Nonnull final CudaMemory indexPtr = gpu.allocate(12 * delta.length(), MemoryType.Device, false);
+            delta.freeRef();
+            //outputPtr.synchronize();
+            gpu.cudnnReduceTensor(reduceTensorDescriptor.getPtr(),
+              indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
+              precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
+              precision.getPointer(0.0), reducedOutputDescriptor.getPtr(), reducedOutputPtr.getPtr());
+            reducedOutputPtr.dirty();
+            deltaTensorMemory.dirty();
+        
+            Stream.of(deltaTensorMemory, deltaTensor, reduceTensorDescriptor, workspacePtr, indexPtr).forEach(ReferenceCounting::freeRef);
+            return CudaTensorList.wrap(CudaTensor.wrap(reducedOutputPtr, reducedOutputDescriptor, precision), rightData.length(), rightDimensions, precision);
+          }
         }, delta);
-        left.accumulate(buffer, data);
+        right.accumulate(buffer, data);
+      }
+      else {
+        delta.freeRef();
       }
     }) {
-      
+  
+      @Override
+      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+        getAccumulator().accept(buffer, delta);
+      }
+  
       @Override
       protected void _free() {
         leftData.freeRef();
@@ -207,7 +235,7 @@ public class GateProductLayer extends LayerBase implements MultiPrecision<GatePr
   
   @Nonnull
   @Override
-  public GateProductLayer setPrecision(final Precision precision) {
+  public GateBiasLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }

@@ -89,7 +89,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Image run util.
+ * The type Image apply util.
  */
 public class TestUtil {
   /**
@@ -754,8 +754,9 @@ public class TestUtil {
    *
    * @param input       the input
    * @param exitOnClose the exit on close
+   * @param normalize   the normalize
    */
-  public static void monitorImage(final Tensor input, final boolean exitOnClose) {monitorImage(input, exitOnClose, 30);}
+  public static void monitorImage(final Tensor input, final boolean exitOnClose, final boolean normalize) {monitorImage(input, exitOnClose, 30, normalize);}
   
   /**
    * Monitor ui.
@@ -763,15 +764,16 @@ public class TestUtil {
    * @param input       the input
    * @param exitOnClose the exit on close
    * @param period      the period
+   * @param normalize   the normalize
    */
-  public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period) {
+  public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period, final boolean normalize) {
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
       try {
         JLabel jLabel = labelWeakReference.get();
         if (null != jLabel) {
-          BufferedImage image = normalizeBands(input).toImage();
+          BufferedImage image = (normalize ? normalizeBands(input) : input).toImage();
           int width = jLabel.getWidth();
           if (width > 0) TestUtil.resize(image, width, jLabel.getHeight());
           jLabel.setIcon(new ImageIcon(image));
@@ -819,7 +821,7 @@ public class TestUtil {
               File selectedFile = fileChooser.getSelectedFile();
               if (!selectedFile.getName().toUpperCase().endsWith(".PNG"))
                 selectedFile = new File(selectedFile.getParent(), selectedFile.getName() + ".png");
-              BufferedImage image = normalizeBands(input).toImage();
+              BufferedImage image = (normalize ? normalizeBands(input) : input).toImage();
               if (!ImageIO.write(image, "PNG", selectedFile)) throw new IllegalArgumentException();
             } catch (IOException e1) {
               throw new RuntimeException(e1);
@@ -911,7 +913,54 @@ public class TestUtil {
    * @param stack the stack
    * @return the string
    */
-  public static String toString(final StackTraceElement[] stack) {
-    return Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + "\n" + b).orElse("");
+  public static String toString(final StackTraceElement[] stack) {return toString(stack, "\n");}
+  
+  /**
+   * To string string.
+   *
+   * @param stack     the stack
+   * @param delimiter the delimiter
+   * @return the string
+   */
+  public static String toString(final StackTraceElement[] stack, final String delimiter) {
+    return Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + delimiter + b).orElse("");
+  }
+  
+  /**
+   * Gets caller.
+   *
+   * @return the caller
+   */
+  public static String getCaller() {
+    return toString(getStackTrace(4));
+  }
+  
+  /**
+   * Get stack trace stack trace element [ ].
+   *
+   * @return the stack trace element [ ]
+   */
+  public static StackTraceElement[] getStackTrace() {return getStackTrace(5);}
+  
+  /**
+   * Get stack trace stack trace element [ ].
+   *
+   * @param skip the skip
+   * @return the stack trace element [ ]
+   */
+  public static StackTraceElement[] getStackTrace(final int skip) {
+    StackTraceElement[] elements = Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
+      .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.")
+        && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang.")
+        && !x.getClassName().startsWith("com.simiacryptus.mindseye.test."))
+      .limit(1)
+      .toArray(i -> new StackTraceElement[i]);
+    if (0 == elements.length) {
+      elements = Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
+        .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye."))
+        .limit(1)
+        .toArray(i -> new StackTraceElement[i]);
+    }
+    return elements;
   }
 }

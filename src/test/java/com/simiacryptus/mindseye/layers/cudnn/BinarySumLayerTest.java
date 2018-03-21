@@ -31,7 +31,7 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type BinarySumLayerTest layer run.
+ * The type BinarySumLayerTest layer apply.
  */
 public abstract class BinarySumLayerTest extends CudaLayerTestBase {
   
@@ -39,20 +39,30 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
    * The Precision.
    */
   final Precision precision;
+  /**
+   * The Large size.
+   */
+  final int largeSize;
+  /**
+   * The Small size.
+   */
+  int smallSize;
   
   /**
-   * Instantiates a new Product layer run.
+   * Instantiates a new Product layer apply.
    *
    * @param precision the precision
    */
   public BinarySumLayerTest(final Precision precision) {
     this.precision = precision;
+    smallSize = 2;
+    largeSize = 1200;
   }
   
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {2, 2, 1}, {2, 2, 1}
+      {smallSize, smallSize, 1}, {smallSize, smallSize, 1}
     };
   }
   
@@ -65,7 +75,7 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {2, 2, 1}, {2, 2, 1}
+      {largeSize, largeSize, 1}, {largeSize, largeSize, 1}
     };
   }
   
@@ -82,12 +92,12 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     
     @Override
     public int[][] getSmallDims(Random random) {
-      return IntStream.range(0, 5).mapToObj(i -> new int[]{2, 2, 2}).toArray(i -> new int[i][]);
+      return IntStream.range(0, 5).mapToObj(i -> new int[]{smallSize, smallSize, 2}).toArray(i -> new int[i][]);
     }
     
     @Override
     public int[][] getLargeDims(Random random) {
-      return IntStream.range(0, 5).mapToObj(i -> new int[]{200, 200, 3}).toArray(i -> new int[i][]);
+      return IntStream.range(0, 5).mapToObj(i -> new int[]{largeSize, largeSize, 3}).toArray(i -> new int[i][]);
     }
     
   }
@@ -98,7 +108,7 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
   public static class OnePlusOne extends CudaLayerTestBase {
   
     /**
-     * Instantiates a new Asymmetric run.
+     * Instantiates a new Asymmetric apply.
      */
     public OnePlusOne() {
       super();
@@ -126,14 +136,16 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {1, 1, 1}
+        {4, 4, 1}
       };
     }
   
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
-      return getSmallDims(random);
+      return new int[][]{
+        {1200, 800, 1}
+      };
     }
     
   }

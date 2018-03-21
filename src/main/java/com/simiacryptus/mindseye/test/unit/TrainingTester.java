@@ -108,7 +108,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   /**
    * Build input tensor [ ] [ ].
    *
-   * @param left  the run input
+   * @param left  the apply input
    * @param right the target output
    * @return the tensor [ ] [ ]
    */
@@ -282,7 +282,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * Shuffle nn layer.
    *
    * @param random        the randomize
-   * @param testComponent the run component
+   * @param testComponent the apply component
    * @return the nn layer
    */
   @Nonnull
@@ -382,19 +382,19 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   }
   
   /**
-   * Test complete learning run result.
+   * Test complete learning apply result.
    *
    * @param log            the log
    * @param component      the component
    * @param random         the random
    * @param inputPrototype the input prototype
-   * @return the run result
+   * @return the apply result
    */
   @Nonnull
   public TestResult testCompleteLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component, final Random random, @Nonnull final Tensor[] inputPrototype) {
     @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
-    log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
+    log.p("In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
@@ -431,12 +431,12 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
-   * @return the run result
+   * @return the apply result
    */
   public TestResult testInputLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component, final Random random, @Nonnull final Tensor[] inputPrototype) {
     @Nonnull final Layer network = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
-    log.p("In this run, we use a network to learn this target input, given it's pre-evaluated output:");
+    log.p("In this apply, we use a network to learn this target input, given it's pre-evaluated output:");
     log.code(() -> {
       return Arrays.stream(input_target)
         .flatMap(x -> Arrays.stream(x))
@@ -482,12 +482,12 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param component      the component
    * @param random         the randomize
    * @param inputPrototype the input prototype
-   * @return the run result
+   * @return the apply result
    */
   public TestResult testModelLearning(@Nonnull final NotebookOutput log, @Nonnull final Layer component, final Random random, final Tensor[] inputPrototype) {
     @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
-    log.p("In this run, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
+    log.p("In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
     log.code(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
@@ -533,14 +533,14 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   }
   
   /**
-   * Train all run result.
+   * Train all apply result.
    *
    * @param title         the title
    * @param log           the log
    * @param trainingInput the training input
    * @param layer         the layer
    * @param mask          the mask
-   * @return the run result
+   * @return the apply result
    */
   @Nonnull
   public TestResult trainAll(String title, @Nonnull NotebookOutput log, @Nonnull Tensor[][] trainingInput, @Nonnull Layer layer, boolean... mask) {
@@ -597,7 +597,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
         history = opt.apply(log, trainable);
         if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
           if (!network.isFrozen()) {
-            log.p("This training run resulted in the following configuration:");
+            log.p("This training apply resulted in the following configuration:");
             log.code(() -> {
               return network.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
             });
@@ -692,7 +692,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    */
   @Nonnull
   public List<StepRecord> trainGD(@Nonnull final NotebookOutput log, final Trainable trainable) {
-    log.p("First, we train using basic gradient descent method with weak line search conditions.");
+    log.p("First, we train using basic gradient descent method apply weak line search conditions.");
     @Nonnull final List<StepRecord> history = new ArrayList<>();
     @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
@@ -721,7 +721,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    */
   @Nonnull
   public List<StepRecord> trainLBFGS(@Nonnull final NotebookOutput log, final Trainable trainable) {
-    log.p("Next, we run the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.");
+    log.p("Next, we apply the same optimization using L-BFGS, which is nearly ideal for purely second-order or quadratic functions.");
     @Nonnull final List<StepRecord> history = new ArrayList<>();
     @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {

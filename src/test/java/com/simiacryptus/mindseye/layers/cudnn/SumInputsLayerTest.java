@@ -35,10 +35,11 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type BinarySumLayerTest layer run.
+ * The type BinarySumLayerTest layer apply.
  */
 public abstract class SumInputsLayerTest extends CudaLayerTestBase {
   
+  private static int largeSize;
   /**
    * The Precision.
    */
@@ -53,16 +54,18 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
   int inputs;
   
   /**
-   * Instantiates a new Product layer run.
+   * Instantiates a new Product layer apply.
    *
    * @param precision  the precision
    * @param inputBands the input bands
    * @param inputs     the inputs
+   * @param largeSize  the large size
    */
-  public SumInputsLayerTest(final Precision precision, int inputBands, int inputs) {
+  public SumInputsLayerTest(final Precision precision, int inputBands, int inputs, final int largeSize) {
     this.precision = precision;
     this.inputBands = inputBands;
     this.inputs = inputs;
+    SumInputsLayerTest.largeSize = largeSize;
   }
   
   @Override
@@ -78,7 +81,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
   
   @Override
   public int[][] getLargeDims(Random random) {
-    return IntStream.range(0, inputs).mapToObj(i -> new int[]{200, 200, inputBands}).toArray(i -> new int[i][]);
+    return IntStream.range(0, inputs).mapToObj(i -> new int[]{largeSize, largeSize, inputBands}).toArray(i -> new int[i][]);
   }
   
   @Override
@@ -94,7 +97,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Double_List() {
-      super(Precision.Double, 1, 5);
+      super(Precision.Double, 1, 5, 1200);
     }
     
   }
@@ -105,7 +108,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
   public static class OnePlusOne extends CudaLayerTestBase {
   
     /**
-     * Instantiates a new Asymmetric run.
+     * Instantiates a new Asymmetric apply.
      */
     public OnePlusOne() {
       super();
@@ -140,7 +143,9 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
-      return getSmallDims(random);
+      return new int[][]{
+        {largeSize, largeSize, 1}
+      };
     }
     
   }
@@ -153,7 +158,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Big_Double_Add() {
-      super(Precision.Double, 256, 8);
+      super(Precision.Double, 256, 8, 400);
     }
   }
   
@@ -165,7 +170,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Double_Add() {
-      super(Precision.Double, 1, 2);
+      super(Precision.Double, 1, 2, 1200);
     }
   }
   
@@ -178,7 +183,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
      * Instantiates a new Float.
      */
     public Float_Add() {
-      super(Precision.Float, 1, 2);
+      super(Precision.Float, 1, 2, 1200);
     }
     
     @Override
@@ -199,9 +204,10 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
      * @param precision  the precision
      * @param inputBands the input bands
      * @param inputs     the inputs
+     * @param largeSize  the large size
      */
-    public Big(final Precision precision, int inputBands, int inputs) {
-      super(precision, inputBands, inputs);
+    public Big(final Precision precision, int inputBands, int inputs, final int largeSize) {
+      super(precision, inputBands, inputs, largeSize);
       validateDifferentials = false;
       setTestTraining(false);
     }

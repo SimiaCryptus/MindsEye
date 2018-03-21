@@ -25,8 +25,8 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.java.ConstLayer;
 import com.simiacryptus.mindseye.layers.java.StochasticComponent;
+import com.simiacryptus.mindseye.layers.java.ValueLayer;
 import com.simiacryptus.mindseye.layers.java.WrapperLayer;
 import com.simiacryptus.mindseye.network.CountingResult;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -97,9 +97,9 @@ public class StochasticSamplingSubnetLayer extends WrapperLayer implements Stoch
    */
   public static Result average(final Result[] samples, final Precision precision) {
     PipelineNetwork gateNetwork = new PipelineNetwork(1);
-    gateNetwork.wrap(new GateProductLayer().setPrecision(precision),
+    gateNetwork.wrap(new ProductLayer().setPrecision(precision),
       gateNetwork.getInput(0),
-      gateNetwork.wrap(new ConstLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{}));
+      gateNetwork.wrap(new ValueLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{}));
     SumInputsLayer sumInputsLayer = new SumInputsLayer().setPrecision(precision);
     try {
       return gateNetwork.evalAndFree(sumInputsLayer.evalAndFree(samples));

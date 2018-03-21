@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Tensor eval.
+ * The type Tensor apply.
  */
 public class TensorTest {
   private static final Logger log = LoggerFactory.getLogger(TensorTest.class);
@@ -75,7 +75,7 @@ public class TensorTest {
    */
   @Test
   @Category(TestCategories.UnitTest.class)
-  public void testCoordStream() throws Exception {
+  public void testCoordStream() {
     final List<String> coordinates = new Tensor(2, 2, 2).coordStream(true)
       .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
     for (final String c : coordinates) {
@@ -90,7 +90,7 @@ public class TensorTest {
    */
   @Test
   @Category(TestCategories.UnitTest.class)
-  public void testShuffleStream() throws Exception {
+  public void testShuffleStream() {
     @Nonnull HashSet<Object> ids = new HashSet<>();
     int max = 10000;
     TestUtil.shuffle(IntStream.range(0, max)).forEach((int i) -> {
@@ -106,7 +106,7 @@ public class TensorTest {
    */
   @Test
   @Category(TestCategories.UnitTest.class)
-  public void testToJson() throws Exception {
+  public void testToJson() {
     test(new Tensor(3, 3, 1).map(v -> Math.random()));
     test(new Tensor(1, 3, 3).map(v -> Math.random()));
   }

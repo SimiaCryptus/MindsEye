@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Img band select layer eval.
+ * The type Img band select layer apply.
  */
 public abstract class ImgPixelGateLayerTest extends LayerTestBase {
   

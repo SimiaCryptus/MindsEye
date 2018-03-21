@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.GateProductLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer;
 import com.simiacryptus.mindseye.network.CountingResult;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -101,9 +101,9 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
    */
   public static Result average(final Result[] samples) {
     PipelineNetwork gateNetwork = new PipelineNetwork(1);
-    gateNetwork.wrap(new GateProductLayer(),
+    gateNetwork.wrap(new ProductLayer(),
       gateNetwork.getInput(0),
-      gateNetwork.wrap(new ConstLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{}));
+      gateNetwork.wrap(new ValueLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{}));
     SumInputsLayer sumInputsLayer = new SumInputsLayer();
     try {
       return gateNetwork.evalAndFree(sumInputsLayer.evalAndFree(samples));

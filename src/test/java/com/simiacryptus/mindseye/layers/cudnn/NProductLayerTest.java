@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Product layer run.
+ * The type Product layer apply.
  */
 public abstract class NProductLayerTest extends CudaLayerTestBase {
   
@@ -37,7 +37,7 @@ public abstract class NProductLayerTest extends CudaLayerTestBase {
   final Precision precision;
   
   /**
-   * Instantiates a new Product layer run.
+   * Instantiates a new Product layer apply.
    *
    * @param precision the precision
    */
@@ -50,6 +50,13 @@ public abstract class NProductLayerTest extends CudaLayerTestBase {
   public int[][] getSmallDims(Random random) {
     return new int[][]{
       {8, 8, 1}, {8, 8, 1}
+    };
+  }
+  
+  @Override
+  public int[][] getLargeDims(final Random random) {
+    return new int[][]{
+      {1200, 1200, 3}, {1200, 1200, 3}
     };
   }
   
@@ -89,6 +96,14 @@ public abstract class NProductLayerTest extends CudaLayerTestBase {
         {8, 8, 1}, {8, 8, 1}, {8, 8, 1}
       };
     }
+  
+    @Override
+    public int[][] getLargeDims(final Random random) {
+      return new int[][]{
+        {1200, 1200, 3}, {1200, 1200, 3}, {1200, 1200, 3}
+      };
+    }
+  
   }
   
   /**

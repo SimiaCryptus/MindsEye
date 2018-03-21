@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import javax.annotation.Nonnull;
 
 /**
- * An interface for CuDNN layers with configurable numeric precision.
+ * An interface for CuDNN layers apply configurable numeric precision.
  *
  * @param <T> the parent type, specified for return values.
  */

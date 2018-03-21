@@ -79,7 +79,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    */
   @Test
   @Category(TestCategories.Report.class)
-  public void classification() throws IOException {
+  public void classification() {
     run(this::classification, getClass().getSimpleName(), "Classification");
   }
   
@@ -99,7 +99,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    * Compare.
    *
    * @param log  the log
-   * @param test the run
+   * @param test the apply
    */
   public abstract void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test);
   
@@ -111,7 +111,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    */
   @Test
   @Category(TestCategories.Report.class)
-  public void encoding() throws IOException {
+  public void encoding() {
     run(this::encoding, getClass().getSimpleName(), "Encoding");
   }
   

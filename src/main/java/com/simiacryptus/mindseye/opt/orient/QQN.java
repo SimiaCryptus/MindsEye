@@ -32,9 +32,9 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import javax.annotation.Nonnull;
 
 /**
- * Quadratic Quasi-Newton optimization This method hybridizes pure gradient descent with higher-order quasinewton
- * implementations such as L-BFGS. During each iteration, a quadratic curve is interpolated which aligns with the
- * gradient's direction prediction and intersects with the quasinewton's optimal point prediction. A simple parameteric
+ * Quadratic Quasi-Newton optimization This method hybridizes pure gradient descent apply higher-order quasinewton
+ * implementations such as L-BFGS. During each iteration, a quadratic curve is interpolated which aligns apply the
+ * gradient's direction prediction and intersects apply the quasinewton's optimal point prediction. A simple parameteric
  * quadratic function blends both heapCopy cursors into a simple nonlinear path which should combine the stability of
  * both methods.
  */
@@ -126,7 +126,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
           reset();
           position(t).accumulate(1);
           @Nonnull final PointSample sample = subject.measure(monitor).setRate(t);
-          //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.run.size(), origin.delta.run.size(), lbfgs.run.size(), gd.run.size(), scaledGradient.run.size()));
+          //monitor.log(String.format("delta buffers %d %d %d %d %d", sample.delta.apply.size(), origin.delta.apply.size(), lbfgs.apply.size(), gd.apply.size(), scaledGradient.apply.size()));
           inner.addToHistory(sample, monitor);
           @Nonnull final DeltaSet<Layer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, tangent.dot(sample.delta));

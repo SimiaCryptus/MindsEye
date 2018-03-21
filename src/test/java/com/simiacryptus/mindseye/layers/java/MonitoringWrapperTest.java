@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Monitoring wrapper eval.
+ * The type Monitoring wrapper apply.
  */
 public abstract class MonitoringWrapperTest extends LayerTestBase {
   

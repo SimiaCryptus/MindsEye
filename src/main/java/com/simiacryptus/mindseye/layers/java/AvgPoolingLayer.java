@@ -248,7 +248,7 @@ public class AvgPoolingLayer extends LayerBase {
   
   private static class LayerCacheLoader extends CacheLoader<IndexMapKey, Map<Coordinate, List<int[]>>> {
     @Override
-    public Map<Coordinate, List<int[]>> load(final IndexMapKey key) throws Exception {
+    public Map<Coordinate, List<int[]>> load(final IndexMapKey key) {
       final int[] ksize = key.kernel;
       Tensor tensor = new Tensor(key.output);
       final Map<Coordinate, List<int[]>> coordMap = tensor.coordStream(true).collect(Collectors.toMap(o -> o, o -> {

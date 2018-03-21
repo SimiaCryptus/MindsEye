@@ -23,7 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.java.ConstLayer;
+import com.simiacryptus.mindseye.layers.java.ValueLayer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -207,8 +207,7 @@ public class PipelineNetwork extends DAGNetwork {
    */
   @Nullable
   public DAGNode constValue(final Tensor tensor) {
-    @Nullable final DAGNode constNode = super.add(new ConstLayer(tensor));
-    return constNode;
+    return super.add(new ValueLayer(tensor));
   }
   
   @Nullable

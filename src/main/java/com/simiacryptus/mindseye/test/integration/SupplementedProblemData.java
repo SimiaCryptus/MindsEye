@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * The type Linear eval.
+ * The type Linear apply.
  */
 public class SupplementedProblemData implements ImageProblemData {
   

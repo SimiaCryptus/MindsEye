@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 
 /**
  * The basic supervised network archetype. The network has two inputs; the input and the examplar output. A given
- * component is then evaluated on the input, and the resulting output is combined with the exemplar output via the loss
+ * component is then evaluated on the input, and the resulting output is combined apply the exemplar output via the loss
  * function.
  */
 @SuppressWarnings("serial")
