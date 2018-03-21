@@ -19,18 +19,12 @@
 
 package com.simiacryptus.mindseye.app;
 
-import com.simiacryptus.mindseye.eval.ArrayTrainable;
-import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
-import com.simiacryptus.mindseye.opt.orient.QQN;
-import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
@@ -41,11 +35,9 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This notebook implements the Deep Dream protocol outlined in <a href="https://research.googleblog.com/2015/06/inceptionism-going-deeper-into-neural.html">Inceptionism: Going Deeper into Neural Networks</a>
@@ -60,7 +52,7 @@ public class DeepDream extends StyleTransfer {
    */
   @Test
   public void run() {
-    run(this::run, "StyleTransfer_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
+    run(this::run, "DeepDream_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
   }
   
   /**
@@ -73,7 +65,7 @@ public class DeepDream extends StyleTransfer {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup styleParameters, final int trainingMinutes) {
+  public BufferedImage deepDream(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup styleParameters, final int trainingMinutes) {
     NeuralSetup neuralSetup = new NeuralSetup(log, styleParameters).init();
     PipelineNetwork network = neuralSetup.fitnessNetwork(log);
     log.p("Input Parameters:");
@@ -116,9 +108,9 @@ public class DeepDream extends StyleTransfer {
     Precision precision = Precision.Float;
     imageSize = 400;
     double growthFactor = Math.sqrt(1.5);
-    String lakeAndForest = "H:\\SimiaCryptus\\ArtistryAppBase\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
-    String vanGogh = "H:\\SimiaCryptus\\ArtistryAppBase\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    String threeMusicians = "H:\\SimiaCryptus\\ArtistryAppBase\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+    String vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    String threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     
     Map<String, StyleCoefficients> styles = new HashMap<>();
     ContentCoefficients contentCoefficients = new ContentCoefficients(
@@ -138,7 +130,7 @@ public class DeepDream extends StyleTransfer {
     Map<String, BufferedImage> styleImages = new HashMap<>();
     styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (imageSize * 1.5)) : imageSize)));
     BufferedImage contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
+    canvasImage = deepDream(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
     for (int i = 1; i < 10; i++) {
       log.h1("Phase " + i);
       imageSize = (int) (imageSize * growthFactor);
@@ -146,46 +138,10 @@ public class DeepDream extends StyleTransfer {
       styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (imageSize * 1.5)) : imageSize)));
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
       contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
+      canvasImage = deepDream(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
     }
     
     log.setFrontMatterProperty("status", "OK");
-  }
-  
-  /**
-   * Train buffered image.
-   *
-   * @param log             the log
-   * @param canvasImage     the canvas image
-   * @param network         the network
-   * @param precision       the precision
-   * @param trainingMinutes the training minutes
-   * @return the buffered image
-   */
-  @Nonnull
-  @Override
-  public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
-    System.gc();
-    Tensor canvas = Tensor.fromRGB(canvasImage);
-    TestUtil.monitorImage(canvas, false, false);
-    network.setFrozen(true);
-    setPrecision(network, precision);
-    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
-    TestUtil.instrumentPerformance(log, network);
-    addLayersHandler(network, server);
-    
-    log.code(() -> {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history))
-        .setOrientation(new QQN())
-        //.setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(trainingMinutes, TimeUnit.MINUTES)
-        .runAndFree();
-      return TestUtil.plot(history);
-    });
-    return canvas.toImage();
   }
   
   @Nonnull

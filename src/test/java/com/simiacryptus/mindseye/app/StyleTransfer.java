@@ -456,12 +456,12 @@ public class StyleTransfer extends ArtistryAppBase {
     Precision precision = Precision.Float;
     imageSize = 400;
     double growthFactor = Math.sqrt(1.5);
-    String lakeAndForest = "H:\\SimiaCryptus\\ArtistryAppBase\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
-    String vanGogh = "H:\\SimiaCryptus\\ArtistryAppBase\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    String threeMusicians = "H:\\SimiaCryptus\\ArtistryAppBase\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+    String vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    String threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
     Map<String, StyleCoefficients> styles = new HashMap<>();
-    double contentCoeff = 1e5;
+    double contentCoeff = 1e6;
     styles.put(lakeAndForest, new StyleCoefficients(
       contentCoeff * 1e-1, contentCoeff * 1e-1,
       0, 0,
