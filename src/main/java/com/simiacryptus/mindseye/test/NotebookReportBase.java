@@ -27,7 +27,6 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.CodeUtil;
 import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.test.SysOutInterceptor;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,8 +138,10 @@ public abstract class NotebookReportBase {
     log.setFrontMatterProperty("report_type", getReportType().name());
     @Nullable String targetJavadoc = printHeader(log, getTargetClass(), "network");
     @Nullable String reportJavadoc = printHeader(log, getReportClass(), "report");
-    log.p("__Target Description:__ " + StringEscapeUtils.escapeHtml4(targetJavadoc));
-    log.p("__Report Description:__ " + StringEscapeUtils.escapeHtml4(reportJavadoc));
+//    log.p("__Target Description:__ " + StringEscapeUtils.escapeHtml4(targetJavadoc));
+//    log.p("__Report Description:__ " + StringEscapeUtils.escapeHtml4(reportJavadoc));
+    log.p("__Target Description:__ " + targetJavadoc);
+    log.p("__Report Description:__ " + reportJavadoc);
   }
   
   /**
@@ -199,7 +200,7 @@ public abstract class NotebookReportBase {
     /**
      * Demos report type.
      */
-    Demos,
+    Applications,
     /**
      * Components report type.
      */
@@ -218,7 +219,7 @@ public abstract class NotebookReportBase {
     Optimizers, /**
      * Training report type.
      */
-    Training
+    Experiments
   }
   
   /**

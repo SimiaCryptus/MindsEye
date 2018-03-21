@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.demo;
+package com.simiacryptus.mindseye.app;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
@@ -42,14 +42,14 @@ import java.util.List;
  * We load a pretrained convolutional neural network (VGG16) along apply the CalTech101 image dataset to perform a
  * demonstration of Image Recognition.
  */
-public class ImageClassificationDemo extends ArtistryDemo {
+public class ImageClassification extends ArtistryAppBase {
   
   /**
    * Instantiates a new Image classification demo.
    *
    * @param args the args
    */
-  public ImageClassificationDemo(final String... args) {
+  public ImageClassification(final String... args) {
   
   }
   
@@ -59,7 +59,7 @@ public class ImageClassificationDemo extends ArtistryDemo {
    * @param args the input arguments
    */
   public static void main(String[] args) {
-    ImageClassificationDemo demo = new ImageClassificationDemo(args);
+    ImageClassification demo = new ImageClassification(args);
     demo.run(demo::run);
   }
   
@@ -152,20 +152,20 @@ public class ImageClassificationDemo extends ArtistryDemo {
   @Nonnull
   @Override
   public ReportType getReportType() {
-    return ReportType.Demos;
+    return ReportType.Applications;
   }
   
   /**
    * The type Java.
    */
-  public static class Java extends ImageClassificationDemo {
+  public static class Java extends ImageClassification {
     /**
      * The entry point of application.
      *
      * @param args the input arguments
      */
     public static void main(String[] args) {
-      ImageClassificationDemo demo = new ImageClassificationDemo.Java();
+      ImageClassification demo = new ImageClassification.Java();
       demo.run(demo::run);
     }
     

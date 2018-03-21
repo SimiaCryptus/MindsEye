@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.demo;
+package com.simiacryptus.mindseye.app;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
@@ -41,9 +41,9 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type Artistry demo.
+ * The type ArtistryAppBase demo.
  */
-public class ArtistryDemo extends NotebookReportBase {
+public class ArtistryAppBase extends NotebookReportBase {
   
   /**
    * The Server.
@@ -165,7 +165,7 @@ public class ArtistryDemo extends NotebookReportBase {
   @Nonnull
   @Override
   public ReportType getReportType() {
-    return ReportType.Demos;
+    return ReportType.Applications;
   }
   
   /**

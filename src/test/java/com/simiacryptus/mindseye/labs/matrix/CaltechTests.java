@@ -173,7 +173,7 @@ public class CaltechTests {
     @Nonnull
     @Override
     public ReportType getReportType() {
-      return ReportType.Training;
+      return ReportType.Experiments;
     }
   
   }

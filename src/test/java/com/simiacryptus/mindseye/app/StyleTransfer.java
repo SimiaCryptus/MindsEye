@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.demo;
+package com.simiacryptus.mindseye.app;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,7 +79,7 @@ import java.util.stream.IntStream;
 /**
  * This notebook implements the Style Transfer protocol outlined in <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
  */
-public class StyleTransferDemo extends ArtistryDemo {
+public class StyleTransfer extends ArtistryAppBase {
   
   
   /**
@@ -169,15 +169,15 @@ public class StyleTransferDemo extends ArtistryDemo {
   /**
    * To json string.
    *
-   * @param styleParameters the style parameters
+   * @param obj the style parameters
    * @return the string
    */
-  public static String toJson(final StyleSetup styleParameters) {
+  public static String toJson(final Object obj) {
     String json;
     try {
       ObjectMapper mapper = new ObjectMapper();
       mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-      json = mapper.writeValueAsString(styleParameters);
+      json = mapper.writeValueAsString(obj);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
@@ -456,14 +456,14 @@ public class StyleTransferDemo extends ArtistryDemo {
     Precision precision = Precision.Float;
     imageSize = 400;
     double growthFactor = Math.sqrt(1.5);
-//    String content = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170924_145214.jpg";
-    String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
-//    String style = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    String threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    String lakeAndForest = "H:\\SimiaCryptus\\ArtistryAppBase\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+    String vanGogh = "H:\\SimiaCryptus\\ArtistryAppBase\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    String threeMusicians = "H:\\SimiaCryptus\\ArtistryAppBase\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
     Map<String, StyleCoefficients> styles = new HashMap<>();
+    double contentCoeff = 1e5;
     styles.put(lakeAndForest, new StyleCoefficients(
-      1e3, 1e3,
+      contentCoeff * 1e-1, contentCoeff * 1e-1,
       0, 0,
       0, 0,
       0, 0,
@@ -477,14 +477,13 @@ public class StyleTransferDemo extends ArtistryDemo {
       1e-2, 1e-5,
       1e-2, 1e-5, false)
     );
-    double contentGate = 1e5;
     ContentCoefficients contentCoefficients = new ContentCoefficients(
-      contentGate * 1e-2,
-      contentGate * 1e-2,
-      contentGate * 1e-2,
-      contentGate * 1e-2,
-      contentGate * 1e-2,
-      contentGate * 1e-2);
+      contentCoeff * 1e-2,
+      contentCoeff * 1e-2,
+      contentCoeff * 1e-2,
+      contentCoeff * 1e-2,
+      contentCoeff * 1e-2,
+      contentCoeff * 1e-2);
     double power = 0.0;
     int trainingMinutes = 90;
   
@@ -550,6 +549,7 @@ public class StyleTransferDemo extends ArtistryDemo {
         //.setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
         .setLineSearchFactory(name -> new ArmijoWolfeSearch())
         .setTimeout(trainingMinutes, TimeUnit.MINUTES)
+        .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       return TestUtil.plot(history);
     });
@@ -580,7 +580,7 @@ public class StyleTransferDemo extends ArtistryDemo {
   @Nonnull
   @Override
   public ReportType getReportType() {
-    return ReportType.Demos;
+    return ReportType.Applications;
   }
   
   /**
@@ -931,7 +931,73 @@ public class StyleTransferDemo extends ArtistryDemo {
     public Tensor target_style_pca_cov_1e;
   }
   
-  private class NeuralSetup {
+  /**
+   * Gets style components.
+   *
+   * @param node              the node
+   * @param dynamic_center    the dynamic center
+   * @param coeff_style_mean  the coeff style mean
+   * @param target_style_mean the target style mean
+   * @param coeff_style_cov   the coeff style cov
+   * @param target_style_cov  the target style cov
+   * @param target_style_pca  the target style pca
+   * @return the style components
+   */
+  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final boolean dynamic_center, final double coeff_style_mean, final Tensor target_style_mean, final double coeff_style_cov, final Tensor target_style_cov, final Tensor target_style_pca) {
+    ArrayList<Tuple2<Double, DAGNode>> list = new ArrayList<>();
+    final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
+    if (coeff_style_cov != 0 || coeff_style_mean != 0) {
+      DAGNode negTarget = network.wrap(new ValueLayer(target_style_mean.scale(-1)), new DAGNode[]{});
+      InnerNode negAvg = network.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
+      if (coeff_style_cov != 0) {
+        InnerNode recentered;
+        if (dynamic_center) {
+          recentered = network.wrap(new GateBiasLayer(), node, negAvg);
+        }
+        else {
+          recentered = network.wrap(new GateBiasLayer(), node, negTarget);
+        }
+        int[] pcaDim = target_style_pca.getDimensions();
+        assert 0 < pcaDim[2] : Arrays.toString(pcaDim);
+        int inputBands = target_style_mean.getDimensions()[2];
+        assert 0 < inputBands : Arrays.toString(target_style_mean.getDimensions());
+        int outputBands = pcaDim[2] / inputBands;
+        assert 0 < outputBands : Arrays.toString(pcaDim) + " / " + inputBands;
+        list.add(new Tuple2<>(coeff_style_cov, network.wrap(new MeanSqLossLayer(),
+          network.wrap(new ValueLayer(target_style_cov), new DAGNode[]{}),
+          network.wrap(new GramianLayer(),
+            network.wrap(new ConvolutionLayer(pcaDim[0], pcaDim[1], inputBands, outputBands).set(target_style_pca),
+              recentered)))
+        ));
+      }
+      if (coeff_style_mean != 0) {
+        list.add(new Tuple2<>(coeff_style_mean,
+          network.wrap(new MeanSqLossLayer(), negAvg, negTarget)
+        ));
+      }
+    }
+    return list;
+  }
+  
+  /**
+   * Gets content components.
+   *
+   * @param node           the node
+   * @param coeff_content  the coeff content
+   * @param target_content the target content
+   * @return the content components
+   */
+  public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(final DAGNode node, final double coeff_content, final Tensor target_content) {
+    ArrayList<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
+    final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
+    if (coeff_content != 0) {
+      functions.add(new Tuple2<>(coeff_content, network.wrap(new MeanSqLossLayer(),
+        node, network.wrap(new ValueLayer(target_content), new DAGNode[]{}))));
+    }
+    return functions;
+  }
+  
+  public class NeuralSetup {
   
     /**
      * The Log.
@@ -1181,72 +1247,7 @@ public class StyleTransferDemo extends ArtistryDemo {
       setPrecision(network, this.style.precision);
       return network;
     }
-  
-    /**
-     * Gets style components.
-     *
-     * @param node              the node
-     * @param dynamic_center    the dynamic center
-     * @param coeff_style_mean  the coeff style mean
-     * @param target_style_mean the target style mean
-     * @param coeff_style_cov   the coeff style cov
-     * @param target_style_cov  the target style cov
-     * @param target_style_pca  the target style pca
-     * @return the style components
-     */
-    public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final boolean dynamic_center, final double coeff_style_mean, final Tensor target_style_mean, final double coeff_style_cov, final Tensor target_style_cov, final Tensor target_style_pca) {
-      ArrayList<Tuple2<Double, DAGNode>> list = new ArrayList<>();
-      final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
-      if (coeff_style_cov != 0 || coeff_style_mean != 0) {
-        DAGNode negTarget = network.wrap(new ValueLayer(target_style_mean.scale(-1)), new DAGNode[]{});
-        InnerNode negAvg = network.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
-        if (coeff_style_cov != 0) {
-          InnerNode recentered;
-          if (dynamic_center) {
-            recentered = network.wrap(new GateBiasLayer(), node, negAvg);
-          }
-          else {
-            recentered = network.wrap(new GateBiasLayer(), node, negTarget);
-          }
-          int[] pcaDim = target_style_pca.getDimensions();
-          assert 0 < pcaDim[2] : Arrays.toString(pcaDim);
-          int inputBands = target_style_mean.getDimensions()[2];
-          assert 0 < inputBands : Arrays.toString(target_style_mean.getDimensions());
-          int outputBands = pcaDim[2] / inputBands;
-          assert 0 < outputBands : Arrays.toString(pcaDim) + " / " + inputBands;
-          list.add(new Tuple2<>(coeff_style_cov, network.wrap(new MeanSqLossLayer(),
-            network.wrap(new ValueLayer(target_style_cov), new DAGNode[]{}),
-            network.wrap(new GramianLayer(),
-              network.wrap(new ConvolutionLayer(pcaDim[0], pcaDim[1], inputBands, outputBands).set(target_style_pca),
-                recentered)))
-          ));
-        }
-        if (coeff_style_mean != 0) {
-          list.add(new Tuple2<>(coeff_style_mean,
-            network.wrap(new MeanSqLossLayer(), negAvg, negTarget)
-          ));
-        }
-      }
-      return list;
-    }
-  
-    /**
-     * Gets content components.
-     *
-     * @param node           the node
-     * @param coeff_content  the coeff content
-     * @param target_content the target content
-     * @return the content components
-     */
-    public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(final DAGNode node, final double coeff_content, final Tensor target_content) {
-      ArrayList<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
-      final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
-      if (coeff_content != 0) {
-        functions.add(new Tuple2<>(coeff_content, network.wrap(new MeanSqLossLayer(),
-          node, network.wrap(new ValueLayer(target_content), new DAGNode[]{}))));
-      }
-      return functions;
-    }
-  
+    
   }
+
 }

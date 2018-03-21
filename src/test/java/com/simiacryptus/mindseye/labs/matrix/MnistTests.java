@@ -206,7 +206,7 @@ public class MnistTests {
     @Nonnull
     @Override
     public ReportType getReportType() {
-      return ReportType.Training;
+      return ReportType.Experiments;
     }
   
   }
