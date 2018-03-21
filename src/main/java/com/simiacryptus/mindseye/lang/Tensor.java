@@ -1322,16 +1322,6 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * Size int.
-   *
-   * @return the int
-   */
-  public int size() {
-    assertAlive();
-    return null == data ? Tensor.length(dimensions) : data.length;
-  }
-  
-  /**
    * Sum double.
    *
    * @return the double

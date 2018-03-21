@@ -25,7 +25,6 @@ import com.simiacryptus.util.test.LabeledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.stream.Stream;
 
 /**
@@ -38,13 +37,13 @@ public class MnistProblemData implements ImageProblemData {
   static final Logger log = LoggerFactory.getLogger(MnistProblemData.class);
   
   @Override
-  public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
+  public Stream<LabeledObject<Tensor>> trainingData() {
     log.info(String.format("Loaded %d items", MNIST.trainingDataStream().count()));
     return MNIST.trainingDataStream();
   }
   
   @Override
-  public Stream<LabeledObject<Tensor>> validationData() throws IOException {
+  public Stream<LabeledObject<Tensor>> validationData() {
     return MNIST.validationDataStream();
   }
   

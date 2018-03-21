@@ -143,7 +143,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
             dimensions[1] * dimensions[0],
             dimensions[0],
             1);
-          @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+          @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
           delta.freeRef();
           @Nullable final CudaTensor inputTensor = gpu.getTensor(input.getData(), precision, MemoryType.Device, false);
           //assert deltaTensor.size == inputTensor.size;

@@ -207,8 +207,7 @@ public class PipelineNetwork extends DAGNetwork {
    */
   @Nullable
   public DAGNode constValue(final Tensor tensor) {
-    @Nullable final DAGNode constNode = super.add(new ValueLayer(tensor));
-    return constNode;
+    return super.add(new ValueLayer(tensor));
   }
   
   @Nullable

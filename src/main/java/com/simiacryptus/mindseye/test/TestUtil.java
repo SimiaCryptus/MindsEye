@@ -754,8 +754,9 @@ public class TestUtil {
    *
    * @param input       the input
    * @param exitOnClose the exit on close
+   * @param normalize   the normalize
    */
-  public static void monitorImage(final Tensor input, final boolean exitOnClose) {monitorImage(input, exitOnClose, 30);}
+  public static void monitorImage(final Tensor input, final boolean exitOnClose, final boolean normalize) {monitorImage(input, exitOnClose, 30, normalize);}
   
   /**
    * Monitor ui.
@@ -763,15 +764,16 @@ public class TestUtil {
    * @param input       the input
    * @param exitOnClose the exit on close
    * @param period      the period
+   * @param normalize   the normalize
    */
-  public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period) {
+  public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period, final boolean normalize) {
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
       try {
         JLabel jLabel = labelWeakReference.get();
         if (null != jLabel) {
-          BufferedImage image = normalizeBands(input).toImage();
+          BufferedImage image = (normalize ? normalizeBands(input) : input).toImage();
           int width = jLabel.getWidth();
           if (width > 0) TestUtil.resize(image, width, jLabel.getHeight());
           jLabel.setIcon(new ImageIcon(image));
@@ -819,7 +821,7 @@ public class TestUtil {
               File selectedFile = fileChooser.getSelectedFile();
               if (!selectedFile.getName().toUpperCase().endsWith(".PNG"))
                 selectedFile = new File(selectedFile.getParent(), selectedFile.getName() + ".png");
-              BufferedImage image = normalizeBands(input).toImage();
+              BufferedImage image = (normalize ? normalizeBands(input) : input).toImage();
               if (!ImageIO.write(image, "PNG", selectedFile)) throw new IllegalArgumentException();
             } catch (IOException e1) {
               throw new RuntimeException(e1);

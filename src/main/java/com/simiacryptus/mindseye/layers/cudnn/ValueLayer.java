@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
@@ -26,11 +26,16 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
+import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
+import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +47,8 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class ValueLayer extends LayerBase {
   
-  @Nullable
-  private Tensor data;
+  private final Precision precision;
+  private final CudaTensorList tensorList;
   
   /**
    * Instantiates a new Const nn layer.
@@ -53,7 +58,8 @@ public class ValueLayer extends LayerBase {
    */
   protected ValueLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
     super(json);
-    data = Tensor.fromJson(json.get("value"), resources);
+    this.precision = Precision.valueOf(json.get("precision").getAsString());
+    this.tensorList = toDevice(Tensor.fromJson(json.get("value"), resources), precision);
   }
   
   /**
@@ -63,7 +69,8 @@ public class ValueLayer extends LayerBase {
    */
   public ValueLayer(final Tensor data) {
     super();
-    this.data = data;
+    this.precision = Precision.Float;
+    this.tensorList = toDevice(data, precision);
     data.addRef();
     this.frozen = true;
   }
@@ -79,71 +86,63 @@ public class ValueLayer extends LayerBase {
     return new ValueLayer(json, rs);
   }
   
+  /**
+   * To device cuda tensor list.
+   *
+   * @param data      the data
+   * @param precision the precision
+   * @return the cuda tensor list
+   */
+  public CudaTensorList toDevice(final Tensor data, final Precision precision) {
+    return CudaSystem.run(gpu -> {
+      CudaMemory cudaMemory = gpu.allocate(data.length() * precision.size, MemoryType.Managed, true);
+      cudaMemory.write(precision, data.getData());
+      int[] dimensions = data.getDimensions();
+      CudaDevice.CudaTensorDescriptor tensorDescriptor = gpu.newTensorDescriptor(precision, 1, dimensions[2], dimensions[1], dimensions[0]);
+      return CudaTensorList.wrap(CudaTensor.wrap(cudaMemory, tensorDescriptor, precision), 1, dimensions, precision);
+    });
+  }
+  
   @Nonnull
   @Override
-  public Result eval(@Nonnull final Result... array) {
+  public Result evalAndFree(@Nonnull final Result... array) {
     assert 0 == array.length;
-    ValueLayer.this.addRef();
-    ValueLayer.this.data.addRef();
-    return new Result(TensorArray.create(ValueLayer.this.data), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
-      if (!isFrozen()) {
-        data.stream().forEach(datum -> {
-          buffer.get(ValueLayer.this, ValueLayer.this.data.getData()).addInPlace(datum.getData()).freeRef();
-          datum.freeRef();
-        });
-      }
-    }) {
+    ValueLayer.this.tensorList.addRef();
+    return new Result(tensorList, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> { }) {
       
       @Override
       protected void _free() {
-        ValueLayer.this.data.freeRef();
-        ValueLayer.this.freeRef();
       }
       
       @Override
       public boolean isAlive() {
-        return !ValueLayer.this.isFrozen();
+        return false;
       }
     };
   }
   
   @Override
   protected void _free() {
-    data.freeRef();
-  }
-  
-  /**
-   * Gets data.
-   *
-   * @return the data
-   */
-  @Nullable
-  public Tensor getData() {
-    return data;
-  }
-  
-  /**
-   * Sets data.
-   *
-   * @param data the data
-   */
-  public void setData(final Tensor data) {
-    data.addRef();
-    if (null != this.data) this.data.freeRef();
-    this.data = data;
+    tensorList.freeRef();
   }
   
   @Nonnull
   @Override
   public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
-    json.add("value", data.toJson(resources, dataSerializer));
+    Tensor tensor = tensorList.get(0);
+    json.add("value", tensor.toJson(resources, dataSerializer));
+    tensor.freeRef();
+    json.addProperty("precision", precision.name());
     return json;
   }
   
   @Nonnull
   @Override
   public List<double[]> state() {
-    return Arrays.asList(data.getData());
+    Tensor tensor = tensorList.get(0);
+    List<double[]> list = Arrays.asList(tensor.getData());
+    tensor.freeRef();
+    return list;
   }
 }

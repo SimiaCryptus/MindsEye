@@ -263,7 +263,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     private final Layer inner;
     private final int fromBand;
     private final int toBand;
-    
+  
     /**
      * Instantiates a new Subnet leg.
      *
@@ -283,7 +283,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       super._free();
       inner.freeRef();
     }
-    
+  
     /**
      * Instantiates a new Rescaled subnet layer.
      *
@@ -295,7 +295,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       toBand = json.getAsJsonPrimitive("toBand").getAsInt();
       inner = Layer.fromJson(json.getAsJsonObject("network"), rs);
     }
-    
+  
     /**
      * Gets json.
      *

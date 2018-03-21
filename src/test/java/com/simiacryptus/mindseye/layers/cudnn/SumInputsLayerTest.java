@@ -59,7 +59,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
    * @param precision  the precision
    * @param inputBands the input bands
    * @param inputs     the inputs
-   * @param largeSize
+   * @param largeSize  the large size
    */
   public SumInputsLayerTest(final Precision precision, int inputBands, int inputs, final int largeSize) {
     this.precision = precision;
@@ -204,7 +204,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
      * @param precision  the precision
      * @param inputBands the input bands
      * @param inputs     the inputs
-     * @param largeSize
+     * @param largeSize  the large size
      */
     public Big(final Precision precision, int inputBands, int inputs, final int largeSize) {
       super(precision, inputBands, inputs, largeSize);

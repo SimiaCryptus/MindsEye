@@ -100,6 +100,9 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
     };
   }
   
+  /**
+   * The Testing batch size.
+   */
   protected int testingBatchSize = 5;
   
   @Nullable

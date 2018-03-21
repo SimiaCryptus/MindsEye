@@ -72,7 +72,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
       @Nonnull final Tensor[] prototype = featureVectors.get().findAny().get();
       @Nonnull final int[] dimensions = prototype[column].getDimensions();
       RealMatrix covariance = PCAUtil.getCovariance(() -> featureVectors.get().map(x -> x[column].getData()));
-      return PCAUtil.pcaFeatures_norm(covariance, components, dimensions);
+      return PCAUtil.pcaFeatures(covariance, components, dimensions, -1);
     });
   }
   

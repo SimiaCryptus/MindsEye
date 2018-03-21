@@ -116,8 +116,8 @@ public class ImgConcatLayer extends LayerBase {
         for (int i = 0; i < inObj.length; i++) {
           @Nonnull final Tensor dest = new Tensor(inObj[i].getData().getDimensions());
           @Nullable double[] tensorData = tensor.getData();
-          System.arraycopy(tensorData, pos, dest.getData(), 0, Math.min(dest.size(), tensorData.length - pos));
-          pos += dest.size();
+          System.arraycopy(tensorData, pos, dest.getData(), 0, Math.min(dest.length(), tensorData.length - pos));
+          pos += dest.length();
           outputTensors2[i] = dest;
         }
         tensor.freeRef();

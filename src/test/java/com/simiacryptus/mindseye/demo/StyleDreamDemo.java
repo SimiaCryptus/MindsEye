@@ -97,9 +97,9 @@ public class StyleDreamDemo extends ArtistryDemo {
       int y = (c.getIndex() - x) / inputbands;
       realMatrix.setEntry(x, y, v);
     });
-    Tensor[] features = PCAUtil.pcaFeatures_inv(realMatrix, outputbands, new int[]{1, 1, inputbands});
+    Tensor[] features = PCAUtil.pcaFeatures(realMatrix, outputbands, new int[]{1, 1, inputbands}, 1);
     Tensor kernel = new Tensor(1, 1, inputbands * outputbands);
-    PCAUtil.populatePCAKernel(kernel, features);
+    PCAUtil.populatePCAKernel_1(kernel, features);
     return kernel;
   }
   
@@ -236,7 +236,7 @@ public class StyleDreamDemo extends ArtistryDemo {
     log.h1("Output");
     System.gc();
     Tensor canvas = Tensor.fromRGB(canvasImage);
-    TestUtil.monitorImage(canvas, false);
+    TestUtil.monitorImage(canvas, false, true);
     network.setFrozen(true);
     setPrecision(network, precision);
     @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
@@ -606,7 +606,7 @@ public class StyleDreamDemo extends ArtistryDemo {
      * The Coeff content 1 e.
      */
     public final double coeff_content_1e;
-    
+  
     /**
      * Instantiates a new Content coefficients.
      *
@@ -684,7 +684,7 @@ public class StyleDreamDemo extends ArtistryDemo {
      * The Dynamic center.
      */
     public final boolean dynamic_center;
-    
+  
     /**
      * Instantiates a new Style coefficients.
      *
@@ -847,7 +847,7 @@ public class StyleDreamDemo extends ArtistryDemo {
      * The Target style mean 1 e.
      */
     public Tensor target_style_mean_1e;
-    
+  
     /**
      * The Target style pca 0.
      */

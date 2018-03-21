@@ -133,7 +133,7 @@ public class DeepDreamDemo extends ArtistryDemo {
     for (int itemNumber = 0; itemNumber < images.length; itemNumber++) {
       log.h1("Image " + itemNumber);
       Tensor image = images[itemNumber];
-      TestUtil.monitorImage(image, false);
+      TestUtil.monitorImage(image, false, true);
       Function<IterativeTrainer, IterativeTrainer> config = train -> train
         .setTimeout(90, TimeUnit.MINUTES)
         .setIterationsPerSample(5);

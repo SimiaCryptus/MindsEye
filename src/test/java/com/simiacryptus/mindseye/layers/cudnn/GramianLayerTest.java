@@ -95,6 +95,9 @@ public abstract class GramianLayerTest extends CudaLayerTestBase {
   
   }
   
+  /**
+   * The type Deep.
+   */
   public static class Deep extends GramianLayerTest {
     /**
      * Instantiates a new Basic.

@@ -459,7 +459,7 @@ public class EncodingUtil {
     for (@Nonnull final Tensor t : featureSpaceVectors) {
       log.info(String.format("Feature Vector %s%n", t.prettyPrint()));
     }
-    PCAUtil.populatePCAKernel(kernel, featureSpaceVectors);
+    PCAUtil.populatePCAKernel_1(kernel, featureSpaceVectors);
     log.info(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
     log.info(String.format("Kernel: %s%n", kernel.prettyPrint()));
   }

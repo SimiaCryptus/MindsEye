@@ -34,6 +34,9 @@ public abstract class ImgLinearSubnetLayerTest extends CudaLayerTestBase {
   private final ConvolutionLayer convolutionLayer2 = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
   private final ConvolutionLayer convolutionLayer3 = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
   
+  /**
+   * Instantiates a new Img linear subnet layer test.
+   */
   public ImgLinearSubnetLayerTest() {
     testingBatchSize = 1;
   }
