@@ -19,10 +19,24 @@
 
 package com.simiacryptus.mindseye.app;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.simiacryptus.mindseye.labs.encoding.PCAUtil;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
+import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
@@ -30,11 +44,14 @@ import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.hadoop.yarn.webapp.MimeType;
 
 import javax.annotation.Nonnull;
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Random;
@@ -65,6 +82,28 @@ public class ArtistryAppBase extends NotebookReportBase {
         throw new RuntimeException(e);
       }
     }, false);
+  }
+  
+  /**
+   * Gram pipeline network.
+   *
+   * @param network      the network
+   * @param mean         the mean
+   * @param pcaTransform the pca transform
+   * @return the pipeline network
+   */
+  @Nonnull
+  public static PipelineNetwork gram(final PipelineNetwork network, Tensor mean, Tensor pcaTransform) {
+    int[] dimensions = pcaTransform.getDimensions();
+    int inputBands = mean.getDimensions()[2];
+    int pcaBands = dimensions[2];
+    int outputBands = pcaBands / inputBands;
+    int width = dimensions[0];
+    int height = dimensions[1];
+    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
+    network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform));
+    network.wrap(new GramianLayer());
+    return network;
   }
   
   /**
@@ -150,6 +189,168 @@ public class ArtistryAppBase extends NotebookReportBase {
       );
     });
     canvas.set(Tensor.fromRGB(newImage));
+  }
+  
+  /**
+   * Avg pipeline network.
+   *
+   * @param network the network
+   * @return the pipeline network
+   */
+  @Nonnull
+  public static PipelineNetwork avg(final PipelineNetwork network) {
+    network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
+    return network;
+  }
+  
+  /**
+   * With clamp pipeline network.
+   *
+   * @param network1 the network 1
+   * @return the pipeline network
+   */
+  @Nonnull
+  public static PipelineNetwork withClamp(final PipelineNetwork network1) {
+    PipelineNetwork network = new PipelineNetwork(1);
+    network.wrap(getClamp(255));
+    network.wrap(network1);
+    return network;
+  }
+  
+  /**
+   * Sets precision.
+   *
+   * @param network   the network
+   * @param precision the precision
+   */
+  public static void setPrecision(final DAGNetwork network, final Precision precision) {
+    network.visitLayers(layer -> {
+      if (layer instanceof MultiPrecision) {
+        ((MultiPrecision) layer).setPrecision(precision);
+      }
+    });
+  }
+  
+  /**
+   * Pca tensor.
+   *
+   * @param cov   the cov
+   * @param power the power
+   * @return the tensor
+   */
+  @Nonnull
+  public static Tensor pca(final Tensor cov, final double power) {
+    final int inputbands = (int) Math.sqrt(cov.getDimensions()[2]);
+    final int outputbands = inputbands;
+    Array2DRowRealMatrix realMatrix = new Array2DRowRealMatrix(inputbands, inputbands);
+    cov.coordStream(false).forEach(c -> {
+      double v = cov.get(c);
+      int x = c.getIndex() % inputbands;
+      int y = (c.getIndex() - x) / inputbands;
+      realMatrix.setEntry(x, y, v);
+    });
+    Tensor[] features = PCAUtil.pcaFeatures(realMatrix, outputbands, new int[]{1, 1, inputbands}, power);
+    Tensor kernel = new Tensor(1, 1, inputbands * outputbands);
+    PCAUtil.populatePCAKernel_1(kernel, features);
+    return kernel;
+  }
+  
+  /**
+   * Gets clamp.
+   *
+   * @param max the max
+   * @return the clamp
+   */
+  @Nonnull
+  public static PipelineNetwork getClamp(final int max) {
+    @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(max).setScale(-1).freeze());
+    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+    clamp.add(new LinearActivationLayer().setBias(max).setScale(-1).freeze());
+    return clamp;
+  }
+  
+  /**
+   * To json string.
+   *
+   * @param obj the style parameters
+   * @return the string
+   */
+  public static String toJson(final Object obj) {
+    String json;
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+      json = mapper.writeValueAsString(obj);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+    return json;
+  }
+  
+  /**
+   * Load buffered image.
+   *
+   * @param image     the style
+   * @param imageSize the image size
+   * @return the buffered image
+   */
+  @Nonnull
+  public static BufferedImage load(final String image, final int imageSize) {
+    BufferedImage bufferedImage;
+    try {
+      bufferedImage = ImageIO.read(new File(image));
+      bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return bufferedImage;
+  }
+  
+  /**
+   * Load buffered image.
+   *
+   * @param imageFile the style
+   * @param width     the width
+   * @param height    the height
+   * @return the buffered image
+   */
+  @Nonnull
+  public static BufferedImage load(final String imageFile, final int width, final int height) {
+    BufferedImage image;
+    try {
+      image = ImageIO.read(new File(imageFile));
+      image = TestUtil.resize(image, width, height);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return image;
+  }
+  
+  /**
+   * Gram pipeline network.
+   *
+   * @param network the network
+   * @param mean    the mean
+   * @return the pipeline network
+   */
+  @Nonnull
+  public static PipelineNetwork gram(final PipelineNetwork network, Tensor mean) {
+    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
+    network.wrap(new GramianLayer());
+    return network;
+  }
+  
+  /**
+   * Randomize buffered image.
+   *
+   * @param contentImage the content image
+   * @return the buffered image
+   */
+  @Nonnull
+  public static BufferedImage randomize(final BufferedImage contentImage) {
+    return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random() * 100).toRgbImage();
   }
   
   /**

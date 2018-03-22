@@ -276,15 +276,14 @@ public class CudnnHandle extends CudaDevice {
       return cudaTensor;
     }
     if (data instanceof CudaTensorList) {
-      CudaTensorList cudaTensorList1 = (CudaTensorList) data;
-      if (precision == cudaTensorList1.getPrecision()) {
-        @Nonnull CudaTensorList cudaTensorList = cudaTensorList1;
+      CudaTensorList cudaTensorList = (CudaTensorList) data;
+      if (precision == cudaTensorList.getPrecision()) {
         return this.getTensor(cudaTensorList, memoryType, dense);
       }
       else {
-        CudaTensorList.logger.warn(String.format("Incompatible precision types for Tensor %s in GPU at %s, created by %s", Integer.toHexString(System.identityHashCode(cudaTensorList1)),
+        CudaTensorList.logger.warn(String.format("Incompatible precision types for Tensor %s in GPU at %s, created by %s", Integer.toHexString(System.identityHashCode(cudaTensorList)),
           TestUtil.toString(TestUtil.getStackTrace()).replaceAll("\n", "\n\t"),
-          TestUtil.toString(cudaTensorList1.createdBy).replaceAll("\n", "\n\t")));
+          TestUtil.toString(cudaTensorList.createdBy).replaceAll("\n", "\n\t")));
       }
     }
     final int listLength = data.length();

@@ -122,8 +122,8 @@ public class ObjectLocation extends ArtistryAppBase {
       throw new RuntimeException(e);
     }
     Layer locatorNetwork = locator.getNetwork();
-    StyleTransfer.setPrecision((DAGNetwork) classifyNetwork, Precision.Float);
-    StyleTransfer.setPrecision((DAGNetwork) locatorNetwork, Precision.Float);
+    ArtistryAppBase.setPrecision((DAGNetwork) classifyNetwork, Precision.Float);
+    ArtistryAppBase.setPrecision((DAGNetwork) locatorNetwork, Precision.Float);
     
     
     Tensor[][] inputData = loadImages_library();

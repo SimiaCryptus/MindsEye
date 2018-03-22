@@ -191,9 +191,8 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
             final TensorList data = CudaSystem.run(gpu -> {
               @Nullable CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
               @Nullable CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
-              outPtr.addRef();
               assert length == delta.length();
-              CudaTensor localOut = outPtr.getDenseAndFree(gpu);
+              CudaTensor localOut = outPtr.getDense(gpu);
               delta.freeRef();
               CudaTensor passbackTensor;
 //            if (sameStrides(deltaTensor.descriptor, inputTensor.descriptor)) {

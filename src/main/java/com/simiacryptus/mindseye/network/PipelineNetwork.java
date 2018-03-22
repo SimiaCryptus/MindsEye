@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.network;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.SerialPrecision;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.java.ValueLayer;
 
@@ -37,6 +38,17 @@ import java.util.UUID;
  */
 @SuppressWarnings("serial")
 public class PipelineNetwork extends DAGNetwork {
+  @Nonnull
+  @Override
+  public PipelineNetwork copy(final SerialPrecision precision) {
+    return (PipelineNetwork) super.copy(precision);
+  }
+  
+  @Nonnull
+  @Override
+  public PipelineNetwork copy() {
+    return (PipelineNetwork) super.copy();
+  }
   
   @Nullable
   private DAGNode head;
