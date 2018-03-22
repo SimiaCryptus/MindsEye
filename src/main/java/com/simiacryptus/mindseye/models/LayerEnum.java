@@ -21,36 +21,8 @@ package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 
-import java.util.Map;
-import java.util.UUID;
-
-/**
- * The interface Multi layer image network.
- *
- * @param <T> the type parameter
- */
-public interface MultiLayerImageNetwork<T extends LayerEnum<T>> {
+public interface LayerEnum<T> {
+  PipelineNetwork texture();
   
-  ;
-  
-  /**
-   * Gets nodes.
-   *
-   * @return the nodes
-   */
-  Map<T, UUID> getNodes();
-  
-  /**
-   * Gets prototypes.
-   *
-   * @return the prototypes
-   */
-  Map<T, PipelineNetwork> getPrototypes();
-  
-  /**
-   * Gets network.
-   *
-   * @return the network
-   */
-  PipelineNetwork getNetwork();
+  String name();
 }

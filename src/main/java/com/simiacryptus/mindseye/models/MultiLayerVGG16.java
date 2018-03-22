@@ -37,12 +37,12 @@ public class MultiLayerVGG16 implements MultiLayerImageNetwork<MultiLayerVGG16.L
   /**
    * The constant INSTANCE.
    */
-  public static final MultiLayerImageNetwork<LayerType> INSTANCE = build();
+  public static final MultiLayerVGG16 INSTANCE = build();
   private final Map<LayerType, UUID> nodes = new HashMap<>();
   private final Map<LayerType, PipelineNetwork> prototypes = new HashMap<>();
   private PipelineNetwork network = new PipelineNetwork();
   
-  private static MultiLayerImageNetwork<LayerType> build() {
+  private static MultiLayerVGG16 build() {
     MultiLayerVGG16 obj = new MultiLayerVGG16();
     final DAGNode[] nodes = new DAGNode[6];
     try {
@@ -122,7 +122,7 @@ public class MultiLayerVGG16 implements MultiLayerImageNetwork<MultiLayerVGG16.L
   /**
    * The enum Layer type.
    */
-  public enum LayerType {
+  public enum LayerType implements LayerEnum<LayerType> {
     /**
      * Layer 0 layer type.
      */

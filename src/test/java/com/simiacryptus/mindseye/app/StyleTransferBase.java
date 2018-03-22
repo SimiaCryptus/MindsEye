@@ -30,27 +30,24 @@ import com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
-import com.simiacryptus.mindseye.models.MultiLayerVGG16;
-import com.simiacryptus.mindseye.models.VGG16;
+import com.simiacryptus.mindseye.models.LayerEnum;
+import com.simiacryptus.mindseye.models.MultiLayerImageNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
+import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
-import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,18 +59,8 @@ import java.util.stream.IntStream;
 /**
  * This notebook implements the Style Transfer protocol outlined in <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
  */
-public class StyleTransfer extends ArtistryAppBase {
+public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> extends ArtistryAppBase {
   
-  
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void run() {
-    run(this::run, "StyleTransfer_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
-  }
   
   /**
    * Style transfer buffered image.
@@ -85,7 +72,7 @@ public class StyleTransfer extends ArtistryAppBase {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup styleParameters, final int trainingMinutes) {
+  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
     PipelineNetwork network = fitnessNetwork(measureStyle(styleParameters));
     log.p("Input Parameters:");
     log.code(() -> {
@@ -117,73 +104,6 @@ public class StyleTransfer extends ArtistryAppBase {
     return result;
   }
   
-  
-  /**
-   * Test.
-   *
-   * @param log the log
-   */
-  public void run(@Nonnull NotebookOutput log) {
-    init(log);
-    Precision precision = Precision.Float;
-    int imageSize = 400;
-    double growthFactor = Math.sqrt(1.5);
-    String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
-    String vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    String threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-  
-    Map<String, StyleCoefficients> styles = new HashMap<>();
-    double contentCoeff = 1e6;
-    styles.put(lakeAndForest, new StyleCoefficients(false)
-        .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 1e-3, contentCoeff * 1e-3)
-//      .set(MultiLayerVGG16.LayerType.Layer_1a, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1b, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1c, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1d, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1e, (double) 0, (double) 0)
-    );
-    styles.put(threeMusicians, new StyleCoefficients(false)
-//      .set(MultiLayerVGG16.LayerType.Layer_0, (double) 0, (double) 0)
-        .set(MultiLayerVGG16.LayerType.Layer_1a, 1e-3, 1e-3)
-        .set(MultiLayerVGG16.LayerType.Layer_1b, 1e-3, 1e-7)
-        .set(MultiLayerVGG16.LayerType.Layer_1c, 1e-3, 1e-7)
-        .set(MultiLayerVGG16.LayerType.Layer_1d, 1e-3, 1e-7)
-        .set(MultiLayerVGG16.LayerType.Layer_1e, 1e-3, 1e-7)
-    );
-    ContentCoefficients contentCoefficients = new ContentCoefficients()
-//      .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 0)
-      .set(MultiLayerVGG16.LayerType.Layer_1a, contentCoeff * 1e-2)
-      .set(MultiLayerVGG16.LayerType.Layer_1b, contentCoeff * 1e-2)
-      .set(MultiLayerVGG16.LayerType.Layer_1c, contentCoeff * 1e-2)
-//      .set(MultiLayerVGG16.LayerType.Layer_1d, contentCoeff * 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1e, contentCoeff * 0)
-      ;
-    double power = 0.0;
-    int trainingMinutes = 90;
-  
-    log.h1("Phase 0");
-    BufferedImage canvasImage = load(lakeAndForest, imageSize);
-    canvasImage = randomize(canvasImage);
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    Map<String, BufferedImage> styleImages = new HashMap<>();
-    final int finalImageSize = imageSize;
-    styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (finalImageSize * 1.5)) : finalImageSize)));
-    BufferedImage contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
-    for (int i = 1; i < 10; i++) {
-      log.h1("Phase " + i);
-      imageSize = (int) (imageSize * growthFactor);
-      styleImages.clear();
-      final int finalImageSize1 = imageSize;
-      styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (finalImageSize1 * 1.5)) : finalImageSize1)));
-      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-      contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
-    }
-    
-    log.setFrontMatterProperty("status", "OK");
-  }
-  
   /**
    * Train buffered image.
    *
@@ -210,24 +130,14 @@ public class StyleTransfer extends ArtistryAppBase {
       new IterativeTrainer(trainable)
         .setMonitor(TestUtil.getMonitor(history))
         .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
-//        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+//        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
+        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
         .setTimeout(trainingMinutes, TimeUnit.MINUTES)
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       return TestUtil.plot(history);
     });
     return canvas.toImage();
-  }
-  
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return VGG16.class;
   }
   
   @Nonnull
@@ -244,7 +154,7 @@ public class StyleTransfer extends ArtistryAppBase {
    * @return the fitness components
    */
   @Nonnull
-  public List<Tuple2<Double, DAGNode>> getFitnessComponents(NeuralSetup setup, final Map<MultiLayerVGG16.LayerType, DAGNode> nodeMap) {
+  public List<Tuple2<Double, DAGNode>> getFitnessComponents(NeuralSetup setup, final Map<T, DAGNode> nodeMap) {
     List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
     functions.addAll(getContentComponents(setup, nodeMap));
     functions.addAll(getStyleComponents(setup, nodeMap));
@@ -259,12 +169,12 @@ public class StyleTransfer extends ArtistryAppBase {
    * @return the style components
    */
   @Nonnull
-  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(NeuralSetup setup, final Map<MultiLayerVGG16.LayerType, DAGNode> nodeMap) {
+  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
     ArrayList<Tuple2<Double, DAGNode>> styleComponents = new ArrayList<>();
-    for (final MultiLayerVGG16.LayerType layerType : MultiLayerVGG16.LayerType.values())
+    for (final T layerType : getLayerTypes())
       for (final String key : setup.style.styles.keySet()) {
-        StyleTarget t = setup.styleTargets.get(key);
-        StyleCoefficients c = setup.style.styles.get(key);
+        StyleTarget<T> t = setup.styleTargets.get(key);
+        StyleCoefficients<T> c = setup.style.styles.get(key);
         assert null != c;
         assert null != t;
         final DAGNode node = nodeMap.get(layerType);
@@ -305,6 +215,9 @@ public class StyleTransfer extends ArtistryAppBase {
     return styleComponents;
   }
   
+  @Nonnull
+  public abstract T[] getLayerTypes();
+  
   /**
    * Gets content components.
    *
@@ -313,9 +226,9 @@ public class StyleTransfer extends ArtistryAppBase {
    * @return the content components
    */
   @Nonnull
-  public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(NeuralSetup setup, final Map<MultiLayerVGG16.LayerType, DAGNode> nodeMap) {
+  public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
     ArrayList<Tuple2<Double, DAGNode>> contentComponents = new ArrayList<>();
-    for (final MultiLayerVGG16.LayerType layerType : MultiLayerVGG16.LayerType.values()) {
+    for (final T layerType : getLayerTypes()) {
       final DAGNode node = nodeMap.get(layerType);
       final double coeff_content = !setup.style.content.params.containsKey(layerType) ? 0 : setup.style.content.params.get(layerType);
       final PipelineNetwork network1 = (PipelineNetwork) node.getNetwork();
@@ -333,8 +246,8 @@ public class StyleTransfer extends ArtistryAppBase {
    * @param style the style
    * @return the neural setup
    */
-  public NeuralSetup measureStyle(final StyleSetup style) {
-    NeuralSetup self = new NeuralSetup(style);
+  public NeuralSetup measureStyle(final StyleSetup<T> style) {
+    NeuralSetup<T> self = new NeuralSetup(style);
     List<String> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
     Tensor contentInput = Tensor.fromRGB(style.contentImage);
     List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
@@ -342,14 +255,14 @@ public class StyleTransfer extends ArtistryAppBase {
       self.styleTargets.put(keyList.get(i), new StyleTarget());
     });
     self.contentTarget = new ContentTarget();
-    for (final MultiLayerVGG16.LayerType layerType : MultiLayerVGG16.LayerType.values()) {
+    for (final T layerType : getLayerTypes()) {
       System.gc();
       final PipelineNetwork network = layerType.texture();
       self.contentTarget.content.put(layerType, network.eval(contentInput).getDataAndFree().getAndFree(0));
       logger.info(String.format("target_content_%s=%s", layerType.name(), self.contentTarget.content.get(layerType).prettyPrint()));
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
-        StyleTarget styleTarget = self.styleTargets.get(keyList.get(i));
+        StyleTarget<T> styleTarget = self.styleTargets.get(keyList.get(i));
         System.gc();
         styleTarget.mean.put(layerType, avg(network.copy()).eval(styleInput).getDataAndFree().getAndFree(0));
         logger.info(String.format("target_style_mean_%s=%s", layerType.name(), styleTarget.mean.get(layerType).prettyPrint()));
@@ -373,14 +286,16 @@ public class StyleTransfer extends ArtistryAppBase {
    */
   @Nonnull
   public PipelineNetwork fitnessNetwork(NeuralSetup setup) {
-    PipelineNetwork pipelineNetwork = MultiLayerVGG16.INSTANCE.getNetwork();
-    Map<MultiLayerVGG16.LayerType, DAGNode> nodes = new HashMap<>();
-    Map<MultiLayerVGG16.LayerType, UUID> ids = MultiLayerVGG16.INSTANCE.getNodes();
+    PipelineNetwork pipelineNetwork = getInstance().getNetwork();
+    Map<T, DAGNode> nodes = new HashMap<>();
+    Map<T, UUID> ids = getInstance().getNodes();
     ids.forEach((l, id) -> nodes.put(l, pipelineNetwork.getChildNode(id)));
     PipelineNetwork network = withClamp(measureStyle(setup, nodes, pipelineNetwork));
     setPrecision(network, setup.style.precision);
     return network;
   }
+  
+  public abstract U getInstance();
   
   /**
    * Measure style pipeline network.
@@ -390,7 +305,7 @@ public class StyleTransfer extends ArtistryAppBase {
    * @param network the network
    * @return the pipeline network
    */
-  public PipelineNetwork measureStyle(NeuralSetup setup, final Map<MultiLayerVGG16.LayerType, DAGNode> nodeMap, final PipelineNetwork network) {
+  public PipelineNetwork measureStyle(NeuralSetup setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
     List<Tuple2<Double, DAGNode>> functions = getFitnessComponents(setup, nodeMap);
     functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
     return network;
@@ -399,7 +314,7 @@ public class StyleTransfer extends ArtistryAppBase {
   /**
    * The type Style setup.
    */
-  public static class StyleSetup {
+  public static class StyleSetup<T extends LayerEnum<T>> {
     /**
      * The Precision.
      */
@@ -419,7 +334,7 @@ public class StyleTransfer extends ArtistryAppBase {
     /**
      * The Content.
      */
-    public final ContentCoefficients content;
+    public final ContentCoefficients<T> content;
     /**
      * The Power.
      */
@@ -450,11 +365,11 @@ public class StyleTransfer extends ArtistryAppBase {
   /**
    * The type Content coefficients.
    */
-  public static class ContentCoefficients {
+  public static class ContentCoefficients<T extends LayerEnum<T>> {
     /**
      * The Params.
      */
-    public final Map<MultiLayerVGG16.LayerType, Double> params = new HashMap<>();
+    public final Map<T, Double> params = new HashMap<>();
     
     /**
      * Set content coefficients.
@@ -463,7 +378,7 @@ public class StyleTransfer extends ArtistryAppBase {
      * @param v the v
      * @return the content coefficients
      */
-    public ContentCoefficients set(final MultiLayerVGG16.LayerType l, final double v) {
+    public ContentCoefficients set(final T l, final double v) {
       params.put(l, v);
       return this;
     }
@@ -498,7 +413,7 @@ public class StyleTransfer extends ArtistryAppBase {
   /**
    * The type Style coefficients.
    */
-  public static class StyleCoefficients {
+  public static class StyleCoefficients<T extends LayerEnum<T>> {
     /**
      * The Dynamic center.
      */
@@ -506,7 +421,7 @@ public class StyleTransfer extends ArtistryAppBase {
     /**
      * The Params.
      */
-    public final Map<MultiLayerVGG16.LayerType, LayerStyleParams> params = new HashMap<>();
+    public final Map<T, LayerStyleParams> params = new HashMap<>();
     
     
     /**
@@ -517,8 +432,8 @@ public class StyleTransfer extends ArtistryAppBase {
     public StyleCoefficients(final boolean dynamicCenter) {
       dynamic_center = dynamicCenter;
     }
-    
-    private StyleCoefficients set(final MultiLayerVGG16.LayerType layerType, final double coeff_style_mean, final double coeff_style_cov) {
+  
+    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
       params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov));
       return this;
     }
@@ -528,52 +443,52 @@ public class StyleTransfer extends ArtistryAppBase {
   /**
    * The type Content target.
    */
-  public static class ContentTarget {
+  public static class ContentTarget<T extends LayerEnum<T>> {
     /**
      * The Content.
      */
-    public Map<MultiLayerVGG16.LayerType, Tensor> content = new HashMap<>();
+    public Map<T, Tensor> content = new HashMap<>();
   }
   
   /**
    * The type Style target.
    */
-  public class StyleTarget {
+  public class StyleTarget<T extends LayerEnum<T>> {
     /**
      * The Cov.
      */
-    public Map<MultiLayerVGG16.LayerType, Tensor> cov = new HashMap<>();
+    public Map<T, Tensor> cov = new HashMap<>();
     /**
      * The Mean.
      */
-    public Map<MultiLayerVGG16.LayerType, Tensor> mean = new HashMap<>();
+    public Map<T, Tensor> mean = new HashMap<>();
     /**
      * The Pca.
      */
-    public Map<MultiLayerVGG16.LayerType, Tensor> pca = new HashMap<>();
+    public Map<T, Tensor> pca = new HashMap<>();
     /**
      * The Pca cov.
      */
-    public Map<MultiLayerVGG16.LayerType, Tensor> pca_cov = new HashMap<>();
+    public Map<T, Tensor> pca_cov = new HashMap<>();
   }
   
   /**
    * The type Neural setup.
    */
-  public class NeuralSetup {
+  public class NeuralSetup<T extends LayerEnum<T>> {
   
     /**
      * The Style parameters.
      */
-    public final StyleSetup style;
+    public final StyleSetup<T> style;
     /**
      * The Content target.
      */
-    public ContentTarget contentTarget = new ContentTarget();
+    public ContentTarget<T> contentTarget = new ContentTarget();
     /**
      * The Style targets.
      */
-    public Map<String, StyleTarget> styleTargets = new HashMap<>();
+    public Map<String, StyleTarget<T>> styleTargets = new HashMap<>();
   
   
     /**
