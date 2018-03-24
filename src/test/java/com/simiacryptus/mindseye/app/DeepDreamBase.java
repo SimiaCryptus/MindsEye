@@ -23,17 +23,12 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
 import com.simiacryptus.mindseye.models.LayerEnum;
 import com.simiacryptus.mindseye.models.MultiLayerImageNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
-import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
@@ -53,13 +48,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * This notebook implements the Style Transfer protocol outlined in <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
  */
-public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> extends ArtistryAppBase {
+public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> extends ArtistryAppBase {
   
   
   /**
@@ -81,14 +74,6 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
     try {
       log.p("Input Content:");
       log.p(log.image(styleParameters.contentImage, "Content Image"));
-      log.p("Style Content:");
-      styleParameters.styleImages.forEach((file, styleImage) -> {
-        try {
-          log.p(log.image(styleImage, file));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
       log.p("Input Canvas:");
       log.p(log.image(canvasImage, "Input Canvas"));
     } catch (IOException e) {
@@ -124,7 +109,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
     @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     TestUtil.instrumentPerformance(log, network);
     addLayersHandler(network, server);
-  
+    
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
@@ -157,62 +142,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
   public List<Tuple2<Double, DAGNode>> getFitnessComponents(NeuralSetup setup, final Map<T, DAGNode> nodeMap) {
     List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
     functions.addAll(getContentComponents(setup, nodeMap));
-    functions.addAll(getStyleComponents(setup, nodeMap));
     return functions;
-  }
-  
-  /**
-   * Gets style components.
-   *
-   * @param setup   the setup
-   * @param nodeMap the node map
-   * @return the style components
-   */
-  @Nonnull
-  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
-    ArrayList<Tuple2<Double, DAGNode>> styleComponents = new ArrayList<>();
-    for (final T layerType : getLayerTypes())
-      for (final String key : setup.style.styles.keySet()) {
-        StyleTarget<T> t = setup.styleTargets.get(key);
-        StyleCoefficients<T> c = setup.style.styles.get(key);
-        assert null != c;
-        assert null != t;
-        final DAGNode node = nodeMap.get(layerType);
-        final Tensor target_style_mean = t.mean.get(layerType);
-        final Tensor target_style_pca = t.pca.get(layerType);
-        final PipelineNetwork network1 = (PipelineNetwork) node.getNetwork();
-        if (c.params.containsKey(layerType) && (c.params.get(layerType).cov != 0 || c.params.get(layerType).mean != 0)) {
-          DAGNode negTarget = network1.wrap(new ValueLayer(target_style_mean.scale(-1)), new DAGNode[]{});
-          InnerNode negAvg = network1.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
-          if (c.params.get(layerType).cov != 0) {
-            InnerNode recentered;
-            if (c.dynamic_center) {
-              recentered = network1.wrap(new GateBiasLayer(), node, negAvg);
-            }
-            else {
-              recentered = network1.wrap(new GateBiasLayer(), node, negTarget);
-            }
-            int[] pcaDim = target_style_pca.getDimensions();
-            assert 0 < pcaDim[2] : Arrays.toString(pcaDim);
-            int inputBands = target_style_mean.getDimensions()[2];
-            assert 0 < inputBands : Arrays.toString(target_style_mean.getDimensions());
-            int outputBands = pcaDim[2] / inputBands;
-            assert 0 < outputBands : Arrays.toString(pcaDim) + " / " + inputBands;
-            styleComponents.add(new Tuple2<>(c.params.get(layerType).cov, network1.wrap(new MeanSqLossLayer(),
-              network1.wrap(new ValueLayer(t.pca_cov.get(layerType)), new DAGNode[]{}),
-              network1.wrap(new GramianLayer(),
-                network1.wrap(new ConvolutionLayer(pcaDim[0], pcaDim[1], inputBands, outputBands).set(target_style_pca),
-                  recentered)))
-            ));
-          }
-          if (c.params.get(layerType).mean != 0) {
-            styleComponents.add(new Tuple2<>(c.params.get(layerType).mean,
-              network1.wrap(new MeanSqLossLayer(), negAvg, negTarget)
-            ));
-          }
-        }
-      }
-    return styleComponents;
   }
   
   @Nonnull
@@ -248,35 +178,13 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
    */
   public NeuralSetup measureStyle(final StyleSetup<T> style) {
     NeuralSetup<T> self = new NeuralSetup(style);
-    List<String> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
     Tensor contentInput = Tensor.fromRGB(style.contentImage);
-    List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
-    IntStream.range(0, keyList.size()).forEach(i -> {
-      self.styleTargets.put(keyList.get(i), new StyleTarget());
-    });
     self.contentTarget = new ContentTarget();
     for (final T layerType : getLayerTypes()) {
       System.gc();
       final PipelineNetwork network = layerType.texture();
       self.contentTarget.content.put(layerType, network.eval(contentInput).getDataAndFree().getAndFree(0));
       logger.info(String.format("target_content_%s=%s", layerType.name(), self.contentTarget.content.get(layerType).prettyPrint()));
-      for (int i = 0; i < styleInputs.size(); i++) {
-        Tensor styleInput = styleInputs.get(i);
-        StyleTarget<T> styleTarget = self.styleTargets.get(keyList.get(i));
-        SimpleStyleTransferBase.LayerStyleParams styleParams = (SimpleStyleTransferBase.LayerStyleParams) style.styles.get(keyList.get(i)).params.get(layerType);
-        if (null == styleParams || 0 == styleParams.cov && 0 == styleParams.mean) continue;
-        System.gc();
-        styleTarget.mean.put(layerType, avg(network.copy()).eval(styleInput).getDataAndFree().getAndFree(0));
-        logger.info(String.format("target_style_mean_%s=%s", layerType.name(), styleTarget.mean.get(layerType).prettyPrint()));
-        if (0 == styleParams.cov) continue;
-        System.gc();
-        Tensor cov = gram(network.copy(), styleTarget.mean.get(layerType)).eval(styleInput).getDataAndFree().getAndFree(0);
-        logger.info(String.format("target_style_cov_%s=%s", layerType.name(), cov.prettyPrint()));
-        styleTarget.pca.put(layerType, pca(cov, style.power));
-        logger.info(String.format("target_style_pca_%s=%s", layerType.name(), styleTarget.pca.get(layerType).prettyPrint()));
-        styleTarget.pca_cov.put(layerType, gram(network.copy(), styleTarget.mean.get(layerType), styleTarget.pca.get(layerType)).eval(styleInput).getDataAndFree().getAndFree(0));
-        logger.info(String.format("target_style_pca_cov_%s=%s", layerType.name(), styleTarget.pca_cov.get(layerType).prettyPrint()));
-      }
     }
     return self;
   }
@@ -327,40 +235,22 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
      */
     public final transient BufferedImage contentImage;
     /**
-     * The Style image.
-     */
-    public final transient Map<String, BufferedImage> styleImages;
-    /**
-     * The Styles.
-     */
-    public final Map<String, StyleCoefficients> styles;
-    /**
      * The Content.
      */
     public final ContentCoefficients<T> content;
-    /**
-     * The Power.
-     */
-    public double power;
-  
-  
+    
+    
     /**
      * Instantiates a new Style setup.
      *
      * @param precision           the precision
      * @param contentImage        the content image
      * @param contentCoefficients the content coefficients
-     * @param styleImages         the style image
-     * @param styles              the styles
-     * @param power               the power
      */
-    public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients, final Map<String, BufferedImage> styleImages, final Map<String, StyleCoefficients> styles, final double power) {
+    public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients) {
       this.precision = precision;
       this.contentImage = contentImage;
-      this.styleImages = styleImages;
-      this.styles = styles;
       this.content = contentCoefficients;
-      this.power = power;
     }
     
   }
@@ -435,7 +325,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
     public StyleCoefficients(final boolean dynamicCenter) {
       dynamic_center = dynamicCenter;
     }
-  
+    
     public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
       params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov));
       return this;
@@ -475,7 +365,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
    * The type Neural setup.
    */
   public class NeuralSetup<T extends LayerEnum<T>> {
-  
+    
     /**
      * The Style parameters.
      */
@@ -484,12 +374,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
      * The Content target.
      */
     public ContentTarget<T> contentTarget = new ContentTarget();
-    /**
-     * The Style targets.
-     */
-    public Map<String, StyleTarget<T>> styleTargets = new HashMap<>();
-  
-  
+    
     /**
      * Instantiates a new Neural setup.
      *

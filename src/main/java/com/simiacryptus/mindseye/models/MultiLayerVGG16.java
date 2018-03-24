@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
@@ -44,13 +43,11 @@ public class MultiLayerVGG16 implements MultiLayerImageNetwork<MultiLayerVGG16.L
   
   private static MultiLayerVGG16 build() {
     MultiLayerVGG16 obj = new MultiLayerVGG16();
-    final DAGNode[] nodes = new DAGNode[6];
     try {
       new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
         @Override
         protected void phase0() {
           super.phase0();
-          nodes[0] = pipeline.getHead();
           obj.nodes.put(LayerType.Layer_0, pipeline.getHead().getId());
           obj.prototypes.put(LayerType.Layer_0, pipeline.copy());
         }
@@ -58,7 +55,6 @@ public class MultiLayerVGG16 implements MultiLayerImageNetwork<MultiLayerVGG16.L
         @Override
         protected void phase1a() {
           super.phase1a();
-          nodes[1] = pipeline.getHead();
           obj.nodes.put(LayerType.Layer_1a, pipeline.getHead().getId());
           obj.prototypes.put(LayerType.Layer_1a, pipeline.copy());
         }
@@ -66,7 +62,6 @@ public class MultiLayerVGG16 implements MultiLayerImageNetwork<MultiLayerVGG16.L
         @Override
         protected void phase1b() {
           super.phase1b();
-          nodes[2] = pipeline.getHead();
           obj.nodes.put(LayerType.Layer_1b, pipeline.getHead().getId());
           obj.prototypes.put(LayerType.Layer_1b, pipeline.copy());
         }
@@ -74,7 +69,6 @@ public class MultiLayerVGG16 implements MultiLayerImageNetwork<MultiLayerVGG16.L
         @Override
         protected void phase1c() {
           super.phase1c();
-          nodes[3] = pipeline.getHead();
           obj.nodes.put(LayerType.Layer_1c, pipeline.getHead().getId());
           obj.prototypes.put(LayerType.Layer_1c, pipeline.copy());
         }
@@ -82,7 +76,6 @@ public class MultiLayerVGG16 implements MultiLayerImageNetwork<MultiLayerVGG16.L
         @Override
         protected void phase1d() {
           super.phase1d();
-          nodes[4] = pipeline.getHead();
           obj.nodes.put(LayerType.Layer_1d, pipeline.getHead().getId());
           obj.prototypes.put(LayerType.Layer_1d, pipeline.copy());
         }
@@ -90,9 +83,36 @@ public class MultiLayerVGG16 implements MultiLayerImageNetwork<MultiLayerVGG16.L
         @Override
         protected void phase1e() {
           super.phase1e();
-          nodes[5] = pipeline.getHead();
           obj.nodes.put(LayerType.Layer_1e, pipeline.getHead().getId());
           obj.prototypes.put(LayerType.Layer_1e, pipeline.copy());
+        }
+  
+        @Override
+        protected void phase2a() {
+          super.phase2a();
+          obj.nodes.put(LayerType.Layer_2a, pipeline.getHead().getId());
+          obj.prototypes.put(LayerType.Layer_2a, pipeline.copy());
+        }
+  
+        @Override
+        protected void phase2b() {
+          super.phase2b();
+          obj.nodes.put(LayerType.Layer_2b, pipeline.getHead().getId());
+          obj.prototypes.put(LayerType.Layer_2b, pipeline.copy());
+        }
+  
+        @Override
+        protected void phase3a() {
+          super.phase3a();
+          obj.nodes.put(LayerType.Layer_3a, pipeline.getHead().getId());
+          obj.prototypes.put(LayerType.Layer_3a, pipeline.copy());
+        }
+  
+        @Override
+        protected void phase3b() {
+          super.phase3b();
+          obj.nodes.put(LayerType.Layer_3b, pipeline.getHead().getId());
+          obj.prototypes.put(LayerType.Layer_3b, pipeline.copy());
           obj.network = (PipelineNetwork) pipeline.freeze();
           throw new RuntimeException("Abort Network Construction");
         }
@@ -146,7 +166,7 @@ public class MultiLayerVGG16 implements MultiLayerImageNetwork<MultiLayerVGG16.L
     /**
      * Layer 1 e layer type.
      */
-    Layer_1e;
+    Layer_1e, Layer_2a, Layer_2b, Layer_3a, Layer_3b;
     
     /**
      * Texture pipeline network.

@@ -150,8 +150,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         inputDataMemory.dirty();
         outputTensor.dirty();
-        inputDataMemory.freeRef();
-        Arrays.stream(new ReferenceCounting[]{inputTensor, poolingDesc}).forEach(ReferenceCounting::freeRef);
+        Stream.<ReferenceCounting>of(inputTensor, poolingDesc, inputDataMemory).forEach(ReferenceCounting::freeRef);
         return CudaTensor.wrap(outputTensor, outputDescriptor, precision);
       } catch (@Nonnull final Throwable e) {
         throw new ComponentException("Error", e);

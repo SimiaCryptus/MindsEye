@@ -27,12 +27,14 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -103,6 +105,21 @@ public class ArtistryAppBase extends NotebookReportBase {
     network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
     network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform));
     network.wrap(new GramianLayer());
+    return network;
+  }
+  
+  @Nonnull
+  public static PipelineNetwork squareAvg(final PipelineNetwork network, Tensor mean, Tensor pcaTransform) {
+    int[] dimensions = pcaTransform.getDimensions();
+    int inputBands = mean.getDimensions()[2];
+    int pcaBands = dimensions[2];
+    int outputBands = pcaBands / inputBands;
+    int width = dimensions[0];
+    int height = dimensions[1];
+    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
+    network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform));
+    network.wrap(new SquareActivationLayer());
+    network.wrap(new BandAvgReducerLayer());
     return network;
   }
   
@@ -338,6 +355,12 @@ public class ArtistryAppBase extends NotebookReportBase {
   @Nonnull
   public static PipelineNetwork gram(final PipelineNetwork network, Tensor mean) {
     network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
+    network.wrap(new GramianLayer());
+    return network;
+  }
+  
+  @Nonnull
+  public static PipelineNetwork gram(final PipelineNetwork network) {
     network.wrap(new GramianLayer());
     return network;
   }

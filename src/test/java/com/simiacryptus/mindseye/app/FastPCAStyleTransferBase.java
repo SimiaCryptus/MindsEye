@@ -27,8 +27,8 @@ import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
 import com.simiacryptus.mindseye.models.LayerEnum;
 import com.simiacryptus.mindseye.models.MultiLayerImageNetwork;
@@ -59,7 +59,7 @@ import java.util.stream.IntStream;
 /**
  * This notebook implements the Style Transfer protocol outlined in <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
  */
-public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> extends ArtistryAppBase {
+public abstract class FastPCAStyleTransferBase<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> extends ArtistryAppBase {
   
   
   /**
@@ -124,7 +124,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
     @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     TestUtil.instrumentPerformance(log, network);
     addLayersHandler(network, server);
-  
+    
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
@@ -200,9 +200,10 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
             assert 0 < outputBands : Arrays.toString(pcaDim) + " / " + inputBands;
             styleComponents.add(new Tuple2<>(c.params.get(layerType).cov, network1.wrap(new MeanSqLossLayer(),
               network1.wrap(new ValueLayer(t.pca_cov.get(layerType)), new DAGNode[]{}),
-              network1.wrap(new GramianLayer(),
-                network1.wrap(new ConvolutionLayer(pcaDim[0], pcaDim[1], inputBands, outputBands).set(target_style_pca),
-                  recentered)))
+              network1.wrap(new BandAvgReducerLayer(),
+                network1.wrap(new SquareActivationLayer(),
+                  network1.wrap(new ConvolutionLayer(pcaDim[0], pcaDim[1], inputBands, outputBands).set(target_style_pca),
+                    recentered))))
             ));
           }
           if (c.params.get(layerType).mean != 0) {
@@ -263,7 +264,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
         StyleTarget<T> styleTarget = self.styleTargets.get(keyList.get(i));
-        SimpleStyleTransferBase.LayerStyleParams styleParams = (SimpleStyleTransferBase.LayerStyleParams) style.styles.get(keyList.get(i)).params.get(layerType);
+        LayerStyleParams styleParams = (LayerStyleParams) style.styles.get(keyList.get(i)).params.get(layerType);
         if (null == styleParams || 0 == styleParams.cov && 0 == styleParams.mean) continue;
         System.gc();
         styleTarget.mean.put(layerType, avg(network.copy()).eval(styleInput).getDataAndFree().getAndFree(0));
@@ -274,7 +275,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
         logger.info(String.format("target_style_cov_%s=%s", layerType.name(), cov.prettyPrint()));
         styleTarget.pca.put(layerType, pca(cov, style.power));
         logger.info(String.format("target_style_pca_%s=%s", layerType.name(), styleTarget.pca.get(layerType).prettyPrint()));
-        styleTarget.pca_cov.put(layerType, gram(network.copy(), styleTarget.mean.get(layerType), styleTarget.pca.get(layerType)).eval(styleInput).getDataAndFree().getAndFree(0));
+        styleTarget.pca_cov.put(layerType, squareAvg(network.copy(), styleTarget.mean.get(layerType), styleTarget.pca.get(layerType)).eval(styleInput).getDataAndFree().getAndFree(0));
         logger.info(String.format("target_style_pca_cov_%s=%s", layerType.name(), styleTarget.pca_cov.get(layerType).prettyPrint()));
       }
     }
@@ -342,8 +343,8 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
      * The Power.
      */
     public double power;
-  
-  
+    
+    
     /**
      * Instantiates a new Style setup.
      *
@@ -435,7 +436,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
     public StyleCoefficients(final boolean dynamicCenter) {
       dynamic_center = dynamicCenter;
     }
-  
+    
     public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
       params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov));
       return this;
@@ -475,7 +476,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
    * The type Neural setup.
    */
   public class NeuralSetup<T extends LayerEnum<T>> {
-  
+    
     /**
      * The Style parameters.
      */
@@ -488,8 +489,8 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
      * The Style targets.
      */
     public Map<String, StyleTarget<T>> styleTargets = new HashMap<>();
-  
-  
+    
+    
     /**
      * Instantiates a new Neural setup.
      *

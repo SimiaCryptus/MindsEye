@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
+public class FastPCAStyleTransfer_VGG16 extends FastPCAStyleTransferBase<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
   
   /**
    * Gets target class.
@@ -69,31 +69,17 @@ public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.Layer
     String threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     
     Map<String, StyleCoefficients> styles = new HashMap<>();
-    double contentCoeff = 1e6;
-    styles.put(lakeAndForest, new StyleCoefficients(false)
-        .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 1e-5, contentCoeff * 1e-5)
-//      .set(MultiLayerVGG16.LayerType.Layer_1a, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1b, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1c, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1d, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1e, (double) 0, (double) 0)
+    double contentCoeff = 1e0;
+    styles.put(lakeAndForest, new StyleCoefficients(true)
+      .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 1e-5, contentCoeff * 1e-5)
     );
     styles.put(threeMusicians, new StyleCoefficients(false)
-//      .set(MultiLayerVGG16.LayerType.Layer_0, (double) 0, (double) 0)
-        .set(MultiLayerVGG16.LayerType.Layer_1a, 1e-4, 1e-4)
-        .set(MultiLayerVGG16.LayerType.Layer_1b, 1e-3, 1e-5)
-        .set(MultiLayerVGG16.LayerType.Layer_1c, 1e-3, 1e-5)
-        .set(MultiLayerVGG16.LayerType.Layer_1d, 1e-2, 1e-3)
-        .set(MultiLayerVGG16.LayerType.Layer_1e, 1e-3, 1e-4)
+      .set(MultiLayerVGG16.LayerType.Layer_1d, 1e-5, 1e-5)
+      .set(MultiLayerVGG16.LayerType.Layer_1e, 1e-5, 1e-5)
     );
     ContentCoefficients contentCoefficients = new ContentCoefficients()
-//      .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 0)
-      .set(MultiLayerVGG16.LayerType.Layer_1a, contentCoeff * 1e-3)
-      .set(MultiLayerVGG16.LayerType.Layer_1b, contentCoeff * 1e-2)
-      .set(MultiLayerVGG16.LayerType.Layer_1c, contentCoeff * 1e-1)
-//      .set(MultiLayerVGG16.LayerType.Layer_1d, contentCoeff * 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1e, contentCoeff * 0)
-      ;
+//      .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 1e-6)
+      .set(MultiLayerVGG16.LayerType.Layer_1b, contentCoeff * 1e-3);
     double power = 0.0;
     int trainingMinutes = 90;
     

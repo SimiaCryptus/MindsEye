@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
+public class DeepDream_VGG16 extends DeepDreamBase<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
   
   /**
    * Gets target class.
@@ -68,32 +68,10 @@ public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.Layer
     String vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     String threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     
-    Map<String, StyleCoefficients> styles = new HashMap<>();
-    double contentCoeff = 1e6;
-    styles.put(lakeAndForest, new StyleCoefficients(false)
-        .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 1e-5, contentCoeff * 1e-5)
-//      .set(MultiLayerVGG16.LayerType.Layer_1a, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1b, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1c, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1d, (double) 0, (double) 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1e, (double) 0, (double) 0)
-    );
-    styles.put(threeMusicians, new StyleCoefficients(false)
-//      .set(MultiLayerVGG16.LayerType.Layer_0, (double) 0, (double) 0)
-        .set(MultiLayerVGG16.LayerType.Layer_1a, 1e-4, 1e-4)
-        .set(MultiLayerVGG16.LayerType.Layer_1b, 1e-3, 1e-5)
-        .set(MultiLayerVGG16.LayerType.Layer_1c, 1e-3, 1e-5)
-        .set(MultiLayerVGG16.LayerType.Layer_1d, 1e-2, 1e-3)
-        .set(MultiLayerVGG16.LayerType.Layer_1e, 1e-3, 1e-4)
-    );
+    double contentCoeff = 1e2;
     ContentCoefficients contentCoefficients = new ContentCoefficients()
-//      .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 0)
-      .set(MultiLayerVGG16.LayerType.Layer_1a, contentCoeff * 1e-3)
-      .set(MultiLayerVGG16.LayerType.Layer_1b, contentCoeff * 1e-2)
-      .set(MultiLayerVGG16.LayerType.Layer_1c, contentCoeff * 1e-1)
-//      .set(MultiLayerVGG16.LayerType.Layer_1d, contentCoeff * 0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1e, contentCoeff * 0)
-      ;
+//      .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 1e-6)
+      .set(MultiLayerVGG16.LayerType.Layer_1b, contentCoeff * 1e-3);
     double power = 0.0;
     int trainingMinutes = 90;
     
@@ -103,18 +81,16 @@ public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.Layer
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     Map<String, BufferedImage> styleImages = new HashMap<>();
     final int finalImageSize = imageSize;
-    styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (finalImageSize * 1.5)) : finalImageSize)));
     BufferedImage contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
+    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
     for (int i = 1; i < 10; i++) {
       log.h1("Phase " + i);
       imageSize = (int) (imageSize * growthFactor);
       styleImages.clear();
       final int finalImageSize1 = imageSize;
-      styles.forEach((file, parameters) -> styleImages.put(file, load(file, file == lakeAndForest ? ((int) (finalImageSize1 * 1.5)) : finalImageSize1)));
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
       contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles, power), trainingMinutes);
+      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
     }
     
     log.setFrontMatterProperty("status", "OK");

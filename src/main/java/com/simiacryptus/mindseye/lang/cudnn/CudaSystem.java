@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.simiacryptus.mindseye.lang.CoreSettings;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -965,7 +966,9 @@ public class CudaSystem {
   /**
    * The Execution thread.
    */
-  protected final ExecutorService executionThread = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
+  protected final ExecutorService executionThread = CoreSettings.INSTANCE.isSingleThreaded() ?
+    MoreExecutors.newDirectExecutorService() :
+    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
   
   /**
    * Log.
