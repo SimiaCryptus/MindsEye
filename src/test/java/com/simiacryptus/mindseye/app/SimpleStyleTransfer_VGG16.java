@@ -80,11 +80,11 @@ public class SimpleStyleTransfer_VGG16 extends SimpleStyleTransferBase<MultiLaye
     
     Map<String, StyleCoefficients> styles = new HashMap<>();
     double coeff_style_mean = 1e0;
-    double coeff_style_cov = 0;
+    double coeff_style_cov = 1e0;
 //    styles.put(lakeAndForest, new StyleCoefficients(false)
 //      .set(MultiLayerVGG16.LayerType.Layer_0, coeff_style_mean, coeff_style_cov)
 //    );
-    styles.put(threeMusicians, new StyleCoefficients(false)
+    styles.put(threeMusicians, new StyleCoefficients(true)
       //.set(MultiLayerVGG16.LayerType.Layer_1c, 1e-5, 1e-5)
       .set(MultiLayerVGG16.LayerType.Layer_1c, coeff_style_mean, coeff_style_cov)
       .set(MultiLayerVGG16.LayerType.Layer_1d, coeff_style_mean, coeff_style_cov)

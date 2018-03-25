@@ -84,8 +84,8 @@ public class AbsStyleTransfer_VGG16 extends AbsStyleTransferBase<MultiLayerVGG16
 //    );
     styles.put(threeMusicians, new StyleCoefficients()
       //.set(MultiLayerVGG16.LayerType.Layer_1c, 1e-5, 1e-5)
-      //.set(MultiLayerVGG16.LayerType.Layer_1c, 1e0)
-      .set(MultiLayerVGG16.LayerType.Layer_1d, 1e0)
+      .set(MultiLayerVGG16.LayerType.Layer_1c, 1e-4)
+      //.set(MultiLayerVGG16.LayerType.Layer_1d, 1e-2)
       .set(MultiLayerVGG16.LayerType.Layer_1e, 1e0)
     );
     double contentCoeff = 0;

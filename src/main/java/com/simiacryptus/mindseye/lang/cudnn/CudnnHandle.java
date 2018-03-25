@@ -51,6 +51,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * The type Gpu handle.
@@ -397,7 +398,7 @@ public class CudnnHandle extends CudaDevice {
     outputPtr.dirty();
     lPtrMemory.freeRef();
     rPtrMemory.freeRef();
-    Arrays.stream(new ReferenceCounting[]{lPtr, rPtr, opDescriptor, left, right}).forEach(ReferenceCounting::freeRef);
+    Stream.of(lPtr, rPtr, opDescriptor, left, right).forEach(ReferenceCounting::freeRef);
     return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, dimensions, precision);
   }
   

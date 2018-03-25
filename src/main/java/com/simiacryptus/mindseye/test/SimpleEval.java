@@ -110,33 +110,37 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
         }
       };
     }).toArray(i -> new Result[i]);
-    @Nullable final Result eval = layer.eval(input);
-    for (@Nonnull Result result : input) {
-      result.getData().freeRef();
-      result.freeRef();
-    }
-    TensorList evalData = eval.getData();
-    TensorList outputData = evalData.copy();
-    @Nullable Tensor tensor1 = outputData.get(0);
-    synchronized (this) {
-      if (null != output) {
-        output.freeRef();
-        output = null;
+    @Nullable final Result eval;
+    try {
+      eval = layer.eval(input);
+    } finally {
+      for (@Nonnull Result result : input) {
+        result.getData().freeRef();
+        result.freeRef();
+      }
+      for (@Nonnull Tensor tensor : inputCopy) {
+        tensor.freeRef();
       }
     }
-    output = tensor1.copy();
-    tensor1.freeRef();
-    for (@Nonnull Tensor tensor : inputCopy) {
-      tensor.freeRef();
-    }
-    evalData.freeRef();
+    TensorList evalData = eval.getData();
+    TensorList outputTensorList = evalData.copy();
+    @Nullable Tensor outputTensor = outputTensorList.get(0);
     @Nonnull DeltaSet<Layer> deltaSet = new DeltaSet<>();
     try {
-      @Nonnull TensorList tensorList = getFeedback(outputData);
+      synchronized (this) {
+        if (null != output) {
+          output.freeRef();
+          output = null;
+        }
+      }
+      output = outputTensor.copy();
+      @Nonnull TensorList tensorList = getFeedback(outputTensorList);
       eval.accumulate(deltaSet, tensorList);
       return this;
     } finally {
-      outputData.freeRef();
+      outputTensor.freeRef();
+      evalData.freeRef();
+      outputTensorList.freeRef();
       eval.freeRef();
       deltaSet.freeRef();
     }

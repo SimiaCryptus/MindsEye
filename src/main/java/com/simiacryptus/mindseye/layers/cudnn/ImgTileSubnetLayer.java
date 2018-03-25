@@ -158,10 +158,10 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
           });
   
           passback.addRef();
-          tileResults[row][col] = getInner().eval(new Result(CudaTensorList.wrap(tile, length, tileDimensions, precision),
+          tileResults[row][col] = getInner().evalAndFree(new Result(CudaTensorList.wrap(tile, length, tileDimensions, precision),
             (DeltaSet<Layer> ctx, TensorList delta) -> {
               CudaSystem.run(gpu -> {
-                ImgTileSelectLayer.copy(gpu, delta, tileDimensions, -positionX, -positionY, precision, passback);
+                ImgTileSelectLayer.copy(gpu, delta, tileDimensions, -positionX, -positionY, precision, passback).freeRef();
               });
               if (counter.incrementAndGet() >= rows * cols) {
                 counter.set(0);
@@ -176,10 +176,21 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
           });
         }
       }
+      inputData.freeRef();
       logger.debug(String.format("Broke input %s into %s rows, %s cols", Arrays.toString(inputDims), rows, cols));
-      return new ImgTileAssemblyLayer(cols, rows).setParallel(parallel).setPrecision(precision).evalAndFree(
+      Result result = new ImgTileAssemblyLayer(cols, rows).setParallel(parallel).setPrecision(precision).evalAndFree(
         Arrays.stream(tileResults).flatMap(Arrays::stream).toArray(i -> new Result[i])
       );
+      return new Result(result.getData(), (ctx, delta) -> {
+        result.accumulate(ctx, delta);
+      }) {
+        @Override
+        protected void _free() {
+          super._free();
+          result.freeRef();
+          input.freeRef();
+        }
+      };
     } finally {
       passback.freeRef();
     }

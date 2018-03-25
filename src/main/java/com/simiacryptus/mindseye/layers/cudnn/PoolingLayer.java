@@ -128,7 +128,6 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     final TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
     final int length = inputData.length();
-    inputData.addRef();
     final int inputDims = Tensor.length(inputSize);
     @Nonnull final int[] outputSize = new int[4];
     final CudaTensor outputData = CudaSystem.run(gpu -> {

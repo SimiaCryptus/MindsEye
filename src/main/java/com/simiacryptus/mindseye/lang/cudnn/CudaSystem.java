@@ -71,9 +71,12 @@ public class CudaSystem {
   private static final Map<Integer, Long> syncTimes = new HashMap<>();
   
   /**
-   * The constant INSTANCE.
+   * The Execution thread.
    */
-//  public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).getNetwork());
+  protected final ExecutorService executionThread = CoreSettings.INSTANCE.isSingleThreaded() ?
+    MoreExecutors.newDirectExecutorService() :
+    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
+  
   /**
    * The constant apiLog.
    */
@@ -962,13 +965,6 @@ public class CudaSystem {
     printHeader(log);
     apiLog.add(log);
   }
-  
-  /**
-   * The Execution thread.
-   */
-  protected final ExecutorService executionThread = CoreSettings.INSTANCE.isSingleThreaded() ?
-    MoreExecutors.newDirectExecutorService() :
-    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
   
   /**
    * Log.

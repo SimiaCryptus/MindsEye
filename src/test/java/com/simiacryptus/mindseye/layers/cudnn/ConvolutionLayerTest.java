@@ -90,6 +90,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     });
     this.smallSize = smallSize;
     this.largeSize = largeSize;
+    this.testingBatchSize = 2;
   }
   
   @Override
@@ -204,48 +205,48 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     }
   
   }
-  
-  /**
-   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
-   */
-  public static class SqGrid extends ConvolutionLayerTest {
-  
-    /**
-     * Instantiates a new Asymmetric apply.
-     */
-    public SqGrid() {
-      super(3, 4, 4, Precision.Double, 2, 1, 3, 600);
-    }
-    
-  }
-  
-  /**
-   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
-   */
-  public static class IrregularGrid extends ConvolutionLayerTest {
-  
-    /**
-     * Instantiates a new Asymmetric apply.
-     */
-    public IrregularGrid() {
-      super(3, 5, 3, Precision.Double, 2, 1, 3, 600);
-    }
-    
-  }
-  
-  /**
-   * Reduces the number of color bands from 6 to 3 (radius 3; 64-bit precision)
-   */
-  public static class BandReduceTest extends ConvolutionLayerTest {
-  
-    /**
-     * Instantiates a new Asymmetric apply.
-     */
-    public BandReduceTest() {
-      super(3, 6, 3, Precision.Double, 16, 1, 3, 600);
-    }
-    
-  }
+
+//  /**
+//   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
+//   */
+//  public static class SqGrid extends ConvolutionLayerTest {
+//
+//    /**
+//     * Instantiates a new Asymmetric apply.
+//     */
+//    public SqGrid() {
+//      super(3, 4, 4, Precision.Double, 2, 1, 3, 600);
+//    }
+//
+//  }
+
+//  /**
+//   * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
+//   */
+//  public static class IrregularGrid extends ConvolutionLayerTest {
+//
+//    /**
+//     * Instantiates a new Asymmetric apply.
+//     */
+//    public IrregularGrid() {
+//      super(3, 5, 3, Precision.Double, 2, 1, 3, 600);
+//    }
+//
+//  }
+
+//  /**
+//   * Reduces the number of color bands from 6 to 3 (radius 3; 64-bit precision)
+//   */
+//  public static class BandReduceTest extends ConvolutionLayerTest {
+//
+//    /**
+//     * Instantiates a new Asymmetric apply.
+//     */
+//    public BandReduceTest() {
+//      super(3, 6, 3, Precision.Double, 16, 1, 3, 600);
+//    }
+//
+//  }
   
   /**
    * Test using 64-bit precision apply a radius of 1
@@ -319,26 +320,26 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       return new SingleDerivativeTester(1e-1, 1e-4);
     }
   }
-  
-  /**
-   * The type BigTests temp 0.
-   */
-  public static class Big0 extends VeryBigTest {
-    /**
-     * Instantiates a new BigTests.
-     */
-    public Big0() {this(512);}
-  
-    /**
-     * Instantiates a new BigTests.
-     *
-     * @param size
-     */
-    private Big0(int size) {
-      super(1, 16 * size, 16 * size, Precision.Double, size);
-    }
-  
-  }
+
+//  /**
+//   * The type BigTests temp 0.
+//   */
+//  public static class Big0 extends VeryBigTest {
+//    /**
+//     * Instantiates a new BigTests.
+//     */
+//    public Big0() {this(512);}
+//
+//    /**
+//     * Instantiates a new BigTests.
+//     *
+//     * @param size
+//     */
+//    private Big0(int size) {
+//      super(1, 16 * size, 16 * size, Precision.Double, size);
+//    }
+//
+//  }
   
   /**
    * The type Big 1.

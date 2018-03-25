@@ -232,8 +232,8 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       outputPtr.dirty();
       inputTensorMemory.dirty();
-      Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor}).forEach(ReferenceCounting::freeRef);
-      
+      Stream.<ReferenceCounting>of(sourceViewDescriptor, destinationViewDescriptor).forEach(ReferenceCounting::freeRef);
+  
       @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
         precision,//
         length,//
@@ -263,8 +263,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   public static int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
     @Nonnull final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i ->
-      Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) -
-        Math.max(offset[i], 0)
+      Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) - Math.max(offset[i], 0)
     );
     return viewDim;
   }

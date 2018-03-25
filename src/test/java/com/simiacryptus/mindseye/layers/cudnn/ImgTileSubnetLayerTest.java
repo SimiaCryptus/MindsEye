@@ -50,8 +50,13 @@ public abstract class ImgTileSubnetLayerTest extends CudaLayerTestBase {
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgTileSubnetLayer(convolutionLayer,
-      3, 3, 2, 2);
+    return new ImgTileSubnetLayer(new ActivationLayer(ActivationLayer.Mode.RELU), 3, 3, 2, 2);
+  }
+  
+  @Nullable
+  @Override
+  public Layer getReferenceLayer() {
+    return new ActivationLayer(ActivationLayer.Mode.RELU);
   }
   
   @Nullable

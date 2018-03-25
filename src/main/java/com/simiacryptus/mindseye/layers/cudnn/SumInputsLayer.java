@@ -98,7 +98,6 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
     @Nonnull final int[] dimensions = inObj[0].getData().getDimensions();
-    final int length = inObj[0].getData().length();
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
     }
