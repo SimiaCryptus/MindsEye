@@ -86,15 +86,15 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
         .setStrideX(this.convolutionParams.strideX) //
         .setStrideY(this.convolutionParams.strideY) //
         .setPrecision(this.convolutionParams.precision);
-      this.subLayers.add(getTileSubnet(simpleConvolutionLayer, filterDimensions[0], filterDimensions[1]));
+      this.subLayers.add(getTileSubnet(simpleConvolutionLayer, Math.max(filterDimensions[0], filterDimensions[1])));
       simpleConvolutionLayer.freeRef();
       //this.subLayers.add(simpleConvolutionLayer);
     }
   }
   
   @Nonnull
-  private ImgTileSubnetLayer getTileSubnet(final SimpleConvolutionLayer network, int inputBands, int outputBands) {
-    int maxSize = (int) Math.sqrt(CudaSettings.INSTANCE.getMaxIoElements() / Math.max(inputBands, outputBands));
+  private ImgTileSubnetLayer getTileSubnet(final SimpleConvolutionLayer network, final int bands) {
+    int maxSize = (int) Math.sqrt(CudaSettings.INSTANCE.getMaxIoElements() / bands);
     int[] kernelDims = network.getKernelDimensions();
     return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((kernelDims[0] - 1) / 2), maxSize - ((kernelDims[1] - 1) / 2)).setParallel(CudaSettings.INSTANCE.isConv_para_3()).setPrecision(network.getPrecision());
   }
@@ -248,7 +248,10 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
       head = network.add(subLayers.get(0), head);
     }
     else {
-      head = network.wrap(new ImgConcatLayer().setMaxBands(this.convolutionParams.outputBands).setPrecision(this.convolutionParams.precision).setParallel(CudaSettings.INSTANCE.isConv_para_2()),
+      head = network.wrap(new ImgConcatLayer()
+          .setMaxBands(this.convolutionParams.outputBands)
+          .setPrecision(this.convolutionParams.precision)
+          .setParallel(CudaSettings.INSTANCE.isConv_para_2()),
         subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i])).setParallel(CudaSettings.INSTANCE.isConv_para_2());
     }
     return head;

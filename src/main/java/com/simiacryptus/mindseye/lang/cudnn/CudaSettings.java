@@ -40,7 +40,7 @@ public class CudaSettings implements Settings {
   private final long convolutionWorkspaceSizeLimit;
   private final boolean disable;
   private final boolean forceSingleGpu;
-  private final int maxFilterElements;
+  private final long maxFilterElements;
   private final boolean conv_para_2;
   private final boolean conv_para_1;
   private final boolean conv_para_3;
@@ -61,8 +61,8 @@ public class CudaSettings implements Settings {
     maxIoElements = Settings.get("MAX_IO_ELEMENTS", 1 * CudaMemory.MiB);
     convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 512 * CudaMemory.MiB);
     disable = Settings.get("DISABLE_CUDNN", false);
-    forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
-    conv_para_1 = Settings.get("CONV_PARA_1", true);
+    forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", true);
+    conv_para_1 = Settings.get("CONV_PARA_1", false);
     conv_para_2 = Settings.get("CONV_PARA_2", false);
     conv_para_3 = Settings.get("CONV_PARA_3", false);
     memoryCacheMode = Settings.get("CUDA_CACHE_MODE", PersistanceMode.WEAK);
@@ -72,7 +72,7 @@ public class CudaSettings implements Settings {
     asyncFree = false;
     syncBeforeFree = true;
     memoryCacheTTL = 45;
-    convolutionCache = true;
+    convolutionCache = false;
   }
   
   /**
@@ -134,7 +134,7 @@ public class CudaSettings implements Settings {
    *
    * @return the max filter elements
    */
-  public int getMaxFilterElements() {
+  public long getMaxFilterElements() {
     return maxFilterElements;
   }
   

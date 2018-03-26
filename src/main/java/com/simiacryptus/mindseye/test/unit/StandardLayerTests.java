@@ -56,6 +56,10 @@ import java.util.concurrent.TimeUnit;
  * The type LayerBase apply base.
  */
 public abstract class StandardLayerTests extends NotebookReportBase {
+  /**
+   * The Testing batch size.
+   */
+  protected int testingBatchSize = 5;
   
   /**
    * The constant seed.
@@ -83,12 +87,14 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The Test equivalency.
    */
   protected boolean testEquivalency = true;
+  protected double tolerance;
   
   /**
    * Instantiates a new Standard layer tests.
    */
   public StandardLayerTests() {
     logger.info("Seed: " + seed);
+    tolerance = 1e-3;
   }
   
   /**
@@ -104,7 +110,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       public double getRandom() {
         return random();
       }
-    };
+    }.setBatchSize(testingBatchSize);
   }
   
   /**
@@ -142,7 +148,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   @Nullable
   public ComponentTest<ToleranceStatistics> getDerivativeTester() {
     if (!validateDifferentials) return null;
-    return new SingleDerivativeTester(1e-3, 1e-4);
+    return new SingleDerivativeTester(tolerance, 1e-4);
   }
   
   /**

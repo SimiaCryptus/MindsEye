@@ -184,6 +184,12 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
       return new Result(result.getData(), (ctx, delta) -> {
         result.accumulate(ctx, delta);
       }) {
+  
+        @Override
+        public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+          getAccumulator().accept(buffer, delta);
+        }
+  
         @Override
         protected void _free() {
           super._free();

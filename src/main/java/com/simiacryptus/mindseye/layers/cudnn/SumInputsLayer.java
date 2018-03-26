@@ -30,8 +30,6 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -86,11 +84,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
-    @Nonnull PipelineNetwork network = new PipelineNetwork(2);
-    network.wrap(new com.simiacryptus.mindseye.layers.java.SumInputsLayer(),
-      network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(0)),
-      network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(1)));
-    return network;
+    return new com.simiacryptus.mindseye.layers.java.SumInputsLayer();
     
   }
   

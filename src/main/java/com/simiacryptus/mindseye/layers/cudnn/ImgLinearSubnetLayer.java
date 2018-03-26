@@ -138,9 +138,8 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     );
     CudaTensor passback = CudaSystem.run(gpu -> {
       return CudaTensor.wrap(
-        gpu.allocate(inputData.getElements() * precision.size, MemoryType.Managed, true),
-        gpu.newTensorDescriptor(precision, length, inputDims[2], inputDims[1], inputDims[0]),
-        precision);
+        gpu.allocate(inputData.getElements() * precision.size, MemoryType.Device, true),
+        gpu.newTensorDescriptor(precision, length, inputDims[2], inputDims[1], inputDims[0]), precision);
     });
     try {
       AtomicInteger counter = new AtomicInteger(0);
@@ -155,27 +154,31 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
           return leg.inner.evalAndFree(new Result(legData, (DeltaSet<Layer> ctx, TensorList delta) -> {
             int[] outputDimensions = delta.getDimensions();
             int[] inputDimensions = inputDims;
-            CudaSystem.run(gpu -> {
-              @Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
-                precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
-                inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
-                inputDimensions[1] * inputDimensions[0], //
-                inputDimensions[0], //
-                1);
-              final int byteOffset = viewDescriptor.cStride * leg.fromBand * precision.size;
-              assert delta.length() == inputData.length();
-              //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
-              @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
-              @Nonnull final CudaMemory passbackBuffer = passback.getMemory(gpu);
-              CudaMemory errorPtrMemory = deltaTensor.getMemory(gpu);
-              gpu.cudnnTransformTensor(
-                precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), errorPtrMemory.getPtr(),
-                precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
-              );
-              errorPtrMemory.dirty();
-              passbackBuffer.dirty();
-              Stream.<ReferenceCounting>of(deltaTensor, viewDescriptor, passbackBuffer, errorPtrMemory).forEach(ReferenceCounting::freeRef);
-            }, delta);
+            synchronized (passback) {
+              CudaSystem.run(gpu -> {
+                @Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
+                  precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
+                  inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
+                  inputDimensions[1] * inputDimensions[0], //
+                  inputDimensions[0], //
+                  1);
+                final int byteOffset = viewDescriptor.cStride * leg.fromBand * precision.size;
+                assert delta.length() == inputData.length();
+                assert passback.getDeviceId() == gpu.getDeviceId();
+                //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
+                @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
+                @Nonnull final CudaMemory passbackBuffer = passback.getMemory(gpu);
+                CudaMemory errorPtrMemory = deltaTensor.getMemory(gpu);
+                passbackBuffer.synchronize();
+                gpu.cudnnTransformTensor(
+                  precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), errorPtrMemory.getPtr(),
+                  precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
+                );
+                errorPtrMemory.dirty();
+                passbackBuffer.dirty();
+                Stream.<ReferenceCounting>of(deltaTensor, viewDescriptor, passbackBuffer, errorPtrMemory).forEach(ReferenceCounting::freeRef);
+              }, passback);
+            }
             if (counter.incrementAndGet() >= legs.size()) {
               counter.set(0);
               input.accumulate(ctx, CudaTensorList.create(passback, length, inputDims, precision));
