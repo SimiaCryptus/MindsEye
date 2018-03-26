@@ -257,7 +257,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Double() {
-      super(1, 4, 4, Precision.Double, 16, 1, 3, 600);
+      super(3, 4, 4, Precision.Double, 16, 1, 3, 600);
     }
     
   }

@@ -84,18 +84,19 @@ public class SimpleStyleTransfer_VGG16 extends SimpleStyleTransferBase<MultiLaye
 //    styles.put(lakeAndForest, new StyleCoefficients(false)
 //      .set(MultiLayerVGG16.LayerType.Layer_0, coeff_style_mean, coeff_style_cov)
 //    );
-    styles.put(threeMusicians, new StyleCoefficients(true)
-      //.set(MultiLayerVGG16.LayerType.Layer_1c, 1e-5, 1e-5)
-      .set(MultiLayerVGG16.LayerType.Layer_1c, coeff_style_mean, coeff_style_cov)
-      .set(MultiLayerVGG16.LayerType.Layer_1d, coeff_style_mean, coeff_style_cov)
-      .set(MultiLayerVGG16.LayerType.Layer_1e, coeff_style_mean, coeff_style_cov)
+    styles.put(threeMusicians, new StyleCoefficients(false)
+        .set(MultiLayerVGG16.LayerType.Layer_1b, coeff_style_mean, coeff_style_cov)
+        .set(MultiLayerVGG16.LayerType.Layer_1c, coeff_style_mean, coeff_style_cov)
+//      .set(MultiLayerVGG16.LayerType.Layer_1d, 1e-1 * coeff_style_mean, 1e-1 * coeff_style_cov)
+//      .set(MultiLayerVGG16.LayerType.Layer_1e, coeff_style_mean, coeff_style_cov)
     );
-    double contentCoeff = 0;
+    double contentCoeff = 1e1;
     ContentCoefficients contentCoefficients = new ContentCoefficients()
 //      .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 1e-8)
 //      .set(MultiLayerVGG16.LayerType.Layer_1a, contentCoeff * 1e-4)
       .set(MultiLayerVGG16.LayerType.Layer_1b, contentCoeff * 1e0)
-      .set(MultiLayerVGG16.LayerType.Layer_1c, contentCoeff * 1e1);
+//      .set(MultiLayerVGG16.LayerType.Layer_1c, contentCoeff * 1e1)
+      ;
     int trainingMinutes = 90;
     
     log.h1("Phase 0");

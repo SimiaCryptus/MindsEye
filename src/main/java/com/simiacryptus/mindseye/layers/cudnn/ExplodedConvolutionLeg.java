@@ -26,8 +26,10 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +58,8 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    */
   @Nonnull
   public final List<Layer> subLayers;
+  @Nonnull
+  public final List<SimpleConvolutionLayer> subKernels = new ArrayList<>();
   /**
    * The From band.
    */
@@ -82,21 +86,31 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     @Nonnull final int[] filterDimensions = Arrays.copyOf(this.convolutionParams.masterFilterDimensions, this.convolutionParams.masterFilterDimensions.length);
     filterDimensions[2] = inputBands * this.convolutionParams.outputBands;
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
+      int paddingX = (convolutionParams.masterFilterDimensions[0] - 1) / 2;
+      int paddingY = (convolutionParams.masterFilterDimensions[1] - 1) / 2;
+
       SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(filterDimensions[0], filterDimensions[1], inputBandsSq) //
         .setStrideX(this.convolutionParams.strideX) //
         .setStrideY(this.convolutionParams.strideY) //
         .setPrecision(this.convolutionParams.precision);
-      this.subLayers.add(getTileSubnet(simpleConvolutionLayer, Math.max(filterDimensions[0], filterDimensions[1])));
+  
+      PipelineNetwork stackableConv = new PipelineNetwork(1);
+      if (paddingY != 0 || paddingX != 0) stackableConv.add(new ImgZeroPaddingLayer(paddingX, paddingY));
+      stackableConv.add(simpleConvolutionLayer);
+      if (paddingY != 0 || paddingX != 0) stackableConv.add(new ImgZeroPaddingLayer(-paddingX, -paddingY));
+      subKernels.add(simpleConvolutionLayer);
+      this.subLayers.add(getTileSubnet(stackableConv, Math.max(filterDimensions[0], filterDimensions[1]), simpleConvolutionLayer.getKernelDimensions(), simpleConvolutionLayer.getPrecision()));
       simpleConvolutionLayer.freeRef();
       //this.subLayers.add(simpleConvolutionLayer);
     }
   }
   
   @Nonnull
-  private ImgTileSubnetLayer getTileSubnet(final SimpleConvolutionLayer network, final int bands) {
+  private ImgTileSubnetLayer getTileSubnet(final Layer network, final int bands, final int[] kernelDimensions, final Precision precision) {
     int maxSize = (int) Math.sqrt(CudaSettings.INSTANCE.getMaxIoElements() / bands);
-    int[] kernelDims = network.getKernelDimensions();
-    return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((kernelDims[0] - 1) / 2), maxSize - ((kernelDims[1] - 1) / 2)).setParallel(CudaSettings.INSTANCE.isConv_para_3()).setPrecision(network.getPrecision());
+    int width = kernelDimensions[0];
+    int height = kernelDimensions[1];
+    return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((width - 1) / 2), maxSize - ((height - 1) / 2)).setParallel(CudaSettings.INSTANCE.isConv_para_3()).setPrecision(precision);
   }
   
   @Override
@@ -134,7 +148,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
           return 0;
         }
       }, true);
-      ((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).getInner()).set(kernel);
+      subKernels.get(layerNumber).set(kernel);
       kernel.freeRef();
     });
     return this;
@@ -159,7 +173,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       int _layerNumber = layerNumber;
-      Tensor deltaTensor = extractor.apply(((SimpleConvolutionLayer) ((ImgTileSubnetLayer) subLayers.get(layerNumber)).getInner()));
+      Tensor deltaTensor = extractor.apply((subKernels.get(layerNumber)));
       if (null != deltaTensor) {
         deltaTensor.forEach((v, c) -> {
           int[] coords = c.getCoords();

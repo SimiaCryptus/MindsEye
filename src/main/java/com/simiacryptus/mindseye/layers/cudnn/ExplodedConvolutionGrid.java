@@ -178,8 +178,8 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
   public DAGNode add(@Nonnull DAGNode input) {
     assertAlive();
     DAGNetwork network = input.getNetwork();
-    int defaultPaddingX = (convolutionParams.masterFilterDimensions[0] - 1) / 2;
-    int defaultPaddingY = (convolutionParams.masterFilterDimensions[1] - 1) / 2;
+    int defaultPaddingX = 0;
+    int defaultPaddingY = 0;
     boolean customPaddingX = this.convolutionParams.paddingX != null && convolutionParams.paddingX != defaultPaddingX;
     boolean customPaddingY = this.convolutionParams.paddingY != null && convolutionParams.paddingY != defaultPaddingY;
     final DAGNode paddedInput;
