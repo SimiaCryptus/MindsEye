@@ -373,7 +373,7 @@ public class ArtistryAppBase extends NotebookReportBase {
    */
   @Nonnull
   public static BufferedImage randomize(final BufferedImage contentImage) {
-    return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random() * 100).toRgbImage();
+    return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random()).toRgbImage();
   }
   
   /**

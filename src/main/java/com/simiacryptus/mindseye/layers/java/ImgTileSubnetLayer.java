@@ -23,14 +23,15 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.network.DAGNode;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.lang.TensorList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
@@ -100,16 +101,18 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
     assert 1 == inObj.length;
-    @Nonnull final int[] inputDims = inObj[0].getData().getDimensions();
+    Result input = inObj[0];
+    @Nonnull final int[] inputDims = input.getData().getDimensions();
     assert 3 == inputDims.length;
-    @Nonnull final PipelineNetwork network = new PipelineNetwork();
     int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
     int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
     if (cols == 1 && rows == 1) return getInner().eval(inObj);
-    DAGNode input = network.getInput(0);
-    ArrayList<DAGNode> nodes = new ArrayList<>();
+    Result[] results = new Result[rows * cols];
+    TensorList[] passback = new TensorList[rows * cols];
+    int index = 0;
+    AtomicInteger passbacks = new AtomicInteger(0);
     for (int row = 0; row < rows; row++) {
       for (int col = 0; col < cols; col++) {
         int positionX = col * strideX;
@@ -118,18 +121,27 @@ public class ImgTileSubnetLayer extends WrapperLayer {
         assert positionY >= 0;
         assert positionX < inputDims[0];
         assert positionY < inputDims[1];
-        nodes.add(
-          network.add(getInner(),
-            network.wrap(
-              new ImgTileSelectLayer(width, height, positionX, positionY),
-              input))
-        );
+        final int finalIndex = index;
+        Result selectedTile = new ImgTileSelectLayer(width, height, positionX, positionY).eval(new Result(input.getData(), (ctx, delta) -> {
+          passback[finalIndex] = delta;
+          if (passbacks.incrementAndGet() == rows * cols) {
+            passbacks.set(0);
+            TensorList reassembled = new ImgTileAssemblyLayer(cols, rows).evalAndFree(Arrays.stream(passback).map(t -> new Result(t, (c2, d2) -> {})).toArray(i -> new Result[i])).getDataAndFree();
+            inObj[0].accumulate(ctx, reassembled);
+          }
+        }) {
+          @Override
+          protected void _free() {
+            inObj[0].freeRef();
+            super._free();
+          }
+        });
+        results[index] = getInner().eval(selectedTile);
+        index = index + 1;
       }
     }
-    network.wrap(new ImgTileAssemblyLayer(cols, rows), nodes.toArray(new DAGNode[]{}));
-    Result eval = network.eval(inObj);
-    network.freeRef();
-    return eval;
+    inObj[0].getData().freeRef();
+    return new ImgTileAssemblyLayer(cols, rows).eval(results);
   }
   
   @Nonnull

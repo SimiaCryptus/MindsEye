@@ -207,7 +207,10 @@ public enum MemoryType {
         public void reset(final ReferenceWrapper<CudaPointer> data, final long size) {
           // There is no need to clean new objects - native memory system doesn't either.
         }
-      }.setPersistanceMode(CudaSettings.INSTANCE.memoryCacheMode).setMinLengthPerBuffer(1).setPurgeFreq(CudaSettings.INSTANCE.getMemoryCacheTTL());
+      }.setPersistanceMode(CudaSettings.INSTANCE.memoryCacheMode)
+        .setMinLengthPerBuffer(1)
+        .setMaxItemsPerBuffer(5)
+        .setPurgeFreq(CudaSettings.INSTANCE.getMemoryCacheTTL());
     });
   }
   

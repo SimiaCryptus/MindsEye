@@ -95,7 +95,7 @@ public class ImgTileSelectLayer extends LayerBase {
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[2] == outDim[2] : Arrays.toString(inDim) + "; " + Arrays.toString(outDim);
-    outputData.coordStream(true).forEach((c) -> {
+    outputData.coordStream(false).forEach((c) -> {
       int x = c.getCoords()[0] + posX;
       int y = c.getCoords()[1] + posY;
       int z = c.getCoords()[2];

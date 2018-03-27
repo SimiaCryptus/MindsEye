@@ -1609,7 +1609,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
         @Nonnull final int[] newCoord = Arrays.copyOf(coords, coords.length + 1);
         newCoord[coords.length] = i;
         return toString(prettyPrint, newCoord);
-      }).collect(Collectors.toList());
+      }).limit(15).collect(Collectors.toList());
       if (list.size() > 10) {
         list = list.subList(0, 8);
         list.add("...");
@@ -1679,7 +1679,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   @Nullable
   public Tensor reshapeCast(@Nonnull int... dims) {
     if (0 == dims.length) throw new IllegalArgumentException();
-    if (length(dims) != length()) throw new IllegalArgumentException();
+    if (length(dims) != length()) throw new IllegalArgumentException(Arrays.toString(dims) + " != " + length());
     double[] data = getData();
     return new Tensor(dims, null == data ? null : RecycleBin.DOUBLES.copyOf(data, data.length));
   }

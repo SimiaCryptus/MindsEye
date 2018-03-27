@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.app;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
@@ -62,6 +63,7 @@ import java.util.stream.IntStream;
  */
 public abstract class SimpleStyleTransferBase<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> extends ArtistryAppBase {
   
+  boolean parallelLossFunctions = true;
   
   /**
    * Style transfer buffered image.
@@ -122,9 +124,9 @@ public abstract class SimpleStyleTransferBase<T extends LayerEnum<T>, U extends 
     TestUtil.monitorImage(canvas, false, false);
     network.setFrozen(true);
     setPrecision(network, precision);
-    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     TestUtil.instrumentPerformance(log, network);
     addLayersHandler(network, server);
+    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
@@ -214,7 +216,7 @@ public abstract class SimpleStyleTransferBase<T extends LayerEnum<T>, U extends 
         double covScale = 0 == covRms ? 1 : (1.0 / covRms);
         styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
           network.wrap(new ValueLayer(covariance), new DAGNode[]{}),
-          network.wrap(new GramianLayer(), recentered))
+          network.wrap(wrapTilesAvg(new GramianLayer()), recentered))
         ));
       }
       if (styleParams.mean != 0) {
@@ -270,6 +272,7 @@ public abstract class SimpleStyleTransferBase<T extends LayerEnum<T>, U extends 
     for (final T layerType : getLayerTypes()) {
       System.gc();
       final PipelineNetwork network = layerType.texture();
+      setPrecision(network, style.precision);
       Tensor content = network.eval(contentInput).getDataAndFree().getAndFree(0);
       self.contentTarget.content.put(layerType, content);
       logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
@@ -280,13 +283,13 @@ public abstract class SimpleStyleTransferBase<T extends LayerEnum<T>, U extends 
         LayerStyleParams styleParams = (LayerStyleParams) style.styles.get(keyList.get(i)).params.get(layerType);
         if (null == styleParams || 0 == styleParams.cov && 0 == styleParams.mean) continue;
         System.gc();
-        Tensor mean = avg(network.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+        Tensor mean = wrapTilesAvg(avg(network.copy())).eval(styleInput).getDataAndFree().getAndFree(0);
         styleTarget.mean.put(layerType, mean);
         logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
         logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
         if (0 == styleParams.cov) continue;
         System.gc();
-        Tensor cov = gram(network.copy(), mean).eval(styleInput).getDataAndFree().getAndFree(0);
+        Tensor cov = wrapTilesAvg(gram(network.copy(), mean)).eval(styleInput).getDataAndFree().getAndFree(0);
         styleTarget.cov.put(layerType, cov);
         int featureBands = mean.getDimensions()[2];
         int covarianceElements = cov.getDimensions()[2];
@@ -297,6 +300,24 @@ public abstract class SimpleStyleTransferBase<T extends LayerEnum<T>, U extends 
     }
     return self;
   }
+  
+  protected Layer wrapTilesAvg(final Layer subnet) {
+    return wrapTilesAvg(subnet, 0, 0, 0, 0, 400, 400);
+  }
+  
+  protected Layer wrapTilesAvg(final Layer subnet, final int borderX1, final int borderY1, final int borderX2, final int borderY2, final int tileWidth, final int tileHeight) {
+    PipelineNetwork network1 = new PipelineNetwork(1);
+    if (borderX1 != 0 || borderY1 != 0)
+      network1.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer(borderX1, borderY1));
+    network1.add(subnet);
+    if (borderX2 != 0 || borderY2 != 0)
+      network1.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer(-borderX2, -borderY2));
+    PipelineNetwork network = new PipelineNetwork(1);
+    network.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgTileSubnetLayer(network1, tileWidth, tileHeight, tileWidth - 2 * borderX1, tileHeight - 2 * borderY1));
+    network.wrap(new BandAvgReducerLayer());
+    return network;
+  }
+  
   
   /**
    * Fitness function pipeline network.
@@ -327,7 +348,9 @@ public abstract class SimpleStyleTransferBase<T extends LayerEnum<T>, U extends 
    */
   public PipelineNetwork buildNetwork(NeuralSetup setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
     List<Tuple2<Double, DAGNode>> functions = getFitnessComponents(setup, nodeMap);
-    functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
+    functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> {
+      return new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2).setParallel(parallelLossFunctions));
+    }).get();
     return network;
   }
   

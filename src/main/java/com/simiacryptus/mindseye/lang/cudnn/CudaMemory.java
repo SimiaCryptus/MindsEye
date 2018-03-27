@@ -98,12 +98,10 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the long
    */
   public static double clearWeakMemory(final int deviceId) {
-    logLoad();
     double totalFreed = 0;
     for (final MemoryType type : MemoryType.values()) {
       totalFreed += type.purge(deviceId);
     }
-    logLoad();
     return totalFreed;
   }
   
@@ -137,7 +135,6 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the long
    */
   public static double evictMemory(final int deviceId) {
-    logLoad();
     double bytes = RegisteredObjectBase.getLivingInstances(SimpleConvolutionLayer.class).mapToLong(x -> x.evictDeviceData(deviceId)).sum();
     logger.info(String.format("Cleared %e bytes from ConvolutionFilters for device %s", bytes, deviceId));
     double tensorListsFreed = CudaTensorList.evictToHeap(deviceId);
