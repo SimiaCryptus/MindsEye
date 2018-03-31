@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyManagementException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 
 /**
@@ -44,7 +43,7 @@ public abstract class VGG16 extends VGG {
   public static VGG16_HDF5 fromHDF5() {
     try {
       return fromHDF5(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")));
-    } catch (IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException e) {
+    } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
   }

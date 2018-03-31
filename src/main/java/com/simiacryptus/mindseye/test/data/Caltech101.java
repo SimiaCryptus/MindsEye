@@ -34,7 +34,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.stream.Stream;
@@ -57,7 +56,7 @@ public class Caltech101 {
         try {
           // Repackaging as a zip is needed - the tar format classes dont work here
           stream = Util.cacheStream(TestUtil.S3_ROOT.resolve("101_ObjectCategories.zip"));
-        } catch (@Nonnull NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+        } catch (@Nonnull NoSuchAlgorithmException | KeyManagementException e) {
           throw new RuntimeException(e);
         }
         final boolean continueLoop = true;
