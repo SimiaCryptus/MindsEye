@@ -52,11 +52,11 @@ import java.util.function.Supplier;
 public class RoundRobinTrainer {
   private static final Logger log = LoggerFactory.getLogger(RoundRobinTrainer.class);
   
-  private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
+  private final Map<CharSequence, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private final Trainable subject;
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
-  private Function<String, ? extends LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeSearch();
+  private Function<CharSequence, ? extends LineSearchStrategy> lineSearchFactory = s -> new ArmijoWolfeSearch();
   private int maxIterations = Integer.MAX_VALUE;
   private TrainingMonitor monitor = new TrainingMonitor();
   @Nonnull
@@ -122,7 +122,7 @@ public class RoundRobinTrainer {
    *
    * @return the line search factory
    */
-  public Function<String, ? extends LineSearchStrategy> getLineSearchFactory() {
+  public Function<CharSequence, ? extends LineSearchStrategy> getLineSearchFactory() {
     return lineSearchFactory;
   }
   
@@ -145,7 +145,7 @@ public class RoundRobinTrainer {
    * @return the line search factory
    */
   @Nonnull
-  public RoundRobinTrainer setLineSearchFactory(final Function<String, ? extends LineSearchStrategy> lineSearchFactory) {
+  public RoundRobinTrainer setLineSearchFactory(final Function<CharSequence, ? extends LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }
@@ -295,7 +295,7 @@ public class RoundRobinTrainer {
             break;
           }
           final LineSearchCursor direction = orientation.orient(subject, currentPoint, monitor);
-          @Nonnull final String directionType = direction.getDirectionType() + "+" + Long.toHexString(System.identityHashCode(orientation));
+          @Nonnull final CharSequence directionType = direction.getDirectionType() + "+" + Long.toHexString(System.identityHashCode(orientation));
           LineSearchStrategy lineSearchStrategy;
           if (lineSearchStrategyMap.containsKey(directionType)) {
             lineSearchStrategy = lineSearchStrategyMap.get(directionType);

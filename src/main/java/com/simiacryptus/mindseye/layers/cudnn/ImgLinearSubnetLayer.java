@@ -73,7 +73,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgLinearSubnetLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgLinearSubnetLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
     setParallel(json.get("parallel").getAsBoolean());
@@ -90,7 +90,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
    * @param rs   the rs
    * @return the rescaled subnet layer
    */
-  public static ImgLinearSubnetLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgLinearSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgLinearSubnetLayer(json, rs);
   }
   
@@ -204,7 +204,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     json.addProperty("parallel", isParallel());
@@ -294,7 +294,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
      * @param json the json
      * @param rs   the rs
      */
-    protected SubnetLeg(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+    protected SubnetLeg(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
       fromBand = json.getAsJsonPrimitive("fromBand").getAsInt();
       toBand = json.getAsJsonPrimitive("toBand").getAsInt();
       inner = Layer.fromJson(json.getAsJsonObject("network"), rs);
@@ -308,7 +308,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
      * @return the json
      */
     @Nonnull
-    public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+    public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
       @Nonnull final JsonObject json = new JsonObject();
       json.addProperty("fromBand", fromBand);
       json.addProperty("toBand", toBand);

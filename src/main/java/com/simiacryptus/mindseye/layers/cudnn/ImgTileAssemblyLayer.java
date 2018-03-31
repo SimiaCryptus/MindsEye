@@ -84,7 +84,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgTileAssemblyLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgTileAssemblyLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     columns = json.get("columns").getAsInt();
     rows = json.get("rows").getAsInt();
@@ -99,7 +99,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgTileAssemblyLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgTileAssemblyLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileAssemblyLayer(json, rs);
   }
   
@@ -371,7 +371,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("rows", rows);
     json.addProperty("columns", columns);

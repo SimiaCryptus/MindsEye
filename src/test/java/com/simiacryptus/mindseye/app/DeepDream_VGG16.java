@@ -65,8 +65,8 @@ public class DeepDream_VGG16 extends DeepDreamBase<MultiLayerVGG16.LayerType, Mu
     int imageSize = 400;
     double growthFactor = Math.sqrt(1.5);
     String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
-    String vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    String threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    CharSequence vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     
     double contentCoeff = 1e2;
     ContentCoefficients contentCoefficients = new ContentCoefficients()
@@ -79,7 +79,7 @@ public class DeepDream_VGG16 extends DeepDreamBase<MultiLayerVGG16.LayerType, Mu
     BufferedImage canvasImage = load(lakeAndForest, imageSize);
     canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    Map<String, BufferedImage> styleImages = new HashMap<>();
+    Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     final int finalImageSize = imageSize;
     BufferedImage contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
     canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);

@@ -68,7 +68,7 @@ public class ReLuActivationLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected ReLuActivationLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected ReLuActivationLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
@@ -80,7 +80,7 @@ public class ReLuActivationLayer extends LayerBase {
    * @param rs   the rs
    * @return the re lu activation layer
    */
-  public static ReLuActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ReLuActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ReLuActivationLayer(json, rs);
   }
   
@@ -177,7 +177,7 @@ public class ReLuActivationLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("weights", weights.toJson(resources, dataSerializer));
     return json;

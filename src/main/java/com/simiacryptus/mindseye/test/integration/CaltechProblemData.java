@@ -36,7 +36,7 @@ public class CaltechProblemData implements ImageProblemData {
   
   private final int imageSize;
   @Nullable
-  private List<String> labels = null;
+  private List<CharSequence> labels = null;
   
   /**
    * Instantiates a new Caltech problem data.
@@ -79,7 +79,7 @@ public class CaltechProblemData implements ImageProblemData {
    * @return the labels
    */
   @Nullable
-  public List<String> getLabels() {
+  public List<CharSequence> getLabels() {
     if (null == labels) {
       synchronized (this) {
         if (null == labels) {

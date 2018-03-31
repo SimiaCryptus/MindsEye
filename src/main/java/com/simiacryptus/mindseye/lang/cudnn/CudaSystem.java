@@ -381,7 +381,7 @@ public class CudaSystem {
     @Nonnull int[] driverVersion = {0};
     JCuda.cudaRuntimeGetVersion(runtimeVersion);
     JCuda.cudaDriverGetVersion(driverVersion);
-    @Nonnull String jCudaVersion = JCuda.getJCudaVersion();
+    @Nonnull CharSequence jCudaVersion = JCuda.getJCudaVersion();
     out.printf("Time: %s; Driver %s; Runtime %s; Lib %s%n", new Date(), driverVersion[0], runtimeVersion[0], jCudaVersion);
     @Nonnull long[] free = {0};
     @Nonnull long[] total = {0};
@@ -410,8 +410,8 @@ public class CudaSystem {
    * @return the map
    */
   @Nonnull
-  protected static Map<String, String> toMap(@Nonnull DoubleStatistics obj) {
-    @Nonnull HashMap<String, String> map = new HashMap<>();
+  protected static Map<CharSequence, CharSequence> toMap(@Nonnull DoubleStatistics obj) {
+    @Nonnull HashMap<CharSequence, CharSequence> map = new HashMap<>();
     if (0 < obj.getCount()) {
       map.put("stddev", Double.toString(obj.getStandardDeviation()));
       map.put("mean", Double.toString(obj.getAverage()));
@@ -428,8 +428,8 @@ public class CudaSystem {
    * @return the execution statistics
    */
   @Nonnull
-  public static final Map<String, Map<String, String>> getExecutionStatistics() {
-    @Nonnull HashMap<String, Map<String, String>> map = new HashMap<>();
+  public static final Map<CharSequence, Map<CharSequence, CharSequence>> getExecutionStatistics() {
+    @Nonnull HashMap<CharSequence, Map<CharSequence, CharSequence>> map = new HashMap<>();
     map.put("createPoolingDescriptor", toMap(createPoolingDescriptor_execution));
     map.put("cudaDeviceReset", toMap(cudaDeviceReset_execution));
     map.put("cudaFree", toMap(cudaFree_execution));
@@ -481,8 +481,8 @@ public class CudaSystem {
     map.put("cudaStreamSynchronize", toMap(cudaStreamSynchronize_execution));
     map.put("cudaMemcpyAsync", toMap(cudaMemcpyAsync_execution));
     map.put("cudaSetDeviceFlags", toMap(cudaSetDeviceFlags_execution));
-    
-    for (String entry : map.entrySet().stream().filter(x -> x.getValue().isEmpty()).map(x -> x.getKey()).collect(Collectors.toList())) {
+  
+    for (CharSequence entry : map.entrySet().stream().filter(x -> x.getValue().isEmpty()).map(x -> x.getKey()).collect(Collectors.toList())) {
       map.remove(entry);
     }
     return map;
@@ -884,7 +884,7 @@ public class CudaSystem {
    * @param obj the obj
    * @return the string
    */
-  protected static String renderToLog(final Object obj) {
+  protected static CharSequence renderToLog(final Object obj) {
     if (obj instanceof int[]) {
       if (((int[]) obj).length < 10) {
         return Arrays.toString((int[]) obj);
@@ -973,8 +973,8 @@ public class CudaSystem {
    * @param result the result
    * @param args   the args
    */
-  public static void log(final String method, final Object result, @Nullable final Object[] args) {
-    String callstack = !CudaSettings.INSTANCE.isLogStack() ? "" : TestUtil.toString(Arrays.stream(Thread.currentThread().getStackTrace())
+  public static void log(final CharSequence method, final Object result, @Nullable final Object[] args) {
+    CharSequence callstack = !CudaSettings.INSTANCE.isLogStack() ? "" : TestUtil.toString(Arrays.stream(Thread.currentThread().getStackTrace())
       .filter(x -> true
           && x.getClassName().startsWith("com.simiacryptus.mindseye.")
         //&& !x.getClassName().startsWith("com.simiacryptus.mindseye.lang.")
@@ -982,7 +982,7 @@ public class CudaSystem {
       )
       //.limit(10)
       .toArray(i -> new StackTraceElement[i]), ", ");
-    @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
+    @Nonnull final CharSequence paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
     final String message = String.format("%.6f @ %s(%d): %s(%s) = %s via [%s]", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), getThreadDeviceId(), method, paramString, result, callstack);
     try {
       CudaSystem.apiLog.forEach(apiLog -> CudaSystem.logThread.submit(() -> apiLog.println(message)));
@@ -1239,7 +1239,7 @@ public class CudaSystem {
     if (null == val) val = 0L;
     if (null == val || val < time) {
       final Long finalVal = val;
-      String caller = !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller();
+      CharSequence caller = !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller();
       withDevice(device, gpu -> {
         if (null == finalVal || finalVal < time) {
           synchronized (deviceLocks.computeIfAbsent(device, d -> new Object())) {

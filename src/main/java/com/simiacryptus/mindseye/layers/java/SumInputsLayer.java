@@ -64,7 +64,7 @@ public class SumInputsLayer extends LayerBase {
    * @param rs   the rs
    * @return the sum inputs layer
    */
-  public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumInputsLayer(json);
   }
   
@@ -143,7 +143,7 @@ public class SumInputsLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

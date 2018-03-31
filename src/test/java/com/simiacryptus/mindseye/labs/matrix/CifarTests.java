@@ -142,7 +142,7 @@ public class CifarTests {
   
     @Nonnull
     @Override
-    public String getDatasetName() {
+    public CharSequence getDatasetName() {
       return "CIFAR10";
     }
   }

@@ -527,7 +527,7 @@ public class CudaDevice extends CudaSystem {
    * @return the device name
    */
   @Nonnull
-  public String getDeviceName() {
+  public CharSequence getDeviceName() {
     return new String(getDeviceProperties().name, Charset.forName("ASCII")).trim();
   }
   

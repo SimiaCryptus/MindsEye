@@ -115,7 +115,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    * @param json      the json
    * @param resources the resources
    */
-  protected SimpleConvolutionLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected SimpleConvolutionLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     kernel = Tensor.fromJson(json.get("filter"), resources);
     strideX = json.get("strideX").getAsInt();
@@ -151,7 +151,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    * @param rs   the rs
    * @return the convolution layer
    */
-  public static SimpleConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SimpleConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SimpleConvolutionLayer(json, rs);
   }
   
@@ -515,7 +515,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   
       @Nonnull
       @Override
-      public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+      public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
   
@@ -529,7 +529,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     JsonElement value;
     try {

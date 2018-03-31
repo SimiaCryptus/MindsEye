@@ -56,7 +56,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
    * @param rs   the rs
    * @return the sinewave activation layer
    */
-  public static SinewaveActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SinewaveActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SinewaveActivationLayer(json);
   }
   
@@ -74,7 +74,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("balanced", balanced);
     return json;

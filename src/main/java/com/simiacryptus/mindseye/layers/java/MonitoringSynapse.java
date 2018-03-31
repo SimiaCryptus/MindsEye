@@ -72,7 +72,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
    * @return the monitoring synapse
    */
   @Nonnull
-  public static MonitoringSynapse fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MonitoringSynapse fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     @Nonnull final MonitoringSynapse obj = new MonitoringSynapse(json);
     obj.totalBatches = json.get("totalBatches").getAsInt();
     obj.totalItems = json.get("totalItems").getAsInt();
@@ -147,7 +147,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("totalBatches", totalBatches);
     json.addProperty("totalItems", totalItems);
@@ -156,8 +156,8 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
   
   @Nonnull
   @Override
-  public Map<String, Object> getMetrics() {
-    @Nonnull final HashMap<String, Object> map = new HashMap<>();
+  public Map<CharSequence, Object> getMetrics() {
+    @Nonnull final HashMap<CharSequence, Object> map = new HashMap<>();
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
     map.put("forward", forwardStatistics.getMetrics());

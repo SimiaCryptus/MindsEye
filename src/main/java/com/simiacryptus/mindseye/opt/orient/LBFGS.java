@@ -53,7 +53,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   /**
    * The Verbose.
    */
-  protected boolean verbose = false;
+  protected boolean verbose = true;
   private int maxHistory = 30;
   private int minHistory = 3;
   
@@ -70,20 +70,26 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   public void addToHistory(@Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
     if (!LBFGS.isFinite(measurement.delta)) {
       if (verbose) {
-        monitor.log("Corrupt measurement");
+        monitor.log("Corrupt delta measurement");
       }
     }
     else if (!LBFGS.isFinite(measurement.weights)) {
       if (verbose) {
-        monitor.log("Corrupt measurement");
+        monitor.log("Corrupt weights measurement");
       }
     }
-    else if (history.isEmpty() || !history.stream().filter(x -> x.sum <= measurement.sum).findAny().isPresent()) {
-      @Nonnull final PointSample copyFull = measurement.copyFull();
-      if (verbose) {
-        monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(copyFull)), history.size()));
+    else {
+      boolean isFound = history.stream().filter(x -> x.sum <= measurement.sum).findAny().isPresent();
+      if (!isFound) {
+        @Nonnull final PointSample copyFull = measurement.copyFull();
+        if (verbose) {
+          monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(copyFull)), history.size()));
+        }
+        history.add(copyFull);
       }
-      history.add(copyFull);
+      else if (verbose) {
+        monitor.log(String.format("Non-optimal measurement %s < %s. Total: %s", measurement.sum, history.stream().mapToDouble(x -> x.sum).min().orElse(Double.POSITIVE_INFINITY), history.size()));
+      }
     }
   }
   
@@ -154,10 +160,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     @Nonnull final DeltaSet<Layer> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
       if (lbfgs(measurement, monitor, history, result)) {
-        this.history.forEach(x -> x.freeRef());
-        this.history.clear();
-        history.forEach(x -> x.addRef());
-        this.history.addAll(history);
+        setHistory(monitor, history);
         return result;
       }
       else {
@@ -171,6 +174,21 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
       monitor.log(String.format("LBFGS Accumulation History: %s points", history.size()));
       return null;
     }
+  }
+  
+  private LBFGS setHistory(@Nonnull final TrainingMonitor monitor, @Nonnull final List<PointSample> history) {
+    if (history.size() == this.history.size() && history.stream().filter(x -> !this.history.contains(x)).count() == 0)
+      return this;
+    if (verbose) {
+      monitor.log(String.format("Overwriting history with %s points", history.size()));
+    }
+    synchronized (this.history) {
+      history.forEach(x -> x.addRef());
+      this.history.forEach(x -> x.freeRef());
+      this.history.clear();
+      this.history.addAll(history);
+    }
+    return this;
   }
   
   private boolean lbfgs(@Nonnull PointSample measurement, @Nonnull TrainingMonitor monitor, @Nonnull List<PointSample> history, @Nonnull DeltaSet<Layer> direction) {
@@ -290,7 +308,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     private final double mag;
     private final double magGrad;
     private final double dot;
-    private final List<String> anglesPerLayer;
+    private final List<CharSequence> anglesPerLayer;
   
     /**
      * Instantiates a new Stats.
@@ -317,7 +335,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
           final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
           if (!Double.isFinite(gradientMagnitude)) throw new IllegalStateException();
           if (!Double.isFinite(lbfgsMagnitude)) throw new IllegalStateException();
-          final String layerName = gradient.getMap().get(e.getKey()).layer.getName();
+          final CharSequence layerName = gradient.getMap().get(e.getKey()).layer.getName();
           if (gradientMagnitude == 0.0) {
             return String.format("%s = %.3e", layerName, lbfgsMagnitude);
           }
@@ -366,7 +384,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
      *
      * @return the angles per layer
      */
-    public List<String> getAnglesPerLayer() {
+    public List<CharSequence> getAnglesPerLayer() {
       return anglesPerLayer;
     }
   }

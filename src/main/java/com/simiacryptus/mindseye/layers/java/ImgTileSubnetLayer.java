@@ -79,7 +79,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgTileSubnetLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgTileSubnetLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     height = json.getAsJsonPrimitive("height").getAsInt();
     width = json.getAsJsonPrimitive("width").getAsInt();
@@ -95,7 +95,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
    * @param rs   the rs
    * @return the rescaled subnet layer
    */
-  public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSubnetLayer(json, rs);
   }
   
@@ -146,7 +146,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("height", height);
     json.addProperty("width", width);

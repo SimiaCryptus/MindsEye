@@ -91,7 +91,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgTileSubnetLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgTileSubnetLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
     height = json.getAsJsonPrimitive("height").getAsInt();
@@ -108,7 +108,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
    * @param rs   the rs
    * @return the rescaled subnet layer
    */
-  public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSubnetLayer(json, rs);
   }
   
@@ -204,7 +204,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("height", height);
     json.addProperty("width", width);

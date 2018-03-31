@@ -81,7 +81,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
    * @param includeCaller the include caller
    * @return the string
    */
-  public static String referenceReport(@Nonnull ReferenceCountingBase obj, boolean includeCaller) {
+  public static CharSequence referenceReport(@Nonnull ReferenceCountingBase obj, boolean includeCaller) {
     return obj.referenceReport(includeCaller, obj.isFinalized());
   }
   
@@ -147,7 +147,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       for (int i = 0; i < addRefObjs.size(); i++) {
         StackTraceElement[] stack = i < addRefs.size() ? addRefs.get(i) : new StackTraceElement[]{};
         UUID linkObj = addRefObjs.get(i);
-        String linkStr = this.equals(linkObj) ? "" : linkObj.toString();
+        CharSequence linkStr = this.equals(linkObj) ? "" : linkObj.toString();
         out.println(String.format("reference added by %s\n\t%s", linkStr,
           getString(stack).replaceAll("\n", "\n\t")));
       }
@@ -156,13 +156,13 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       for (int i = 0; i < freeRefObjs.size() - (isFinalized ? 1 : 0); i++) {
         StackTraceElement[] stack = i < freeRefs.size() ? freeRefs.get(i) : new StackTraceElement[]{};
         UUID linkObj = freeRefObjs.get(i);
-        String linkStr = objectId == linkObj ? "" : linkObj.toString();
+        CharSequence linkStr = objectId == linkObj ? "" : linkObj.toString();
         out.println(String.format("reference removed by %s\n\t%s", linkStr,
           getString(stack).replaceAll("\n", "\n\t")));
       }
       if (isFinalized) {
         UUID linkObj = freeRefObjs.isEmpty() ? objectId : freeRefObjs.get(freeRefObjs.size() - 1);
-        String linkStr = objectId.equals(linkObj) ? "" : linkObj.toString();
+        CharSequence linkStr = objectId.equals(linkObj) ? "" : linkObj.toString();
         out.println(String.format("freed by %s\n\t%s", linkStr,
           (0 == freeRefs.size() ? "" : getString(freeRefs.get(freeRefs.size() - 1))).replaceAll("\n", "\n\t")));
       }

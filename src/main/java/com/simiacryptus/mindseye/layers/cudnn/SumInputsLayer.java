@@ -73,7 +73,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumInputsLayer(json);
   }
   
@@ -134,7 +134,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     json.addProperty("parallel", isParallel());

@@ -52,7 +52,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    * @param json the json
    * @param rs   the rs
    */
-  protected LoggingWrapperLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected LoggingWrapperLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
   }
   
@@ -72,7 +72,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    * @param rs   the rs
    * @return the monitoring wrapper layer
    */
-  public static LoggingWrapperLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static LoggingWrapperLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new LoggingWrapperLayer(json, rs);
   }
   

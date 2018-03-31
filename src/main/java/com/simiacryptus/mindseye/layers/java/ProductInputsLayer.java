@@ -64,7 +64,7 @@ public class ProductInputsLayer extends LayerBase {
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static ProductInputsLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ProductInputsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ProductInputsLayer(json);
   }
   
@@ -165,7 +165,7 @@ public class ProductInputsLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

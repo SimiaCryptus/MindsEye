@@ -108,7 +108,7 @@ public class DataSerializerTest {
    * @param f      the f
    * @param name   the name
    */
-  public void test(@Nonnull DataSerializer target, @Nonnull DoubleSupplier f, String name) {
+  public void test(@Nonnull DataSerializer target, @Nonnull DoubleSupplier f, CharSequence name) {
     @Nonnull double[] source = random(1024, f);
     @Nonnull double[] result = target.fromBytes(target.toBytes(source));
     double rms = IntStream.range(0, source.length).mapToDouble(i -> (source[i] - result[i]) / (source[i] + result[i])).map(x -> x * x).average().getAsDouble();

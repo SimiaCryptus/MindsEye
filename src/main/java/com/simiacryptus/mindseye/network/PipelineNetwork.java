@@ -81,7 +81,7 @@ public class PipelineNetwork extends DAGNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected PipelineNetwork(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected PipelineNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     @Nonnull final UUID headId = UUID.fromString(json.get("head").getAsString());
     assert null != headId;
@@ -113,7 +113,7 @@ public class PipelineNetwork extends DAGNetwork {
    * @param rs   the rs
    * @return the pipeline network
    */
-  public static PipelineNetwork fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static PipelineNetwork fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PipelineNetwork(json, rs);
   }
   
@@ -158,7 +158,7 @@ public class PipelineNetwork extends DAGNetwork {
    * @return the dag node
    */
   @Nullable
-  public DAGNode wrap(final String label, @Nullable final Layer nextHead, @Nonnull final DAGNode... head) {
+  public DAGNode wrap(final CharSequence label, @Nullable final Layer nextHead, @Nonnull final DAGNode... head) {
     DAGNode add = add(label, nextHead, head);
     nextHead.freeRef();
     return add;
@@ -178,7 +178,7 @@ public class PipelineNetwork extends DAGNetwork {
   
   @SafeVarargs
   @Override
-  public final InnerNode add(final String label, @Nullable final Layer layer, final DAGNode... head) {
+  public final InnerNode add(final CharSequence label, @Nullable final Layer layer, final DAGNode... head) {
     if (null == layer) throw new IllegalArgumentException();
     final InnerNode node = super.add(label, layer, head);
     //assert Arrays.stream(head).allMatch(x -> x != null);
@@ -244,7 +244,7 @@ public class PipelineNetwork extends DAGNetwork {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
     final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("head", head.getId().toString());

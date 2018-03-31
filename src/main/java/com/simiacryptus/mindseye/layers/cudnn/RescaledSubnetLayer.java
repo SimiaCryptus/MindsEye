@@ -70,7 +70,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
    * @param json the json
    * @param rs   the rs
    */
-  protected RescaledSubnetLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected RescaledSubnetLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     scale = json.get("scale").getAsInt();
     layer = Layer.fromJson(json, rs);
@@ -84,7 +84,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);
   }
   
@@ -108,7 +108,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("scale", scale);
     json.add("layer", layer.getJson(resources, dataSerializer));

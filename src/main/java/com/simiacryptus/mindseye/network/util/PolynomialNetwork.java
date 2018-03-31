@@ -93,7 +93,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected PolynomialNetwork(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected PolynomialNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
     if (json.get("alpha") != null) {
@@ -116,7 +116,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * @param rs   the rs
    * @return the polynomial network
    */
-  public static PolynomialNetwork fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static PolynomialNetwork fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PolynomialNetwork(json, rs);
   }
   
@@ -187,7 +187,7 @@ public class PolynomialNetwork extends DAGNetwork {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
     @Nullable final DAGNode head = getHead();
     final JsonObject json = super.getJson(resources, dataSerializer);

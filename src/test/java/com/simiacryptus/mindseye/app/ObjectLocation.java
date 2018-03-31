@@ -142,18 +142,18 @@ public class ObjectLocation extends ArtistryAppBase {
       Result classifyResult = classifyNetwork.eval(new MutableResult(row));
       Result locationResult = locatorNetwork.eval(new MutableResult(row));
       Tensor classification = classifyResult.getData().get(0);
-      List<String> categories = classifier.getCategories();
+      List<CharSequence> categories = classifier.getCategories();
       int[] sortedIndices = IntStream.range(0, categories.size()).mapToObj(x -> x)
         .sorted(Comparator.comparing(i -> -classification.get(i))).mapToInt(x -> x).limit(10).toArray();
       logger.info(Arrays.stream(sortedIndices)
         .mapToObj(i -> String.format("%s: %s = %s%%", i, categories.get(i), classification.get(i) * 100))
         .reduce((a, b) -> a + "\n" + b)
         .orElse(""));
-      Map<String, Tensor> vectors = new HashMap<>();
-      List<String> predictionList = Arrays.stream(sortedIndices).mapToObj(categories::get).collect(Collectors.toList());
+      Map<CharSequence, Tensor> vectors = new HashMap<>();
+      List<CharSequence> predictionList = Arrays.stream(sortedIndices).mapToObj(categories::get).collect(Collectors.toList());
       Arrays.stream(sortedIndices).limit(10).forEach(category -> {
         try {
-          String name = categories.get(category);
+          CharSequence name = categories.get(category);
           log.h3(name);
           Tensor alphaTensor = renderAlpha(alphaPower, img, locationResult, classification, category);
           log.p(log.image(img.toRgbImageAlphaMask(0, 1, 2, alphaTensor), ""));
@@ -181,8 +181,8 @@ public class ObjectLocation extends ArtistryAppBase {
         RealVector eigenvector = decomposition.getEigenvector(objectVector);
         Tensor detectionRegion = IntStream.range(0, eigenvector.getDimension()).mapToObj(i -> vectors.get(predictionList.get(i)).scale(eigenvector.getEntry(i))).reduce((a, b) -> a.add(b)).get();
         detectionRegion = detectionRegion.scale(255.0 / detectionRegion.rms());
-        String categorization = IntStream.range(0, eigenvector.getDimension()).mapToObj(i -> {
-          String category = predictionList.get(i);
+        CharSequence categorization = IntStream.range(0, eigenvector.getDimension()).mapToObj(i -> {
+          CharSequence category = predictionList.get(i);
           double component = eigenvector.getEntry(i);
           return String.format("<li>%s = %.4f</li>", category, component);
         }).reduce((a, b) -> a + "" + b).get();

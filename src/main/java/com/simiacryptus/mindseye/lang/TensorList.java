@@ -141,7 +141,7 @@ public interface TensorList extends ReferenceCounting {
    * @return the string
    */
   @Nonnull
-  default String prettyPrint() {
+  default CharSequence prettyPrint() {
     return stream().map(t -> {
       String str = t.prettyPrint();
       t.freeRef();

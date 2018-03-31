@@ -57,7 +57,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
    * @param id the id
    * @param rs the rs
    */
-  protected MeanSqLossLayer(@Nonnull final JsonObject id, Map<String, byte[]> rs) {
+  protected MeanSqLossLayer(@Nonnull final JsonObject id, Map<CharSequence, byte[]> rs) {
     super(id, rs);
     alpha = id.get("alpha").getAsDouble();
     binaryNode = (InnerNode) nodesById.get(UUID.fromString(id.get("binaryNode").getAsString()));
@@ -70,12 +70,12 @@ public class MeanSqLossLayer extends PipelineNetwork {
    * @param rs   the rs
    * @return the mean sq loss layer
    */
-  public static MeanSqLossLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static MeanSqLossLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MeanSqLossLayer(json, rs);
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("alpha", alpha);
     json.addProperty("binaryNode", binaryNode.id.toString());

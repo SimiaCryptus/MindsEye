@@ -243,7 +243,7 @@ public class EncodingProblem implements Problem {
     }
     
     try {
-      @Nonnull String filename = log.getName() + EncodingProblem.modelNo++ + "_plot.png";
+      @Nonnull String filename = log.getName().toString() + EncodingProblem.modelNo++ + "_plot.png";
       ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(filename));
       log.appendFrontMatterProperty("result_plot", filename, ";");
     } catch (IOException e) {
@@ -263,7 +263,7 @@ public class EncodingProblem implements Problem {
       Arrays.stream(trainingData).map(tensorArray -> {
         try {
           @Nullable final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
-          @Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+          @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
           row.put("Source", log.image(tensorArray[1].toImage(), ""));
           row.put("Echo", log.image(predictionSignal.toImage(), ""));
           return row;

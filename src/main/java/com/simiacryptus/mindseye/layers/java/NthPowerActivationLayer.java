@@ -69,7 +69,7 @@ public final class NthPowerActivationLayer extends LayerBase {
    * @param rs   the rs
    * @return the nth power activation layer
    */
-  public static NthPowerActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static NthPowerActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new NthPowerActivationLayer(json);
   }
   
@@ -187,7 +187,7 @@ public final class NthPowerActivationLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("power", power);
     return json;

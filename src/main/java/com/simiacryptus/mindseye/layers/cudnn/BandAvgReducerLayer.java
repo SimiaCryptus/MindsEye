@@ -84,7 +84,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
    * @param rs   the rs
    * @return the pooling layer
    */
-  public static BandAvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BandAvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BandAvgReducerLayer(json);
   }
   
@@ -176,7 +176,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("alpha", alpha);
     json.addProperty("precision", precision.name());

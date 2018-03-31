@@ -57,6 +57,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Random;
+import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
 
 /**
@@ -294,7 +295,7 @@ public class ArtistryAppBase extends NotebookReportBase {
    * @param obj the style parameters
    * @return the string
    */
-  public static String toJson(final Object obj) {
+  public static CharSequence toJson(final Object obj) {
     String json;
     try {
       ObjectMapper mapper = new ObjectMapper();
@@ -310,9 +311,18 @@ public class ArtistryAppBase extends NotebookReportBase {
    * Load buffered image.
    *
    * @param image     the style
-   * @param imageSize the image size
    * @return the buffered image
    */
+  @Nonnull
+  public static BufferedImage load(final CharSequence image) {
+    BufferedImage bufferedImage;
+    try {
+      bufferedImage = ImageIO.read(new File(image.toString()));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return bufferedImage;
+  }
   @Nonnull
   public static BufferedImage load(final String image, final int imageSize) {
     BufferedImage bufferedImage;
@@ -372,8 +382,18 @@ public class ArtistryAppBase extends NotebookReportBase {
    * @return the buffered image
    */
   @Nonnull
-  public static BufferedImage randomize(final BufferedImage contentImage) {
-    return Tensor.fromRGB(contentImage).map(x -> FastRandom.INSTANCE.random()).toRgbImage();
+  public static BufferedImage randomize(final BufferedImage contentImage) {return randomize(contentImage, x -> FastRandom.INSTANCE.random());}
+  
+  /**
+   * Randomize buffered image.
+   *
+   * @param contentImage the content image
+   * @param f
+   * @return the buffered image
+   */
+  @Nonnull
+  public static BufferedImage randomize(final BufferedImage contentImage, final DoubleUnaryOperator f) {
+    return Tensor.fromRGB(contentImage).map(f).toRgbImage();
   }
   
   /**

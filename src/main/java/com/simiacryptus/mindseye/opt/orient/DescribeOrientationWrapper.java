@@ -59,9 +59,9 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @return the id
    */
   @Nonnull
-  public static String getId(@Nonnull final DoubleBuffer<Layer> x) {
+  public static CharSequence getId(@Nonnull final DoubleBuffer<Layer> x) {
     final String name = x.layer.getName();
-    @Nonnull final String className = x.layer.getClass().getSimpleName();
+    @Nonnull final CharSequence className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
@@ -76,9 +76,9 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param dirDelta    the dir delta
    * @return the string
    */
-  public static String render(@Nonnull final DoubleBuffer<Layer> weightDelta, @Nonnull final DoubleBuffer<Layer> dirDelta) {
-    @Nonnull final String weightString = Arrays.toString(weightDelta.getDelta());
-    @Nonnull final String deltaString = Arrays.toString(dirDelta.getDelta());
+  public static CharSequence render(@Nonnull final DoubleBuffer<Layer> weightDelta, @Nonnull final DoubleBuffer<Layer> dirDelta) {
+    @Nonnull final CharSequence weightString = Arrays.toString(weightDelta.getDelta());
+    @Nonnull final CharSequence deltaString = Arrays.toString(dirDelta.getDelta());
     return String.format("pos: %s\nvec: %s", weightString, deltaString);
   }
   
@@ -89,10 +89,10 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param direction the direction
    * @return the string
    */
-  public static String render(@Nonnull final StateSet<Layer> weights, @Nonnull final DeltaSet<Layer> direction) {
-    final Map<String, String> data = weights.stream()
+  public static CharSequence render(@Nonnull final StateSet<Layer> weights, @Nonnull final DeltaSet<Layer> direction) {
+    final Map<CharSequence, CharSequence> data = weights.stream()
       .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
-      .collect(Collectors.toMap(x -> x.getKey(), (@Nonnull final Map.Entry<String, List<State<Layer>>> list) -> {
+      .collect(Collectors.toMap(x -> x.getKey(), (@Nonnull final Map.Entry<CharSequence, List<State<Layer>>> list) -> {
         final List<State<Layer>> deltaList = list.getValue();
         if (1 == deltaList.size()) {
           final State<Layer> weightDelta = deltaList.get(0);
@@ -116,7 +116,7 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
     if (cursor instanceof SimpleLineSearchCursor) {
       final DeltaSet<Layer> direction = ((SimpleLineSearchCursor) cursor).direction;
       @Nonnull final StateSet<Layer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
-      final String asString = DescribeOrientationWrapper.render(weights, direction);
+      final CharSequence asString = DescribeOrientationWrapper.render(weights, direction);
       monitor.log(String.format("Orientation Details: %s", asString));
     }
     else {

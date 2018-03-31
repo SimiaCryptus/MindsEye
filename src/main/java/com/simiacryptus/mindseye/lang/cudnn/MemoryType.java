@@ -190,7 +190,7 @@ public enum MemoryType {
         @Override
         public ReferenceWrapper<CudaPointer> create(final long length) {
           assert -1 == device || CudaSystem.getThreadDeviceId() == device;
-          String caller = !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller();
+          CharSequence caller = !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller();
           return CudaDevice.run(gpu -> {
             CudaPointer alloc = MemoryType.this.alloc(length, gpu);
             MemoryType.logger.debug(String.format("Created %s %s (%s bytes) in device %s via %s", name(), Integer.toHexString(System.identityHashCode(alloc)), length, device, caller));

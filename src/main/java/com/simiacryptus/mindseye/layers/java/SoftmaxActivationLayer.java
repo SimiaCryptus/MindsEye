@@ -76,7 +76,7 @@ public class SoftmaxActivationLayer extends LayerBase {
    * @param rs   the rs
    * @return the softmax activation layer
    */
-  public static SoftmaxActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SoftmaxActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SoftmaxActivationLayer(json);
   }
   
@@ -154,7 +154,7 @@ public class SoftmaxActivationLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

@@ -87,7 +87,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgTileSelectLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgTileSelectLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     sizeY = json.get("sizeX").getAsInt();
     sizeX = json.get("sizeY").getAsInt();
@@ -103,7 +103,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSelectLayer(json, rs);
   }
   
@@ -324,7 +324,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeY);

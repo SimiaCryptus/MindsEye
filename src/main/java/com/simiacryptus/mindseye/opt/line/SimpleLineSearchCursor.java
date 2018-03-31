@@ -62,7 +62,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
   }
   
   @Override
-  public String getDirectionType() {
+  public CharSequence getDirectionType() {
     return type;
   }
   

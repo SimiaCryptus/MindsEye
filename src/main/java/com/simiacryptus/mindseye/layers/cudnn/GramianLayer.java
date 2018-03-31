@@ -76,7 +76,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
    * @param json the json
    * @param rs   the rs
    */
-  protected GramianLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected GramianLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
     this.alpha = json.getAsJsonPrimitive("alpha").getAsDouble();
@@ -89,7 +89,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static GramianLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static GramianLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GramianLayer(json, rs);
   }
   
@@ -343,7 +343,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     json.addProperty("alpha", alpha);

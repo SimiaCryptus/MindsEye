@@ -543,7 +543,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @return the apply result
    */
   @Nonnull
-  public TestResult trainAll(String title, @Nonnull NotebookOutput log, @Nonnull Tensor[][] trainingInput, @Nonnull Layer layer, boolean... mask) {
+  public TestResult trainAll(CharSequence title, @Nonnull NotebookOutput log, @Nonnull Tensor[][] trainingInput, @Nonnull Layer layer, boolean... mask) {
     try {
       log.h3("Gradient Descent");
       final List<StepRecord> gd = train(log, this::trainGD, layer.copy(), copy(trainingInput), mask);
@@ -994,7 +994,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     /**
      * The Map.
      */
-    Map<String, TrainingResult> map;
+    Map<CharSequence, TrainingResult> map;
   
     /**
      * Instantiates a new Problem result.
@@ -1011,7 +1011,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
      * @return the problem result
      */
     @Nonnull
-    public ProblemResult put(String key, TrainingResult result) {
+    public ProblemResult put(CharSequence key, TrainingResult result) {
       map.put(key, result);
       return this;
     }

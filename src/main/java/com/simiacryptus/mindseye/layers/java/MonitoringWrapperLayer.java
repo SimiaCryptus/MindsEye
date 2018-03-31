@@ -61,7 +61,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param json the json
    * @param rs   the rs
    */
-  protected MonitoringWrapperLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected MonitoringWrapperLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     if (json.has("forwardPerf")) {
       forwardPerformance.readJson(json.getAsJsonObject("forwardPerf"));
@@ -96,7 +96,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
    * @param rs   the rs
    * @return the monitoring wrapper layer
    */
-  public static MonitoringWrapperLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MonitoringWrapperLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MonitoringWrapperLayer(json, rs);
   }
   
@@ -225,7 +225,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
     //json.fn("forwardPerf",forwardPerf.getJson());
     //json.fn("backwardPerf",backwardPerf.getJson());
@@ -237,8 +237,8 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   
   @Nonnull
   @Override
-  public Map<String, Object> getMetrics() {
-    @Nonnull final HashMap<String, Object> map = new HashMap<>();
+  public Map<CharSequence, Object> getMetrics() {
+    @Nonnull final HashMap<CharSequence, Object> map = new HashMap<>();
     map.put("class", getInner().getClass().getName());
     map.put("totalBatches", totalBatches);
     map.put("totalItems", totalItems);
@@ -263,7 +263,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
       }
     }
     if (statistics.getCount() > 0) {
-      @Nonnull final HashMap<String, Object> weightStats = new HashMap<>();
+      @Nonnull final HashMap<CharSequence, Object> weightStats = new HashMap<>();
       weightStats.put("buffers", state.size());
       weightStats.putAll(statistics.getMetrics());
       map.put("weights", weightStats);

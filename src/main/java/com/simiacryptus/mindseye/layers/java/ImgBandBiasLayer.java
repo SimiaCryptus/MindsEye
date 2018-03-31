@@ -91,7 +91,7 @@ public class ImgBandBiasLayer extends LayerBase {
    * @param rs   the rs
    * @return the img band bias layer
    */
-  public static ImgBandBiasLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgBandBiasLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandBiasLayer(json);
   }
   
@@ -211,7 +211,7 @@ public class ImgBandBiasLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(getBias()));
     return json;

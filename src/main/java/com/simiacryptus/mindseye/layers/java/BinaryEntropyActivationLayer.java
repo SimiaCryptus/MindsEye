@@ -53,7 +53,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
    * @param rs   the rs
    * @return the binary entropy activation layer
    */
-  public static BinaryEntropyActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BinaryEntropyActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BinaryEntropyActivationLayer(json);
   }
   
@@ -70,7 +70,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

@@ -128,7 +128,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
     return new LineSearchCursorBase() {
       @Nonnull
       @Override
-      public String getDirectionType() {
+      public CharSequence getDirectionType() {
         return cursor.getDirectionType() + "+Trust";
       }
 

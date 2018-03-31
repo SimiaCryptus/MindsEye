@@ -134,9 +134,9 @@ public class ValidatingTrainer {
   }
   
   @Nonnull
-  private static String getId(@Nonnull final DoubleBuffer<Layer> x) {
+  private static CharSequence getId(@Nonnull final DoubleBuffer<Layer> x) {
     final String name = x.layer.getName();
-    @Nonnull final String className = x.layer.getClass().getSimpleName();
+    @Nonnull final CharSequence className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
   }
   
@@ -704,7 +704,7 @@ public class ValidatingTrainer {
       @Nonnull final StepResult epoch = runStep(currentPoint, phase);
       final long newGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
       final long endTime = System.nanoTime();
-      final String performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f trainAll time",
+      final CharSequence performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f trainAll time",
         epochParams.trainingSize, (endTime - startTime) / 1e9,
         epoch.performance[0],
         (newGcTime - prevGcTime) / 1e3,
@@ -737,7 +737,7 @@ public class ValidatingTrainer {
     currentIteration.incrementAndGet();
     @Nonnull final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> phase.orientation.orient(phase.trainingSubject, previousPoint, monitor));
     final LineSearchCursor direction = timedOrientation.result;
-    final String directionType = direction.getDirectionType();
+    final CharSequence directionType = direction.getDirectionType();
     LineSearchStrategy lineSearchStrategy;
     if (phase.lineSearchStrategyMap.containsKey(directionType)) {
       lineSearchStrategy = phase.lineSearchStrategyMap.get(directionType);
@@ -770,7 +770,7 @@ public class ValidatingTrainer {
    */
   @Nonnull
   @Deprecated
-  public ValidatingTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
+  public ValidatingTrainer setLineSearchFactory(final Function<CharSequence, LineSearchStrategy> lineSearchFactory) {
     getRegimen().get(0).setLineSearchFactory(lineSearchFactory);
     return this;
   }
@@ -902,8 +902,8 @@ public class ValidatingTrainer {
    * The type Training phase.
    */
   public static class TrainingPhase {
-    private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
-    private Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
+    private Function<CharSequence, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
+    private Map<CharSequence, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
     private OrientationStrategy<?> orientation = new QQN();
     private SampledTrainable trainingSubject;
   
@@ -922,7 +922,7 @@ public class ValidatingTrainer {
      *
      * @return the line search factory
      */
-    public Function<String, LineSearchStrategy> getLineSearchFactory() {
+    public Function<CharSequence, LineSearchStrategy> getLineSearchFactory() {
       return lineSearchFactory;
     }
   
@@ -933,7 +933,7 @@ public class ValidatingTrainer {
      * @return the line search factory
      */
     @Nonnull
-    public TrainingPhase setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
+    public TrainingPhase setLineSearchFactory(final Function<CharSequence, LineSearchStrategy> lineSearchFactory) {
       this.lineSearchFactory = lineSearchFactory;
       return this;
     }
@@ -943,7 +943,7 @@ public class ValidatingTrainer {
      *
      * @return the line search strategy map
      */
-    public Map<String, LineSearchStrategy> getLineSearchStrategyMap() {
+    public Map<CharSequence, LineSearchStrategy> getLineSearchStrategyMap() {
       return lineSearchStrategyMap;
     }
   
@@ -954,7 +954,7 @@ public class ValidatingTrainer {
      * @return the line search strategy map
      */
     @Nonnull
-    public TrainingPhase setLineSearchStrategyMap(final Map<String, LineSearchStrategy> lineSearchStrategyMap) {
+    public TrainingPhase setLineSearchStrategyMap(final Map<CharSequence, LineSearchStrategy> lineSearchStrategyMap) {
       this.lineSearchStrategyMap = lineSearchStrategyMap;
       return this;
     }

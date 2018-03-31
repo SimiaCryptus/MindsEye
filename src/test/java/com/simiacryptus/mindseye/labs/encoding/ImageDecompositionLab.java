@@ -83,7 +83,7 @@ public class ImageDecompositionLab {
    * @param args the input arguments
    * @throws Exception the exception
    */
-  public static void main(final String... args) throws Exception {
+  public static void main(final CharSequence... args) throws Exception {
     @Nonnull final ImageDecompositionLab lab = new ImageDecompositionLab();
     try (@Nonnull NotebookOutput log = lab.report()) {
       lab.run(log);
@@ -126,7 +126,7 @@ public class ImageDecompositionLab {
   @Nonnull
   public HtmlNotebookOutput report() {
     try {
-      @Nonnull final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
+      @Nonnull final CharSequence directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
       @Nonnull final File path = new File(Util.mkString(File.separator, "www", directoryName));
       path.mkdirs();
       @Nonnull final File logFile = new File(path, "index.html");

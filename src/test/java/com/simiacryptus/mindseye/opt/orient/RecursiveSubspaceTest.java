@@ -106,7 +106,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
       ).setMonitor(monitor);
       trainer.getRegimen().get(0)
         .setOrientation(getOrientation())
-        .setLineSearchFactory(name -> name.contains("LBFGS") ? new StaticLearningRate(1.0) : new QuadraticSearch());
+        .setLineSearchFactory(name -> name.toString().contains("LBFGS") ? new StaticLearningRate(1.0) : new QuadraticSearch());
       return trainer
         .setTimeout(15, TimeUnit.MINUTES)
         .setMaxIterations(500)

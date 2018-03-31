@@ -125,7 +125,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     testData.freeRef();
   }
   
-  private void print(final Stream<String> stream) {
+  private void print(final Stream<CharSequence> stream) {
     stream.forEach(x -> System.out.println("Zero: " + x));
     //System.out.println("Zeros: " + stream.reduce((a,b)->a+","+b).get());
   }

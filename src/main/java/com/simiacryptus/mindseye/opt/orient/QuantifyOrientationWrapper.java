@@ -63,9 +63,9 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
    * @return the id
    */
   @Nonnull
-  public String getId(@Nonnull final DoubleBuffer<Layer> x) {
+  public CharSequence getId(@Nonnull final DoubleBuffer<Layer> x) {
     final String name = x.layer.getName();
-    @Nonnull final String className = x.layer.getClass().getSimpleName();
+    @Nonnull final CharSequence className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
@@ -79,7 +79,7 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
     if (cursor instanceof SimpleLineSearchCursor) {
       final DeltaSet<Layer> direction = ((SimpleLineSearchCursor) cursor).direction;
       @Nonnull final StateSet<Layer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
-      final Map<String, String> dataMap = weights.stream()
+      final Map<CharSequence, CharSequence> dataMap = weights.stream()
         .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
         .collect(Collectors.toMap(x -> x.getKey(), list -> {
           final List<Double> doubleList = list.getValue().stream().map(weightDelta -> {

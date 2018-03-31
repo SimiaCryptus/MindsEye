@@ -80,7 +80,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
   }
   
   @Override
-  public String getDirectionType() {
+  public CharSequence getDirectionType() {
     return direction.getDirectionType();
   }
   

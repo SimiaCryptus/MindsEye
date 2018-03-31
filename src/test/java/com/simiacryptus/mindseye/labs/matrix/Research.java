@@ -115,7 +115,7 @@ public class Research extends OptimizerComparison {
       trainer.getRegimen().get(0)
         .setOrientation(new QQN())
         .setLineSearchFactory(name -> new QuadraticSearch()
-          .setCurrentRate(name.contains("QQN") ? 1.0 : 1e-6)
+          .setCurrentRate(name.toString().contains("QQN") ? 1.0 : 1e-6)
           .setRelativeTolerance(2e-1));
       return trainer;
     });
@@ -134,7 +134,7 @@ public class Research extends OptimizerComparison {
       trainer.getRegimen().get(0)
         .setOrientation(new LBFGS())
         .setLineSearchFactory(name -> new QuadraticSearch()
-          .setCurrentRate(name.contains("LBFGS") ? 1.0 : 1e-6));
+          .setCurrentRate(name.toString().contains("LBFGS") ? 1.0 : 1e-6));
       return trainer;
     });
   };

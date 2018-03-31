@@ -55,7 +55,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected PolynomialConvolutionNetwork(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected PolynomialConvolutionNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     radius = json.get("radius").getAsInt();
     json.get("simple").getAsBoolean();
@@ -68,7 +68,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
    * @param rs   the rs
    * @return the polynomial convolution network
    */
-  public static PolynomialConvolutionNetwork fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static PolynomialConvolutionNetwork fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PolynomialConvolutionNetwork(json, rs);
   }
   

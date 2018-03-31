@@ -68,7 +68,7 @@ public class CrossDotMetaLayer extends LayerBase {
    * @param rs   the rs
    * @return the cross dot meta layer
    */
-  public static CrossDotMetaLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static CrossDotMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new CrossDotMetaLayer(json);
   }
   
@@ -141,7 +141,7 @@ public class CrossDotMetaLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

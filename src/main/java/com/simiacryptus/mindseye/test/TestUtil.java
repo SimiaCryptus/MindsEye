@@ -263,7 +263,7 @@ public class TestUtil {
   public static void extractPerformance(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
     log.p("Per-layer Performance Metrics:");
     log.code(() -> {
-      @Nonnull final Map<String, MonitoringWrapperLayer> metrics = new HashMap<>();
+      @Nonnull final Map<CharSequence, MonitoringWrapperLayer> metrics = new HashMap<>();
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
           @Nullable final MonitoringWrapperLayer layer = node.getLayer();
@@ -305,15 +305,15 @@ public class TestUtil {
    * @param network the network
    * @return the map
    */
-  public static Map<String, Object> samplePerformance(@Nonnull final DAGNetwork network) {
-    @Nonnull final Map<String, Object> metrics = new HashMap<>();
+  public static Map<CharSequence, Object> samplePerformance(@Nonnull final DAGNetwork network) {
+    @Nonnull final Map<CharSequence, Object> metrics = new HashMap<>();
     network.visitLayers(layer -> {
       if (layer instanceof MonitoringWrapperLayer) {
         MonitoringWrapperLayer monitoringWrapperLayer = (MonitoringWrapperLayer) layer;
         Layer inner = monitoringWrapperLayer.getInner();
         String str = inner.toString();
         str += " class=" + inner.getClass().getName();
-        HashMap<String, Object> row = new HashMap<>();
+        HashMap<CharSequence, Object> row = new HashMap<>();
         row.put("fwd", monitoringWrapperLayer.getForwardPerformance().getMetrics());
         row.put("rev", monitoringWrapperLayer.getBackwardPerformance().getMetrics());
         metrics.put(str, row);
@@ -527,7 +527,7 @@ public class TestUtil {
    * @param normalize the normalize
    * @return the string
    */
-  public static String render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor, final boolean normalize) {
+  public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor, final boolean normalize) {
     return TestUtil.renderToImages(tensor, normalize).map(image -> {
       try {
         return log.image(image, "");
@@ -628,7 +628,7 @@ public class TestUtil {
    * @param metrics the metrics
    * @return the string
    */
-  public static String toFormattedJson(final Object metrics) {
+  public static CharSequence toFormattedJson(final Object metrics) {
     try {
       @Nonnull final ByteArrayOutputStream out = new ByteArrayOutputStream();
       JsonUtil.writeJson(out, metrics);
@@ -739,10 +739,10 @@ public class TestUtil {
    *
    * @return the string
    */
-  public static String miniStackTrace() {
+  public static CharSequence miniStackTrace() {
     int max = 30;
     StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-    List<String> list = Arrays.stream(stackTrace).skip(3).limit(max - 3).map(x -> x.isNativeMethod() ? "(Native Method)" :
+    List<CharSequence> list = Arrays.stream(stackTrace).skip(3).limit(max - 3).map(x -> x.isNativeMethod() ? "(Native Method)" :
       (x.getFileName() != null && x.getLineNumber() >= 0 ?
         x.getFileName() + ":" + x.getLineNumber() :
         (x.getFileName() != null ? x.getFileName() : "(Unknown Source)"))).collect(Collectors.toList());
@@ -922,7 +922,7 @@ public class TestUtil {
    * @param delimiter the delimiter
    * @return the string
    */
-  public static String toString(final StackTraceElement[] stack, final String delimiter) {
+  public static String toString(final StackTraceElement[] stack, final CharSequence delimiter) {
     return Arrays.stream(stack).map(x -> x.getFileName() + ":" + x.getLineNumber()).reduce((a, b) -> a + delimiter + b).orElse("");
   }
   
@@ -931,7 +931,7 @@ public class TestUtil {
    *
    * @return the caller
    */
-  public static String getCaller() {
+  public static CharSequence getCaller() {
     return toString(getStackTrace(4));
   }
   

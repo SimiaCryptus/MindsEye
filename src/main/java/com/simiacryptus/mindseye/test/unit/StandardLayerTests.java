@@ -463,7 +463,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         }
     
         @Override
-        public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+        public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
           return inner.getJson(resources, dataSerializer);
         }
     

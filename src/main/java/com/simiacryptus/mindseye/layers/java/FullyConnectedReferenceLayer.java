@@ -109,7 +109,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected FullyConnectedReferenceLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected FullyConnectedReferenceLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
@@ -123,7 +123,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    * @param rs   the rs
    * @return the fully connected layer
    */
-  public static FullyConnectedReferenceLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static FullyConnectedReferenceLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new FullyConnectedReferenceLayer(json, rs);
   }
   
@@ -211,7 +211,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     json.add("inputDims", JsonUtil.getJson(inputDims));

@@ -255,9 +255,9 @@ public class AutoencodingProblem implements Problem {
    * @return the linked hash map
    */
   @Nonnull
-  public LinkedHashMap<String, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+  public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
     try {
-      @Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+      @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
       row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
       row.put("Echo", log.image(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
       return row;

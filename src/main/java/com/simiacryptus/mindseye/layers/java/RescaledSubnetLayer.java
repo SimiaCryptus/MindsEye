@@ -66,7 +66,7 @@ public class RescaledSubnetLayer extends LayerBase {
    * @param json the json
    * @param rs   the rs
    */
-  protected RescaledSubnetLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected RescaledSubnetLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     scale = json.getAsJsonPrimitive("scale").getAsInt();
     JsonObject subnetwork = json.getAsJsonObject("subnetwork");
@@ -80,7 +80,7 @@ public class RescaledSubnetLayer extends LayerBase {
    * @param rs   the rs
    * @return the rescaled subnet layer
    */
-  public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);
   }
   
@@ -117,7 +117,7 @@ public class RescaledSubnetLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("scale", scale);
     json.add("subnetwork", subnetwork.getJson(resources, dataSerializer));

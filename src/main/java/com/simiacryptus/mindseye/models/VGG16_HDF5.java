@@ -120,6 +120,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    */
   protected void phase0() {
     add(new ImgMinSizeLayer(226, 226));
+    add(new ImgBandBiasLayer(3).set(new Tensor(-103.939, -116.779, -123.68)));
   }
   
   /**

@@ -145,9 +145,9 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   
   @Override
   public void printHeader(NotebookOutput log) {
-    @Nullable String fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
-    @Nullable String optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
-    @Nullable String revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
+    @Nullable CharSequence fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
+    @Nullable CharSequence optimizationStrategy_javadoc = printHeader(log, optimizationStrategy.getClass(), "opt");
+    @Nullable CharSequence revFactory_javadoc = printHeader(log, revFactory.getClass(), "rev");
     super.printHeader(log);
     log.p("_Forward Strategy Javadoc_: " + fwdFactory_javadoc);
     log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
@@ -175,5 +175,5 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    * @return the dataset name
    */
   @Nonnull
-  public abstract String getDatasetName();
+  public abstract CharSequence getDatasetName();
 }

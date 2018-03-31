@@ -166,7 +166,7 @@ public class CaltechTests {
   
     @Nonnull
     @Override
-    public String getDatasetName() {
+    public CharSequence getDatasetName() {
       return "Caltech101";
     }
   

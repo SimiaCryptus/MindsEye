@@ -112,7 +112,7 @@ public class ImgTileAssemblyLayer extends LayerBase {
    * @param rs   the rs
    * @return the img crop layer
    */
-  public static ImgTileAssemblyLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgTileAssemblyLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileAssemblyLayer(json);
   }
   
@@ -212,7 +212,7 @@ public class ImgTileAssemblyLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("columns", columns);
     json.addProperty("rows", rows);

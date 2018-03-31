@@ -56,7 +56,7 @@ public class ValueLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected ValueLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected ValueLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     this.precision = Precision.valueOf(json.get("precision").getAsString());
     this.tensorList = toDevice(Tensor.fromJson(json.get("value"), resources), precision);
@@ -82,7 +82,7 @@ public class ValueLayer extends LayerBase {
    * @param rs   the rs
    * @return the const nn layer
    */
-  public static ValueLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ValueLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ValueLayer(json, rs);
   }
   
@@ -128,7 +128,7 @@ public class ValueLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     Tensor tensor = tensorList.get(0);
     json.add("value", tensor.toJson(resources, dataSerializer));

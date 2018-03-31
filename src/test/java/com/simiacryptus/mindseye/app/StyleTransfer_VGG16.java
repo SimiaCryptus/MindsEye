@@ -23,17 +23,21 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.MultiLayerVGG16;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class SimpleStyleTransfer_VGG16 extends SimpleStyleTransferBase<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
+public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
   
   /**
    * Gets target class.
@@ -75,32 +79,29 @@ public class SimpleStyleTransfer_VGG16 extends SimpleStyleTransferBase<MultiLaye
     int imageSize = 400;
     parallelLossFunctions = true;
     double growthFactor = Math.sqrt(1.5);
-    String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+    CharSequence lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
     String monkey = "H:\\SimiaCryptus\\Artistry\\capuchin-monkey-2759768_960_720.jpg";
-    String vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\Van_Gogh_-_Portrait_of_Pere_Tanguy_1887-8.jpg";
-    String threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    
-    Map<String, StyleCoefficients> styles = new HashMap<>();
-    double coeff_style_mean = 2e0;
-    double coeff_style_cov = 1e0;
-//    styles.put(monkey, new StyleCoefficients(false)
-//      .set(MultiLayerVGG16.LayerType.Layer_0, coeff_style_mean, coeff_style_cov)
-//    );
-    styles.put(vanGogh, new StyleCoefficients(false)
-        //.set(MultiLayerVGG16.LayerType.Layer_0, coeff_style_mean, coeff_style_cov)
-        .set(MultiLayerVGG16.LayerType.Layer_1a, coeff_style_mean, coeff_style_cov)
-        .set(MultiLayerVGG16.LayerType.Layer_1b, coeff_style_mean, coeff_style_cov)
-        .set(MultiLayerVGG16.LayerType.Layer_1c, coeff_style_mean, coeff_style_cov)
-//      .set(MultiLayerVGG16.LayerType.Layer_1d, 1e-1 * coeff_style_mean, 1e-1 * coeff_style_cov)
-//      .set(MultiLayerVGG16.LayerType.Layer_1e, coeff_style_mean, coeff_style_cov)
+    CharSequence vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\Van_Gogh_-_Portrait_of_Pere_Tanguy_1887-8.jpg";
+    CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+  
+    Map<List<CharSequence>, StyleCoefficients> styles = new HashMap<>();
+    double coeff_mean = 1e0;
+    double coeff_cov = 1e0;
+    styles.put(Arrays.asList(threeMusicians), new StyleCoefficients(CenteringMode.Origin)
+//      .set(MultiLayerVGG16.LayerType.Layer_0, 1e0, 1e0)
+        .set(MultiLayerVGG16.LayerType.Layer_1a, coeff_mean, coeff_cov)
+//        .set(MultiLayerVGG16.LayerType.Layer_1b, coeff_mean, coeff_cov)
+        .set(MultiLayerVGG16.LayerType.Layer_1c, coeff_mean, coeff_cov)
+        .set(MultiLayerVGG16.LayerType.Layer_1d, coeff_mean, coeff_cov)
     );
-    double contentCoeff = 2e0;
+//    styles.put(Arrays.asList(vanGogh), new StyleCoefficients(true)
+////      .set(MultiLayerVGG16.LayerType.Layer_1a, 1e0, 1e0)
+////      .set(MultiLayerVGG16.LayerType.Layer_1b, 1e0, 1e0)
+////      .set(MultiLayerVGG16.LayerType.Layer_1c, 1e0, 1e0)
+////      .set(MultiLayerVGG16.LayerType.Layer_1d, 1e0, 1e0)
+//    );
     ContentCoefficients contentCoefficients = new ContentCoefficients()
-//      .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 1e-8)
-//      .set(MultiLayerVGG16.LayerType.Layer_1a, contentCoeff * 1e-4)
-//      .set(MultiLayerVGG16.LayerType.Layer_1b, contentCoeff * 1e0)
-      .set(MultiLayerVGG16.LayerType.Layer_1c, contentCoeff * 1e0)
-//      .set(MultiLayerVGG16.LayerType.Layer_1d, contentCoeff * 1e0)
+//      .set(MultiLayerVGG16.LayerType.Layer_1c, 1e-2)
       ;
     int trainingMinutes = 90;
     
@@ -108,20 +109,24 @@ public class SimpleStyleTransfer_VGG16 extends SimpleStyleTransferBase<MultiLaye
     BufferedImage canvasImage = load(monkey, imageSize);
     canvasImage = TestUtil.resize(TestUtil.resize(canvasImage, 16, true), imageSize, true);
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    Map<String, BufferedImage> styleImages = new HashMap<>();
-    final int finalImageSize = imageSize;
-    styles.forEach((file, parameters) -> styleImages.put(file, load(file, finalImageSize)));
+//    canvasImage = randomize(canvasImage, x -> 10 * (FastRandom.INSTANCE.random()) * (FastRandom.INSTANCE.random() < 0.9 ? 1 : 0));
+    canvasImage = randomize(canvasImage, x -> 127 + 2 * 127 * (FastRandom.INSTANCE.random() - 0.5));
+//    canvasImage = randomize(canvasImage, x -> 10*(FastRandom.INSTANCE.random()-0.5));
+//    canvasImage = randomize(canvasImage, x -> x*(FastRandom.INSTANCE.random()));
+    Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
+    styleImages.clear();
+    styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> load(file))));
     BufferedImage contentImage = load(monkey, canvasImage.getWidth(), canvasImage.getHeight());
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles), trainingMinutes);
+    StyleSetup styleSetup = new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
+    NeuralSetup measureStyle = measureStyle(styleSetup);
+    canvasImage = styleTransfer(log, canvasImage, styleSetup, trainingMinutes, measureStyle);
     for (int i = 1; i < 10; i++) {
       log.h1("Phase " + i);
       imageSize = (int) (imageSize * growthFactor);
-      styleImages.clear();
       final int finalImageSize1 = imageSize;
-      styles.forEach((file, parameters) -> styleImages.put(file, load(file, finalImageSize1)));
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
       contentImage = load(monkey, canvasImage.getWidth(), canvasImage.getHeight());
-      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles), trainingMinutes);
+      canvasImage = styleTransfer(log, canvasImage, styleSetup, trainingMinutes, measureStyle);
     }
     
     log.setFrontMatterProperty("status", "OK");

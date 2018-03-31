@@ -69,10 +69,10 @@ public interface Layer extends ReferenceCounting, Serializable {
   static Layer fromZip(@Nonnull final ZipFile zipfile) {
     Enumeration<? extends ZipEntry> entries = zipfile.entries();
     @Nullable JsonObject json = null;
-    @Nonnull HashMap<String, byte[]> resources = new HashMap<>();
+    @Nonnull HashMap<CharSequence, byte[]> resources = new HashMap<>();
     while (entries.hasMoreElements()) {
       ZipEntry zipEntry = entries.nextElement();
-      String name = zipEntry.getName();
+      CharSequence name = zipEntry.getName();
       try {
         InputStream inputStream = zipfile.getInputStream(zipEntry);
         if (name.equals("model.json")) {
@@ -97,7 +97,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @return the nn layer
    */
   @Nonnull
-  static Layer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  static Layer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     JsonElement classElement = json.get("class");
     assert null != classElement : json.toString();
     final String className = classElement.getAsString();
@@ -126,7 +126,7 @@ public interface Layer extends ReferenceCounting, Serializable {
   @Nonnull
   @SuppressWarnings("unchecked")
   default <T extends Layer> T as(@Nonnull final Class<T> targetClass) {
-    @Nonnull HashMap<String, byte[]> resources = new HashMap<>();
+    @Nonnull HashMap<CharSequence, byte[]> resources = new HashMap<>();
     final JsonObject json = getJson(resources, SerialPrecision.Double);
     json.remove("class");
     json.addProperty("class", targetClass.getCanonicalName());
@@ -150,7 +150,7 @@ public interface Layer extends ReferenceCounting, Serializable {
   @Nonnull
   default Layer copy(SerialPrecision precision) {
     assertAlive();
-    @Nonnull HashMap<String, byte[]> resources = new HashMap<>();
+    @Nonnull HashMap<CharSequence, byte[]> resources = new HashMap<>();
     final JsonObject json = getJson(resources, precision);
     return Layer.fromJson(json, resources);
   }
@@ -244,7 +244,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param dataSerializer the data serializer
    * @return the json
    */
-  JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer);
+  JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer);
   
   /**
    * Gets json.
@@ -291,7 +291,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    */
   default void writeZip(@Nonnull ZipOutputStream out, SerialPrecision precision) {
     try {
-      @Nonnull HashMap<String, byte[]> resources = new HashMap<>();
+      @Nonnull HashMap<CharSequence, byte[]> resources = new HashMap<>();
       JsonObject json = getJson(resources, precision);
       out.putNextEntry(new ZipEntry("model.json"));
       @Nonnull JsonWriter writer = new JsonWriter(new OutputStreamWriter(out));
@@ -303,7 +303,7 @@ public interface Layer extends ReferenceCounting, Serializable {
       out.closeEntry();
       resources.forEach((name, data) -> {
         try {
-          out.putNextEntry(new ZipEntry(name));
+          out.putNextEntry(new ZipEntry(String.valueOf(name)));
           IOUtils.write(data, out);
           out.flush();
           out.closeEntry();
@@ -321,7 +321,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    *
    * @return the json string
    */
-  default String getJsonString() {
+  default CharSequence getJsonString() {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
   

@@ -100,7 +100,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
    * @param rs   the rs
    * @return the pooling layer
    */
-  public static PoolingLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static PoolingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PoolingLayer(json);
   }
   
@@ -206,7 +206,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode.id);
     json.addProperty("windowX", windowX);

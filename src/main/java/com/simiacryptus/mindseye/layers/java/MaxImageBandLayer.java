@@ -75,7 +75,7 @@ public class MaxImageBandLayer extends LayerBase {
    * @param rs   the rs
    * @return the max image band layer
    */
-  public static MaxImageBandLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MaxImageBandLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxImageBandLayer(json,
       JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
@@ -142,7 +142,7 @@ public class MaxImageBandLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     return json;
   }

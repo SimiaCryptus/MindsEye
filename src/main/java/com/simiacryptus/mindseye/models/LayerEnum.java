@@ -24,5 +24,5 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 public interface LayerEnum<T> {
   PipelineNetwork texture();
   
-  String name();
+  CharSequence name();
 }

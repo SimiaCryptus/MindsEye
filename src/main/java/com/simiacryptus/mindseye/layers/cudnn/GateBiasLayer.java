@@ -83,7 +83,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static GateBiasLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static GateBiasLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GateBiasLayer(json);
   }
   
@@ -222,7 +222,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     return json;

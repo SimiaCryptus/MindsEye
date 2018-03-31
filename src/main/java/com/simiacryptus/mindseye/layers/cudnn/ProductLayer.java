@@ -83,7 +83,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static ProductLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ProductLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ProductLayer(json);
   }
   
@@ -279,7 +279,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     return json;

@@ -67,7 +67,7 @@ public abstract class NotebookReportBase {
    * The Absolute url.
    */
   @Nonnull
-  protected String absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
+  protected CharSequence absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
   
   /**
    * Print header string.
@@ -78,7 +78,7 @@ public abstract class NotebookReportBase {
    * @return the string
    */
   @Nullable
-  public static String printHeader(@Nonnull NotebookOutput log, @Nullable Class<?> networkClass, final String prefix) {
+  public static CharSequence printHeader(@Nonnull NotebookOutput log, @Nullable Class<?> networkClass, final CharSequence prefix) {
     if (null == networkClass) return null;
     @Nullable String javadoc = CodeUtil.getJavadoc(networkClass);
     log.setFrontMatterProperty(prefix + "_class_short", networkClass.getSimpleName());
@@ -101,7 +101,7 @@ public abstract class NotebookReportBase {
    * @param fn      the fn
    * @param logPath the log path
    */
-  public void run(@Nonnull Consumer<NotebookOutput> fn, @Nonnull String... logPath) {
+  public void run(@Nonnull Consumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
     try (@Nonnull NotebookOutput log = getLog(logPath.length == 0 ? new String[]{getClass().getSimpleName()} : logPath)) {
       printHeader(log);
       @Nonnull TimedResult<Void> time = TimedResult.time(() -> {
@@ -120,7 +120,7 @@ public abstract class NotebookReportBase {
   }
   
   @Nonnull
-  private String getExceptionString(Throwable e) {
+  private CharSequence getExceptionString(Throwable e) {
     if (e instanceof RuntimeException && e.getCause() != null && e.getCause() != e)
       return getExceptionString(e.getCause());
     if (e.getCause() != null && e.getCause() != e)
@@ -136,8 +136,8 @@ public abstract class NotebookReportBase {
   public void printHeader(@Nonnull NotebookOutput log) {
     log.setFrontMatterProperty("created_on", new Date().toString());
     log.setFrontMatterProperty("report_type", getReportType().name());
-    @Nullable String targetJavadoc = printHeader(log, getTargetClass(), "network");
-    @Nullable String reportJavadoc = printHeader(log, getReportClass(), "report");
+    @Nullable CharSequence targetJavadoc = printHeader(log, getTargetClass(), "network");
+    @Nullable CharSequence reportJavadoc = printHeader(log, getReportClass(), "report");
 //    log.p("__Target Description:__ " + StringEscapeUtils.escapeHtml4(targetJavadoc));
 //    log.p("__Report Description:__ " + StringEscapeUtils.escapeHtml4(reportJavadoc));
     log.p("__Target Description:__ " + targetJavadoc);
@@ -160,13 +160,13 @@ public abstract class NotebookReportBase {
    * @return the log
    */
   @Nonnull
-  public NotebookOutput getLog(String... logPath) {
+  public NotebookOutput getLog(CharSequence... logPath) {
     try {
       if (useMarkdown) {
         return MarkdownNotebookOutput.get(getTargetClass(), absoluteUrl, logPath);
       }
       else {
-        @Nonnull final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
+        @Nonnull final CharSequence directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
         @Nonnull final File path = new File(Util.mkString(File.separator, "www", directoryName));
         path.mkdirs();
         @Nonnull final File logFile = new File(path, "index.html");

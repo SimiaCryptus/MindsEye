@@ -79,7 +79,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
    * @param data  the data
    * @return the string
    */
-  public static <T> String toString(int limit, @Nonnull T... data) {
+  public static <T> CharSequence toString(int limit, @Nonnull T... data) {
     return (data.length < limit) ? Arrays.toString(data) : "[" + Arrays.stream(data).limit(limit).map(x -> x.toString()).reduce((a, b) -> a + ", " + b).get() + ", ...]";
   }
   

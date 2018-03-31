@@ -79,7 +79,7 @@ public class ImgBandSelectLayer extends LayerBase {
    * @param rs   the rs
    * @return the img band select layer
    */
-  public static ImgBandSelectLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgBandSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandSelectLayer(json);
   }
   
@@ -133,7 +133,7 @@ public class ImgBandSelectLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     @Nonnull final JsonArray array = new JsonArray();
     for (final int b : bands) {

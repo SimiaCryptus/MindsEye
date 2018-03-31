@@ -47,7 +47,7 @@ public class BisectionLineSearchTest extends MnistTestBase {
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setOrientation(new GradientDescent())
-        .setLineSearchFactory((@Nonnull final String name) -> new BisectionSearch())
+        .setLineSearchFactory((@Nonnull final CharSequence name) -> new BisectionSearch())
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .runAndFree();

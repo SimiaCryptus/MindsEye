@@ -101,7 +101,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
    * @param rs   the rs
    * @return the activation layer
    */
-  public static ActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ActivationLayer(json);
   }
   
@@ -277,7 +277,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode);
     json.addProperty("precision", precision.name());

@@ -113,7 +113,7 @@ public class ImgCropLayer extends LayerBase {
    * @param rs   the rs
    * @return the img crop layer
    */
-  public static ImgCropLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgCropLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgCropLayer(json);
   }
   
@@ -161,7 +161,7 @@ public class ImgCropLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeY);
