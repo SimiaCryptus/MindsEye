@@ -35,7 +35,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
-import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
+import com.simiacryptus.mindseye.opt.line.BisectionSearch;
 import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
 import com.simiacryptus.mindseye.opt.region.RangeConstraint;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
@@ -127,9 +127,9 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
             return new RangeConstraint();
           }
         })
-//        .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e1))
+        .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e3))
 //        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+//        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
         .setTimeout(trainingMinutes, TimeUnit.MINUTES)
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();

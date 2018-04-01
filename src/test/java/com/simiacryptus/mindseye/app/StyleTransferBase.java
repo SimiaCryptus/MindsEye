@@ -37,7 +37,9 @@ import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.line.BisectionSearch;
-import com.simiacryptus.mindseye.opt.orient.QQN;
+import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
+import com.simiacryptus.mindseye.opt.region.RangeConstraint;
+import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.data.ScalarStatistics;
@@ -129,7 +131,13 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
         .setMonitor(TestUtil.getMonitor(history))
-        .setOrientation(new QQN())
+//        .setOrientation(new QQN())
+        .setOrientation(new TrustRegionStrategy() {
+          @Override
+          public TrustRegion getRegionPolicy(final Layer layer) {
+            return new RangeConstraint();
+          }
+        })
         .setIterationsPerSample(100)
 //        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
         .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
@@ -444,7 +452,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
     /**
      * The Content image.
      */
-    public final transient BufferedImage contentImage;
+    public transient BufferedImage contentImage;
     /**
      * The Style image.
      */

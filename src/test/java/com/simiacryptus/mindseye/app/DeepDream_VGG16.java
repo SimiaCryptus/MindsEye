@@ -62,14 +62,16 @@ public class DeepDream_VGG16 extends DeepDreamBase<MultiLayerVGG16.LayerType, Mu
   public void run(@Nonnull NotebookOutput log) {
     init(log);
     Precision precision = Precision.Float;
-    int imageSize = 400;
+    int imageSize = 800;
     String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
     CharSequence vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
     Map<MultiLayerVGG16.LayerType, ContentCoefficients> contentCoefficients = new HashMap<>();
+    contentCoefficients.put(MultiLayerVGG16.LayerType.Layer_1d, new ContentCoefficients(0, 1e-1));
     contentCoefficients.put(MultiLayerVGG16.LayerType.Layer_1e, new ContentCoefficients(0, 1e0));
-    int trainingMinutes = 90;
+    contentCoefficients.put(MultiLayerVGG16.LayerType.Layer_2b, new ContentCoefficients(0, 1e1));
+    int trainingMinutes = 180;
     
     log.h1("Phase 0");
     BufferedImage canvasImage = load(lakeAndForest, imageSize);

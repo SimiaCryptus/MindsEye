@@ -83,16 +83,17 @@ public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.Layer
     String monkey = "H:\\SimiaCryptus\\Artistry\\capuchin-monkey-2759768_960_720.jpg";
     CharSequence vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\Van_Gogh_-_Portrait_of_Pere_Tanguy_1887-8.jpg";
     CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+    CharSequence maJolie = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\Ma_Jolie_Pablo_Picasso.jpg";
   
     Map<List<CharSequence>, StyleCoefficients> styles = new HashMap<>();
     double coeff_mean = 1e0;
     double coeff_cov = 1e0;
-    styles.put(Arrays.asList(threeMusicians), new StyleCoefficients(CenteringMode.Dynamic)
+    styles.put(Arrays.asList(threeMusicians, maJolie), new StyleCoefficients(CenteringMode.Dynamic)
 //      .set(MultiLayerVGG16.LayerType.Layer_0, 1e0, 1e0)
-        .set(MultiLayerVGG16.LayerType.Layer_1a, coeff_mean, coeff_cov)
+//        .set(MultiLayerVGG16.LayerType.Layer_1a, coeff_mean, coeff_cov)
         .set(MultiLayerVGG16.LayerType.Layer_1b, coeff_mean, coeff_cov)
         .set(MultiLayerVGG16.LayerType.Layer_1c, coeff_mean, coeff_cov)
-        .set(MultiLayerVGG16.LayerType.Layer_1d, coeff_mean, coeff_cov)
+//        .set(MultiLayerVGG16.LayerType.Layer_1d, coeff_mean, coeff_cov)
     );
 //    styles.put(Arrays.asList(vanGogh), new StyleCoefficients(true)
 ////      .set(MultiLayerVGG16.LayerType.Layer_1a, 1e0, 1e0)
@@ -116,16 +117,16 @@ public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.Layer
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     styleImages.clear();
     styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> load(file))));
-    BufferedImage contentImage = load(monkey, canvasImage.getWidth(), canvasImage.getHeight());
-    StyleSetup styleSetup = new StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
+    StyleSetup styleSetup = new StyleSetup(precision,
+      load(monkey, canvasImage.getWidth(), canvasImage.getHeight()),
+      contentCoefficients, styleImages, styles);
     NeuralSetup measureStyle = measureStyle(styleSetup);
     canvasImage = styleTransfer(log, canvasImage, styleSetup, trainingMinutes, measureStyle);
     for (int i = 1; i < 10; i++) {
       log.h1("Phase " + i);
       imageSize = (int) (imageSize * growthFactor);
-      final int finalImageSize1 = imageSize;
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-      contentImage = load(monkey, canvasImage.getWidth(), canvasImage.getHeight());
+      styleSetup.contentImage = load(monkey, canvasImage.getWidth(), canvasImage.getHeight());
       canvasImage = styleTransfer(log, canvasImage, styleSetup, trainingMinutes, measureStyle);
     }
     
