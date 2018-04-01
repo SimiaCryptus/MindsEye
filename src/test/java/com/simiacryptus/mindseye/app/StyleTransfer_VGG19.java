@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.app;
 
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.models.MultiLayerVGG16;
-import com.simiacryptus.mindseye.models.VGG16;
+import com.simiacryptus.mindseye.models.MultiLayerVGG19;
+import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
+public class StyleTransfer_VGG19 extends StyleTransferBase<MultiLayerVGG19.LayerType, MultiLayerVGG19> {
   
   /**
    * Gets target class.
@@ -46,16 +46,16 @@ public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.Layer
    */
   @Nonnull
   protected Class<?> getTargetClass() {
-    return VGG16.class;
+    return VGG19.class;
   }
   
-  public MultiLayerVGG16 getInstance() {
-    return MultiLayerVGG16.INSTANCE;
+  public MultiLayerVGG19 getInstance() {
+    return MultiLayerVGG19.INSTANCE;
   }
   
   @Nonnull
-  public MultiLayerVGG16.LayerType[] getLayerTypes() {
-    return MultiLayerVGG16.LayerType.values();
+  public MultiLayerVGG19.LayerType[] getLayerTypes() {
+    return MultiLayerVGG19.LayerType.values();
 //    return new MultiLayerVGG16.LayerType[]{
 //      MultiLayerVGG16.LayerType.Layer_0,
 //      MultiLayerVGG16.LayerType.Layer_1a,
@@ -84,15 +84,15 @@ public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.Layer
     CharSequence vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\Van_Gogh_-_Portrait_of_Pere_Tanguy_1887-8.jpg";
     CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     CharSequence maJolie = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\Ma_Jolie_Pablo_Picasso.jpg";
-  
+    
     Map<List<CharSequence>, StyleCoefficients> styles = new HashMap<>();
     double coeff_mean = 1e0;
     double coeff_cov = 1e0;
     styles.put(Arrays.asList(threeMusicians, maJolie), new StyleCoefficients(CenteringMode.Dynamic)
 //      .set(MultiLayerVGG16.LayerType.Layer_0, 1e0, 1e0)
 //        .set(MultiLayerVGG16.LayerType.Layer_1a, coeff_mean, coeff_cov)
-        .set(MultiLayerVGG16.LayerType.Layer_1b, coeff_mean, coeff_cov)
-        .set(MultiLayerVGG16.LayerType.Layer_1c, coeff_mean, coeff_cov)
+        .set(MultiLayerVGG19.LayerType.Layer_1b, coeff_mean, coeff_cov)
+        .set(MultiLayerVGG19.LayerType.Layer_1c, coeff_mean, coeff_cov)
 //        .set(MultiLayerVGG16.LayerType.Layer_1d, coeff_mean, coeff_cov)
     );
 //    styles.put(Arrays.asList(vanGogh), new StyleCoefficients(true)

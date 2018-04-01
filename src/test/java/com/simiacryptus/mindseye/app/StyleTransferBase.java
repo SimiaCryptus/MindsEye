@@ -135,7 +135,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
         .setOrientation(new TrustRegionStrategy() {
           @Override
           public TrustRegion getRegionPolicy(final Layer layer) {
-            return new RangeConstraint();
+            return new RangeConstraint().setMin(1e-2).setMax(256);
           }
         })
         .setIterationsPerSample(100)

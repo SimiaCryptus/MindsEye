@@ -27,17 +27,11 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.models.Hdf5Archive;
-import com.simiacryptus.mindseye.models.VGG16;
-import com.simiacryptus.mindseye.models.VGG16_HDF5;
+import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
-import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
@@ -61,16 +55,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-/**
- * The type Image classifier apply base.
- */
-public class ObjectLocation extends ArtistryAppBase {
-  
-  
-  /**
-   * The Texture netork.
-   */
-  
+public abstract class ObjectLocationBase extends ArtistryAppBase {
   /**
    * Test.
    *
@@ -87,40 +72,15 @@ public class ObjectLocation extends ArtistryAppBase {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-  
+    
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
-  
-    VGG16_HDF5 classifier;
-    try {
-      classifier = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-        @Override
-        protected void phase3b() {
-          add(new SoftmaxActivationLayer()
-            .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
-            .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
-          add(new BandReducerLayer().setMode(getFinalPoolingMode()));
-        }
-      }//.setSamples(5).setDensity(0.3)
-        .setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    
+    ImageClassifier classifier = getClassifierNetwork();
     Layer classifyNetwork = classifier.getNetwork();
-  
-    VGG16_HDF5 locator;
-    try {
-      locator = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-        @Override
-        protected void phase3b() {
-          add(new BandReducerLayer().setMode(getFinalPoolingMode()));
-        }
-      }//.setSamples(5).setDensity(0.3)
-        .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    
+    ImageClassifier locator = getLocatorNetwork();
     Layer locatorNetwork = locator.getNetwork();
     ArtistryAppBase.setPrecision((DAGNetwork) classifyNetwork, Precision.Float);
     ArtistryAppBase.setPrecision((DAGNetwork) locatorNetwork, Precision.Float);
@@ -162,7 +122,7 @@ public class ObjectLocation extends ArtistryAppBase {
           throw new RuntimeException(e);
         }
       });
-  
+      
       Tensor avgDetection = vectors.values().stream().reduce((a, b) -> a.add(b)).get().scale(1.0 / vectors.size());
       Array2DRowRealMatrix covarianceMatrix = new Array2DRowRealMatrix(predictionList.size(), predictionList.size());
       for (int x = 0; x < predictionList.size(); x++) {
@@ -173,8 +133,8 @@ public class ObjectLocation extends ArtistryAppBase {
         }
       }
       @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covarianceMatrix);
-  
-  
+      
+      
       for (int objectVector = 0; objectVector < 10; objectVector++) {
         log.h3("Eigenobject " + objectVector);
         double eigenvalue = decomposition.getRealEigenvalue(objectVector);
@@ -196,7 +156,6 @@ public class ObjectLocation extends ArtistryAppBase {
         }
       }
 
-
 //      final int[] orderedVectors = IntStream.range(0, 10).mapToObj(x -> x)
 //        .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
 //      IntStream.range(0, orderedVectors.length)
@@ -205,6 +164,7 @@ public class ObjectLocation extends ArtistryAppBase {
 //            return decomposition.getEigenvector(orderedVectors[i]).toArray();
 //          }
 //        ).toArray(i -> new double[i][]);
+      
       log.p(String.format("<table><tr><th>Cosine Distance</th>%s</tr>%s</table>",
         Arrays.stream(sortedIndices).limit(10).mapToObj(col -> "<th>" + categories.get(col) + "</th>").reduce((a, b) -> a + b).get(),
         Arrays.stream(sortedIndices).limit(10).mapToObj(r -> {
@@ -216,6 +176,10 @@ public class ObjectLocation extends ArtistryAppBase {
     
     log.setFrontMatterProperty("status", "OK");
   }
+  
+  public abstract ImageClassifier getLocatorNetwork();
+  
+  public abstract ImageClassifier getClassifierNetwork();
   
   /**
    * Render alpha tensor.
@@ -328,16 +292,6 @@ public class ObjectLocation extends ArtistryAppBase {
     return log.code(() -> {
       return new Tensor(1, 1, 4096).setAll(0.0).set(5, 1.0);
     });
-  }
-  
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return VGG16.class;
   }
   
   @Nonnull

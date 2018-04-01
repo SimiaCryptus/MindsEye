@@ -20,47 +20,32 @@
 package com.simiacryptus.mindseye.app;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.ImageClassifier;
-import com.simiacryptus.mindseye.models.VGG16;
-import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
-import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
+import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-/**
- * We load a pretrained convolutional neural network (VGG16) along apply the CalTech101 image dataset to perform a
- * demonstration of Image Recognition.
- */
-public class ImageClassification extends ArtistryAppBase {
-  
+public abstract class ImageClassificationBase extends ArtistryAppBase {
   /**
-   * Instantiates a new Image classification demo.
+   * Test.
    *
-   * @param args the args
+   * @throws Throwable the throwable
    */
-  public ImageClassification(final CharSequence... args) {
-  
-  }
-  
-  /**
-   * The entry point of application.
-   *
-   * @param args the input arguments
-   */
-  public static void main(String[] args) {
-    ImageClassification demo = new ImageClassification(args);
-    demo.run(demo::run);
+  @Test
+  public void run() {
+    run(this::run, "StyleTransfer_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
   }
   
   /**
@@ -78,15 +63,15 @@ public class ImageClassification extends ArtistryAppBase {
     log.p("We pass this image to the categorization network, and get the following top-10 results. Note that multiple objects may be detected, and the total percentage may be greater than 100%.");
     log.p("Once we have categories identified, we can attempt to localize each object category within the image. We do this via a pipeline starting with the backpropagated input signal delta and applying several filters e.g. blurring and normalization to produce an alpha channel. When applied to the input image, we highlight the image areas related to the object type in question. Note that this produces a fuzzy blob, which does indicate object location but is a poor indicator of object boundaries. Below we perform this task for the top 5 object categories:");
     ImageClassifier vgg16 = loadModel(log);
-  
+    
     log.h1("Data");
     Tensor[] images = loadData(log);
-  
+    
     log.h1("Prediction");
     List<LinkedHashMap<CharSequence, Double>> predictions = log.code(() -> {
       return vgg16.predict(5, images);
     });
-  
+    
     log.h1("Results");
     log.code(() -> {
       @Nonnull TableOutput tableOutput = new TableOutput();
@@ -119,19 +104,7 @@ public class ImageClassification extends ArtistryAppBase {
     });
   }
   
-  /**
-   * Load model image classifier.
-   *
-   * @param log the log
-   * @return the image classifier
-   */
-  public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
-    return log.code(() -> {
-      VGG16_HDF5 vgg16_hdf5 = VGG16.fromHDF5();
-      vgg16_hdf5.getNetwork();
-      return vgg16_hdf5;
-    });
-  }
+  public abstract ImageClassifier loadModel(@Nonnull NotebookOutput log);
   
   /**
    * Gets shuffle comparator.
@@ -144,50 +117,9 @@ public class ImageClassification extends ArtistryAppBase {
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
   
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return ImageClassifier.class;
-  }
-  
   @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Applications;
-  }
-  
-  /**
-   * The type Java.
-   */
-  public static class Java extends ImageClassification {
-    /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     */
-    public static void main(CharSequence[] args) {
-      ImageClassification demo = new ImageClassification.Java();
-      demo.run(demo::run);
-    }
-    
-    @Override
-    public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
-      return log.code(() -> {
-        try {
-          VGG16_HDF5.JBLAS model = new VGG16_HDF5.JBLAS(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
-          model.getNetwork();
-          return model;
-        } catch (@Nonnull final RuntimeException e) {
-          throw e;
-        } catch (Throwable e) {
-          throw new RuntimeException(e);
-        }
-      });
-    }
-    
   }
 }

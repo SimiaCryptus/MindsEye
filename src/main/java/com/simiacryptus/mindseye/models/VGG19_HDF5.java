@@ -26,14 +26,10 @@ import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgMinSizeLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgModulusPaddingLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer;
-import com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer;
-import com.simiacryptus.mindseye.layers.java.BiasLayer;
-import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
 import com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -48,12 +44,12 @@ import javax.annotation.Nonnull;
  * for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the
  * models.
  */
-public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
+public class VGG19_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   
   /**
    * The constant log.
    */
-  protected static final Logger log = LoggerFactory.getLogger(VGG16_HDF5.class);
+  protected static final Logger log = LoggerFactory.getLogger(VGG19_HDF5.class);
   /**
    * The Pipeline network.
    */
@@ -84,7 +80,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    *
    * @param hdf5 the hdf 5
    */
-  public VGG16_HDF5(Hdf5Archive hdf5) {this.hdf5 = hdf5;}
+  public VGG19_HDF5(Hdf5Archive hdf5) {this.hdf5 = hdf5;}
   
   /**
    * Add.
@@ -96,7 +92,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   }
   
   public Layer buildNetwork() {
-    prototype = new Tensor(224, 224, 3);
+    prototype = new Tensor(226, 226, 3);
     phase0();
     phase1();
     phase2();
@@ -148,6 +144,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     addConvolutionLayer(3, 128, 256, ActivationLayer.Mode.RELU, "layer_11");
     addConvolutionLayer(3, 256, 256, ActivationLayer.Mode.RELU, "layer_13");
     addConvolutionLayer(3, 256, 256, ActivationLayer.Mode.RELU, "layer_15");
+    addConvolutionLayer(3, 256, 256, ActivationLayer.Mode.RELU, "layer_17");
   }
   
   /**
@@ -155,9 +152,10 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    */
   protected void phase1d() {
     addPoolingLayer(2);
-    addConvolutionLayer(3, 256, 512, ActivationLayer.Mode.RELU, "layer_18");
-    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_20");
+    addConvolutionLayer(3, 256, 512, ActivationLayer.Mode.RELU, "layer_20");
     addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_22");
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_24");
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_26");
   }
   
   /**
@@ -165,9 +163,10 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    */
   protected void phase1e() {
     addPoolingLayer(2);
-    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_25");
-    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_27");
     addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_29");
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_31");
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_33");
+    addConvolutionLayer(3, 512, 512, ActivationLayer.Mode.RELU, "layer_35");
   }
   
   /**
@@ -201,7 +200,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       add(new ConvolutionLayer(7, 7, 512, 4096)
         .setStrideXY(1, 1)
         .setPaddingXY(0, 0)
-        .setAndFree(hdf5.readDataSet("param_0", "layer_32")
+        .setAndFree(hdf5.readDataSet("param_0", "layer_38")
           .reshapeCast(7, 7, 512, 4096).permuteDimensionsAndFree(0, 1, 3, 2)
         )
       );
@@ -211,13 +210,13 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       add(new ImgReshapeLayer(7, 7, false));
       add(new ConvolutionLayer(1, 1, 25088, 4096)
         .setPaddingXY(0, 0)
-        .setAndFree(hdf5.readDataSet("param_0", "layer_32")
+        .setAndFree(hdf5.readDataSet("param_0", "layer_38")
           .permuteDimensionsAndFree(fullyconnectedOrder))
       );
     }
-  
+    
     add(new ImgBandBiasLayer(4096)
-      .setAndFree((hdf5.readDataSet("param_1", "layer_32"))));
+      .setAndFree((hdf5.readDataSet("param_1", "layer_38"))));
     add(new ActivationLayer(ActivationLayer.Mode.RELU));
   }
   
@@ -235,20 +234,20 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
   protected void phase3a() {
     add(new ConvolutionLayer(1, 1, 4096, 4096)
       .setPaddingXY(0, 0)
-      .setAndFree(hdf5.readDataSet("param_0", "layer_34")
+      .setAndFree(hdf5.readDataSet("param_0", "layer_40")
         .permuteDimensionsAndFree(fullyconnectedOrder))
     );
     add(new ImgBandBiasLayer(4096)
-      .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
+      .setAndFree((hdf5.readDataSet("param_1", "layer_40"))));
     add(new ActivationLayer(ActivationLayer.Mode.RELU));
-  
+    
     add(new ConvolutionLayer(1, 1, 4096, 1000)
       .setPaddingXY(0, 0)
-      .setAndFree(hdf5.readDataSet("param_0", "layer_36")
+      .setAndFree(hdf5.readDataSet("param_0", "layer_42")
         .permuteDimensionsAndFree(fullyconnectedOrder))
     );
     add(new ImgBandBiasLayer(1000)
-      .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
+      .setAndFree((hdf5.readDataSet("param_1", "layer_42"))));
   }
   
   /**
@@ -370,159 +369,15 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     return this;
   }
   
-  /**
-   * The type Jblas.
-   */
-  public static class JBLAS extends VGG16_HDF5 {
-  
-    /**
-     * The Samples.
-     */
-    int samples = 3;
-  
-    /**
-     * Instantiates a new Vgg 16 hdf 5.
-     *
-     * @param hdf5 the hdf 5
-     */
-    public JBLAS(final Hdf5Archive hdf5) {
-      super(hdf5);
-      setLarge(true);
-      fullyconnectedOrder = new int[]{0, 1};
-    }
-    
-    @Override
-    public Layer buildNetwork() {
-      prototype = new Tensor(224, 224, 3);
-      //  model.add(ZeroPadding2D((1,1),input_shape=(3,224,224)))
-      add(new AssertDimensionsLayer(224, 224, 3));
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(64, 3, 3, activation='relu'))
-      add(new ConvolutionLayer(3, 3, 3, 64)
-        .setPaddingXY(0, 0)
-        .set(hdf5.readDataSet("param_0", "layer_1")
-          .permuteDimensions(convolutionOrder)));
-      add(new ImgBandBiasLayer(64)
-        .set((hdf5.readDataSet("param_1", "layer_1"))));
-      add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(64, 3, 3, activation='relu'))
-      addConvolution(3, 64, 64, "layer_3");
-      //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-      addPoolingLayer(2);
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(128, 3, 3, activation='relu'))
-      addConvolution(3, 64, 128, "layer_6");
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(128, 3, 3, activation='relu'))
-      addConvolution(3, 128, 128, "layer_8");
-      //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-      addPoolingLayer(2);
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(256, 3, 3, activation='relu'))
-      addConvolution(3, 128, 256, "layer_11");
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(256, 3, 3, activation='relu'))
-      addConvolution(3, 256, 256, "layer_13");
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(256, 3, 3, activation='relu'))
-      addConvolution(3, 256, 256, "layer_15");
-      //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-      addPoolingLayer(2);
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-      addConvolution(3, 256, 512, "layer_18");
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-      addConvolution(3, 512, 512, "layer_20");
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-      addConvolution(3, 512, 512, "layer_22");
-      //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-      addPoolingLayer(2);
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-      addConvolution(3, 512, 512, "layer_25");
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-      addConvolution(3, 512, 512, "layer_27");
-      //  model.add(ZeroPadding2D((1,1)))
-      add(new ImgZeroPaddingLayer(1, 1));
-      //  model.add(Convolution2D(512, 3, 3, activation='relu'))
-      addConvolution(3, 512, 512, "layer_29");
-      //  model.add(MaxPooling2D((2,2), strides=(2,2)))
-      addPoolingLayer(2);
-      //  model.add(Flatten())
-      //  model.add(Dense(4096, activation='relu'))
-      add(new FullyConnectedLayer(new int[]{25088}, new int[]{4096})
-        .set(hdf5.readDataSet("param_0", "layer_32")
-          .permuteDimensions(fullyconnectedOrder))
-        .setName("fullyconnected_32"));
-      add(new BiasLayer(4096)
-        .set((hdf5.readDataSet("param_1", "layer_32"))));
-      //  model.add(Dropout(0.5))
-      //model.add(new DropoutNoiseLayer(0.5));
-      //  model.add(Dense(4096, activation='relu'))
-      add(new FullyConnectedLayer(new int[]{4096}, new int[]{4096})
-        .set(hdf5.readDataSet("param_0", "layer_34")
-          .permuteDimensions(fullyconnectedOrder))
-      );
-      add(new BiasLayer(4096)
-        .set((hdf5.readDataSet("param_1", "layer_34"))));
-      //  model.add(Dropout(0.5))
-      //model.add(new DropoutNoiseLayer(0.5));
-      //  model.add(Dense(1000, activation='softmax'))
-      add(new FullyConnectedLayer(new int[]{4096}, new int[]{1000})
-        .set(hdf5.readDataSet("param_0", "layer_36")
-          .permuteDimensions(fullyconnectedOrder))
-        .setName("fullyconnected_36"));
-      add(new BiasLayer(1000)
-        .set((hdf5.readDataSet("param_1", "layer_36")))
-        .setName("bias_36"));
-      add(new SoftmaxActivationLayer());
-      setPrecision(pipeline);
-      return pipeline;
-    }
-    
-    public void addPoolingLayer(final int size) {
-      add(new PoolingLayer()
-        .setMode(PoolingLayer.PoolingMode.Max)
-        .setWindowXY(size, size)
-        .setStrideXY(size, size));
-    }
-  
-    /**
-     * Add convolution.
-     *
-     * @param radius      the radius
-     * @param inputBands  the input bands
-     * @param outputBands the output bands
-     * @param layer       the layer
-     */
-    public void addConvolution(final int radius, final int inputBands, final int outputBands, final String layer) {addConvolutionLayer(radius, inputBands, outputBands, ActivationLayer.Mode.RELU, layer);}
-    
-  }
   
   /**
    * The type Noisy.
    */
-  public static class Noisy extends VGG16_HDF5 {
-  
+  public static class Noisy extends VGG19_HDF5 {
+    
     private int samples;
     private double density;
-  
+    
     /**
      * Instantiates a new Vgg 16 hdf 5.
      *
@@ -543,13 +398,13 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       
       stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 4096)
         .setPaddingXY(0, 0)
-        .setAndFree(hdf5.readDataSet("param_0", "layer_34")
+        .setAndFree(hdf5.readDataSet("param_0", "layer_40")
           .permuteDimensionsAndFree(fullyconnectedOrder))
         .setPrecision(precision)
         .explode()
       );
       stochasticNet.wrap(new ImgBandBiasLayer(4096)
-        .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
+        .setAndFree((hdf5.readDataSet("param_1", "layer_40"))));
       
       prev = stochasticNet.getHead();
       stochasticNet.wrap(new ProductLayer(), prev,
@@ -558,17 +413,17 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       stochasticNet.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));
       stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 1000)
         .setPaddingXY(0, 0)
-        .setAndFree(hdf5.readDataSet("param_0", "layer_36")
+        .setAndFree(hdf5.readDataSet("param_0", "layer_42")
           .permuteDimensionsAndFree(fullyconnectedOrder))
         .setPrecision(precision)
         .explode()
       );
       stochasticNet.wrap(new ImgBandBiasLayer(1000)
-        .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
+        .setAndFree((hdf5.readDataSet("param_1", "layer_42"))));
       
       add(new StochasticSamplingSubnetLayer(stochasticNet, samples));
     }
-  
+    
     /**
      * The Samples.
      *
@@ -577,7 +432,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     public int getSamples() {
       return samples;
     }
-  
+    
     /**
      * Sets samples.
      *
@@ -588,7 +443,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       this.samples = samples;
       return this;
     }
-  
+    
     /**
      * Gets density.
      *
@@ -597,7 +452,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     public double getDensity() {
       return density;
     }
-  
+    
     /**
      * Sets density.
      *

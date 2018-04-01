@@ -36,7 +36,6 @@ import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
@@ -63,7 +62,7 @@ import java.util.stream.IntStream;
 /**
  * The type ArtistryAppBase demo.
  */
-public class ArtistryAppBase extends NotebookReportBase {
+public abstract class ArtistryAppBase extends NotebookReportBase {
   
   /**
    * The Server.
@@ -394,16 +393,6 @@ public class ArtistryAppBase extends NotebookReportBase {
   @Nonnull
   public static BufferedImage randomize(final BufferedImage contentImage, final DoubleUnaryOperator f) {
     return Tensor.fromRGB(contentImage).map(f).toRgbImage();
-  }
-  
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return VGG16.class;
   }
   
   @Nonnull

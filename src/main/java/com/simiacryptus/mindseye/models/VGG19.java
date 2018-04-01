@@ -33,7 +33,7 @@ import java.security.NoSuchAlgorithmException;
  * for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the
  * models.
  */
-public abstract class VGG16 extends VGG {
+public abstract class VGG19 extends VGG {
   
   /**
    * From s 3 vgg 16 hdf 5.
@@ -42,7 +42,7 @@ public abstract class VGG16 extends VGG {
    */
   public static ImageClassifier fromHDF5() {
     try {
-      return fromHDF5(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")));
+      return fromHDF5(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")));
     } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
@@ -56,7 +56,7 @@ public abstract class VGG16 extends VGG {
    */
   public static ImageClassifier fromHDF5(final File hdf) {
     try {
-      return new VGG16_HDF5(new Hdf5Archive(hdf));
+      return new VGG19_HDF5(new Hdf5Archive(hdf));
     } catch (@Nonnull final RuntimeException e) {
       throw e;
     } catch (Throwable e) {
