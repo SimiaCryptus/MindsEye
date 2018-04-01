@@ -25,28 +25,16 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
-import java.text.SimpleDateFormat;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 public abstract class ImageClassificationBase extends ArtistryAppBase {
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void run() {
-    run(this::run, "StyleTransfer_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
-  }
   
   /**
    * Test.

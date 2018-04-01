@@ -20,17 +20,13 @@
 package com.simiacryptus.mindseye.app;
 
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.models.MultiLayerVGG16;
 import com.simiacryptus.mindseye.models.MultiLayerVGG19;
 import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,11 +63,11 @@ public class DeepDream_VGG19 extends DeepDreamBase<MultiLayerVGG19.LayerType, Mu
     String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
     CharSequence vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    
-    Map<MultiLayerVGG16.LayerType, ContentCoefficients> contentCoefficients = new HashMap<>();
-    contentCoefficients.put(MultiLayerVGG16.LayerType.Layer_1d, new ContentCoefficients(0, 1e-1));
-    contentCoefficients.put(MultiLayerVGG16.LayerType.Layer_1e, new ContentCoefficients(0, 1e0));
-    contentCoefficients.put(MultiLayerVGG16.LayerType.Layer_2b, new ContentCoefficients(0, 1e1));
+  
+    Map<MultiLayerVGG19.LayerType, ContentCoefficients> contentCoefficients = new HashMap<>();
+    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_1d, new ContentCoefficients(0, 1e-1));
+    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_1e, new ContentCoefficients(0, 1e0));
+    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_2b, new ContentCoefficients(0, 1e1));
     int trainingMinutes = 180;
     
     log.h1("Phase 0");
@@ -82,16 +78,6 @@ public class DeepDream_VGG19 extends DeepDreamBase<MultiLayerVGG19.LayerType, Mu
     deepDream(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
     
     log.setFrontMatterProperty("status", "OK");
-  }
-  
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void run() {
-    run(this::run, "DeepDream_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
   }
   
 }

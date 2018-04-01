@@ -36,7 +36,6 @@ import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealVector;
-import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,15 +55,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public abstract class ObjectLocationBase extends ArtistryAppBase {
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void run() {
-    run(this::run);
-  }
   
   /**
    * Test.

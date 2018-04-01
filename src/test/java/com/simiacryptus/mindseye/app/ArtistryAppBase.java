@@ -47,6 +47,7 @@ import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.hadoop.yarn.webapp.MimeType;
+import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -55,6 +56,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
@@ -63,6 +66,18 @@ import java.util.stream.IntStream;
  * The type ArtistryAppBase demo.
  */
 public abstract class ArtistryAppBase extends NotebookReportBase {
+  
+  /**
+   * Test.
+   *
+   * @throws Throwable the throwable
+   */
+  @Test
+  public final void run() {
+    run(this::run, getClass().getSimpleName() + "_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
+  }
+  
+  protected abstract void run(final NotebookOutput notebookOutput);
   
   /**
    * The Server.

@@ -24,12 +24,9 @@ import com.simiacryptus.mindseye.models.MultiLayerVGG16;
 import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,16 +78,6 @@ public class DeepDream_VGG16 extends DeepDreamBase<MultiLayerVGG16.LayerType, Mu
     deepDream(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
     
     log.setFrontMatterProperty("status", "OK");
-  }
-  
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void run() {
-    run(this::run, "DeepDream_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
   }
   
 }

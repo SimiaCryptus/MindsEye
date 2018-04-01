@@ -25,13 +25,10 @@ import com.simiacryptus.mindseye.models.VGG16;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,16 +128,6 @@ public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.Layer
     }
     
     log.setFrontMatterProperty("status", "OK");
-  }
-  
-  /**
-   * Test.
-   *
-   * @throws Throwable the throwable
-   */
-  @Test
-  public void run() {
-    run(this::run, "StyleTransfer_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
   }
   
 }
