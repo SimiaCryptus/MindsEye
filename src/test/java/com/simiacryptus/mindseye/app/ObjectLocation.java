@@ -296,21 +296,21 @@ public class ObjectLocation extends ArtistryAppBase {
    */
   public Tensor[][] loadImages_library() {
     return Stream.of(
-      "H:\\SimiaCryptus\\ArtistryAppBase\\cat-and-dog.jpg",
-      "H:\\SimiaCryptus\\ArtistryAppBase\\pexels-photo-327011.jpg",
-      "H:\\SimiaCryptus\\ArtistryAppBase\\Defense.gov_News_Photo_120318-M-MM918-006_-_U.S._Marine_Cpl._Kyle_Click_and_his_military_working_dog_Windy_an_improvised_explosive_device_detection_dog_search_the_perimeter_of_the_Safar.jpg",
-      "H:\\SimiaCryptus\\ArtistryAppBase\\india_indian_family_happy_motorcycle_asian_together_family_father-1053028.jpg"
-//      "H:\\SimiaCryptus\\ArtistryAppBase\\rodeo.jpg",
-//      "H:\\SimiaCryptus\\ArtistryAppBase\\family.jpg",
-//      "H:\\SimiaCryptus\\ArtistryAppBase\\monkeydog.jpg",
-//      "H:\\SimiaCryptus\\ArtistryAppBase\\safari.jpg",
-//      "H:\\SimiaCryptus\\ArtistryAppBase\\wild-animals-group.jpg",
-//      "H:\\SimiaCryptus\\ArtistryAppBase\\girl_dog_family.jpg",
-//      "H:\\SimiaCryptus\\ArtistryAppBase\\chimps\\chip.jpg"
+      "H:\\SimiaCryptus\\Artistry\\cat-and-dog.jpg",
+      "H:\\SimiaCryptus\\Artistry\\pexels-photo-327011.jpg",
+      "H:\\SimiaCryptus\\Artistry\\Defense.gov_News_Photo_120318-M-MM918-006_-_U.S._Marine_Cpl._Kyle_Click_and_his_military_working_dog_Windy_an_improvised_explosive_device_detection_dog_search_the_perimeter_of_the_Safar.jpg",
+      "H:\\SimiaCryptus\\Artistry\\india_indian_family_happy_motorcycle_asian_together_family_father-1053028.jpg"
+//      "H:\\SimiaCryptus\\Artistry\\rodeo.jpg",
+//      "H:\\SimiaCryptus\\Artistry\\family.jpg",
+//      "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg",
+//      "H:\\SimiaCryptus\\Artistry\\safari.jpg",
+//      "H:\\SimiaCryptus\\Artistry\\wild-animals-group.jpg",
+//      "H:\\SimiaCryptus\\Artistry\\girl_dog_family.jpg",
+//      "H:\\SimiaCryptus\\Artistry\\chimps\\chip.jpg"
     ).map(img -> {
       try {
         BufferedImage image = ImageIO.read(new File(img));
-        image = TestUtil.resize(image, 600, true);
+        image = TestUtil.resize(image, 400, true);
         return new Tensor[]{Tensor.fromRGB(image)};
       } catch (IOException e) {
         throw new RuntimeException(e);

@@ -21,18 +21,24 @@ package com.simiacryptus.mindseye.app;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
 import com.simiacryptus.mindseye.models.LayerEnum;
 import com.simiacryptus.mindseye.models.MultiLayerImageNetwork;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
-import com.simiacryptus.mindseye.opt.orient.QQN;
+import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
+import com.simiacryptus.mindseye.opt.region.RangeConstraint;
+import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -65,8 +71,8 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
-    PipelineNetwork network = fitnessNetwork(measureStyle(styleParameters));
+  public BufferedImage deepDream(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
+    PipelineNetwork network = fitnessNetwork(fitnessNet(styleParameters));
     log.p("Input Parameters:");
     log.code(() -> {
       return toJson(styleParameters);
@@ -114,7 +120,14 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
         .setMonitor(TestUtil.getMonitor(history))
-        .setOrientation(new QQN())
+        .setIterationsPerSample(100)
+        .setOrientation(new TrustRegionStrategy() {
+          @Override
+          public TrustRegion getRegionPolicy(final Layer layer) {
+            return new RangeConstraint();
+          }
+        })
+//        .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e1))
 //        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
         .setLineSearchFactory(name -> new ArmijoWolfeSearch())
         .setTimeout(trainingMinutes, TimeUnit.MINUTES)
@@ -160,11 +173,14 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
     ArrayList<Tuple2<Double, DAGNode>> contentComponents = new ArrayList<>();
     for (final T layerType : getLayerTypes()) {
       final DAGNode node = nodeMap.get(layerType);
-      final double coeff_content = !setup.style.content.params.containsKey(layerType) ? 0 : setup.style.content.params.get(layerType);
-      final PipelineNetwork network1 = (PipelineNetwork) node.getNetwork();
-      if (coeff_content != 0) {
-        contentComponents.add(new Tuple2<>(coeff_content, network1.wrap(new MeanSqLossLayer(),
-          node, network1.wrap(new ValueLayer(setup.contentTarget.content.get(layerType)), new DAGNode[]{}))));
+      if (setup.style.coefficients.containsKey(layerType)) {
+        final double coeff_content = setup.style.coefficients.get(layerType).rms;
+        DAGNetwork network = node.getNetwork();
+        contentComponents.add(new Tuple2<>(coeff_content, network.wrap(new MeanSqLossLayer(),
+          node, network.wrap(new ValueLayer(setup.contentTarget.content.get(layerType))))));
+        final double coeff_gain = setup.style.coefficients.get(layerType).gain;
+        contentComponents.add(new Tuple2<>(-coeff_gain, network.wrap(new AvgReducerLayer(),
+          network.wrap(new SquareActivationLayer(), node))));
       }
     }
     return contentComponents;
@@ -176,7 +192,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
    * @param style the style
    * @return the neural setup
    */
-  public NeuralSetup measureStyle(final StyleSetup<T> style) {
+  public NeuralSetup fitnessNet(final StyleSetup<T> style) {
     NeuralSetup<T> self = new NeuralSetup(style);
     Tensor contentInput = Tensor.fromRGB(style.contentImage);
     self.contentTarget = new ContentTarget();
@@ -201,7 +217,8 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
     Map<T, DAGNode> nodes = new HashMap<>();
     Map<T, UUID> ids = getInstance().getNodes();
     ids.forEach((l, id) -> nodes.put(l, pipelineNetwork.getChildNode(id)));
-    PipelineNetwork network = withClamp(measureStyle(setup, nodes, pipelineNetwork));
+    PipelineNetwork network = fitnessNet(setup, nodes, pipelineNetwork);
+    //network = withClamp(network);
     setPrecision(network, setup.style.precision);
     return network;
   }
@@ -216,7 +233,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
    * @param network the network
    * @return the pipeline network
    */
-  public PipelineNetwork measureStyle(NeuralSetup setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
+  public PipelineNetwork fitnessNet(NeuralSetup setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
     List<Tuple2<Double, DAGNode>> functions = getFitnessComponents(setup, nodeMap);
     functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
     return network;
@@ -237,7 +254,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
     /**
      * The Content.
      */
-    public final ContentCoefficients<T> content;
+    public final Map<T, ContentCoefficients> coefficients;
     
     
     /**
@@ -247,10 +264,10 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
      * @param contentImage        the content image
      * @param contentCoefficients the content coefficients
      */
-    public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients) {
+    public StyleSetup(final Precision precision, final BufferedImage contentImage, Map<T, ContentCoefficients> contentCoefficients) {
       this.precision = precision;
       this.contentImage = contentImage;
-      this.content = contentCoefficients;
+      this.coefficients = contentCoefficients;
     }
     
   }
@@ -258,79 +275,14 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
   /**
    * The type Content coefficients.
    */
-  public static class ContentCoefficients<T extends LayerEnum<T>> {
-    /**
-     * The Params.
-     */
-    public final Map<T, Double> params = new HashMap<>();
-    
-    /**
-     * Set content coefficients.
-     *
-     * @param l the l
-     * @param v the v
-     * @return the content coefficients
-     */
-    public ContentCoefficients set(final T l, final double v) {
-      params.put(l, v);
-      return this;
-    }
-    
-  }
+  public static class ContentCoefficients {
+    public final double rms;
+    public final double gain;
   
-  /**
-   * The type Layer style params.
-   */
-  public static class LayerStyleParams {
-    /**
-     * The Coeff style mean 0.
-     */
-    public final double mean;
-    /**
-     * The Coeff style cov 0.
-     */
-    public final double cov;
-    
-    /**
-     * Instantiates a new Layer style params.
-     *
-     * @param mean the mean
-     * @param cov  the cov
-     */
-    public LayerStyleParams(final double mean, final double cov) {
-      this.mean = mean;
-      this.cov = cov;
+    public ContentCoefficients(final double rms, final double gain) {
+      this.rms = rms;
+      this.gain = gain;
     }
-  }
-  
-  /**
-   * The type Style coefficients.
-   */
-  public static class StyleCoefficients<T extends LayerEnum<T>> {
-    /**
-     * The Dynamic center.
-     */
-    public final boolean dynamic_center;
-    /**
-     * The Params.
-     */
-    public final Map<T, LayerStyleParams> params = new HashMap<>();
-    
-    
-    /**
-     * Instantiates a new Style coefficients.
-     *
-     * @param dynamicCenter the dynamic center
-     */
-    public StyleCoefficients(final boolean dynamicCenter) {
-      dynamic_center = dynamicCenter;
-    }
-    
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
-      params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov));
-      return this;
-    }
-    
   }
   
   /**
@@ -341,24 +293,6 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
      * The Content.
      */
     public Map<T, Tensor> content = new HashMap<>();
-  }
-  
-  /**
-   * The type Style target.
-   */
-  public class StyleTarget<T extends LayerEnum<T>> {
-    /**
-     * The Mean.
-     */
-    public Map<T, Tensor> mean = new HashMap<>();
-    /**
-     * The Pca.
-     */
-    public Map<T, Tensor> pca = new HashMap<>();
-    /**
-     * The Pca cov.
-     */
-    public Map<T, Tensor> pca_cov = new HashMap<>();
   }
   
   /**

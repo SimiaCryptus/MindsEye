@@ -63,35 +63,20 @@ public class DeepDream_VGG16 extends DeepDreamBase<MultiLayerVGG16.LayerType, Mu
     init(log);
     Precision precision = Precision.Float;
     int imageSize = 400;
-    double growthFactor = Math.sqrt(1.5);
     String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
     CharSequence vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    
-    double contentCoeff = 1e2;
-    ContentCoefficients contentCoefficients = new ContentCoefficients()
-//      .set(MultiLayerVGG16.LayerType.Layer_0, contentCoeff * 1e-6)
-      .set(MultiLayerVGG16.LayerType.Layer_1b, contentCoeff * 1e-3);
-    double power = 0.0;
+  
+    Map<MultiLayerVGG16.LayerType, ContentCoefficients> contentCoefficients = new HashMap<>();
+    contentCoefficients.put(MultiLayerVGG16.LayerType.Layer_1e, new ContentCoefficients(0, 1e0));
     int trainingMinutes = 90;
     
     log.h1("Phase 0");
     BufferedImage canvasImage = load(lakeAndForest, imageSize);
-    canvasImage = randomize(canvasImage);
+    //canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
-    final int finalImageSize = imageSize;
     BufferedImage contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-    canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
-    for (int i = 1; i < 10; i++) {
-      log.h1("Phase " + i);
-      imageSize = (int) (imageSize * growthFactor);
-      styleImages.clear();
-      final int finalImageSize1 = imageSize;
-      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-      contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-      canvasImage = styleTransfer(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
-    }
+    deepDream(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
     
     log.setFrontMatterProperty("status", "OK");
   }
@@ -103,7 +88,7 @@ public class DeepDream_VGG16 extends DeepDreamBase<MultiLayerVGG16.LayerType, Mu
    */
   @Test
   public void run() {
-    run(this::run, "StyleTransfer_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
+    run(this::run, "DeepDream_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
   }
   
 }

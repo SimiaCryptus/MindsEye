@@ -24,7 +24,6 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.ConstantResult;
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -128,9 +127,9 @@ public abstract class ImageClassifier implements NetworkFactory {
         @Nullable Result result = network.eval(inputs);
         result.freeRef();
         TensorList resultData = result.getData();
-        Arrays.stream(input).flatMap(Arrays::stream).forEach(ReferenceCounting::freeRef);
-        Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
-        Arrays.stream(inputs).map(Result::getData).forEach(ReferenceCounting::freeRef);
+        //Arrays.stream(input).flatMap(Arrays::stream).forEach(ReferenceCounting::freeRef);
+        //Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
+        //Arrays.stream(inputs).map(Result::getData).forEach(ReferenceCounting::freeRef);
   
         List<LinkedHashMap<CharSequence, Double>> maps = resultData.stream().map(tensor -> {
           @Nullable double[] predictionSignal = tensor.getData();

@@ -87,10 +87,10 @@ public class StyleTransfer_VGG16 extends StyleTransferBase<MultiLayerVGG16.Layer
     Map<List<CharSequence>, StyleCoefficients> styles = new HashMap<>();
     double coeff_mean = 1e0;
     double coeff_cov = 1e0;
-    styles.put(Arrays.asList(threeMusicians), new StyleCoefficients(CenteringMode.Origin)
+    styles.put(Arrays.asList(threeMusicians), new StyleCoefficients(CenteringMode.Dynamic)
 //      .set(MultiLayerVGG16.LayerType.Layer_0, 1e0, 1e0)
         .set(MultiLayerVGG16.LayerType.Layer_1a, coeff_mean, coeff_cov)
-//        .set(MultiLayerVGG16.LayerType.Layer_1b, coeff_mean, coeff_cov)
+        .set(MultiLayerVGG16.LayerType.Layer_1b, coeff_mean, coeff_cov)
         .set(MultiLayerVGG16.LayerType.Layer_1c, coeff_mean, coeff_cov)
         .set(MultiLayerVGG16.LayerType.Layer_1d, coeff_mean, coeff_cov)
     );

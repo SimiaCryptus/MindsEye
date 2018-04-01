@@ -1548,6 +1548,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @Nonnull
   public BufferedImage toRgbImage(final int redBand, final int greenBand, final int blueBand) {
+    assertAlive();
     @Nonnull final int[] dims = getDimensions();
     @Nonnull final BufferedImage img = new BufferedImage(dims[0], dims[1], BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < img.getWidth(); x++) {

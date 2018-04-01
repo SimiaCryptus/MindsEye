@@ -58,7 +58,7 @@ public class ImageClassification extends ArtistryAppBase {
    *
    * @param args the input arguments
    */
-  public static void main(CharSequence[] args) {
+  public static void main(String[] args) {
     ImageClassification demo = new ImageClassification(args);
     demo.run(demo::run);
   }
