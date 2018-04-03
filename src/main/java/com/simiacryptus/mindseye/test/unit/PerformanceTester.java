@@ -188,7 +188,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer component, @Nonnull final Tensor... inputPrototype) {
     log.h1("Performance");
     if (component instanceof DAGNetwork) {
-      TestUtil.instrumentPerformance(log, (DAGNetwork) component);
+      TestUtil.instrumentPerformance((DAGNetwork) component);
     }
     log.p("Now we execute larger-scale runs to benchmark performance:");
     log.code(() -> {

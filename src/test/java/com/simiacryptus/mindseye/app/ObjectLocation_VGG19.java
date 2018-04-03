@@ -19,23 +19,18 @@
 
 package com.simiacryptus.mindseye.app;
 
-import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
-import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
-import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
-import com.simiacryptus.mindseye.models.Hdf5Archive;
-import com.simiacryptus.mindseye.models.ImageClassifier;
-import com.simiacryptus.mindseye.models.VGG19;
-import com.simiacryptus.mindseye.models.VGG19_HDF5;
-import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.Util;
+import com.simiacryptus.util.io.NotebookOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
 /**
  * The type Image classifier apply base.
  */
-public class ObjectLocation_VGG19 extends ObjectLocationBase {
+public class ObjectLocation_VGG19 extends ArtistryAppBase {
   
+  private static final Logger logger = LoggerFactory.getLogger(ObjectLocation_VGG19.class);
   
   /**
    * Gets target class.
@@ -44,48 +39,19 @@ public class ObjectLocation_VGG19 extends ObjectLocationBase {
    */
   @Nonnull
   protected Class<?> getTargetClass() {
-    return VGG19.class;
+    return ObjectLocation.VGG19.class;
   }
   
   /**
-   * The Texture netork.
+   * Test.
+   *
+   * @param log the log
    */
+  public void run(@Nonnull NotebookOutput log) {
+    ObjectLocation self = new ObjectLocation.VGG19();
   
-  @Override
-  public ImageClassifier getLocatorNetwork() {
-    ImageClassifier locator;
-    try {
-      locator = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
-        @Override
-        protected void phase3b() {
-          add(new BandReducerLayer().setMode(getFinalPoolingMode()));
-        }
-      }//.setSamples(5).setDensity(0.3)
-        .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    return locator;
+    self.run(log);
   }
   
-  @Override
-  public ImageClassifier getClassifierNetwork() {
-    ImageClassifier classifier;
-    try {
-      classifier = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
-        @Override
-        protected void phase3b() {
-          add(new SoftmaxActivationLayer()
-            .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
-            .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
-          add(new BandReducerLayer().setMode(getFinalPoolingMode()));
-        }
-      }//.setSamples(5).setDensity(0.3)
-        .setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    return classifier;
-  }
   
 }

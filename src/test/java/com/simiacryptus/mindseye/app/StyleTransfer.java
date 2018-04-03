@@ -32,6 +32,8 @@ import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
 import com.simiacryptus.mindseye.models.LayerEnum;
 import com.simiacryptus.mindseye.models.MultiLayerImageNetwork;
+import com.simiacryptus.mindseye.models.MultiLayerVGG16;
+import com.simiacryptus.mindseye.models.MultiLayerVGG19;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -42,14 +44,17 @@ import com.simiacryptus.mindseye.opt.region.RangeConstraint;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.io.NullNotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -64,96 +69,163 @@ import java.util.stream.Stream;
 /**
  * This notebook implements the Style Transfer protocol outlined in <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
  */
-public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> extends ArtistryAppBase {
+public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> {
   
+  private static final Logger logger = LoggerFactory.getLogger(StyleTransfer.class);
   boolean parallelLossFunctions = true;
   
-  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
-    BufferedImage result = canvasImage;
-    try {
-      PipelineNetwork network = fitnessNetwork(measureStyle);
-      log.p("Input Parameters:");
-      log.code(() -> {
-        return toJson(styleParameters);
-      });
+  public BufferedImage styleTransfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
+    return styleTransfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle);
+  }
+  
+  public BufferedImage styleTransfer(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
+    BufferedImage result = ArtistryUtil.logExceptionWithDefault(log, () -> {
       log.p("Input Content:");
       log.p(log.image(styleParameters.contentImage, "Content Image"));
       log.p("Style Content:");
       styleParameters.styleImages.forEach((file, styleImage) -> {
-        try {
-          log.p(log.image(styleImage, file));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+        log.p(log.image(styleImage, file));
       });
       log.p("Input Canvas:");
       log.p(log.image(canvasImage, "Input Canvas"));
-      result = train(log, canvasImage, network, styleParameters.precision, trainingMinutes);
-    } catch (Throwable throwable) {
-      try {
-        log.code(() -> {
-          return throwable;
-        });
-      } catch (Throwable e2) {
-      }
-    }
-    try {
-      log.p("Output Canvas:");
-      log.p(log.image(canvasImage, "Output Canvas"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+      System.gc();
+      Tensor canvas = Tensor.fromRGB(canvasImage);
+      TestUtil.monitorImage(canvas, false, false);
+      log.p("Input Parameters:");
+      log.code(() -> {
+        return ArtistryUtil.toJson(styleParameters);
+      });
+      Trainable trainable = log.code(() -> {
+        PipelineNetwork network = fitnessNetwork(measureStyle);
+        network.setFrozen(true);
+        ArtistryUtil.setPrecision(network, styleParameters.precision);
+        TestUtil.instrumentPerformance(network);
+        if (null != server) ArtistryUtil.addLayersHandler(network, server);
+        return new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+      });
+      log.code(() -> {
+        @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+        new IterativeTrainer(trainable)
+          .setMonitor(TestUtil.getMonitor(history))
+          //        .setOrientation(new QQN())
+          .setOrientation(new TrustRegionStrategy() {
+            @Override
+            public TrustRegion getRegionPolicy(final Layer layer) {
+              return new RangeConstraint().setMin(1e-2).setMax(256);
+            }
+          })
+          .setIterationsPerSample(100)
+          //        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
+          .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
+          //        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+          .setTimeout(trainingMinutes, TimeUnit.MINUTES)
+          .setTerminateThreshold(Double.NEGATIVE_INFINITY)
+          .runAndFree();
+        return TestUtil.plot(history);
+      });
+      return canvas.toImage();
+    }, canvasImage);
+    log.p("Output Canvas:");
+    log.p(log.image(result, "Output Canvas"));
     return result;
   }
   
-  /**
-   * Train buffered image.
-   *
-   * @param log             the log
-   * @param canvasImage     the canvas image
-   * @param network         the network
-   * @param precision       the precision
-   * @param trainingMinutes the training minutes
-   * @return the buffered image
-   */
   @Nonnull
-  public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
-    System.gc();
-    Tensor canvas = Tensor.fromRGB(canvasImage);
-    TestUtil.monitorImage(canvas, false, false);
-    network.setFrozen(true);
-    setPrecision(network, precision);
-    TestUtil.instrumentPerformance(log, network);
-    addLayersHandler(network, server);
-    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
-    
-    log.code(() -> {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      new IterativeTrainer(trainable)
-        .setMonitor(TestUtil.getMonitor(history))
-//        .setOrientation(new QQN())
-        .setOrientation(new TrustRegionStrategy() {
-          @Override
-          public TrustRegion getRegionPolicy(final Layer layer) {
-            return new RangeConstraint().setMin(1e-2).setMax(256);
-          }
-        })
-        .setIterationsPerSample(100)
-//        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
-        .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
-//        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(trainingMinutes, TimeUnit.MINUTES)
-        .setTerminateThreshold(Double.NEGATIVE_INFINITY)
-        .runAndFree();
-      return TestUtil.plot(history);
-    });
-    return canvas.toImage();
+  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final PipelineNetwork network, final LayerStyleParams styleParams, final Tensor mean, final Tensor covariance, final CenteringMode centeringMode) {
+    ArrayList<Tuple2<Double, DAGNode>> styleComponents = new ArrayList<>();
+    if (null != styleParams && (styleParams.cov != 0 || styleParams.mean != 0)) {
+      double meanRms = mean.rms();
+      double meanScale = 0 == meanRms ? 1 : (1.0 / meanRms);
+      InnerNode negTarget = network.wrap(new ValueLayer(mean.scale(-1)), new DAGNode[]{});
+      InnerNode negAvg = network.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
+      if (styleParams.cov != 0) {
+        DAGNode recentered;
+        switch (centeringMode) {
+          case Origin:
+            recentered = node;
+            break;
+          case Dynamic:
+            recentered = network.wrap(new GateBiasLayer(), node, negAvg);
+            break;
+          case Static:
+            recentered = network.wrap(new GateBiasLayer(), node, negTarget);
+            break;
+          default:
+            throw new RuntimeException();
+        }
+        int[] covDim = covariance.getDimensions();
+        assert 0 < covDim[2] : Arrays.toString(covDim);
+        int inputBands = mean.getDimensions()[2];
+        assert 0 < inputBands : Arrays.toString(mean.getDimensions());
+        int outputBands = covDim[2] / inputBands;
+        assert 0 < outputBands : Arrays.toString(covDim) + " / " + inputBands;
+        double covRms = covariance.rms();
+        double covScale = 0 == covRms ? 1 : (1.0 / covRms);
+        styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
+          network.wrap(new ValueLayer(covariance), new DAGNode[]{}),
+          network.wrap(ArtistryUtil.wrapTilesAvg(new GramianLayer()), recentered))
+        ));
+      }
+      if (styleParams.mean != 0) {
+        styleComponents.add(new Tuple2<>(styleParams.mean,
+          network.wrap(new MeanSqLossLayer().setAlpha(meanScale), negAvg, negTarget)
+        ));
+      }
+    }
+    return styleComponents;
   }
-  
-  @Nonnull
-  @Override
-  public ReportType getReportType() {
-    return ReportType.Applications;
+
+  /**
+   * Measure style neural setup.
+   *
+   * @param style the style
+   * @return the neural setup
+   */
+  public NeuralSetup measureStyle(final StyleSetup<T> style) {
+    NeuralSetup<T> self = new NeuralSetup(style);
+    List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
+    Tensor contentInput = Tensor.fromRGB(style.contentImage);
+    List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
+    IntStream.range(0, keyList.size()).forEach(i -> {
+      self.styleTargets.put(keyList.get(i), new StyleTarget());
+    });
+    self.contentTarget = new ContentTarget();
+    for (final T layerType : getLayerTypes()) {
+      System.gc();
+      final PipelineNetwork network = layerType.texture();
+      ArtistryUtil.setPrecision(network, style.precision);
+      Tensor content = network.eval(contentInput).getDataAndFree().getAndFree(0);
+      self.contentTarget.content.put(layerType, content);
+      logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
+      logger.info(String.format("%s : content statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(content.getData()).getMetrics())));
+      for (int i = 0; i < styleInputs.size(); i++) {
+        Tensor styleInput = styleInputs.get(i);
+        CharSequence key = keyList.get(i);
+        StyleTarget<T> styleTarget = self.styleTargets.get(key);
+        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
+          continue;
+        System.gc();
+        Tensor mean = ArtistryUtil.wrapTilesAvg(ArtistryUtil.avg(network.copy())).eval(styleInput).getDataAndFree().getAndFree(0);
+        styleTarget.mean.put(layerType, mean);
+        logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
+        logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
+        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
+          continue;
+        System.gc();
+        Tensor cov0 = ArtistryUtil.wrapTilesAvg(ArtistryUtil.gram(network.copy())).eval(styleInput).getDataAndFree().getAndFree(0);
+        Tensor cov1 = ArtistryUtil.wrapTilesAvg(ArtistryUtil.gram(network.copy(), mean)).eval(styleInput).getDataAndFree().getAndFree(0);
+        styleTarget.cov0.put(layerType, cov0);
+        styleTarget.cov1.put(layerType, cov1);
+        int featureBands = mean.getDimensions()[2];
+        int covarianceElements = cov1.getDimensions()[2];
+        int selectedBands = covarianceElements / featureBands;
+        logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
+        logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
+        logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
+        logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
+      }
+    }
+    return self;
   }
   
   /**
@@ -191,7 +263,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
         final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
         LayerStyleParams styleParams = styleCoefficients.params.get(layerType);
         Tensor mean = styleTarget.mean.get(layerType);
-    
+        
         Tensor covariance;
         switch (styleCoefficients.centeringMode) {
           case Origin:
@@ -209,49 +281,22 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
     return styleComponents;
   }
   
+  /**
+   * Fitness function pipeline network.
+   *
+   * @param setup the setup
+   * @return the pipeline network
+   */
   @Nonnull
-  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final PipelineNetwork network, final LayerStyleParams styleParams, final Tensor mean, final Tensor covariance, final CenteringMode centeringMode) {
-    ArrayList<Tuple2<Double, DAGNode>> styleComponents = new ArrayList<>();
-    if (null != styleParams && (styleParams.cov != 0 || styleParams.mean != 0)) {
-      double meanRms = mean.rms();
-      double meanScale = 0 == meanRms ? 1 : (1.0 / meanRms);
-      InnerNode negTarget = network.wrap(new ValueLayer(mean.scale(-1)), new DAGNode[]{});
-      InnerNode negAvg = network.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
-      if (styleParams.cov != 0) {
-        DAGNode recentered;
-        switch (centeringMode) {
-          case Origin:
-            recentered = node;
-            break;
-          case Dynamic:
-            recentered = network.wrap(new GateBiasLayer(), node, negAvg);
-            break;
-          case Static:
-            recentered = network.wrap(new GateBiasLayer(), node, negTarget);
-            break;
-          default:
-            throw new RuntimeException();
-        }
-        int[] covDim = covariance.getDimensions();
-        assert 0 < covDim[2] : Arrays.toString(covDim);
-        int inputBands = mean.getDimensions()[2];
-        assert 0 < inputBands : Arrays.toString(mean.getDimensions());
-        int outputBands = covDim[2] / inputBands;
-        assert 0 < outputBands : Arrays.toString(covDim) + " / " + inputBands;
-        double covRms = covariance.rms();
-        double covScale = 0 == covRms ? 1 : (1.0 / covRms);
-        styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
-          network.wrap(new ValueLayer(covariance), new DAGNode[]{}),
-          network.wrap(wrapTilesAvg(new GramianLayer()), recentered))
-        ));
-      }
-      if (styleParams.mean != 0) {
-        styleComponents.add(new Tuple2<>(styleParams.mean,
-          network.wrap(new MeanSqLossLayer().setAlpha(meanScale), negAvg, negTarget)
-        ));
-      }
-    }
-    return styleComponents;
+  public PipelineNetwork fitnessNetwork(NeuralSetup setup) {
+    PipelineNetwork pipelineNetwork = getInstance().getNetwork();
+    Map<T, DAGNode> nodes = new HashMap<>();
+    Map<T, UUID> ids = getInstance().getNodes();
+    ids.forEach((l, id) -> nodes.put(l, pipelineNetwork.getChildNode(id)));
+    PipelineNetwork network = buildNetwork(setup, nodes, pipelineNetwork);
+    //network = withClamp(network);
+    ArtistryUtil.setPrecision(network, setup.style.precision);
+    return network;
   }
   
   @Nonnull
@@ -280,93 +325,30 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends MultiL
     return contentComponents;
   }
   
-  /**
-   * Measure style neural setup.
-   *
-   * @param style the style
-   * @return the neural setup
-   */
-  public NeuralSetup measureStyle(final StyleSetup<T> style) {
-    NeuralSetup<T> self = new NeuralSetup(style);
-    List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
-    Tensor contentInput = Tensor.fromRGB(style.contentImage);
-    List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
-    IntStream.range(0, keyList.size()).forEach(i -> {
-      self.styleTargets.put(keyList.get(i), new StyleTarget());
-    });
-    self.contentTarget = new ContentTarget();
-    for (final T layerType : getLayerTypes()) {
-      System.gc();
-      final PipelineNetwork network = layerType.texture();
-      setPrecision(network, style.precision);
-      Tensor content = network.eval(contentInput).getDataAndFree().getAndFree(0);
-      self.contentTarget.content.put(layerType, content);
-      logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
-      logger.info(String.format("%s : content statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(content.getData()).getMetrics())));
-      for (int i = 0; i < styleInputs.size(); i++) {
-        Tensor styleInput = styleInputs.get(i);
-        CharSequence key = keyList.get(i);
-        StyleTarget<T> styleTarget = self.styleTargets.get(key);
-        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
-          continue;
-        System.gc();
-        Tensor mean = wrapTilesAvg(avg(network.copy())).eval(styleInput).getDataAndFree().getAndFree(0);
-        styleTarget.mean.put(layerType, mean);
-        logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
-        logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
-        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
-          continue;
-        System.gc();
-        Tensor cov0 = wrapTilesAvg(gram(network.copy())).eval(styleInput).getDataAndFree().getAndFree(0);
-        Tensor cov1 = wrapTilesAvg(gram(network.copy(), mean)).eval(styleInput).getDataAndFree().getAndFree(0);
-        styleTarget.cov0.put(layerType, cov0);
-        styleTarget.cov1.put(layerType, cov1);
-        int featureBands = mean.getDimensions()[2];
-        int covarianceElements = cov1.getDimensions()[2];
-        int selectedBands = covarianceElements / featureBands;
-        logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
-        logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
-        logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
-        logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
-      }
+  public static class VGG16 extends StyleTransfer<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
+    
+    public MultiLayerVGG16 getInstance() {
+      return MultiLayerVGG16.INSTANCE;
     }
-    return self;
+    
+    @Nonnull
+    public MultiLayerVGG16.LayerType[] getLayerTypes() {
+      return MultiLayerVGG16.LayerType.values();
+    }
+    
   }
   
-  protected Layer wrapTilesAvg(final Layer subnet) {
-    return wrapTilesAvg(subnet, 0, 0, 0, 0, 400, 400);
-  }
-  
-  protected Layer wrapTilesAvg(final Layer subnet, final int borderX1, final int borderY1, final int borderX2, final int borderY2, final int tileWidth, final int tileHeight) {
-    PipelineNetwork network1 = new PipelineNetwork(1);
-    if (borderX1 != 0 || borderY1 != 0)
-      network1.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer(borderX1, borderY1));
-    network1.add(subnet);
-    if (borderX2 != 0 || borderY2 != 0)
-      network1.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer(-borderX2, -borderY2));
-    PipelineNetwork network = new PipelineNetwork(1);
-    network.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgTileSubnetLayer(network1, tileWidth, tileHeight, tileWidth - 2 * borderX1, tileHeight - 2 * borderY1));
-    network.wrap(new BandAvgReducerLayer());
-    return network;
-  }
-  
-  
-  /**
-   * Fitness function pipeline network.
-   *
-   * @param setup the setup
-   * @return the pipeline network
-   */
-  @Nonnull
-  public PipelineNetwork fitnessNetwork(NeuralSetup setup) {
-    PipelineNetwork pipelineNetwork = getInstance().getNetwork();
-    Map<T, DAGNode> nodes = new HashMap<>();
-    Map<T, UUID> ids = getInstance().getNodes();
-    ids.forEach((l, id) -> nodes.put(l, pipelineNetwork.getChildNode(id)));
-    PipelineNetwork network = buildNetwork(setup, nodes, pipelineNetwork);
-    //network = withClamp(network);
-    setPrecision(network, setup.style.precision);
-    return network;
+  public static class VGG19 extends StyleTransfer<MultiLayerVGG19.LayerType, MultiLayerVGG19> {
+    
+    public MultiLayerVGG19 getInstance() {
+      return MultiLayerVGG19.INSTANCE;
+    }
+    
+    @Nonnull
+    public MultiLayerVGG19.LayerType[] getLayerTypes() {
+      return MultiLayerVGG19.LayerType.values();
+    }
+    
   }
   
   public abstract U getInstance();

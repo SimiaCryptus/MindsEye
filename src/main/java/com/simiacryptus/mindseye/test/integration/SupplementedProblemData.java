@@ -73,12 +73,7 @@ public class SupplementedProblemData implements ImageProblemData {
     @Nonnull final ArrayList<Tensor[]> list = new ArrayList<>(Arrays.asList(expanded));
     Collections.shuffle(list);
     log.p("Expanded Training Data Sample: " + list.stream().limit(size).map(x -> {
-      try {
-        return log.image(x[0].toGrayImage(), "");
-      } catch (@Nonnull final IOException e) {
-        e.printStackTrace();
-        return "";
-      }
+      return log.image(x[0].toGrayImage(), "");
     }).reduce((a, b) -> a + b).get());
   }
   

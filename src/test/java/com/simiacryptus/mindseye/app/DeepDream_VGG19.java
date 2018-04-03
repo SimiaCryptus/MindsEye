@@ -30,7 +30,7 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DeepDream_VGG19 extends DeepDreamBase<MultiLayerVGG19.LayerType, MultiLayerVGG19> {
+public class DeepDream_VGG19 extends ArtistryAppBase {
   
   /**
    * Gets target class.
@@ -42,21 +42,13 @@ public class DeepDream_VGG19 extends DeepDreamBase<MultiLayerVGG19.LayerType, Mu
     return VGG19.class;
   }
   
-  public MultiLayerVGG19 getInstance() {
-    return MultiLayerVGG19.INSTANCE;
-  }
-  
-  @Nonnull
-  public MultiLayerVGG19.LayerType[] getLayerTypes() {
-    return MultiLayerVGG19.LayerType.values();
-  }
-  
   /**
    * Test.
    *
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
+    DeepDream<MultiLayerVGG19.LayerType, MultiLayerVGG19> dreamBase = new DeepDream.VGG19();
     init(log);
     Precision precision = Precision.Float;
     int imageSize = 800;
@@ -64,18 +56,19 @@ public class DeepDream_VGG19 extends DeepDreamBase<MultiLayerVGG19.LayerType, Mu
     CharSequence vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   
-    Map<MultiLayerVGG19.LayerType, ContentCoefficients> contentCoefficients = new HashMap<>();
-    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_1d, new ContentCoefficients(0, 1e-1));
-    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_1e, new ContentCoefficients(0, 1e0));
-    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_2b, new ContentCoefficients(0, 1e1));
+    Map<MultiLayerVGG19.LayerType, DeepDream.ContentCoefficients> contentCoefficients = new HashMap<>();
+    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_1d, new DeepDream.ContentCoefficients(0, 1e-1));
+//    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_1e, new ContentCoefficients(0, 1e0));
+    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_2b, new DeepDream.ContentCoefficients(0, 1e0));
+    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_3a, new DeepDream.ContentCoefficients(0, 1e1));
     int trainingMinutes = 180;
     
     log.h1("Phase 0");
-    BufferedImage canvasImage = load(lakeAndForest, imageSize);
+    BufferedImage canvasImage = ArtistryUtil.load(lakeAndForest, imageSize);
     //canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    BufferedImage contentImage = load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-    deepDream(log, canvasImage, new StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
+    BufferedImage contentImage = ArtistryUtil.load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
+    dreamBase.deepDream(server, log, canvasImage, new DeepDream.StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
     
     log.setFrontMatterProperty("status", "OK");
   }

@@ -27,15 +27,24 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.models.Hdf5Archive;
 import com.simiacryptus.mindseye.models.ImageClassifier;
+import com.simiacryptus.mindseye.models.VGG16_HDF5;
+import com.simiacryptus.mindseye.models.VGG19_HDF5;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealVector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -54,15 +63,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public abstract class ObjectLocationBase extends ArtistryAppBase {
+public abstract class ObjectLocation {
   
-  /**
-   * Test.
-   *
-   * @param log the log
-   */
-  public void run(@Nonnull NotebookOutput log) {
-    
+  private static final Logger logger = LoggerFactory.getLogger(ObjectLocation.class);
+  
+  public void run(@Nonnull final NotebookOutput log) {
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
@@ -72,9 +77,8 @@ public abstract class ObjectLocationBase extends ArtistryAppBase {
     
     ImageClassifier locator = getLocatorNetwork();
     Layer locatorNetwork = locator.getNetwork();
-    ArtistryAppBase.setPrecision((DAGNetwork) classifyNetwork, Precision.Float);
-    ArtistryAppBase.setPrecision((DAGNetwork) locatorNetwork, Precision.Float);
-    
+    ArtistryUtil.setPrecision((DAGNetwork) classifyNetwork, Precision.Float);
+    ArtistryUtil.setPrecision((DAGNetwork) locatorNetwork, Precision.Float);
     
     Tensor[][] inputData = loadImages_library();
 //    Tensor[][] inputData = loadImage_Caltech101(log);
@@ -84,11 +88,7 @@ public abstract class ObjectLocationBase extends ArtistryAppBase {
     Arrays.stream(inputData).limit(10).forEach(row -> {
       log.h3("Image " + index.getAndIncrement());
       final Tensor img = row[0];
-      try {
-        log.p(log.image(img.toImage(), ""));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      log.p(log.image(img.toImage(), ""));
       Result classifyResult = classifyNetwork.eval(new MutableResult(row));
       Result locationResult = locatorNetwork.eval(new MutableResult(row));
       Tensor classification = classifyResult.getData().get(0);
@@ -102,15 +102,11 @@ public abstract class ObjectLocationBase extends ArtistryAppBase {
       Map<CharSequence, Tensor> vectors = new HashMap<>();
       List<CharSequence> predictionList = Arrays.stream(sortedIndices).mapToObj(categories::get).collect(Collectors.toList());
       Arrays.stream(sortedIndices).limit(10).forEach(category -> {
-        try {
-          CharSequence name = categories.get(category);
-          log.h3(name);
-          Tensor alphaTensor = renderAlpha(alphaPower, img, locationResult, classification, category);
-          log.p(log.image(img.toRgbImageAlphaMask(0, 1, 2, alphaTensor), ""));
-          vectors.put(name, alphaTensor.unit());
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+        CharSequence name = categories.get(category);
+        log.h3(name);
+        Tensor alphaTensor = renderAlpha(alphaPower, img, locationResult, classification, category);
+        log.p(log.image(img.toRgbImageAlphaMask(0, 1, 2, alphaTensor), ""));
+        vectors.put(name, alphaTensor.unit());
       });
       
       Tensor avgDetection = vectors.values().stream().reduce((a, b) -> a.add(b)).get().scale(1.0 / vectors.size());
@@ -136,14 +132,10 @@ public abstract class ObjectLocationBase extends ArtistryAppBase {
           double component = eigenvector.getEntry(i);
           return String.format("<li>%s = %.4f</li>", category, component);
         }).reduce((a, b) -> a + "" + b).get();
-        try {
-          log.p(String.format("Object Detected: <ol>%s</ol>", categorization));
-          log.p("Object Eigenvalue: " + eigenvalue);
-          log.p("Object Region: " + log.image(img.toRgbImageAlphaMask(0, 1, 2, detectionRegion), ""));
-          log.p("Object Region Compliment: " + log.image(img.toRgbImageAlphaMask(0, 1, 2, detectionRegion.scale(-1)), ""));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+        log.p(String.format("Object Detected: <ol>%s</ol>", categorization));
+        log.p("Object Eigenvalue: " + eigenvalue);
+        log.p("Object Region: " + log.image(img.toRgbImageAlphaMask(0, 1, 2, detectionRegion), ""));
+        log.p("Object Region Compliment: " + log.image(img.toRgbImageAlphaMask(0, 1, 2, detectionRegion.scale(-1)), ""));
       }
 
 //      final int[] orderedVectors = IntStream.range(0, 10).mapToObj(x -> x)
@@ -165,6 +157,96 @@ public abstract class ObjectLocationBase extends ArtistryAppBase {
     });
     
     log.setFrontMatterProperty("status", "OK");
+  }
+  
+  public static class VGG16 extends ObjectLocation {
+    
+    /**
+     * The Texture netork.
+     */
+    
+    @Override
+    public ImageClassifier getLocatorNetwork() {
+      ImageClassifier locator;
+      try {
+        locator = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase3b() {
+            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
+          }
+        }//.setSamples(5).setDensity(0.3)
+          .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return locator;
+    }
+    
+    @Override
+    public ImageClassifier getClassifierNetwork() {
+      ImageClassifier classifier;
+      try {
+        classifier = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase3b() {
+            add(new SoftmaxActivationLayer()
+              .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
+              .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
+            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
+          }
+        }//.setSamples(5).setDensity(0.3)
+          .setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return classifier;
+    }
+    
+  }
+  
+  public static class VGG19 extends ObjectLocation {
+    
+    /**
+     * The Texture netork.
+     */
+    
+    @Override
+    public ImageClassifier getLocatorNetwork() {
+      ImageClassifier locator;
+      try {
+        locator = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
+          @Override
+          protected void phase3b() {
+            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
+          }
+        }//.setSamples(5).setDensity(0.3)
+          .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return locator;
+    }
+    
+    @Override
+    public ImageClassifier getClassifierNetwork() {
+      ImageClassifier classifier;
+      try {
+        classifier = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
+          @Override
+          protected void phase3b() {
+            add(new SoftmaxActivationLayer()
+              .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
+              .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
+            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
+          }
+        }//.setSamples(5).setDensity(0.3)
+          .setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return classifier;
+    }
+    
   }
   
   public abstract ImageClassifier getLocatorNetwork();
@@ -282,12 +364,6 @@ public abstract class ObjectLocationBase extends ArtistryAppBase {
     return log.code(() -> {
       return new Tensor(1, 1, 4096).setAll(0.0).set(5, 1.0);
     });
-  }
-  
-  @Nonnull
-  @Override
-  public ReportType getReportType() {
-    return ReportType.Applications;
   }
   
   /**

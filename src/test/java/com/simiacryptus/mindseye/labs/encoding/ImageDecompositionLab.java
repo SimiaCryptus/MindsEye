@@ -164,11 +164,7 @@ public class ImageDecompositionLab {
       }).toArray(i -> new Tensor[i][]);
   
     Arrays.stream(trainingImages).map(x -> x[1]).map(x -> x.toImage()).map(x -> {
-      try {
-        return log.image(x, "example");
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      return log.image(x, "example");
     }).forEach(str -> log.p(str));
   
     log.h1("First LayerBase");

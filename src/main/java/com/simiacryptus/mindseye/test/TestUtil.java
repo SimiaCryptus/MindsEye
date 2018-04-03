@@ -373,10 +373,9 @@ public class TestUtil {
   /**
    * Add performance wrappers.
    *
-   * @param log     the log
    * @param network the network
    */
-  public static void instrumentPerformance(final NotebookOutput log, @Nonnull final DAGNetwork network) {
+  public static void instrumentPerformance(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       Layer layer = node.getLayer();
       if (layer instanceof MonitoringWrapperLayer) {
@@ -529,11 +528,7 @@ public class TestUtil {
    */
   public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor, final boolean normalize) {
     return TestUtil.renderToImages(tensor, normalize).map(image -> {
-      try {
-        return log.image(image, "");
-      } catch (@Nonnull final IOException e) {
-        throw new RuntimeException(e);
-      }
+      return log.image(image, "");
     }).reduce((a, b) -> a + b).get();
   }
   

@@ -213,7 +213,7 @@ public class EncodingProblem implements Problem {
     );
     log.h3("Training");
     log.p("We start by training apply a very small population to improve initial convergence performance:");
-    TestUtil.instrumentPerformance(log, trainingNetwork);
+    TestUtil.instrumentPerformance(trainingNetwork);
     @Nonnull final Tensor[][] primingData = Arrays.copyOfRange(trainingData, 0, 1000);
     @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log,
       (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
@@ -224,7 +224,7 @@ public class EncodingProblem implements Problem {
     TestUtil.extractPerformance(log, trainingNetwork);
     
     log.p("Then our main training phase:");
-    TestUtil.instrumentPerformance(log, trainingNetwork);
+    TestUtil.instrumentPerformance(trainingNetwork);
     @Nonnull final ValidatingTrainer mainTrainer = optimizer.train(log,
       (SampledTrainable) new SampledArrayTrainable(trainingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
       new ArrayTrainable(trainingData, trainingNetwork, batchSize), monitor);
@@ -261,15 +261,11 @@ public class EncodingProblem implements Problem {
     log.code(() -> {
       @Nonnull final TableOutput table = new TableOutput();
       Arrays.stream(trainingData).map(tensorArray -> {
-        try {
-          @Nullable final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
-          @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-          row.put("Source", log.image(tensorArray[1].toImage(), ""));
-          row.put("Echo", log.image(predictionSignal.toImage(), ""));
-          return row;
-        } catch (@Nonnull final IOException e) {
-          throw new RuntimeException(e);
-        }
+        @Nullable final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
+        @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
+        row.put("Source", log.image(tensorArray[1].toImage(), ""));
+        row.put("Echo", log.image(predictionSignal.toImage(), ""));
+        return row;
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
       return table;
     });
@@ -296,11 +292,7 @@ public class EncodingProblem implements Problem {
       @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
       @Nullable final Tensor tensor = imageNetwork.eval(input).getData().get(0);
       TestUtil.renderToImages(tensor, true).forEach(img -> {
-        try {
-          log.out(log.image(img, ""));
-        } catch (@Nonnull final IOException e) {
-          throw new RuntimeException(e);
-        }
+        log.out(log.image(img, ""));
       });
     }
     

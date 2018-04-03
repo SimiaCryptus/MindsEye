@@ -175,7 +175,7 @@ public class ClassifyProblem implements Problem {
     
     log.h3("Training");
     @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
-    TestUtil.instrumentPerformance(log, supervisedNetwork);
+    TestUtil.instrumentPerformance(supervisedNetwork);
     int initialSampleSize = Math.max(trainingData.length / 5, Math.min(10, trainingData.length / 2));
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
       new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
@@ -242,19 +242,15 @@ public class ClassifyProblem implements Problem {
    */
   @Nullable
   public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
-    try {
-      final int actualCategory = parse(labeledObject.label);
-      final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
-      if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
-      @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-      row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
-      row.put("Prediction", Arrays.stream(predictionList).limit(3)
-        .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-        .reduce((a, b) -> a + ", " + b).get());
-      return row;
-    } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
-    }
+    final int actualCategory = parse(labeledObject.label);
+    final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
+    if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
+    @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
+    row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
+    row.put("Prediction", Arrays.stream(predictionList).limit(3)
+      .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
+      .reduce((a, b) -> a + ", " + b).get());
+    return row;
   }
   
   /**

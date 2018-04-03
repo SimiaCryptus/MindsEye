@@ -51,7 +51,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -422,11 +421,7 @@ public abstract class ImageClassifier implements NetworkFactory {
     });
     log.code(() -> {
       for (Tensor[] tensors : data) {
-        try {
-          ImageClassifier.log.info(log.image(tensors[0].toImage(), "") + tensors[1]);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+        ImageClassifier.log.info(log.image(tensors[0].toImage(), "") + tensors[1]);
       }
     });
     log.code(() -> {

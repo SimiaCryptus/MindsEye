@@ -31,6 +31,8 @@ import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
 import com.simiacryptus.mindseye.models.LayerEnum;
 import com.simiacryptus.mindseye.models.MultiLayerImageNetwork;
+import com.simiacryptus.mindseye.models.MultiLayerVGG16;
+import com.simiacryptus.mindseye.models.MultiLayerVGG19;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -41,12 +43,15 @@ import com.simiacryptus.mindseye.opt.region.RangeConstraint;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.io.NullNotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,8 +63,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * This notebook implements the Style Transfer protocol outlined in <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
  */
-public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> extends ArtistryAppBase {
+public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> {
+  private static final Logger logger = LoggerFactory.getLogger(DeepDream.class);
   
+  @Nonnull
+  public BufferedImage deepDream(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
+    return deepDream(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes);
+  }
   
   /**
    * Style transfer buffered image.
@@ -71,28 +81,25 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage deepDream(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
-    PipelineNetwork network = fitnessNetwork(fitnessNet(styleParameters));
+  public BufferedImage deepDream(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
+    PipelineNetwork network = fitnessNetwork(processStats(styleParameters));
     log.p("Input Parameters:");
     log.code(() -> {
-      return toJson(styleParameters);
+      return ArtistryUtil.toJson(styleParameters);
     });
-    try {
-      log.p("Input Content:");
-      log.p(log.image(styleParameters.contentImage, "Content Image"));
-      log.p("Input Canvas:");
-      log.p(log.image(canvasImage, "Input Canvas"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    BufferedImage result = train(log, canvasImage, network, styleParameters.precision, trainingMinutes);
-    try {
-      log.p("Output Canvas:");
-      log.p(log.image(result, "Output Canvas"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    log.p("Input Content:");
+    log.p(log.image(styleParameters.contentImage, "Content Image"));
+    log.p("Input Canvas:");
+    log.p(log.image(canvasImage, "Input Canvas"));
+    BufferedImage result = train(server, log, canvasImage, network, styleParameters.precision, trainingMinutes);
+    log.p("Output Canvas:");
+    log.p(log.image(result, "Output Canvas"));
     return result;
+  }
+  
+  @Nonnull
+  public BufferedImage train(final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
+    return train(null, new NullNotebookOutput(), canvasImage, network, precision, trainingMinutes);
   }
   
   /**
@@ -106,15 +113,15 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage train(@Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
+  public BufferedImage train(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
     System.gc();
     Tensor canvas = Tensor.fromRGB(canvasImage);
     TestUtil.monitorImage(canvas, false, false);
     network.setFrozen(true);
-    setPrecision(network, precision);
+    ArtistryUtil.setPrecision(network, precision);
     @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
-    TestUtil.instrumentPerformance(log, network);
-    addLayersHandler(network, server);
+    TestUtil.instrumentPerformance(network);
+    if (null != server) ArtistryUtil.addLayersHandler(network, server);
     
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
@@ -138,10 +145,41 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
     return canvas.toImage();
   }
   
+  /**
+   * Measure style neural setup.
+   *
+   * @param style the style
+   * @return the neural setup
+   */
+  public NeuralSetup processStats(final StyleSetup<T> style) {
+    NeuralSetup<T> self = new NeuralSetup(style);
+    Tensor contentInput = Tensor.fromRGB(style.contentImage);
+    self.contentTarget = new ContentTarget();
+    for (final T layerType : getLayerTypes()) {
+      System.gc();
+      final PipelineNetwork network = layerType.texture();
+      self.contentTarget.content.put(layerType, network.eval(contentInput).getDataAndFree().getAndFree(0));
+      logger.info(String.format("target_content_%s=%s", layerType.name(), self.contentTarget.content.get(layerType).prettyPrint()));
+    }
+    return self;
+  }
+  
+  /**
+   * Fitness function pipeline network.
+   *
+   * @param setup the setup
+   * @return the pipeline network
+   */
   @Nonnull
-  @Override
-  public ReportType getReportType() {
-    return ReportType.Applications;
+  public PipelineNetwork fitnessNetwork(NeuralSetup setup) {
+    PipelineNetwork pipelineNetwork = getInstance().getNetwork();
+    Map<T, DAGNode> nodes = new HashMap<>();
+    Map<T, UUID> ids = getInstance().getNodes();
+    ids.forEach((l, id) -> nodes.put(l, pipelineNetwork.getChildNode(id)));
+    PipelineNetwork network = processStats(setup, nodes, pipelineNetwork);
+    //network = withClamp(network);
+    ArtistryUtil.setPrecision(network, setup.style.precision);
+    return network;
   }
   
   /**
@@ -187,45 +225,6 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
   }
   
   /**
-   * Measure style neural setup.
-   *
-   * @param style the style
-   * @return the neural setup
-   */
-  public NeuralSetup fitnessNet(final StyleSetup<T> style) {
-    NeuralSetup<T> self = new NeuralSetup(style);
-    Tensor contentInput = Tensor.fromRGB(style.contentImage);
-    self.contentTarget = new ContentTarget();
-    for (final T layerType : getLayerTypes()) {
-      System.gc();
-      final PipelineNetwork network = layerType.texture();
-      self.contentTarget.content.put(layerType, network.eval(contentInput).getDataAndFree().getAndFree(0));
-      logger.info(String.format("target_content_%s=%s", layerType.name(), self.contentTarget.content.get(layerType).prettyPrint()));
-    }
-    return self;
-  }
-  
-  /**
-   * Fitness function pipeline network.
-   *
-   * @param setup the setup
-   * @return the pipeline network
-   */
-  @Nonnull
-  public PipelineNetwork fitnessNetwork(NeuralSetup setup) {
-    PipelineNetwork pipelineNetwork = getInstance().getNetwork();
-    Map<T, DAGNode> nodes = new HashMap<>();
-    Map<T, UUID> ids = getInstance().getNodes();
-    ids.forEach((l, id) -> nodes.put(l, pipelineNetwork.getChildNode(id)));
-    PipelineNetwork network = fitnessNet(setup, nodes, pipelineNetwork);
-    //network = withClamp(network);
-    setPrecision(network, setup.style.precision);
-    return network;
-  }
-  
-  public abstract U getInstance();
-  
-  /**
    * Measure style pipeline network.
    *
    * @param setup   the setup
@@ -233,10 +232,38 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends MultiLayer
    * @param network the network
    * @return the pipeline network
    */
-  public PipelineNetwork fitnessNet(NeuralSetup setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
+  public PipelineNetwork processStats(NeuralSetup setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
     List<Tuple2<Double, DAGNode>> functions = getFitnessComponents(setup, nodeMap);
     functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
     return network;
+  }
+  
+  public abstract U getInstance();
+  
+  public static class VGG16 extends DeepDream<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
+    
+    public MultiLayerVGG16 getInstance() {
+      return MultiLayerVGG16.INSTANCE;
+    }
+    
+    @Nonnull
+    public MultiLayerVGG16.LayerType[] getLayerTypes() {
+      return MultiLayerVGG16.LayerType.values();
+    }
+    
+  }
+  
+  public static class VGG19 extends DeepDream<MultiLayerVGG19.LayerType, MultiLayerVGG19> {
+    
+    public MultiLayerVGG19 getInstance() {
+      return MultiLayerVGG19.INSTANCE;
+    }
+    
+    @Nonnull
+    public MultiLayerVGG19.LayerType[] getLayerTypes() {
+      return MultiLayerVGG19.LayerType.values();
+    }
+    
   }
   
   /**

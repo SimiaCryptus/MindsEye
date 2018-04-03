@@ -42,8 +42,6 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    
-    
     log.h1("Model");
     log.p("In this demonstration, we will show how to load an image recognition network and use it to identify object in images.");
     log.p("We start by loading the VGG16 pretrained model using the HD5 importer. This downloads, if needed, the weights from a file in S3 and re-constructs the network architecture by custom code.");
