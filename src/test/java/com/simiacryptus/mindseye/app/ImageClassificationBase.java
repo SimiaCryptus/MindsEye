@@ -19,8 +19,8 @@
 
 package com.simiacryptus.mindseye.app;
 
+import com.simiacryptus.mindseye.applications.ImageClassifier;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;

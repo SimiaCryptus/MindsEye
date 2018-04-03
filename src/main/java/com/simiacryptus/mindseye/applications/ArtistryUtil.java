@@ -17,12 +17,11 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.app;
+package com.simiacryptus.mindseye.applications;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.simiacryptus.mindseye.labs.encoding.PCAUtil;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -38,6 +37,7 @@ import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.test.PCAUtil;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.StreamNanoHTTPD;

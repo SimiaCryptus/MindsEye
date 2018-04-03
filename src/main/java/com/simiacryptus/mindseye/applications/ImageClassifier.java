@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.models;
+package com.simiacryptus.mindseye.applications;
 
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
@@ -37,6 +37,7 @@ import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.models.NetworkFactory;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
@@ -78,15 +79,17 @@ public abstract class ImageClassifier implements NetworkFactory {
    * The Prototype.
    */
   @Nullable
+  protected
   Tensor prototype = new Tensor(224, 224, 3);
   /**
    * The Cnt.
    */
-  int cnt = 1;
+  protected int cnt = 1;
   /**
    * The Precision.
    */
   @Nonnull
+  protected
   Precision precision = Precision.Float;
   private int batchSize;
   

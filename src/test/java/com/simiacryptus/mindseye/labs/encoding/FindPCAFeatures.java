@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.labs.encoding;
 
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.test.PCAUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.math3.linear.RealMatrix;
 

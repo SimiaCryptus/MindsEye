@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.app;
 
+import com.simiacryptus.mindseye.applications.ArtistryUtil;
+import com.simiacryptus.mindseye.applications.StyleTransfer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.MultiLayerVGG19;
 import com.simiacryptus.mindseye.models.VGG19;
@@ -78,14 +80,8 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
 //        .set(MultiLayerVGG19.LayerType.Layer_1c, coeff_mean, coeff_cov)
         .set(MultiLayerVGG19.LayerType.Layer_1d, coeff_mean, coeff_cov)
     );
-//    styles.put(Arrays.asList(vanGogh), new StyleCoefficients(true)
-////      .set(MultiLayerVGG19.LayerType.Layer_1a, 1e0, 1e0)
-////      .set(MultiLayerVGG19.LayerType.Layer_1b, 1e0, 1e0)
-////      .set(MultiLayerVGG19.LayerType.Layer_1c, 1e0, 1e0)
-////      .set(MultiLayerVGG19.LayerType.Layer_1d, 1e0, 1e0)
-//    );
     StyleTransfer.ContentCoefficients contentCoefficients = new StyleTransfer.ContentCoefficients()
-//      .set(MultiLayerVGG19.LayerType.Layer_1c, 1e-1)
+      .set(MultiLayerVGG19.LayerType.Layer_1c, 1e0)
       ;
     int trainingMinutes = 90;
     

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.app;
+package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.Layer;
@@ -32,7 +32,6 @@ import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.models.Hdf5Archive;
-import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.models.VGG19_HDF5;
 import com.simiacryptus.mindseye.network.DAGNetwork;

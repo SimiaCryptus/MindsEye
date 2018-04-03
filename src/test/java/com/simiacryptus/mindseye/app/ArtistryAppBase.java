@@ -56,7 +56,7 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
   /**
    * The Server.
    */
-  StreamNanoHTTPD server;
+  protected StreamNanoHTTPD server;
   
   @Nonnull
   @Override

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.app;
+package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
@@ -72,7 +72,7 @@ import java.util.stream.Stream;
 public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> {
   
   private static final Logger logger = LoggerFactory.getLogger(StyleTransfer.class);
-  boolean parallelLossFunctions = true;
+  public boolean parallelLossFunctions = true;
   
   public BufferedImage styleTransfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
     return styleTransfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle);

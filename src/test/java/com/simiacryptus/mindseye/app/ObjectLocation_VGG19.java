@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.app;
 
+import com.simiacryptus.mindseye.applications.ObjectLocation;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

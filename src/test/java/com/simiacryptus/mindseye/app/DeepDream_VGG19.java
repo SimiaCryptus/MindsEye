@@ -19,6 +19,8 @@
 
 package com.simiacryptus.mindseye.app;
 
+import com.simiacryptus.mindseye.applications.ArtistryUtil;
+import com.simiacryptus.mindseye.applications.DeepDream;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.MultiLayerVGG19;
 import com.simiacryptus.mindseye.models.VGG19;
