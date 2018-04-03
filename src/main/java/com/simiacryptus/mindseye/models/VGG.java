@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
+/**
+ * The type Vgg.
+ */
 public abstract class VGG extends ImageClassifier {
   
   /**
@@ -1057,6 +1060,11 @@ public abstract class VGG extends ImageClassifier {
    */
   public static class Static extends VGG16 {
     
+    /**
+     * Instantiates a new Static.
+     *
+     * @param network the network
+     */
     public Static(Layer network) {this.cachedLayer = network;}
     
     @Override

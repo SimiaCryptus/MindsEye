@@ -61,6 +61,7 @@ public class CudnnHandle extends CudaDevice {
    * The Thread context.
    */
   static final ThreadLocal<CudnnHandle> threadContext = new ThreadLocal<>();
+  private static final ExecutorService cleanupPool = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
   /**
    * The constant CLEANUP.
    */
@@ -125,8 +126,6 @@ public class CudnnHandle extends CudaDevice {
     log("cudnnDestroyOpTensorDescriptor", result, new Object[]{obj});
     return result;
   }
-  
-  private static final ExecutorService cleanupPool = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
   
   /**
    * Wrap supplier.
@@ -737,7 +736,7 @@ public class CudnnHandle extends CudaDevice {
    * @param convDesc      the conv desc
    * @param dstTensorDesc the dst tensor desc
    * @param algorithm     the algorithm
-   * @param minSize
+   * @param minSize       the min size
    * @return the cuda ptr
    */
   public CudaMemory allocateBackwardFilterWorkspace(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm, final long minSize) {
@@ -761,7 +760,7 @@ public class CudnnHandle extends CudaDevice {
    * @param convDesc      the conv desc
    * @param dstTensorDesc the dst tensor desc
    * @param algorithm     the algorithm
-   * @param minSize
+   * @param minSize       the min size
    * @return the cuda ptr
    */
   public CudaMemory allocateForwardWorkspace(final cudnnTensorDescriptor srcTensorDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor dstTensorDesc, final int algorithm, final long minSize) {
@@ -997,7 +996,7 @@ public class CudnnHandle extends CudaDevice {
    * @param convDesc   the conv desc
    * @param outputDesc the output desc
    * @param algorithm  the algorithm
-   * @param minSize
+   * @param minSize    the min size
    * @return the cuda ptr
    */
   public CudaMemory allocateBackwardDataWorkspace(final cudnnTensorDescriptor inputDesc, final cudnnFilterDescriptor filterDesc, final cudnnConvolutionDescriptor convDesc, final cudnnTensorDescriptor outputDesc, final int algorithm, final long minSize) {

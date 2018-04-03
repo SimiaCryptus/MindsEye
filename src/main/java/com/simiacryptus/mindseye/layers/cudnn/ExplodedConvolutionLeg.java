@@ -58,6 +58,9 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    */
   @Nonnull
   public final List<Layer> subLayers;
+  /**
+   * The Sub kernels.
+   */
   @Nonnull
   public final List<SimpleConvolutionLayer> subKernels = new ArrayList<>();
   /**
@@ -88,7 +91,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
       int paddingX = (convolutionParams.masterFilterDimensions[0] - 1) / 2;
       int paddingY = (convolutionParams.masterFilterDimensions[1] - 1) / 2;
-
+  
       SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(filterDimensions[0], filterDimensions[1], inputBandsSq) //
         .setStrideX(this.convolutionParams.strideX) //
         .setStrideY(this.convolutionParams.strideY) //

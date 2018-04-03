@@ -70,10 +70,21 @@ public class RangeConstraint implements TrustRegion {
     return Arrays.stream(point).map(x -> Math.max(x, min)).map(x -> Math.min(x, max)).toArray();
   }
   
+  /**
+   * Gets min.
+   *
+   * @return the min
+   */
   public double getMin() {
     return min;
   }
   
+  /**
+   * Sets min.
+   *
+   * @param min the min
+   * @return the min
+   */
   public RangeConstraint setMin(double min) {
     this.min = min;
     return this;

@@ -282,12 +282,6 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       this.inner.addRef();
     }
     
-    @Override
-    protected void _free() {
-      super._free();
-      inner.freeRef();
-    }
-  
     /**
      * Instantiates a new Rescaled subnet layer.
      *
@@ -300,6 +294,12 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       inner = Layer.fromJson(json.getAsJsonObject("network"), rs);
     }
   
+    @Override
+    protected void _free() {
+      super._free();
+      inner.freeRef();
+    }
+    
     /**
      * Gets json.
      *

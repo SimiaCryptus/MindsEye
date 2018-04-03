@@ -62,10 +62,21 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * This notebook implements the Style Transfer protocol outlined in <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
+ *
+ * @param <T> the type parameter
+ * @param <U> the type parameter
  */
 public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> {
   private static final Logger logger = LoggerFactory.getLogger(DeepDream.class);
   
+  /**
+   * Deep dream buffered image.
+   *
+   * @param canvasImage     the canvas image
+   * @param styleParameters the style parameters
+   * @param trainingMinutes the training minutes
+   * @return the buffered image
+   */
   @Nonnull
   public BufferedImage deepDream(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
     return deepDream(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes);
@@ -74,6 +85,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
   /**
    * Style transfer buffered image.
    *
+   * @param server          the server
    * @param log             the log
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
@@ -97,6 +109,15 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
     return result;
   }
   
+  /**
+   * Train buffered image.
+   *
+   * @param canvasImage     the canvas image
+   * @param network         the network
+   * @param precision       the precision
+   * @param trainingMinutes the training minutes
+   * @return the buffered image
+   */
   @Nonnull
   public BufferedImage train(final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
     return train(null, new NullNotebookOutput(), canvasImage, network, precision, trainingMinutes);
@@ -105,6 +126,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
   /**
    * Train buffered image.
    *
+   * @param server          the server
    * @param log             the log
    * @param canvasImage     the canvas image
    * @param network         the network
@@ -196,6 +218,11 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
     return functions;
   }
   
+  /**
+   * Get layer types t [ ].
+   *
+   * @return the t [ ]
+   */
   @Nonnull
   public abstract T[] getLayerTypes();
   
@@ -238,8 +265,16 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
     return network;
   }
   
+  /**
+   * Gets instance.
+   *
+   * @return the instance
+   */
   public abstract U getInstance();
   
+  /**
+   * The type Vgg 16.
+   */
   public static class VGG16 extends DeepDream<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
     
     public MultiLayerVGG16 getInstance() {
@@ -253,6 +288,9 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
     
   }
   
+  /**
+   * The type Vgg 19.
+   */
   public static class VGG19 extends DeepDream<MultiLayerVGG19.LayerType, MultiLayerVGG19> {
     
     public MultiLayerVGG19 getInstance() {
@@ -268,6 +306,8 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
   
   /**
    * The type Style setup.
+   *
+   * @param <T> the type parameter
    */
   public static class StyleSetup<T extends LayerEnum<T>> {
     /**
@@ -303,9 +343,21 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
    * The type Content coefficients.
    */
   public static class ContentCoefficients {
+    /**
+     * The Rms.
+     */
     public final double rms;
+    /**
+     * The Gain.
+     */
     public final double gain;
   
+    /**
+     * Instantiates a new Content coefficients.
+     *
+     * @param rms  the rms
+     * @param gain the gain
+     */
     public ContentCoefficients(final double rms, final double gain) {
       this.rms = rms;
       this.gain = gain;
@@ -314,6 +366,8 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
   
   /**
    * The type Content target.
+   *
+   * @param <T> the type parameter
    */
   public static class ContentTarget<T extends LayerEnum<T>> {
     /**
@@ -324,6 +378,8 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
   
   /**
    * The type Neural setup.
+   *
+   * @param <T> the type parameter
    */
   public class NeuralSetup<T extends LayerEnum<T>> {
     

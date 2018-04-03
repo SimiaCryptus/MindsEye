@@ -108,16 +108,6 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   }
   
   /**
-   * Gets compatibility layer.
-   *
-   * @return the compatibility layer
-   */
-  @Nonnull
-  public Layer getCompatibilityLayer() {
-    return this.as(com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer.class);
-  }
-  
-  /**
    * Copy cuda tensor.
    *
    * @param gpu              the gpu
@@ -266,6 +256,16 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) - Math.max(offset[i], 0)
     );
     return viewDim;
+  }
+  
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
+  @Nonnull
+  public Layer getCompatibilityLayer() {
+    return this.as(com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer.class);
   }
   
   @Nullable

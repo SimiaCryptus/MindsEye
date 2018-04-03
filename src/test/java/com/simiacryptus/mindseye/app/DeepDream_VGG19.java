@@ -32,6 +32,9 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The type Deep dream vgg 19.
+ */
 public class DeepDream_VGG19 extends ArtistryAppBase {
   
   /**
@@ -57,7 +60,7 @@ public class DeepDream_VGG19 extends ArtistryAppBase {
     String lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
     CharSequence vanGogh = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-  
+    
     Map<MultiLayerVGG19.LayerType, DeepDream.ContentCoefficients> contentCoefficients = new HashMap<>();
     contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_1d, new DeepDream.ContentCoefficients(0, 1e-1));
 //    contentCoefficients.put(MultiLayerVGG19.LayerType.Layer_1e, new ContentCoefficients(0, 1e0));

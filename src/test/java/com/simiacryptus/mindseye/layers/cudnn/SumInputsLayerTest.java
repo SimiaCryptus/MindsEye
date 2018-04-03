@@ -107,10 +107,6 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
   public static class OnePlusOne extends CudaLayerTestBase {
   
   
-    @Override
-    public Class<? extends Layer> getReferenceLayerClass() {
-      return com.simiacryptus.mindseye.layers.java.SumInputsLayer.class;
-    }
     /**
      * Instantiates a new Asymmetric apply.
      */
@@ -118,7 +114,11 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
       super();
     }
   
-  
+    @Override
+    public Class<? extends Layer> getReferenceLayerClass() {
+      return com.simiacryptus.mindseye.layers.java.SumInputsLayer.class;
+    }
+
     @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {

@@ -58,6 +58,9 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
+/**
+ * The type Artistry util.
+ */
 public class ArtistryUtil {
   /**
    * Add layers handler.
@@ -98,6 +101,14 @@ public class ArtistryUtil {
     return network;
   }
   
+  /**
+   * Square avg pipeline network.
+   *
+   * @param network      the network
+   * @param mean         the mean
+   * @param pcaTransform the pca transform
+   * @return the pipeline network
+   */
   @Nonnull
   public static PipelineNetwork squareAvg(final PipelineNetwork network, Tensor mean, Tensor pcaTransform) {
     int[] dimensions = pcaTransform.getDimensions();
@@ -313,6 +324,13 @@ public class ArtistryUtil {
     return bufferedImage;
   }
   
+  /**
+   * Load buffered image.
+   *
+   * @param image     the image
+   * @param imageSize the image size
+   * @return the buffered image
+   */
   @Nonnull
   public static BufferedImage load(final String image, final int imageSize) {
     BufferedImage bufferedImage;
@@ -359,6 +377,12 @@ public class ArtistryUtil {
     return network;
   }
   
+  /**
+   * Gram pipeline network.
+   *
+   * @param network the network
+   * @return the pipeline network
+   */
   @Nonnull
   public static PipelineNetwork gram(final PipelineNetwork network) {
     network.wrap(new GramianLayer());
@@ -378,7 +402,7 @@ public class ArtistryUtil {
    * Randomize buffered image.
    *
    * @param contentImage the content image
-   * @param f
+   * @param f            the f
    * @return the buffered image
    */
   @Nonnull
@@ -395,10 +419,28 @@ public class ArtistryUtil {
     canvas.setByCoord(c -> FastRandom.INSTANCE.random());
   }
   
+  /**
+   * Wrap tiles avg layer.
+   *
+   * @param subnet the subnet
+   * @return the layer
+   */
   protected static Layer wrapTilesAvg(final Layer subnet) {
     return wrapTilesAvg(subnet, 0, 0, 0, 0, 400, 400);
   }
   
+  /**
+   * Wrap tiles avg layer.
+   *
+   * @param subnet     the subnet
+   * @param borderX1   the border x 1
+   * @param borderY1   the border y 1
+   * @param borderX2   the border x 2
+   * @param borderY2   the border y 2
+   * @param tileWidth  the tile width
+   * @param tileHeight the tile height
+   * @return the layer
+   */
   protected static Layer wrapTilesAvg(final Layer subnet, final int borderX1, final int borderY1, final int borderX2, final int borderY2, final int tileWidth, final int tileHeight) {
     PipelineNetwork network1 = new PipelineNetwork(1);
     if (borderX1 != 0 || borderY1 != 0)
@@ -412,6 +454,15 @@ public class ArtistryUtil {
     return network;
   }
   
+  /**
+   * Log exception with default t.
+   *
+   * @param <T>          the type parameter
+   * @param log          the log
+   * @param fn           the fn
+   * @param defaultValue the default value
+   * @return the t
+   */
   public static <T> T logExceptionWithDefault(@Nonnull final NotebookOutput log, Supplier<T> fn, T defaultValue) {
     try {
       return fn.get();

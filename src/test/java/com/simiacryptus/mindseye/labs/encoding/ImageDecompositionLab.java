@@ -424,7 +424,7 @@ public class ImageDecompositionLab {
         TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
-    
+  
       log.h2("Tuning");
       log.h3("Training");
       @Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
@@ -435,7 +435,7 @@ public class ImageDecompositionLab {
       EncodingUtil.printModel(log, innerModel, modelNo++);
       TestUtil.printDataStatistics(log, trainingData);
       history.clear();
-    
+  
       log.h2("Integration Training");
       log.h3("Training");
       @Nonnull final DAGNetwork trainingModel1 = EncodingUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);

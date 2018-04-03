@@ -68,15 +68,6 @@ import java.util.stream.IntStream;
  */
 public class CudaSystem {
   
-  private static final Map<Integer, Long> syncTimes = new HashMap<>();
-  
-  /**
-   * The Execution thread.
-   */
-  protected final ExecutorService executionThread = CoreSettings.INSTANCE.isSingleThreaded() ?
-    MoreExecutors.newDirectExecutorService() :
-    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
-  
   /**
    * The constant apiLog.
    */
@@ -117,7 +108,6 @@ public class CudaSystem {
    * The constant cudaMalloc_execution.
    */
   protected static final DoubleStatistics cudaMalloc_execution = new DoubleStatistics();
-  
   /**
    * The constant cudaDeviceSynchronize_execution.
    */
@@ -146,7 +136,6 @@ public class CudaSystem {
    * The constant cudaDeviceSetLimit_execution.
    */
   protected static final DoubleStatistics cudaDeviceSetLimit_execution = new DoubleStatistics();
-  
   /**
    * The constant cudaMemcpyAsync_execution.
    */
@@ -175,8 +164,6 @@ public class CudaSystem {
    * The constant cudnnSetReduceTensorDescriptor_execution.
    */
   protected static final DoubleStatistics cudnnSetReduceTensorDescriptor_execution = new DoubleStatistics();
-  
-  
   /**
    * The constant cudnnActivationBackward_execution.
    */
@@ -237,12 +224,10 @@ public class CudaSystem {
    * The constant cudnnOpTensor_execution.
    */
   protected static final DoubleStatistics cudnnOpTensor_execution = new DoubleStatistics();
-  
   /**
    * The constant cudnnReduceTensor_execution.
    */
   protected static final DoubleStatistics cudnnReduceTensor_execution = new DoubleStatistics();
-  
   /**
    * The constant cudnnPoolingBackward_execution.
    */
@@ -339,15 +324,28 @@ public class CudaSystem {
    * The constant syncLock.
    */
   protected static final Object syncLock = new Object();
+  /**
+   * The constant handlePools.
+   */
+  protected static final HashMap<Integer, ResourcePool<CudnnHandle>> handlePools = new HashMap<>();
+  private static final Map<Integer, Long> syncTimes = new HashMap<>();
   private static final Executor garbageTruck = MoreExecutors.directExecutor();
   //Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("gpu-free-%d").setDaemon(true).getNetwork());
+  private static final int deviceCount = init();
+  private static final HashMap<Integer, Object> deviceLocks = new HashMap<>();
+//  private final List<StackTraceElement[]> dirty = new ArrayList<>();
   /**
    * The constant gpuGeneration.
    */
   @Nonnull
   public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   private static volatile StaticResourcePool<CudnnHandle> pool;
-//  private final List<StackTraceElement[]> dirty = new ArrayList<>();
+  /**
+   * The Execution thread.
+   */
+  protected final ExecutorService executionThread = CoreSettings.INSTANCE.isSingleThreaded() ?
+    MoreExecutors.newDirectExecutorService() :
+    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
   
   /**
    * Instantiates a new Gpu system.
@@ -534,11 +532,6 @@ public class CudaSystem {
     handle(result);
     return result;
   }
-  
-  /**
-   * The constant handlePools.
-   */
-  protected static final HashMap<Integer, ResourcePool<CudnnHandle>> handlePools = new HashMap<>();
   
   /**
    * Gets device.
@@ -825,8 +818,6 @@ public class CudaSystem {
     return result;
   }
   
-  private static final int deviceCount = init();
-  
   /**
    * Device count int.
    *
@@ -926,16 +917,6 @@ public class CudaSystem {
     CudaSystem.handle(result);
     return tensorOuputDims;
   }
-  
-  /**
-   * Remove log boolean.
-   *
-   * @param apiLog the api log
-   * @return the boolean
-   */
-  public static boolean removeLog(PrintStream apiLog) {
-    return CudaSystem.apiLog.remove(apiLog);
-  }
 
 //  /**
 //   * With device.
@@ -955,6 +936,15 @@ public class CudaSystem {
 //    }
 //  }
   
+  /**
+   * Remove log boolean.
+   *
+   * @param apiLog the api log
+   * @return the boolean
+   */
+  public static boolean removeLog(PrintStream apiLog) {
+    return CudaSystem.apiLog.remove(apiLog);
+  }
   
   /**
    * Add log.
@@ -1225,8 +1215,6 @@ public class CudaSystem {
     return deviceCount;
   }
   
-  private static final HashMap<Integer, Object> deviceLocks = new HashMap<>();
-  
   /**
    * Synchronize.
    *
@@ -1269,6 +1257,22 @@ public class CudaSystem {
   }
   
   /**
+   * The constant POOL.
+   *
+   * @param deviceId the device id
+   * @return the pool
+   */
+  public static ResourcePool<CudnnHandle> getPool(final int deviceId) {
+    assert deviceId >= 0;
+    return handlePools.computeIfAbsent(deviceId, d -> new ResourcePool<CudnnHandle>(32) {
+      @Override
+      public CudnnHandle create() {
+        return new CudnnHandle(deviceId);
+      }
+    });
+  }
+  
+  /**
    * Cleanup.
    */
   protected void cleanup() {
@@ -1285,21 +1289,5 @@ public class CudaSystem {
      * @return the device id
      */
     int getDeviceId();
-  }
-  
-  /**
-   * The constant POOL.
-   *
-   * @param deviceId the device id
-   * @return the pool
-   */
-  public static ResourcePool<CudnnHandle> getPool(final int deviceId) {
-    assert deviceId >= 0;
-    return handlePools.computeIfAbsent(deviceId, d -> new ResourcePool<CudnnHandle>(32) {
-      @Override
-      public CudnnHandle create() {
-        return new CudnnHandle(deviceId);
-      }
-    });
   }
 }

@@ -40,6 +40,10 @@ import java.util.Date;
  */
 public abstract class ArtistryAppBase extends NotebookReportBase {
   private static final Logger logger = LoggerFactory.getLogger(ArtistryAppBase.class);
+  /**
+   * The Server.
+   */
+  protected StreamNanoHTTPD server;
   
   /**
    * Test.
@@ -51,12 +55,12 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
     run(this::run, getClass().getSimpleName() + "_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
   }
   
-  protected abstract void run(final NotebookOutput notebookOutput);
-  
   /**
-   * The Server.
+   * Run.
+   *
+   * @param notebookOutput the notebook output
    */
-  protected StreamNanoHTTPD server;
+  protected abstract void run(final NotebookOutput notebookOutput);
   
   @Nonnull
   @Override

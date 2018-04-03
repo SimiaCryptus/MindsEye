@@ -133,13 +133,13 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         data.addRef();
         passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }) {
-    
+  
         @Override
         protected void _free() {
           result.freeRef();
         }
-    
-    
+  
+  
         @Override
         public boolean isAlive() {
           return result.isAlive();
@@ -170,7 +170,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
       data.addRef();
       backwardPerformance.add((TimedResult.time(() -> output.accumulate(buffer, data)).timeNanos - passbackNanos.getAndSet(0)) / (items * 1e9));
     }) {
-    
+  
       @Override
       protected void _free() {
         output.freeRef();

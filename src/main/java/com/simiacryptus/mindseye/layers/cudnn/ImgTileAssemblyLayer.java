@@ -419,14 +419,41 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   }
   
   private static class CopyParams {
+    /**
+     * The Length.
+     */
     public final int length;
+    /**
+     * The Output dims.
+     */
     public final int[] outputDims;
+    /**
+     * The Gpu.
+     */
     public final CudnnHandle gpu;
+    /**
+     * The Output buffer.
+     */
     public final CudaMemory outputBuffer;
+    /**
+     * The Total height.
+     */
     public final int totalHeight;
+    /**
+     * The Input index.
+     */
     public final int inputIndex;
+    /**
+     * The Position x.
+     */
     public final int positionX;
+    /**
+     * The Tile dimensions.
+     */
     public final int[] tileDimensions;
+    /**
+     * The In obj.
+     */
     @Nonnull
     public final Result[] inObj;
     
@@ -445,17 +472,44 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   }
   
   private static class BackpropParams {
+    /**
+     * The In obj.
+     */
     @Nonnull
     public final Result[] inObj;
+    /**
+     * The Buffer.
+     */
     @Nonnull
     public final DeltaSet<Layer> buffer;
+    /**
+     * The Error.
+     */
     @Nonnull
     public final TensorList error;
+    /**
+     * The Output dims.
+     */
     public final int[] outputDims;
+    /**
+     * The Tile dimensions.
+     */
     public final int[] tileDimensions;
+    /**
+     * The Length.
+     */
     public final int length;
+    /**
+     * The Position x.
+     */
     public final int positionX;
+    /**
+     * The Total height.
+     */
     public final int totalHeight;
+    /**
+     * The Input index.
+     */
     public final int inputIndex;
     
     private BackpropParams(@Nonnull final Result[] inObj, @Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error, final int[] outputDims, final int[] tileDimensions, final int length, final int positionX, final int totalHeight, final int inputIndex) {

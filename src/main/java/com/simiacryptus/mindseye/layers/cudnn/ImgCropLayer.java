@@ -104,16 +104,6 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   }
   
   /**
-   * Gets compatibility layer.
-   *
-   * @return the compatibility layer
-   */
-  @Nonnull
-  public Layer getCompatibilityLayer() {
-    return this.as(com.simiacryptus.mindseye.layers.java.ImgCropLayer.class);
-  }
-  
-  /**
    * Copy cuda tensor.
    *
    * @param gpu              the gpu
@@ -221,6 +211,16 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     return viewDim;
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
+  @Nonnull
+  public Layer getCompatibilityLayer() {
+    return this.as(com.simiacryptus.mindseye.layers.java.ImgCropLayer.class);
+  }
+  
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -256,8 +256,8 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
         throw new AssertionError(delta.length() + " != " + outputData.length());
       }
       assert delta.length() == length;
-    
-    
+  
+  
       if (input.isAlive()) {
         final TensorList passbackTensorList = CudaSystem.run(gpu -> {
           @Nullable final CudaTensor errorPtr = gpu.getTensor(delta, precision, MemoryType.Device, false);
@@ -275,7 +275,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   
   
     }) {
-    
+  
       @Override
       public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);

@@ -57,11 +57,6 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class StandardLayerTests extends NotebookReportBase {
   /**
-   * The Testing batch size.
-   */
-  protected int testingBatchSize = 5;
-  
-  /**
    * The constant seed.
    */
   public static final long seed = 51389; //System.nanoTime();
@@ -71,6 +66,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
   
   private final Random random = getRandom();
+  /**
+   * The Testing batch size.
+   */
+  protected int testingBatchSize = 5;
   /**
    * The Validate batch execution.
    */
@@ -87,6 +86,9 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The Test equivalency.
    */
   protected boolean testEquivalency = true;
+  /**
+   * The Tolerance.
+   */
   protected double tolerance;
   
   /**
@@ -461,18 +463,18 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           invocations.add(new Invocation(inner, Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
           return result;
         }
-    
+  
         @Override
         public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
           return inner.getJson(resources, dataSerializer);
         }
-    
+  
         @Nullable
         @Override
         public List<double[]> state() {
           return inner.state();
         }
-    
+  
         @Override
         protected void _free() {
           inner.freeRef();

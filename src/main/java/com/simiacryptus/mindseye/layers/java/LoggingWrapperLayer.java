@@ -92,7 +92,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         data.addRef();
         inputToWrap.accumulate(buffer, data);
       }) {
-    
+  
         @Override
         protected void _free() {
           inputToWrap.freeRef();
@@ -136,13 +136,13 @@ public final class LoggingWrapperLayer extends WrapperLayer {
       data.addRef();
       output.accumulate(buffer, data);
     }) {
-    
+  
       @Override
       protected void _free() {
         output.freeRef();
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return output.isAlive();

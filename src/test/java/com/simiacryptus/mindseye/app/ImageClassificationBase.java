@@ -34,6 +34,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+/**
+ * The type Image classification base.
+ */
 public abstract class ImageClassificationBase extends ArtistryAppBase {
   
   /**
@@ -90,6 +93,12 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
     });
   }
   
+  /**
+   * Load model image classifier.
+   *
+   * @param log the log
+   * @return the image classifier
+   */
   public abstract ImageClassifier loadModel(@Nonnull NotebookOutput log);
   
   /**

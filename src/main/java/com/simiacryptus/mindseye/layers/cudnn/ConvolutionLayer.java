@@ -255,7 +255,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
         read.freeRef();
       }
     }) {
-
+  
       @Override
       public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);

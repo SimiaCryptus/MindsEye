@@ -36,6 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * The type Style transfer vgg 19.
+ */
 public class StyleTransfer_VGG19 extends ArtistryAppBase {
   
   /**
@@ -66,7 +69,7 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
     CharSequence vanGogh2 = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Dr_Paul_Gachet_-_Google_Art_Project.jpg";
     CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
     CharSequence maJolie = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\Ma_Jolie_Pablo_Picasso.jpg";
-  
+    
     Map<List<CharSequence>, StyleTransfer.StyleCoefficients> styles = new HashMap<>();
     double coeff_mean = 1e1;
     double coeff_cov = 1e0;
@@ -81,13 +84,12 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
         .set(MultiLayerVGG19.LayerType.Layer_1d, coeff_mean, coeff_cov)
     );
     StyleTransfer.ContentCoefficients contentCoefficients = new StyleTransfer.ContentCoefficients()
-      .set(MultiLayerVGG19.LayerType.Layer_1c, 1e0)
-      ;
+      .set(MultiLayerVGG19.LayerType.Layer_1c, 1e0);
     int trainingMinutes = 90;
     
     log.h1("Phase 0");
     BufferedImage canvasImage = ArtistryUtil.load(monkey, imageSize);
-//    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     canvasImage = TestUtil.resize(TestUtil.resize(canvasImage, 25, true), imageSize, true);
 //    canvasImage = randomize(canvasImage, x -> 10 * (FastRandom.INSTANCE.random()) * (FastRandom.INSTANCE.random() < 0.9 ? 1 : 0));
     canvasImage = ArtistryUtil.randomize(canvasImage, x -> x + 2 * 1 * (FastRandom.INSTANCE.random() - 0.5));

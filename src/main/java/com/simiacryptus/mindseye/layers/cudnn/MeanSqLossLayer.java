@@ -82,10 +82,21 @@ public class MeanSqLossLayer extends PipelineNetwork {
     return json;
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
   
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
   public MeanSqLossLayer setAlpha(final double alpha) {
     this.alpha = alpha;
     BinarySumLayer binarySumLayer = binaryNode.getLayer();

@@ -87,7 +87,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
    * The type Hash map layer reweighting strategy.
    */
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
-
+  
     @Nonnull
     private final HashMap<Layer, Double> map = new HashMap<>();
   

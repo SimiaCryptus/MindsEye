@@ -137,7 +137,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
       public boolean isAlive() {
         return input.isAlive();
       }
-    
+  
       @Override
       protected void _free() {
         input.freeRef();

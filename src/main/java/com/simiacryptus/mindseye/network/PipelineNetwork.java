@@ -38,18 +38,6 @@ import java.util.UUID;
  */
 @SuppressWarnings("serial")
 public class PipelineNetwork extends DAGNetwork {
-  @Nonnull
-  @Override
-  public PipelineNetwork copy(final SerialPrecision precision) {
-    return (PipelineNetwork) super.copy(precision);
-  }
-  
-  @Nonnull
-  @Override
-  public PipelineNetwork copy() {
-    return (PipelineNetwork) super.copy();
-  }
-  
   @Nullable
   private DAGNode head;
   
@@ -115,6 +103,18 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public static PipelineNetwork fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PipelineNetwork(json, rs);
+  }
+  
+  @Nonnull
+  @Override
+  public PipelineNetwork copy(final SerialPrecision precision) {
+    return (PipelineNetwork) super.copy(precision);
+  }
+  
+  @Nonnull
+  @Override
+  public PipelineNetwork copy() {
+    return (PipelineNetwork) super.copy();
   }
   
   /**

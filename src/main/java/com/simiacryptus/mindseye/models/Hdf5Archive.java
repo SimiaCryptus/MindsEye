@@ -57,7 +57,7 @@ public class Hdf5Archive {
   
   static {
     try {
-            /* This is necessary for the apply to the BytePointer constructor below. */
+      /* This is necessary for the apply to the BytePointer constructor below. */
       Loader.load(hdf5.class);
     } catch (Exception e) {
       e.printStackTrace();
@@ -438,14 +438,14 @@ public class Hdf5Archive {
     VarLenType vl = attribute.getVarLenType();
     int bufferSizeMult = 1;
     @Nullable String s = null;
-        /* TODO: find a less hacky way to do this.
-         * Reading variable length strings (from attributes) is a giant
-         * pain. There does not appear to be any way to determine the
-         * length of the string in advance, so we use a hack: choose a
-         * buffer size and read the config. If Jackson fails to parse
-         * it, then we must not have read the entire config. Increase
-         * buffer and repeat.
-         */
+    /* TODO: find a less hacky way to do this.
+     * Reading variable length strings (from attributes) is a giant
+     * pain. There does not appear to be any way to determine the
+     * length of the string in advance, so we use a hack: choose a
+     * buffer size and read the config. If Jackson fails to parse
+     * it, then we must not have read the entire config. Increase
+     * buffer and repeat.
+     */
     while (true) {
       @Nonnull byte[] attrBuffer = new byte[bufferSizeMult * 2000];
       @Nonnull BytePointer attrPointer = new BytePointer(attrBuffer);
@@ -478,13 +478,13 @@ public class Hdf5Archive {
     VarLenType vl = attribute.getVarLenType();
     int bufferSizeMult = 1;
     @Nullable String s = null;
-        /* TODO: find a less hacky way to do this.
-         * Reading variable length strings (from attributes) is a giant
-         * pain. There does not appear to be any way to determine the
-         * length of the string in advance, so we use a hack: choose a
-         * buffer size and read the config, increase buffer and repeat
-         * until the buffer ends apply \u0000
-         */
+    /* TODO: find a less hacky way to do this.
+     * Reading variable length strings (from attributes) is a giant
+     * pain. There does not appear to be any way to determine the
+     * length of the string in advance, so we use a hack: choose a
+     * buffer size and read the config, increase buffer and repeat
+     * until the buffer ends apply \u0000
+     */
     while (true) {
       @Nonnull byte[] attrBuffer = new byte[bufferSizeMult * 2000];
       @Nonnull BytePointer attrPointer = new BytePointer(attrBuffer);

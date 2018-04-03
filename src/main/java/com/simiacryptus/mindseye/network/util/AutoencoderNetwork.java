@@ -582,7 +582,7 @@ public class AutoencoderNetwork {
       final TensorList data = representations.get(representations.size() - 1);
       dimensions.add(dims);
       layers.add(newLayer);
-    
+  
       if (pretrainingSize > 0 && pretrainIterations > 0 && pretrainingMinutes > 0) {
         @Nonnull final ArrayList<Tensor> list = new ArrayList<>(data.stream().collect(Collectors.toList()));
         Collections.shuffle(list);
@@ -592,7 +592,7 @@ public class AutoencoderNetwork {
       newLayer.decoderSynapse = ((FullyConnectedLayer) newLayer.decoderSynapse).getTranspose();
       newLayer.decoderSynapsePlaceholder.setInner(newLayer.decoderSynapse);
       configure(newLayer.train()).run(data);
-    
+  
       runMode();
       representations.add(newLayer.encode(data));
       return newLayer;

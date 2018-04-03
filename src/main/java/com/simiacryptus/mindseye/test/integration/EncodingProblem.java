@@ -194,7 +194,7 @@ public class EncodingProblem implements Problem {
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
     }
-
+  
     @Nonnull final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
     log.h3("Network Diagram");
     log.code(() -> {

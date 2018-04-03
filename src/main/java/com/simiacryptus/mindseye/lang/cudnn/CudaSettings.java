@@ -236,5 +236,5 @@ public class CudaSettings implements Settings {
   public boolean isConvolutionCache() {
     return convolutionCache;
   }
-
+  
 }

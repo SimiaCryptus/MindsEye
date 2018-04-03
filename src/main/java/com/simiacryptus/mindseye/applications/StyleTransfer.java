@@ -68,16 +68,42 @@ import java.util.stream.Stream;
 
 /**
  * This notebook implements the Style Transfer protocol outlined in <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
+ *
+ * @param <T> the type parameter
+ * @param <U> the type parameter
  */
 public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> {
   
   private static final Logger logger = LoggerFactory.getLogger(StyleTransfer.class);
+  /**
+   * The Parallel loss functions.
+   */
   public boolean parallelLossFunctions = true;
   
+  /**
+   * Style transfer buffered image.
+   *
+   * @param canvasImage     the canvas image
+   * @param styleParameters the style parameters
+   * @param trainingMinutes the training minutes
+   * @param measureStyle    the measure style
+   * @return the buffered image
+   */
   public BufferedImage styleTransfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
     return styleTransfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle);
   }
   
+  /**
+   * Style transfer buffered image.
+   *
+   * @param server          the server
+   * @param log             the log
+   * @param canvasImage     the canvas image
+   * @param styleParameters the style parameters
+   * @param trainingMinutes the training minutes
+   * @param measureStyle    the measure style
+   * @return the buffered image
+   */
   public BufferedImage styleTransfer(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
     BufferedImage result = ArtistryUtil.logExceptionWithDefault(log, () -> {
       log.p("Input Content:");
@@ -130,6 +156,17 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
     return result;
   }
   
+  /**
+   * Gets style components.
+   *
+   * @param node          the node
+   * @param network       the network
+   * @param styleParams   the style params
+   * @param mean          the mean
+   * @param covariance    the covariance
+   * @param centeringMode the centering mode
+   * @return the style components
+   */
   @Nonnull
   public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final PipelineNetwork network, final LayerStyleParams styleParams, final Tensor mean, final Tensor covariance, final CenteringMode centeringMode) {
     ArrayList<Tuple2<Double, DAGNode>> styleComponents = new ArrayList<>();
@@ -174,7 +211,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
     }
     return styleComponents;
   }
-
+  
   /**
    * Measure style neural setup.
    *
@@ -299,6 +336,11 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
     return network;
   }
   
+  /**
+   * Get layer types t [ ].
+   *
+   * @return the t [ ]
+   */
   @Nonnull
   public abstract T[] getLayerTypes();
   
@@ -325,32 +367,11 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
     return contentComponents;
   }
   
-  public static class VGG16 extends StyleTransfer<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
-    
-    public MultiLayerVGG16 getInstance() {
-      return MultiLayerVGG16.INSTANCE;
-    }
-    
-    @Nonnull
-    public MultiLayerVGG16.LayerType[] getLayerTypes() {
-      return MultiLayerVGG16.LayerType.values();
-    }
-    
-  }
-  
-  public static class VGG19 extends StyleTransfer<MultiLayerVGG19.LayerType, MultiLayerVGG19> {
-    
-    public MultiLayerVGG19 getInstance() {
-      return MultiLayerVGG19.INSTANCE;
-    }
-    
-    @Nonnull
-    public MultiLayerVGG19.LayerType[] getLayerTypes() {
-      return MultiLayerVGG19.LayerType.values();
-    }
-    
-  }
-  
+  /**
+   * Gets instance.
+   *
+   * @return the instance
+   */
   public abstract U getInstance();
   
   /**
@@ -369,14 +390,60 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
     return network;
   }
   
+  /**
+   * The enum Centering mode.
+   */
   public enum CenteringMode {
+    /**
+     * Dynamic centering mode.
+     */
     Dynamic,
+    /**
+     * Static centering mode.
+     */
     Static,
+    /**
+     * Origin centering mode.
+     */
     Origin
   }
   
   /**
+   * The type Vgg 16.
+   */
+  public static class VGG16 extends StyleTransfer<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
+    
+    public MultiLayerVGG16 getInstance() {
+      return MultiLayerVGG16.INSTANCE;
+    }
+    
+    @Nonnull
+    public MultiLayerVGG16.LayerType[] getLayerTypes() {
+      return MultiLayerVGG16.LayerType.values();
+    }
+    
+  }
+  
+  /**
+   * The type Vgg 19.
+   */
+  public static class VGG19 extends StyleTransfer<MultiLayerVGG19.LayerType, MultiLayerVGG19> {
+    
+    public MultiLayerVGG19 getInstance() {
+      return MultiLayerVGG19.INSTANCE;
+    }
+    
+    @Nonnull
+    public MultiLayerVGG19.LayerType[] getLayerTypes() {
+      return MultiLayerVGG19.LayerType.values();
+    }
+    
+  }
+  
+  /**
    * The type Content coefficients.
+   *
+   * @param <T> the type parameter
    */
   public static class ContentCoefficients<T extends LayerEnum<T>> {
     /**
@@ -425,16 +492,14 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
   
   /**
    * The type Style setup.
+   *
+   * @param <T> the type parameter
    */
   public static class StyleSetup<T extends LayerEnum<T>> {
     /**
      * The Precision.
      */
     public final Precision precision;
-    /**
-     * The Content image.
-     */
-    public transient BufferedImage contentImage;
     /**
      * The Style image.
      */
@@ -447,6 +512,10 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
      * The Content.
      */
     public final ContentCoefficients<T> content;
+    /**
+     * The Content image.
+     */
+    public transient BufferedImage contentImage;
     
     
     /**
@@ -470,6 +539,8 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
   
   /**
    * The type Style coefficients.
+   *
+   * @param <T> the type parameter
    */
   public static class StyleCoefficients<T extends LayerEnum<T>> {
     /**
@@ -490,7 +561,15 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
     public StyleCoefficients(final CenteringMode centeringMode) {
       this.centeringMode = centeringMode;
     }
-    
+  
+    /**
+     * Set style coefficients.
+     *
+     * @param layerType        the layer type
+     * @param coeff_style_mean the coeff style mean
+     * @param coeff_style_cov  the coeff style cov
+     * @return the style coefficients
+     */
     public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
       params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov));
       return this;
@@ -500,6 +579,8 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
   
   /**
    * The type Content target.
+   *
+   * @param <T> the type parameter
    */
   public static class ContentTarget<T extends LayerEnum<T>> {
     /**
@@ -510,6 +591,8 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
   
   /**
    * The type Style target.
+   *
+   * @param <T> the type parameter
    */
   public class StyleTarget<T extends LayerEnum<T>> {
     /**
@@ -525,6 +608,12 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
      */
     public Map<T, Tensor> mean = new HashMap<>();
   
+    /**
+     * Add style target.
+     *
+     * @param right the right
+     * @return the style target
+     */
     public StyleTarget<T> add(StyleTarget<T> right) {
       StyleTarget<T> newStyle = new StyleTarget<>();
       Stream.concat(mean.keySet().stream(), right.mean.keySet().stream()).distinct().forEach(layer -> {
@@ -551,6 +640,12 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
       return newStyle;
     }
   
+    /**
+     * Scale style target.
+     *
+     * @param value the value
+     * @return the style target
+     */
     public StyleTarget<T> scale(double value) {
       StyleTarget<T> newStyle = new StyleTarget<>();
       mean.keySet().stream().distinct().forEach(layer -> {
@@ -569,6 +664,8 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
   
   /**
    * The type Neural setup.
+   *
+   * @param <T> the type parameter
    */
   public class NeuralSetup<T extends LayerEnum<T>> {
     

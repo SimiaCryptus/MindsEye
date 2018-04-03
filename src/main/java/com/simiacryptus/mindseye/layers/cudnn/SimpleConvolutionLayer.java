@@ -346,7 +346,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               filterPtr.dirty();
               deltaTensorMemory.freeRef();
               inputDescriptor.addRef();
-    
+  
               return CudaTensorList.wrap(CudaTensor.wrap(passbackMemory, inputDescriptor, precision), length, inputSize, precision);
             } catch (@Nonnull final Throwable e) {
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
@@ -387,6 +387,16 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     };
   }
   
+  /**
+   * Gets forward algorithm.
+   *
+   * @param gpu                   the gpu
+   * @param inputTensor           the input tensor
+   * @param filterDescriptor      the filter descriptor
+   * @param convolutionDescriptor the convolution descriptor
+   * @param outputDescriptor      the output descriptor
+   * @return the forward algorithm
+   */
   public int getForwardAlgorithm(final CudnnHandle gpu, final CudaTensor inputTensor, final CudaResource<cudnnFilterDescriptor> filterDescriptor, final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, final CudaDevice.CudaTensorDescriptor outputDescriptor) {
 //    return cudnnConvolutionFwdAlgo.CUDNN_CONVOLUTION_FWD_ALGO_FFT;
     return gpu.getForwardAlgorithm(
@@ -394,11 +404,31 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       outputDescriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
   }
   
+  /**
+   * Gets backward filter algorithm.
+   *
+   * @param gpu                   the gpu
+   * @param deltaTensor           the delta tensor
+   * @param inputTensor           the input tensor
+   * @param filterDescriptor      the filter descriptor
+   * @param convolutionDescriptor the convolution descriptor
+   * @return the backward filter algorithm
+   */
   public int getBackwardFilterAlgorithm(final CudnnHandle gpu, final CudaTensor deltaTensor, final CudaTensor inputTensor, final CudaResource<cudnnFilterDescriptor> filterDescriptor, final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
     return gpu.getBackwardFilterAlgorithm(
       inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
   }
   
+  /**
+   * Gets backward data algorithm.
+   *
+   * @param gpu                   the gpu
+   * @param inputDescriptor       the input descriptor
+   * @param filterDescriptor      the filter descriptor
+   * @param convolutionDescriptor the convolution descriptor
+   * @param deltaTensor           the delta tensor
+   * @return the backward data algorithm
+   */
   public int getBackwardDataAlgorithm(final CudnnHandle gpu, final CudaDevice.CudaTensorDescriptor inputDescriptor, final CudaResource<cudnnFilterDescriptor> filterDescriptor, final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, final CudaTensor deltaTensor) {
     return cudnnConvolutionBwdDataAlgo.CUDNN_CONVOLUTION_BWD_DATA_ALGO_1;
     //return gpu.getBackwardDataAlgorithm(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());

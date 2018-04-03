@@ -62,10 +62,18 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * The type Object location.
+ */
 public abstract class ObjectLocation {
   
   private static final Logger logger = LoggerFactory.getLogger(ObjectLocation.class);
   
+  /**
+   * Run.
+   *
+   * @param log the log
+   */
   public void run(@Nonnull final NotebookOutput log) {
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
@@ -158,98 +166,18 @@ public abstract class ObjectLocation {
     log.setFrontMatterProperty("status", "OK");
   }
   
-  public static class VGG16 extends ObjectLocation {
-    
-    /**
-     * The Texture netork.
-     */
-    
-    @Override
-    public ImageClassifier getLocatorNetwork() {
-      ImageClassifier locator;
-      try {
-        locator = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase3b() {
-            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
-          }
-        }//.setSamples(5).setDensity(0.3)
-          .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return locator;
-    }
-    
-    @Override
-    public ImageClassifier getClassifierNetwork() {
-      ImageClassifier classifier;
-      try {
-        classifier = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
-          @Override
-          protected void phase3b() {
-            add(new SoftmaxActivationLayer()
-              .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
-              .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
-            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
-          }
-        }//.setSamples(5).setDensity(0.3)
-          .setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return classifier;
-    }
-    
-  }
-  
-  public static class VGG19 extends ObjectLocation {
-    
-    /**
-     * The Texture netork.
-     */
-    
-    @Override
-    public ImageClassifier getLocatorNetwork() {
-      ImageClassifier locator;
-      try {
-        locator = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
-          @Override
-          protected void phase3b() {
-            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
-          }
-        }//.setSamples(5).setDensity(0.3)
-          .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return locator;
-    }
-    
-    @Override
-    public ImageClassifier getClassifierNetwork() {
-      ImageClassifier classifier;
-      try {
-        classifier = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
-          @Override
-          protected void phase3b() {
-            add(new SoftmaxActivationLayer()
-              .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
-              .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
-            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
-          }
-        }//.setSamples(5).setDensity(0.3)
-          .setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return classifier;
-    }
-    
-  }
-  
+  /**
+   * Gets locator network.
+   *
+   * @return the locator network
+   */
   public abstract ImageClassifier getLocatorNetwork();
   
+  /**
+   * Gets classifier network.
+   *
+   * @return the classifier network
+   */
   public abstract ImageClassifier getClassifierNetwork();
   
   /**
@@ -374,5 +302,101 @@ public abstract class ObjectLocation {
   public <T> Comparator<T> getShuffleComparator() {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
+  }
+  
+  /**
+   * The type Vgg 16.
+   */
+  public static class VGG16 extends ObjectLocation {
+    
+    /**
+     * The Texture netork.
+     */
+    
+    @Override
+    public ImageClassifier getLocatorNetwork() {
+      ImageClassifier locator;
+      try {
+        locator = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase3b() {
+            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
+          }
+        }//.setSamples(5).setDensity(0.3)
+          .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return locator;
+    }
+    
+    @Override
+    public ImageClassifier getClassifierNetwork() {
+      ImageClassifier classifier;
+      try {
+        classifier = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
+          @Override
+          protected void phase3b() {
+            add(new SoftmaxActivationLayer()
+              .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
+              .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
+            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
+          }
+        }//.setSamples(5).setDensity(0.3)
+          .setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return classifier;
+    }
+    
+  }
+  
+  /**
+   * The type Vgg 19.
+   */
+  public static class VGG19 extends ObjectLocation {
+    
+    /**
+     * The Texture netork.
+     */
+    
+    @Override
+    public ImageClassifier getLocatorNetwork() {
+      ImageClassifier locator;
+      try {
+        locator = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
+          @Override
+          protected void phase3b() {
+            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
+          }
+        }//.setSamples(5).setDensity(0.3)
+          .setFinalPoolingMode(PoolingLayer.PoolingMode.Avg);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return locator;
+    }
+    
+    @Override
+    public ImageClassifier getClassifierNetwork() {
+      ImageClassifier classifier;
+      try {
+        classifier = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
+          @Override
+          protected void phase3b() {
+            add(new SoftmaxActivationLayer()
+              .setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE)
+              .setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
+            add(new BandReducerLayer().setMode(getFinalPoolingMode()));
+          }
+        }//.setSamples(5).setDensity(0.3)
+          .setFinalPoolingMode(PoolingLayer.PoolingMode.Max);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return classifier;
+    }
+    
   }
 }

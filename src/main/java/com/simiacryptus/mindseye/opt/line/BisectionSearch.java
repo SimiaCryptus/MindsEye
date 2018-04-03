@@ -167,10 +167,21 @@ public class BisectionSearch implements LineSearchStrategy {
     }
   }
   
+  /**
+   * Gets span tol.
+   *
+   * @return the span tol
+   */
   public double getSpanTol() {
     return spanTol;
   }
   
+  /**
+   * Sets span tol.
+   *
+   * @param spanTol the span tol
+   * @return the span tol
+   */
   public BisectionSearch setSpanTol(double spanTol) {
     this.spanTol = spanTol;
     return this;

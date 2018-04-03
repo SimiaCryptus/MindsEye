@@ -131,7 +131,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
       public CharSequence getDirectionType() {
         return cursor.getDirectionType() + "+Trust";
       }
-
+  
       @Nonnull
       @Override
       public DeltaSet<Layer> position(final double alpha) {
@@ -140,7 +140,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
         project(adjustedPosVector, new TrainingMonitor());
         return adjustedPosVector;
       }
-
+  
       @Nonnull
       public DeltaSet<Layer> project(@Nonnull final DeltaSet<Layer> deltaIn, final TrainingMonitor monitor) {
         final DeltaSet<Layer> originalAlphaDerivative = cursor.direction;

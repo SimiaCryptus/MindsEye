@@ -100,7 +100,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         public boolean isAlive() {
           return true;
         }
-    
+  
       };
       @Nullable final Result eval = component.eval(copyInput);
       @Nonnull final DeltaSet<Layer> xxx = new DeltaSet<Layer>();
@@ -445,13 +445,13 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @Nullable final Result eval = frozen.eval(new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-    
+  
       @Override
       public boolean isAlive() {
         return true;
       }
-    
-    
+  
+  
     });
     @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
     TensorList tensorList = eval.getData().copy();
@@ -480,12 +480,12 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @Nullable final Result eval = frozen.eval(new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-    
+  
       @Override
       public boolean isAlive() {
         return true;
       }
-    
+  
     });
     @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
     TensorList data = eval.getData();

@@ -87,7 +87,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         public boolean isAlive() {
           return false;
         }
-    
+  
       }).toArray(i -> new Result[i]);
       copyInput[inputIndex].getData().freeRef();
       copyInput[inputIndex].freeRef();
@@ -520,12 +520,12 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     Result[] input = inputCopies.stream().map((tensorArray) -> new Result(tensorArray, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-    
+  
       @Override
       public boolean isAlive() {
         return true;
       }
-    
+  
     }).toArray(i -> new Result[i]);
     @Nullable final Result eval;
     try {

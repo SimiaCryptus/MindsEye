@@ -166,7 +166,19 @@ public class MultiLayerVGG19 implements MultiLayerImageNetwork<MultiLayerVGG19.L
     /**
      * Layer 1 e layer type.
      */
-    Layer_1e, Layer_2a, Layer_2b, Layer_3a, Layer_3b;
+    Layer_1e, /**
+     * Layer 2 a layer type.
+     */
+    Layer_2a, /**
+     * Layer 2 b layer type.
+     */
+    Layer_2b, /**
+     * Layer 3 a layer type.
+     */
+    Layer_3a, /**
+     * Layer 3 b layer type.
+     */
+    Layer_3b;
     
     /**
      * Texture pipeline network.

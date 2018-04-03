@@ -52,7 +52,7 @@ public abstract class VGG19 extends VGG {
   /**
    * From s 3 vgg 16 hdf 5.
    *
-   * @param hdf
+   * @param hdf the hdf
    * @return the vgg 16 hdf 5
    */
   public static ImageClassifier fromHDF5(final File hdf) {

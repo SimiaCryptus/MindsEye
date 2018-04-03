@@ -62,6 +62,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
    */
   @Nullable
   volatile TensorArray heapCopy = null;
+  
   /**
    * Instantiates a new Cu dnn double tensor list.
    *
@@ -169,25 +170,25 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     if (heapCopy == null) {
       if (right instanceof CudaTensorList) {
         @Nonnull final CudaTensorList nativeRight = (CudaTensorList) right;
-          if (nativeRight.getPrecision() == this.getPrecision()) {
-            if (nativeRight.heapCopy == null) {
-              assert (!nativeRight.gpuCopy.equals(CudaTensorList.this.gpuCopy));
-              CudaMemory rightMem = gpuCopy.memory;
-              CudaMemory leftMem = rightMem;
-              if (null != leftMem && null != rightMem) return CudaSystem.run(gpu -> {
-                if (gpu.getDeviceId() == leftMem.getDeviceId()) {
-                  return gpu.addInPlace(this, nativeRight);
-                }
-                else {
-                  assertAlive();
-                  right.assertAlive();
-                  TensorList add = add(right);
-                  freeRef();
-                  return add;
-                }
-              }, this, right);
-            }
+        if (nativeRight.getPrecision() == this.getPrecision()) {
+          if (nativeRight.heapCopy == null) {
+            assert (!nativeRight.gpuCopy.equals(CudaTensorList.this.gpuCopy));
+            CudaMemory rightMem = gpuCopy.memory;
+            CudaMemory leftMem = rightMem;
+            if (null != leftMem && null != rightMem) return CudaSystem.run(gpu -> {
+              if (gpu.getDeviceId() == leftMem.getDeviceId()) {
+                return gpu.addInPlace(this, nativeRight);
+              }
+              else {
+                assertAlive();
+                right.assertAlive();
+                TensorList add = add(right);
+                freeRef();
+                return add;
+              }
+            }, this, right);
           }
+        }
       }
     }
     if (right.length() == 0) return this;

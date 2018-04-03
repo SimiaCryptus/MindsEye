@@ -176,14 +176,14 @@ public class ImgBandScaleLayer extends LayerBase {
         input.accumulate(buffer, tensorArray);
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         inData.freeRef();
         input.freeRef();
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();

@@ -210,7 +210,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class SqGrid extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Asymmetric apply.
      */
@@ -224,7 +224,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class IrregularGrid extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Asymmetric apply.
      */
@@ -238,7 +238,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Reduces the number of color bands from 6 to 3 (radius 3; 64-bit precision)
    */
   public static class BandReduceTest extends ConvolutionLayerTest {
-    
+  
     /**
      * Instantiates a new Asymmetric apply.
      */

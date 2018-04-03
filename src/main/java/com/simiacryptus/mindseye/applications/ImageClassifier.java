@@ -254,6 +254,20 @@ public abstract class ImageClassifier implements NetworkFactory {
   }
   
   /**
+   * Sets precision.
+   *
+   * @param model     the model
+   * @param precision the precision
+   */
+  public static void setPrecision(DAGNetwork model, final Precision precision) {
+    model.visitLayers(layer -> {
+      if (layer instanceof MultiPrecision) {
+        ((MultiPrecision) layer).setPrecision(precision);
+      }
+    });
+  }
+  
+  /**
    * Deep dream.
    *
    * @param log   the log
@@ -359,20 +373,6 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param config              the config
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {deepDream(log, image, targetCategoryIndex, totalCategories, config, getNetwork(), new EntropyLossLayer(), -1.0);}
-  
-  /**
-   * Sets precision.
-   *
-   * @param model     the model
-   * @param precision the precision
-   */
-  public static void setPrecision(DAGNetwork model, final Precision precision) {
-    model.visitLayers(layer -> {
-      if (layer instanceof MultiPrecision) {
-        ((MultiPrecision) layer).setPrecision(precision);
-      }
-    });
-  }
   
   @Nonnull
   @Override

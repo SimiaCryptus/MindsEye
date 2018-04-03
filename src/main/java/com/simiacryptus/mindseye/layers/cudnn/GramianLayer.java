@@ -368,10 +368,21 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
     return this;
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
   
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
   public GramianLayer setAlpha(final double alpha) {
     this.alpha = alpha;
     return this;
