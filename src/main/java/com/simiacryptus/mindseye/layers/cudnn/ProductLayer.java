@@ -83,7 +83,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static ProductLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ProductLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ProductLayer(json);
   }
   
@@ -221,10 +221,10 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
             CudaResource<cudnnReduceTensorDescriptor> reduceTensorDescriptor = gpu.cudnnCreateReduceTensorDescriptor(
               cudnnReduceTensorOp.CUDNN_REDUCE_TENSOR_ADD, precision.code, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN,
               cudnnReduceTensorIndices.CUDNN_REDUCE_TENSOR_NO_INDICES, cudnnIndicesType.CUDNN_32BIT_INDICES);
-        
+  
             @Nonnull final CudaMemory workspacePtr = gpu.allocate(outputPtr.size, MemoryType.Device, true);
             @Nonnull final CudaMemory indexPtr = gpu.allocate(3, MemoryType.Device, false);
-        
+  
             //outputPtr.synchronize();
             gpu.cudnnReduceTensor(reduceTensorDescriptor.getPtr(),
               indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
@@ -233,7 +233,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
             reducedOutputPtr.dirty();
             workspacePtr.dirty();
             outputPtr.dirty();
-        
+  
             deltaTensorMemory.freeRef();
             leftTensorMemory.freeRef();
             CudaTensor cudaTensor = new CudaTensor(reducedOutputPtr, reducedOutputDescriptor, precision);
@@ -279,7 +279,7 @@ public class ProductLayer extends LayerBase implements MultiPrecision<ProductLay
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     return json;

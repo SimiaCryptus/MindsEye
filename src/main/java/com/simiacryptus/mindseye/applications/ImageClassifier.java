@@ -17,15 +17,13 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.models;
+package com.simiacryptus.mindseye.applications;
 
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.ConstantResult;
-import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -39,6 +37,7 @@ import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
+import com.simiacryptus.mindseye.models.NetworkFactory;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
@@ -53,7 +52,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -61,7 +59,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -82,22 +79,23 @@ public abstract class ImageClassifier implements NetworkFactory {
    * The Prototype.
    */
   @Nullable
+  protected
   Tensor prototype = new Tensor(224, 224, 3);
   /**
    * The Cnt.
    */
-  int cnt = 1;
+  protected int cnt = 1;
   /**
    * The Precision.
    */
   @Nonnull
+  protected
   Precision precision = Precision.Float;
   private int batchSize;
   
   /**
    * Predict list.
    *
-   * @param prefilter  the prefilter
    * @param network    the network
    * @param count      the count
    * @param categories the categories
@@ -105,14 +103,13 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @Nonnull Layer network, int count, @Nonnull List<String> categories, int batchSize, Tensor... data) {
-    return predict(prefilter, network, count, categories, batchSize, true, false, data);
+  public static List<LinkedHashMap<CharSequence, Double>> predict(@Nonnull Layer network, int count, @Nonnull List<CharSequence> categories, int batchSize, Tensor... data) {
+    return predict(network, count, categories, batchSize, true, false, data);
   }
   
   /**
    * Predict list.
    *
-   * @param prefilter  the prefilter
    * @param network    the network
    * @param count      the count
    * @param categories the categories
@@ -122,27 +119,27 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @Nonnull Layer network, int count, @Nonnull List<String> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
+  public static List<LinkedHashMap<CharSequence, Double>> predict(@Nonnull Layer network, int count, @Nonnull List<CharSequence> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
     try {
       return Lists.partition(Arrays.asList(data), 1).stream().flatMap(batch -> {
         Tensor[][] input = {
-          batch.stream().map(prefilter).toArray(i -> new Tensor[i])
+          batch.stream().toArray(i -> new Tensor[i])
         };
         Result[] inputs = ConstantResult.singleResultArray(input);
         @Nullable Result result = network.eval(inputs);
         result.freeRef();
         TensorList resultData = result.getData();
-        Arrays.stream(input).flatMap(Arrays::stream).forEach(ReferenceCounting::freeRef);
-        Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
-        Arrays.stream(inputs).map(Result::getData).forEach(ReferenceCounting::freeRef);
+        //Arrays.stream(input).flatMap(Arrays::stream).forEach(ReferenceCounting::freeRef);
+        //Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
+        //Arrays.stream(inputs).map(Result::getData).forEach(ReferenceCounting::freeRef);
   
-        List<LinkedHashMap<String, Double>> maps = resultData.stream().map(tensor -> {
+        List<LinkedHashMap<CharSequence, Double>> maps = resultData.stream().map(tensor -> {
           @Nullable double[] predictionSignal = tensor.getData();
           int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
             .sorted(Comparator.comparing(i -> -predictionSignal[i]))
             .mapToInt(x -> x).toArray();
           assert categories.size() == predictionSignal.length;
-          @Nonnull LinkedHashMap<String, Double> topN = new LinkedHashMap<>();
+          @Nonnull LinkedHashMap<CharSequence, Double> topN = new LinkedHashMap<>();
           for (int i = 0; i < count; i++) {
             int index = order[i];
             topN.put(categories.get(index), predictionSignal[index]);
@@ -167,38 +164,6 @@ public abstract class ImageClassifier implements NetworkFactory {
   @Nonnull
   public static TrainingMonitor getTrainingMonitor(@Nonnull ArrayList<StepRecord> history, final PipelineNetwork network) {
     return TestUtil.getMonitor(history);
-  }
-  
-  /**
-   * Gets bias function.
-   *
-   * @param tensor the tensor
-   * @return the bias function
-   */
-  @Nonnull
-  public static ToDoubleFunction<Coordinate> getBiasFunction(@Nonnull Tensor tensor) {
-    return c1 -> {
-      if (c1.getCoords()[2] == 0) return tensor.get(c1) - 103.939;
-      if (c1.getCoords()[2] == 1) return tensor.get(c1) - 116.779;
-      if (c1.getCoords()[2] == 2) return tensor.get(c1) - 123.68;
-      else return tensor.get(c1);
-    };
-  }
-  
-  /**
-   * Gets permute function.
-   *
-   * @param tensor the tensor
-   * @return the permute function
-   */
-  @Nonnull
-  public static ToDoubleFunction<Coordinate> getPermuteFunction(@Nonnull Tensor tensor) {
-    return c -> {
-      if (c.getCoords()[2] == 0) return tensor.get(c.getCoords()[0], c.getCoords()[1], 0);
-      if (c.getCoords()[2] == 1) return tensor.get(c.getCoords()[0], c.getCoords()[1], 1);
-      if (c.getCoords()[2] == 2) return tensor.get(c.getCoords()[0], c.getCoords()[1], 2);
-      else throw new RuntimeException();
-    };
   }
   
   /**
@@ -289,6 +254,20 @@ public abstract class ImageClassifier implements NetworkFactory {
   }
   
   /**
+   * Sets precision.
+   *
+   * @param model     the model
+   * @param precision the precision
+   */
+  public static void setPrecision(DAGNetwork model, final Precision precision) {
+    model.visitLayers(layer -> {
+      if (layer instanceof MultiPrecision) {
+        ((MultiPrecision) layer).setPrecision(precision);
+      }
+    });
+  }
+  
+  /**
    * Deep dream.
    *
    * @param log   the log
@@ -323,32 +302,22 @@ public abstract class ImageClassifier implements NetworkFactory {
   /**
    * Predict list.
    *
-   * @param prefilter  the prefilter
    * @param network    the network
    * @param count      the count
    * @param categories the categories
    * @param data       the data
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(Function<Tensor, Tensor> prefilter, @Nonnull Layer network, int count, @Nonnull List<String> categories, @Nonnull Tensor... data) {
-    return predict(prefilter, network, count, categories, Math.max(data.length, getBatchSize()), data);
+  public List<LinkedHashMap<CharSequence, Double>> predict(@Nonnull Layer network, int count, @Nonnull List<CharSequence> categories, @Nonnull Tensor... data) {
+    return predict(network, count, categories, Math.max(data.length, getBatchSize()), data);
   }
-  
-  /**
-   * Prefilter tensor.
-   *
-   * @param tensor the tensor
-   * @return the tensor
-   */
-  @Nonnull
-  public abstract Tensor prefilter(Tensor tensor);
   
   /**
    * Gets categories.
    *
    * @return the categories
    */
-  public abstract List<String> getCategories();
+  public abstract List<CharSequence> getCategories();
   
   /**
    * Predict list.
@@ -357,8 +326,8 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data  the data
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(int count, Tensor... data) {
-    return predict(this::prefilter, getNetwork(), count, getCategories(), data);
+  public List<LinkedHashMap<CharSequence, Double>> predict(int count, Tensor... data) {
+    return predict(getNetwork(), count, getCategories(), data);
   }
   
   /**
@@ -369,8 +338,8 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data    the data
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(@Nonnull Layer network, int count, Tensor[] data) {
-    return predict(this::prefilter, network, count, getCategories(), data);
+  public List<LinkedHashMap<CharSequence, Double>> predict(@Nonnull Layer network, int count, Tensor[] data) {
+    return predict(network, count, getCategories(), data);
   }
   
   /**
@@ -404,20 +373,6 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param config              the config
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {deepDream(log, image, targetCategoryIndex, totalCategories, config, getNetwork(), new EntropyLossLayer(), -1.0);}
-  
-  /**
-   * Sets precision.
-   *
-   * @param model     the model
-   * @param precision the precision
-   */
-  public static void setPrecision(DAGNetwork model, final Precision precision) {
-    model.visitLayers(layer -> {
-      if (layer instanceof MultiPrecision) {
-        ((MultiPrecision) layer).setPrecision(precision);
-      }
-    });
-  }
   
   @Nonnull
   @Override
@@ -469,11 +424,7 @@ public abstract class ImageClassifier implements NetworkFactory {
     });
     log.code(() -> {
       for (Tensor[] tensors : data) {
-        try {
-          ImageClassifier.log.info(log.image(tensors[0].toImage(), "") + tensors[1]);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+        ImageClassifier.log.info(log.image(tensors[0].toImage(), "") + tensors[1]);
       }
     });
     log.code(() -> {

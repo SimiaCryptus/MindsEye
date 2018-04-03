@@ -73,7 +73,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
    * @param json the json
    * @param rs   the rs
    */
-  protected StochasticSamplingSubnetLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected StochasticSamplingSubnetLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     samples = json.getAsJsonPrimitive("samples").getAsInt();
     seed = json.getAsJsonPrimitive("seed").getAsInt();
@@ -89,7 +89,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
    * @param rs   the rs
    * @return the rescaled subnet layer
    */
-  public static StochasticSamplingSubnetLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static StochasticSamplingSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StochasticSamplingSubnetLayer(json, rs);
   }
   
@@ -153,7 +153,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("samples", samples);
     json.addProperty("seed", seed);

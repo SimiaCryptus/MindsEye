@@ -169,7 +169,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   
       @Nonnull
       @Override
-      public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+      public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
   

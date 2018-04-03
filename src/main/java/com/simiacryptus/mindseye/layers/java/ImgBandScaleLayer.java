@@ -92,7 +92,7 @@ public class ImgBandScaleLayer extends LayerBase {
    * @param rs   the rs
    * @return the img band scale layer
    */
-  public static ImgBandScaleLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgBandScaleLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandScaleLayer(json);
   }
   
@@ -176,14 +176,14 @@ public class ImgBandScaleLayer extends LayerBase {
         input.accumulate(buffer, tensorArray);
       }
     }) {
-    
+  
       @Override
       protected void _free() {
         inData.freeRef();
         input.freeRef();
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
@@ -193,7 +193,7 @@ public class ImgBandScaleLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("bias", JsonUtil.getJson(getWeights()));
     return json;

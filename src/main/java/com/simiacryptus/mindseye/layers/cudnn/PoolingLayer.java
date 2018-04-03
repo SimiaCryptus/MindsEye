@@ -100,7 +100,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
    * @param rs   the rs
    * @return the pooling layer
    */
-  public static PoolingLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static PoolingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PoolingLayer(json);
   }
   
@@ -128,7 +128,6 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     final TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
     final int length = inputData.length();
-    inputData.addRef();
     final int inputDims = Tensor.length(inputSize);
     @Nonnull final int[] outputSize = new int[4];
     final CudaTensor outputData = CudaSystem.run(gpu -> {
@@ -150,8 +149,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         inputDataMemory.dirty();
         outputTensor.dirty();
-        inputDataMemory.freeRef();
-        Arrays.stream(new ReferenceCounting[]{inputTensor, poolingDesc}).forEach(ReferenceCounting::freeRef);
+        Stream.<ReferenceCounting>of(inputTensor, poolingDesc, inputDataMemory).forEach(ReferenceCounting::freeRef);
         return CudaTensor.wrap(outputTensor, outputDescriptor, precision);
       } catch (@Nonnull final Throwable e) {
         throw new ComponentException("Error", e);
@@ -208,7 +206,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode.id);
     json.addProperty("windowX", windowX);

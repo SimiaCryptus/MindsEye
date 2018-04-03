@@ -131,7 +131,7 @@ public class SparkTrainable extends TrainableBase {
    * @return the result
    */
   protected static SparkTrainable.ReducableResult getResult(@Nonnull final DeltaSet<Layer> delta, @Nonnull final double[] values) {
-    final Map<String, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
+    final Map<CharSequence, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
       e -> e.getKey().getId().toString(), e -> e.getValue().getDelta()
     ));
     return new SparkTrainable.ReducableResult(deltas, values.length, Arrays.stream(values).sum());
@@ -323,7 +323,7 @@ public class SparkTrainable extends TrainableBase {
     /**
      * The Deltas.
      */
-    public final Map<String, double[]> deltas;
+    public final Map<CharSequence, double[]> deltas;
     /**
      * The Sum.
      */
@@ -336,7 +336,7 @@ public class SparkTrainable extends TrainableBase {
      * @param count  the count
      * @param sum    the sum
      */
-    public ReducableResult(final Map<String, double[]> deltas, final int count, final double sum) {
+    public ReducableResult(final Map<CharSequence, double[]> deltas, final int count, final double sum) {
       this.deltas = deltas;
       this.count = count;
       this.sum = sum;
@@ -348,7 +348,7 @@ public class SparkTrainable extends TrainableBase {
      * @param source the source
      */
     public void accumulate(@Nonnull final DeltaSet<Layer> source) {
-      final Map<String, Layer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
+      final Map<CharSequence, Layer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
         e -> e.getKey().getId().toString(), e -> e.getKey()
       ));
       deltas.forEach((k, v) -> source.get(idIndex.get(k), (double[]) null).addInPlace(v));
@@ -362,9 +362,9 @@ public class SparkTrainable extends TrainableBase {
      */
     @Nonnull
     public SparkTrainable.ReducableResult add(@Nonnull final SparkTrainable.ReducableResult right) {
-      @Nonnull final HashMap<String, double[]> map = new HashMap<>();
-      final Set<String> keys = Stream.concat(deltas.keySet().stream(), right.deltas.keySet().stream()).collect(Collectors.toSet());
-      for (final String key : keys) {
+      @Nonnull final HashMap<CharSequence, double[]> map = new HashMap<>();
+      final Set<CharSequence> keys = Stream.concat(deltas.keySet().stream(), right.deltas.keySet().stream()).collect(Collectors.toSet());
+      for (final CharSequence key : keys) {
         final double[] l = deltas.get(key);
         final double[] r = right.deltas.get(key);
         if (null != r) {

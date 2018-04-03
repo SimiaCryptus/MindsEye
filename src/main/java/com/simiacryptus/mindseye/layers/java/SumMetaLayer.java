@@ -65,7 +65,7 @@ public class SumMetaLayer extends LayerBase {
    * @param json      the id
    * @param resources the resources
    */
-  protected SumMetaLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected SumMetaLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatches = json.get("minBatches").getAsInt();
@@ -78,7 +78,7 @@ public class SumMetaLayer extends LayerBase {
    * @param rs   the rs
    * @return the sum meta layer
    */
-  public static SumMetaLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SumMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumMetaLayer(json, rs);
   }
   
@@ -127,7 +127,7 @@ public class SumMetaLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     if (null != lastResult) {
       json.add("lastResult", lastResult.toJson(resources, dataSerializer));

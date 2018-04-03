@@ -74,7 +74,7 @@ public class ImgConcatLayer extends LayerBase {
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgConcatLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgConcatLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgConcatLayer(json);
   }
   
@@ -107,7 +107,7 @@ public class ImgConcatLayer extends LayerBase {
     }
     return new Result(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       assert numBatches == data.length();
-    
+  
       @Nonnull final List<Tensor[]> splitBatches = new ArrayList<>();
       for (int b = 0; b < numBatches; b++) {
         @Nullable final Tensor tensor = data.get(b);
@@ -123,7 +123,7 @@ public class ImgConcatLayer extends LayerBase {
         tensor.freeRef();
         splitBatches.add(outputTensors2);
       }
-    
+  
       @Nonnull final Tensor[][] splitData = new Tensor[inObj.length][];
       for (int i = 0; i < splitData.length; i++) {
         splitData[i] = new Tensor[numBatches];
@@ -159,7 +159,7 @@ public class ImgConcatLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull JsonObject json = super.getJsonStub();
     json.addProperty("maxBands", maxBands);
     return json;

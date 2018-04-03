@@ -72,7 +72,7 @@ public class ReshapeLayer extends LayerBase {
    * @param json the json
    * @param rs   the rs
    */
-  protected ReshapeLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ReshapeLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
   }
@@ -84,7 +84,7 @@ public class ReshapeLayer extends LayerBase {
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ReshapeLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ReshapeLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ReshapeLayer(json, rs);
   }
   
@@ -118,7 +118,7 @@ public class ReshapeLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     return json;

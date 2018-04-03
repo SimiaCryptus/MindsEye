@@ -62,6 +62,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   
   
   private Precision precision = Precision.Double;
+  private double alpha = 1.0;
   
   /**
    * Instantiates a new Img concat layer.
@@ -75,9 +76,10 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
    * @param json the json
    * @param rs   the rs
    */
-  protected GramianLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected GramianLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
+    this.alpha = json.getAsJsonPrimitive("alpha").getAsDouble();
   }
   
   /**
@@ -87,7 +89,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static GramianLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static GramianLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GramianLayer(json, rs);
   }
   
@@ -226,7 +228,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       CudaMemory outputViewMem = outputMemory.withByteOffset(bandDescriptor.cStride * band * precision.size);
       gpu.cudnnReduceTensor(reduceAddDescriptor.getPtr(),
         indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
-        precision.getPointer(1.0 / pixels), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
+        precision.getPointer(alpha / pixels), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
         precision.getPointer(0.0), bandDescriptor.getPtr(), outputViewMem.getPtr());
       outputViewMem.dirty();
       bufferMemory.dirty();
@@ -315,7 +317,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       CudaMemory outputView = outputMemory.withByteOffset(band * precision.size * bands);
       CudaSystem.handle(gpu.cudnnReduceTensor(reduceAddDescriptor.getPtr(),
         indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
-        precision.getPointer(1.0 / pixels), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
+        precision.getPointer(alpha / pixels), bufferDescriptor.getPtr(), bufferMemory.getPtr(),
         precision.getPointer(0.0), outputViewDescriptor.getPtr(), outputView.getPtr()));
       outputView.dirty();
       bufferMemory.dirty();
@@ -341,9 +343,10 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
+    json.addProperty("alpha", alpha);
     return json;
   }
   
@@ -365,4 +368,23 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
     return this;
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
+  public double getAlpha() {
+    return alpha;
+  }
+  
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
+  public GramianLayer setAlpha(final double alpha) {
+    this.alpha = alpha;
+    return this;
+  }
 }

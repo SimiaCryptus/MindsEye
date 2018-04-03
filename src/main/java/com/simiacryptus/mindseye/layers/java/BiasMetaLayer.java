@@ -72,7 +72,7 @@ public class BiasMetaLayer extends LayerBase {
    * @param rs   the rs
    * @return the bias meta layer
    */
-  public static BiasMetaLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BiasMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BiasMetaLayer(json);
   }
   
@@ -140,7 +140,7 @@ public class BiasMetaLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

@@ -51,7 +51,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
     @Nonnull ArrayList<ComponentTest<?>> copy = new ArrayList<>(super.getBigTests());
-    if (CudaSystem.isEnabled()) copy.add(new CudaLayerTester(1e-3));
+    if (CudaSystem.isEnabled()) copy.add(new CudaLayerTester(tolerance));
     return copy;
   }
   
@@ -100,10 +100,6 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
     };
   }
   
-  /**
-   * The Testing batch size.
-   */
-  protected int testingBatchSize = 5;
   
   @Nullable
   @Override

@@ -34,7 +34,7 @@ public interface LineSearchCursor extends ReferenceCounting {
    *
    * @return the direction type
    */
-  String getDirectionType();
+  CharSequence getDirectionType();
   
   /**
    * Position delta setByCoord.

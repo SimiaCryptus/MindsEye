@@ -84,7 +84,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
    * @param rs   the rs
    * @return the pooling layer
    */
-  public static BandAvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BandAvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BandAvgReducerLayer(json);
   }
   
@@ -110,7 +110,6 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
     final int bands = inputSize[2];
     CudaTensorList result = CudaSystem.run(gpu -> {
       CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
-      inputData.freeRef();
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length, bands, 1, 1);
       long size = (long) precision.size * outputDescriptor.nStride * length;
       @Nonnull final CudaMemory outputPtr = gpu.allocate(size, MemoryType.Managed, true);
@@ -128,8 +127,8 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
         precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
       outputPtr.dirty();
       inputMemory.dirty();
-      
-      Stream.of(inputMemory, inputTensor, reduceTensorDescriptor, workspacePtr, indexPtr).forEach(ReferenceCounting::freeRef);
+  
+      Stream.of(inputMemory, inputTensor, reduceTensorDescriptor, workspacePtr, indexPtr, inputData).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, new int[]{1, 1, bands}, precision);
     });
     int pixels = inputSize[0] * inputSize[1];
@@ -176,7 +175,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("alpha", alpha);
     json.addProperty("precision", precision.name());

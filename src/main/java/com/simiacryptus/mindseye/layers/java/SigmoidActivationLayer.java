@@ -62,7 +62,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
    * @param rs   the rs
    * @return the sigmoid activation layer
    */
-  public static SigmoidActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SigmoidActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SigmoidActivationLayer(json);
   }
   
@@ -99,7 +99,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("balanced", balanced);
     return json;

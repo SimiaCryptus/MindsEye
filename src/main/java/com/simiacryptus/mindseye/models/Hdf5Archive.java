@@ -57,7 +57,7 @@ public class Hdf5Archive {
   
   static {
     try {
-            /* This is necessary for the apply to the BytePointer constructor below. */
+      /* This is necessary for the apply to the BytePointer constructor below. */
       Loader.load(hdf5.class);
     } catch (Exception e) {
       e.printStackTrace();
@@ -98,9 +98,9 @@ public class Hdf5Archive {
     printTree(archive, "", false, log);
   }
   
-  private static void printTree(@Nonnull Hdf5Archive hdf5, String prefix, boolean printData, @Nonnull Logger log, @Nonnull String... path) {
-    for (String datasetName : hdf5.getDataSets(path)) {
-      @Nullable Tensor tensor = hdf5.readDataSet(datasetName, path);
+  private static void printTree(@Nonnull Hdf5Archive hdf5, CharSequence prefix, boolean printData, @Nonnull Logger log, @Nonnull String... path) {
+    for (CharSequence datasetName : hdf5.getDataSets(path)) {
+      @Nullable Tensor tensor = hdf5.readDataSet(datasetName.toString(), path);
       log.info(String.format("%sDataset %s: %s", prefix, datasetName, Arrays.toString(tensor.getDimensions())));
       if (printData) log.info(String.format("%s%s", prefix, tensor.prettyPrint().replaceAll("\n", "\n" + prefix)));
       tensor.freeRef();
@@ -108,7 +108,7 @@ public class Hdf5Archive {
     hdf5.getAttributes(path).forEach((k, v) -> {
       log.info((String.format("%sAttribute: %s => %s", prefix, k, v)));
     });
-    for (String t : hdf5.getGroups(path).stream().sorted(new Comparator<String>() {
+    for (String t : hdf5.getGroups(path).stream().map(CharSequence::toString).sorted(new Comparator<String>() {
       @Override
       public int compare(@Nonnull String o1, @Nonnull String o2) {
         @Nonnull String prefix = "layer_";
@@ -126,7 +126,7 @@ public class Hdf5Archive {
   }
   
   @Nonnull
-  private static String[] concat(@Nonnull String[] s, String t) {
+  private static String[] concat(@Nonnull CharSequence[] s, String t) {
     @Nonnull String[] strings = new String[s.length + 1];
     System.arraycopy(s, 0, strings, 0, s.length);
     strings[s.length] = t;
@@ -139,11 +139,11 @@ public class Hdf5Archive {
   }
   
   @Nonnull
-  private Group[] openGroups(@Nonnull String... groups) {
+  private Group[] openGroups(@Nonnull CharSequence... groups) {
     @Nonnull Group[] groupArray = new Group[groups.length];
-    groupArray[0] = this.file.openGroup(groups[0]);
+    groupArray[0] = this.file.openGroup(groups[0].toString());
     for (int i = 1; i < groups.length; i++) {
-      groupArray[i] = groupArray[i - 1].openGroup(groups[i]);
+      groupArray[i] = groupArray[i - 1].openGroup(groups[i].toString());
     }
     return groupArray;
   }
@@ -162,7 +162,7 @@ public class Hdf5Archive {
    * @return tensor tensor
    */
   @Nullable
-  public Tensor readDataSet(String datasetName, @Nonnull String... groups) {
+  public Tensor readDataSet(CharSequence datasetName, @Nonnull CharSequence... groups) {
     if (groups.length == 0) {
       return readDataSet(this.file, datasetName);
     }
@@ -180,7 +180,7 @@ public class Hdf5Archive {
    * @return string string
    */
   @Nullable
-  public String readAttributeAsJson(String attributeName, @Nonnull String... groups) {
+  public CharSequence readAttributeAsJson(String attributeName, @Nonnull String... groups) {
     if (groups.length == 0) {
       return readAttributeAsJson(this.file.openAttribute(attributeName));
     }
@@ -198,7 +198,7 @@ public class Hdf5Archive {
    * @return string string
    */
   @Nullable
-  public String readAttributeAsString(String attributeName, @Nonnull String... groups) {
+  public CharSequence readAttributeAsString(String attributeName, @Nonnull String... groups) {
     if (groups.length == 0) {
       return readAttributeAsString(this.file.openAttribute(attributeName));
     }
@@ -232,13 +232,13 @@ public class Hdf5Archive {
    * @return the attributes
    */
   @Nonnull
-  public Map<String, Object> getAttributes(@Nonnull String... groups) {
+  public Map<CharSequence, Object> getAttributes(@Nonnull String... groups) {
     if (groups.length == 0) {
       return getAttributes(this.file);
     }
     @Nonnull Group[] groupArray = openGroups(groups);
     Group group = groupArray[groupArray.length - 1];
-    @Nonnull Map<String, Object> attributes = getAttributes(group);
+    @Nonnull Map<CharSequence, Object> attributes = getAttributes(group);
     closeGroups(groupArray);
     return attributes;
   }
@@ -250,12 +250,12 @@ public class Hdf5Archive {
    * @return the attributes
    */
   @Nonnull
-  public Map<String, Object> getAttributes(@Nonnull Group group) {
+  public Map<CharSequence, Object> getAttributes(@Nonnull Group group) {
     int numAttrs = group.getNumAttrs();
-    @Nonnull TreeMap<String, Object> attributes = new TreeMap<>();
+    @Nonnull TreeMap<CharSequence, Object> attributes = new TreeMap<>();
     for (int i = 0; i < numAttrs; i++) {
       Attribute attribute = group.openAttribute(i);
-      String name = attribute.getName().getString();
+      CharSequence name = attribute.getName().getString();
       int typeId = attribute.getTypeClass();
       if (typeId == 0) {
         attributes.put(name, getI64(attribute));
@@ -274,7 +274,7 @@ public class Hdf5Archive {
   }
   
   @Nonnull
-  private String getString(@Nonnull Attribute attribute) {
+  private CharSequence getString(@Nonnull Attribute attribute) {
     return getString(attribute, attribute.getVarLenType(), new byte[1024]);
   }
   
@@ -287,7 +287,7 @@ public class Hdf5Archive {
   }
   
   @Nonnull
-  private String getString(@Nonnull Attribute attribute, DataType dataType, @Nonnull byte[] buffer) {
+  private CharSequence getString(@Nonnull Attribute attribute, DataType dataType, @Nonnull byte[] buffer) {
     @Nonnull BytePointer pointer = new BytePointer(buffer);
     attribute.read(dataType, pointer);
     pointer.get(buffer);
@@ -307,12 +307,12 @@ public class Hdf5Archive {
    * @return data sets
    */
   @Nonnull
-  public List<String> getDataSets(@Nonnull String... groups) {
+  public List<CharSequence> getDataSets(@Nonnull String... groups) {
     if (groups.length == 0) {
       return getObjects(this.file, H5O_TYPE_DATASET);
     }
     @Nonnull Group[] groupArray = openGroups(groups);
-    @Nonnull List<String> ls = getObjects(groupArray[groupArray.length - 1], H5O_TYPE_DATASET);
+    @Nonnull List<CharSequence> ls = getObjects(groupArray[groupArray.length - 1], H5O_TYPE_DATASET);
     closeGroups(groupArray);
     return ls;
   }
@@ -324,12 +324,12 @@ public class Hdf5Archive {
    * @return groups groups
    */
   @Nonnull
-  public List<String> getGroups(@Nonnull String... groups) {
+  public List<CharSequence> getGroups(@Nonnull String... groups) {
     if (groups.length == 0) {
       return getObjects(this.file, H5O_TYPE_GROUP);
     }
     @Nonnull Group[] groupArray = openGroups(groups);
-    @Nonnull List<String> ls = getObjects(groupArray[groupArray.length - 1], H5O_TYPE_GROUP);
+    @Nonnull List<CharSequence> ls = getObjects(groupArray[groupArray.length - 1], H5O_TYPE_GROUP);
     closeGroups(groupArray);
     return ls;
   }
@@ -342,8 +342,8 @@ public class Hdf5Archive {
    * @return
    */
   @Nullable
-  private Tensor readDataSet(@Nonnull Group fileGroup, String datasetName) {
-    DataSet dataset = fileGroup.openDataSet(datasetName);
+  private Tensor readDataSet(@Nonnull Group fileGroup, CharSequence datasetName) {
+    DataSet dataset = fileGroup.openDataSet(datasetName.toString());
     DataSpace space = dataset.getSpace();
     int nbDims = space.getSimpleExtentNdims();
     @Nonnull long[] dims = new long[nbDims];
@@ -416,8 +416,8 @@ public class Hdf5Archive {
    * @return
    */
   @Nonnull
-  private List<String> getObjects(@Nonnull Group fileGroup, int objType) {
-    @Nonnull List<String> groups = new ArrayList<String>();
+  private List<CharSequence> getObjects(@Nonnull Group fileGroup, int objType) {
+    @Nonnull List<CharSequence> groups = new ArrayList<CharSequence>();
     for (int i = 0; i < fileGroup.getNumObjs(); i++) {
       BytePointer objPtr = fileGroup.getObjnameByIdx(i);
       if (fileGroup.childObjType(objPtr) == objType) {
@@ -438,14 +438,14 @@ public class Hdf5Archive {
     VarLenType vl = attribute.getVarLenType();
     int bufferSizeMult = 1;
     @Nullable String s = null;
-        /* TODO: find a less hacky way to do this.
-         * Reading variable length strings (from attributes) is a giant
-         * pain. There does not appear to be any way to determine the
-         * length of the string in advance, so we use a hack: choose a
-         * buffer size and read the config. If Jackson fails to parse
-         * it, then we must not have read the entire config. Increase
-         * buffer and repeat.
-         */
+    /* TODO: find a less hacky way to do this.
+     * Reading variable length strings (from attributes) is a giant
+     * pain. There does not appear to be any way to determine the
+     * length of the string in advance, so we use a hack: choose a
+     * buffer size and read the config. If Jackson fails to parse
+     * it, then we must not have read the entire config. Increase
+     * buffer and repeat.
+     */
     while (true) {
       @Nonnull byte[] attrBuffer = new byte[bufferSizeMult * 2000];
       @Nonnull BytePointer attrPointer = new BytePointer(attrBuffer);
@@ -478,13 +478,13 @@ public class Hdf5Archive {
     VarLenType vl = attribute.getVarLenType();
     int bufferSizeMult = 1;
     @Nullable String s = null;
-        /* TODO: find a less hacky way to do this.
-         * Reading variable length strings (from attributes) is a giant
-         * pain. There does not appear to be any way to determine the
-         * length of the string in advance, so we use a hack: choose a
-         * buffer size and read the config, increase buffer and repeat
-         * until the buffer ends apply \u0000
-         */
+    /* TODO: find a less hacky way to do this.
+     * Reading variable length strings (from attributes) is a giant
+     * pain. There does not appear to be any way to determine the
+     * length of the string in advance, so we use a hack: choose a
+     * buffer size and read the config, increase buffer and repeat
+     * until the buffer ends apply \u0000
+     */
     while (true) {
       @Nonnull byte[] attrBuffer = new byte[bufferSizeMult * 2000];
       @Nonnull BytePointer attrPointer = new BytePointer(attrBuffer);
@@ -514,7 +514,7 @@ public class Hdf5Archive {
    * @return string string
    */
   @Nonnull
-  public String readAttributeAsFixedLengthString(String attributeName, int bufferSize) {
+  public CharSequence readAttributeAsFixedLengthString(String attributeName, int bufferSize) {
     return readAttributeAsFixedLengthString(this.file.openAttribute(attributeName), bufferSize);
   }
   
@@ -525,7 +525,7 @@ public class Hdf5Archive {
    * @return
    */
   @Nonnull
-  private String readAttributeAsFixedLengthString(@Nonnull Attribute attribute, int bufferSize) {
+  private CharSequence readAttributeAsFixedLengthString(@Nonnull Attribute attribute, int bufferSize) {
     VarLenType vl = attribute.getVarLenType();
     @Nonnull byte[] attrBuffer = new byte[bufferSize];
     @Nonnull BytePointer attrPointer = new BytePointer(attrBuffer);

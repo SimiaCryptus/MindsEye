@@ -32,6 +32,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.mindseye.test.PCAUtil;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
@@ -153,7 +154,7 @@ public class EncodingUtil {
    * @param signedComponents the signed components
    * @return the string
    */
-  public static String animatedGif(@Nonnull final NotebookOutput log, @Nonnull final Tensor baseline, @Nonnull final List<Tensor> signedComponents) {
+  public static CharSequence animatedGif(@Nonnull final NotebookOutput log, @Nonnull final Tensor baseline, @Nonnull final List<Tensor> signedComponents) {
     int loopTimeMs = 15000;
     int framerate = 12;
     int frames = loopTimeMs * framerate / 1000;
@@ -187,7 +188,7 @@ public class EncodingUtil {
    */
   public static String decompositionSvg(@Nonnull final NotebookOutput log, @Nonnull final Tensor baseline, @Nonnull final List<Tensor> signedComponents) {
     final List<DoubleStatistics> componentStats = signedComponents.stream().map(t -> new DoubleStatistics().accept(t.getData())).collect(Collectors.toList());
-    @Nonnull final String positiveFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+    @Nonnull final CharSequence positiveFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       String name;
       try {
         name = String.format("component_%s.png", EncodingUtil.imageNumber++);
@@ -198,7 +199,7 @@ public class EncodingUtil {
       return String.format("  <feImage xlink:href=\"%s\" result=\"pos_image_%s\" />\n", name, i);
     }).reduce((a, b) -> a + "\n" + b).get();
   
-    @Nonnull final String negativeFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+    @Nonnull final CharSequence negativeFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       String name;
       try {
         name = String.format("component_%s.png", EncodingUtil.imageNumber++);
@@ -209,7 +210,7 @@ public class EncodingUtil {
       return String.format("  <feImage xlink:href=\"%s\" result=\"neg_image_%s\" />\n", name, i);
     }).reduce((a, b) -> a + "\n" + b).get();
   
-    @Nonnull final String compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+    @Nonnull final CharSequence compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       final double fPos = componentStats.get(i).getMax() / 0xFF;
       final double fNeg = componentStats.get(i).getMin() / 0xFF;
       return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fNeg + "\" k4=\"" + fNeg + "\"/>\n" +
@@ -219,7 +220,7 @@ public class EncodingUtil {
     final int red = (int) baseline.get(0, 0, 0);
     final int green = (int) baseline.get(0, 0, 1);
     final int blue = (int) baseline.get(0, 0, 2);
-    @Nonnull final String avgHexColor = Long.toHexString(red + (green << 8) + (blue << 16));
+    @Nonnull final CharSequence avgHexColor = Long.toHexString(red + (green << 8) + (blue << 16));
     return "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n" +
       ("<defs>\n" +
         "<filter id=\"image\" >\n" + (
@@ -329,7 +330,7 @@ public class EncodingUtil {
    * @param categories the categories
    * @return the tensor [ ] [ ]
    */
-  public static Tensor[][] getImages(@Nonnull final NotebookOutput log, final int size, final int maxImages, @Nonnull final String... categories) {
+  public static Tensor[][] getImages(@Nonnull final NotebookOutput log, final int size, final int maxImages, @Nonnull final CharSequence... categories) {
     return getImages(log, img -> 0 >= size ? img : TestUtil.resize(img, size), maxImages, categories);
   }
   
@@ -342,7 +343,7 @@ public class EncodingUtil {
    * @param categories the categories
    * @return the tensor [ ] [ ]
    */
-  public static Tensor[][] getImages(@Nonnull final NotebookOutput log, final Function<BufferedImage, BufferedImage> fn, final int maxImages, @Nonnull final String[] categories) {
+  public static Tensor[][] getImages(@Nonnull final NotebookOutput log, final Function<BufferedImage, BufferedImage> fn, final int maxImages, @Nonnull final CharSequence[] categories) {
     log.out("Available images and categories:");
     log.code(() -> {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
@@ -412,7 +413,7 @@ public class EncodingUtil {
    * @param col          the col
    * @param tensor       the tensor
    */
-  public static void renderLayer(@Nonnull final NotebookOutput log, @Nonnull final List<Layer> dataPipeline, @Nonnull final LinkedHashMap<String, Object> row, final int col, @Nonnull final Tensor tensor) {
+  public static void renderLayer(@Nonnull final NotebookOutput log, @Nonnull final List<Layer> dataPipeline, @Nonnull final LinkedHashMap<CharSequence, Object> row, final int col, @Nonnull final Tensor tensor) {
     row.put("Data_" + col, TestUtil.render(log, tensor, 0 < col));
     if (dataPipeline.size() >= col - 1 && 1 < col) {
       @Nonnull final PipelineNetwork decoder = new PipelineNetwork();
@@ -433,7 +434,7 @@ public class EncodingUtil {
       row.put("SVG_" + col, log.file(EncodingUtil.decompositionSvg(log, baseline, signedComponents), "svg" + EncodingUtil.svgNumber++ + ".svg", "SVG Composite Image"));
       row.put("GIF_" + col, EncodingUtil.animatedGif(log, baseline, signedComponents));
   
-      @Nonnull final String render = signedComponents.stream()
+      @Nonnull final CharSequence render = signedComponents.stream()
         .map(signedContribution -> TestUtil.render(log, signedContribution, true))
         .reduce((a, b) -> a + "" + b).get();
       row.put("Band_Decode_" + col, render);
@@ -477,7 +478,7 @@ public class EncodingUtil {
     log.code(() -> {
       @Nonnull final TableOutput table = new TableOutput();
       Arrays.stream(data).limit(maxRows).map(tensorArray -> {
-        @Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+        @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
         for (int col = 1; col < tensorArray.length; col++) {
           EncodingUtil.renderLayer(log, dataPipeline, row, col, tensorArray[col]);
         }

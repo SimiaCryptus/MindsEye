@@ -29,7 +29,6 @@ import org.junit.Test;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,13 +67,9 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     log.h3("Sample Data");
     log.p(log.code(() -> {
       return testData.stream().map(labeledObj -> {
-        try {
-          @Nullable BufferedImage img = labeledObj.data.get();
-          img = TestUtil.resize(img, 224, true);
-          return log.image(img, labeledObj.label);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+        @Nullable BufferedImage img = labeledObj.data.get();
+        img = TestUtil.resize(img, 224, true);
+        return log.image(img, labeledObj.label);
       }).limit(20).reduce((a, b) -> a + b).get();
     }, 256 * 1024));
   }

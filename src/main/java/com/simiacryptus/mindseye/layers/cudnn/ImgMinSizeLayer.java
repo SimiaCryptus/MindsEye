@@ -68,7 +68,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgMinSizeLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgMinSizeLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     sizeX = json.get("sizeX").getAsInt();
     sizeY = json.get("sizeY").getAsInt();
@@ -82,7 +82,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgMinSizeLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgMinSizeLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgMinSizeLayer(json, rs);
   }
   
@@ -114,7 +114,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeY", sizeY);
     json.addProperty("sizeX", sizeX);

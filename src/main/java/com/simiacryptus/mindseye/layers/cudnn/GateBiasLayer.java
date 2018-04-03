@@ -83,7 +83,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static GateBiasLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static GateBiasLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GateBiasLayer(json);
   }
   
@@ -169,7 +169,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
             CudaResource<cudnnReduceTensorDescriptor> reduceTensorDescriptor = gpu.cudnnCreateReduceTensorDescriptor(
               cudnnReduceTensorOp.CUDNN_REDUCE_TENSOR_ADD, precision.code, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN,
               cudnnReduceTensorIndices.CUDNN_REDUCE_TENSOR_NO_INDICES, cudnnIndicesType.CUDNN_32BIT_INDICES);
-        
+  
             @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
             CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
             @Nonnull final CudaMemory workspacePtr = gpu.allocate(deltaTensorMemory.size, MemoryType.Device, true);
@@ -182,7 +182,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
               precision.getPointer(0.0), reducedOutputDescriptor.getPtr(), reducedOutputPtr.getPtr());
             reducedOutputPtr.dirty();
             deltaTensorMemory.dirty();
-        
+  
             Stream.of(deltaTensorMemory, deltaTensor, reduceTensorDescriptor, workspacePtr, indexPtr).forEach(ReferenceCounting::freeRef);
             return CudaTensorList.wrap(CudaTensor.wrap(reducedOutputPtr, reducedOutputDescriptor, precision), rightData.length(), rightDimensions, precision);
           }
@@ -222,7 +222,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     return json;

@@ -55,11 +55,11 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   /**
    * The Large radius.
    */
-  public int largeRadius;
+  public int largeSize;
   /**
    * The Small radius.
    */
-  public int smallRadius;
+  public int smallSize;
   /**
    * The LayerBase.
    */
@@ -77,17 +77,17 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   protected SimpleConvolutionLayerTest(final int radius, final int bands, final Precision precision, int stride) {
     this.radius = radius;
     this.bands = bands;
-    layer = new SimpleConvolutionLayer(radius, radius, bands * bands).setPrecision(precision).setStrideX(stride).setStrideY(stride);
+    layer = new SimpleConvolutionLayer(radius, radius, bands * bands).setPrecision(precision).setStrideX(stride).setStrideY(stride).setWeightsLog(-2);
     layer.kernel.set(() -> random());
-    smallRadius = this.radius;
-    largeRadius = 800;
+    smallSize = this.radius;
+    largeSize = 800;
   }
   
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {smallRadius, smallRadius, bands}
+      {smallSize, smallSize, bands}
     };
   }
   
@@ -101,7 +101,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {largeRadius, largeRadius, bands}
+      {largeSize, largeSize, bands}
     };
   }
   
@@ -144,8 +144,8 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
      */
     public Image() {
       super(3, 3, Precision.Double, 1);
-      largeRadius = 800;
-      smallRadius = 5;
+      largeSize = 1200;
+      smallSize = 5;
     }
   }
   
@@ -158,6 +158,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
      */
     public Image_Float() {
       super(3, 3, Precision.Float, 1);
+      tolerance = 1e-2;
     }
   
     @Override
@@ -262,8 +263,8 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     public SpanBug() {
       layer.setStrideX(2);
       layer.setStrideY(2);
-      largeRadius = 800;
-      smallRadius = 5;
+      largeSize = 800;
+      smallSize = 5;
     }
   }
   

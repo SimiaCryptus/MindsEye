@@ -53,11 +53,11 @@ import java.util.function.Function;
 public class IterativeTrainer extends ReferenceCountingBase {
   private static final Logger log = LoggerFactory.getLogger(IterativeTrainer.class);
   
-  private final Map<String, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
+  private final Map<CharSequence, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private final Trainable subject;
   private AtomicInteger currentIteration = new AtomicInteger(0);
   private int iterationsPerSample = 1;
-  private Function<String, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
+  private Function<CharSequence, LineSearchStrategy> lineSearchFactory = (s) -> new ArmijoWolfeSearch();
   private int maxIterations = Integer.MAX_VALUE;
   private TrainingMonitor monitor = new TrainingMonitor();
   private OrientationStrategy<?> orientation = new LBFGS();
@@ -123,7 +123,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    *
    * @return the line search factory
    */
-  public Function<String, LineSearchStrategy> getLineSearchFactory() {
+  public Function<CharSequence, LineSearchStrategy> getLineSearchFactory() {
     return lineSearchFactory;
   }
   
@@ -134,7 +134,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @return the line search factory
    */
   @Nonnull
-  public IterativeTrainer setLineSearchFactory(final Function<String, LineSearchStrategy> lineSearchFactory) {
+  public IterativeTrainer setLineSearchFactory(final Function<CharSequence, LineSearchStrategy> lineSearchFactory) {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }
@@ -326,7 +326,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
         @Nullable final PointSample _currentPoint = currentPoint;
         @Nonnull final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
         final LineSearchCursor direction = timedOrientation.result;
-        final String directionType = direction.getDirectionType();
+        final CharSequence directionType = direction.getDirectionType();
         @Nullable final PointSample previous = currentPoint;
         previous.addRef();
         try {
@@ -334,7 +334,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
           currentPoint.freeRef();
           currentPoint = timedLineSearch.result;
           final long now = System.nanoTime();
-          final String perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
+          final CharSequence perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
             (now - lastIterationTime) / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
           lastIterationTime = now;
           monitor.log(String.format("Fitness changed from %s to %s", previous.getMean(), currentPoint.getMean()));
@@ -416,7 +416,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
    * @param previous      the previous
    * @return the point sample
    */
-  public PointSample step(@Nonnull final LineSearchCursor direction, final String directionType, @Nonnull final PointSample previous) {
+  public PointSample step(@Nonnull final LineSearchCursor direction, final CharSequence directionType, @Nonnull final PointSample previous) {
     PointSample currentPoint;
     LineSearchStrategy lineSearchStrategy;
     if (lineSearchStrategyMap.containsKey(directionType)) {

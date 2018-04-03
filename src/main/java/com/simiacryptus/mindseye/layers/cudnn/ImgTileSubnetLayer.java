@@ -91,7 +91,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgTileSubnetLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgTileSubnetLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
     height = json.getAsJsonPrimitive("height").getAsInt();
@@ -108,7 +108,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
    * @param rs   the rs
    * @return the rescaled subnet layer
    */
-  public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSubnetLayer(json, rs);
   }
   
@@ -158,10 +158,10 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
           });
   
           passback.addRef();
-          tileResults[row][col] = getInner().eval(new Result(CudaTensorList.wrap(tile, length, tileDimensions, precision),
+          tileResults[row][col] = getInner().evalAndFree(new Result(CudaTensorList.wrap(tile, length, tileDimensions, precision),
             (DeltaSet<Layer> ctx, TensorList delta) -> {
               CudaSystem.run(gpu -> {
-                ImgTileSelectLayer.copy(gpu, delta, tileDimensions, -positionX, -positionY, precision, passback);
+                ImgTileSelectLayer.copy(gpu, delta, tileDimensions, -positionX, -positionY, precision, passback).freeRef();
               });
               if (counter.incrementAndGet() >= rows * cols) {
                 counter.set(0);
@@ -176,10 +176,27 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
           });
         }
       }
+      inputData.freeRef();
       logger.debug(String.format("Broke input %s into %s rows, %s cols", Arrays.toString(inputDims), rows, cols));
-      return new ImgTileAssemblyLayer(cols, rows).setParallel(parallel).setPrecision(precision).evalAndFree(
+      Result result = new ImgTileAssemblyLayer(cols, rows).setParallel(parallel).setPrecision(precision).evalAndFree(
         Arrays.stream(tileResults).flatMap(Arrays::stream).toArray(i -> new Result[i])
       );
+      return new Result(result.getData(), (ctx, delta) -> {
+        result.accumulate(ctx, delta);
+      }) {
+  
+        @Override
+        public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+          getAccumulator().accept(buffer, delta);
+        }
+  
+        @Override
+        protected void _free() {
+          super._free();
+          result.freeRef();
+          input.freeRef();
+        }
+      };
     } finally {
       passback.freeRef();
     }
@@ -187,7 +204,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("height", height);
     json.addProperty("width", width);

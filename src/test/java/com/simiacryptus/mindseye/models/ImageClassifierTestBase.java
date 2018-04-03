@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.models;
 
+import com.simiacryptus.mindseye.applications.ImageClassifier;
 import com.simiacryptus.mindseye.labs.encoding.EncodingUtil;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -78,7 +79,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
 //        } else {
 //          return TestUtil.resize(img, img.getWidth() * 224 / img.getHeight(), 224);
 //        }
-      }, 10, new String[]{}))
+      }, 10, new CharSequence[]{}))
         .toArray(i -> new Tensor[i][]));
     ImageClassifier vgg16 = getImageClassifier(log);
     @Nonnull Layer network = vgg16.getNetwork();
@@ -101,7 +102,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    @Nonnull Map<String, List<LinkedHashMap<String, Double>>> modelPredictions = new HashMap<>();
+    @Nonnull Map<CharSequence, List<LinkedHashMap<CharSequence, Double>>> modelPredictions = new HashMap<>();
     modelPredictions.put("Source", predict(log, vgg16, network, images));
     network.freeRef();
 //    serializationTest.getModels().forEach((precision, model) -> {
@@ -115,7 +116,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       @Nonnull TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {
         int index = i;
-        @Nonnull HashMap<String, Object> row = new HashMap<>();
+        @Nonnull HashMap<CharSequence, Object> row = new HashMap<>();
         row.put("Image", log.image(images[i][1].toImage(), ""));
         modelPredictions.forEach((model, predictions) -> {
           row.put(model, predictions.get(index).entrySet().stream()
@@ -144,12 +145,11 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    * @param images  the images
    * @return the list
    */
-  public List<LinkedHashMap<String, Double>> predict(@Nonnull NotebookOutput log, @Nonnull ImageClassifier vgg16, @Nonnull Layer network, @Nonnull Tensor[][] images) {
-    TestUtil.instrumentPerformance(log, (DAGNetwork) network);
-    List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
+  public List<LinkedHashMap<CharSequence, Double>> predict(@Nonnull NotebookOutput log, @Nonnull ImageClassifier vgg16, @Nonnull Layer network, @Nonnull Tensor[][] images) {
+    TestUtil.instrumentPerformance((DAGNetwork) network);
+    List<LinkedHashMap<CharSequence, Double>> predictions = log.code(() -> {
       Tensor[] data = Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]);
-      return ImageClassifier.predict(
-        vgg16::prefilter, network, 5, vgg16.getCategories(), 1, data);
+      return ImageClassifier.predict(network, 5, vgg16.getCategories(), 1, data);
     });
     TestUtil.extractPerformance(log, (DAGNetwork) network);
     return predictions;

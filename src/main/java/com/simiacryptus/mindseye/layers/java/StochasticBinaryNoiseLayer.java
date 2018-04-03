@@ -119,7 +119,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
    * @param rs   the rs
    * @return the binary noise layer
    */
-  public static StochasticBinaryNoiseLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static StochasticBinaryNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StochasticBinaryNoiseLayer(json);
   }
   
@@ -140,7 +140,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("density", density);
     json.addProperty("amplitude", amplitude);

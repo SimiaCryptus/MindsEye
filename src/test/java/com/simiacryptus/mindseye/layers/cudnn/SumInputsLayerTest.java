@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
@@ -107,6 +106,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
    */
   public static class OnePlusOne extends CudaLayerTestBase {
   
+  
     /**
      * Instantiates a new Asymmetric apply.
      */
@@ -114,16 +114,25 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
       super();
     }
   
-  
+    @Override
+    public Class<? extends Layer> getReferenceLayerClass() {
+      return com.simiacryptus.mindseye.layers.java.SumInputsLayer.class;
+    }
+
     @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {
       @Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
-      network.wrap(new BinarySumLayer(), input, input);
+      network.wrap(new com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer(), input, input);
       return network;
     }
-    
+  
+    @Override
+    protected Class<?> getTargetClass() {
+      return SumInputsLayer.class;
+    }
+  
     @Override
     public Layer getReferenceLayer() {
       @Nonnull PipelineNetwork network = new PipelineNetwork();
@@ -136,7 +145,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {1, 1, 1}
+        {4, 4, 1}
       };
     }
   
@@ -144,10 +153,10 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {largeSize, largeSize, 1}
+        {1200, 800, 1}
       };
     }
-    
+  
   }
   
   /**
@@ -158,7 +167,8 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
      * Instantiates a new Double.
      */
     public Big_Double_Add() {
-      super(Precision.Double, 256, 8, 400);
+      super(Precision.Double, 256, 8, 100);
+      testingBatchSize = 2;
     }
   }
   
@@ -210,22 +220,12 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
       super(precision, inputBands, inputs, largeSize);
       validateDifferentials = false;
       setTestTraining(false);
+      testingBatchSize = 5;
     }
     
     @Override
     public Class<? extends Layer> getReferenceLayerClass() {
       return null;
-    }
-    
-    @Override
-    public ComponentTest<ToleranceStatistics> getBatchingTester() {
-      if (!validateBatchExecution) return null;
-      return (new BatchingTester(1e-2) {
-        @Override
-        public double getRandom() {
-          return random();
-        }
-      }).setBatchSize(5);
     }
     
     @Nullable

@@ -56,7 +56,6 @@ import java.util.concurrent.TimeUnit;
  * The type LayerBase apply base.
  */
 public abstract class StandardLayerTests extends NotebookReportBase {
-  
   /**
    * The constant seed.
    */
@@ -68,6 +67,10 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   
   private final Random random = getRandom();
   /**
+   * The Testing batch size.
+   */
+  protected int testingBatchSize = 5;
+  /**
    * The Validate batch execution.
    */
   protected boolean validateBatchExecution = true;
@@ -78,17 +81,22 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   /**
    * The Test training.
    */
-  protected boolean testTraining = false;
+  protected boolean testTraining = true;
   /**
    * The Test equivalency.
    */
   protected boolean testEquivalency = true;
+  /**
+   * The Tolerance.
+   */
+  protected double tolerance;
   
   /**
    * Instantiates a new Standard layer tests.
    */
   public StandardLayerTests() {
     logger.info("Seed: " + seed);
+    tolerance = 1e-3;
   }
   
   /**
@@ -104,7 +112,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
       public double getRandom() {
         return random();
       }
-    };
+    }.setBatchSize(testingBatchSize);
   }
   
   /**
@@ -142,7 +150,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   @Nullable
   public ComponentTest<ToleranceStatistics> getDerivativeTester() {
     if (!validateDifferentials) return null;
-    return new SingleDerivativeTester(1e-3, 1e-4);
+    return new SingleDerivativeTester(tolerance, 1e-4);
   }
   
   /**
@@ -455,18 +463,18 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           invocations.add(new Invocation(inner, Arrays.stream(array).map(x -> x.getData().getDimensions()).toArray(i -> new int[i][])));
           return result;
         }
-    
+  
         @Override
-        public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+        public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
           return inner.getJson(resources, dataSerializer);
         }
-    
+  
         @Nullable
         @Override
         public List<double[]> state() {
           return inner.state();
         }
-    
+  
         @Override
         protected void _free() {
           inner.freeRef();

@@ -30,8 +30,6 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -75,7 +73,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumInputsLayer(json);
   }
   
@@ -86,11 +84,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
-    @Nonnull PipelineNetwork network = new PipelineNetwork(2);
-    network.wrap(new com.simiacryptus.mindseye.layers.java.SumInputsLayer(),
-      network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(0)),
-      network.wrap(new LinearActivationLayer().setScale(1.0).freeze(), network.getInput(1)));
-    return network;
+    return new com.simiacryptus.mindseye.layers.java.SumInputsLayer();
     
   }
   
@@ -98,7 +92,6 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
     @Nonnull final int[] dimensions = inObj[0].getData().getDimensions();
-    final int length = inObj[0].getData().length();
     if (3 != dimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(dimensions));
     }
@@ -141,7 +134,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     json.addProperty("parallel", isParallel());

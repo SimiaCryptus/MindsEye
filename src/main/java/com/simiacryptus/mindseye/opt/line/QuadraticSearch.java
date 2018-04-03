@@ -93,6 +93,7 @@ public class QuadraticSearch implements LineSearchStrategy {
           return filter(cursor, rightPoint.point, monitor);
         }
         thisPoint.freeRef();
+        thisPoint = null;
         thisPoint = cursor.step(thisX, monitor);
         if (isSame(cursor, monitor, leftPoint, thisPoint)) {
           monitor.log(String.format("%s ~= %s", leftX, thisX));
@@ -103,6 +104,7 @@ public class QuadraticSearch implements LineSearchStrategy {
           return filter(cursor, rightPoint.point, monitor);
         }
         thisPoint.freeRef();
+        thisPoint = null;
         thisPoint = cursor.step(thisX, monitor);
         boolean isLeft;
         if (!isBracketed) {
@@ -388,6 +390,7 @@ public class QuadraticSearch implements LineSearchStrategy {
      */
     @Nonnull
     public LocateInitialRightPoint apply() {
+      assertAlive();
       @Nullable LineSearchPoint lastPoint = null;
       try {
         int loops = 0;

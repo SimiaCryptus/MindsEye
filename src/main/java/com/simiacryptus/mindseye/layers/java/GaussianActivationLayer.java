@@ -68,7 +68,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
    * @param rs   the rs
    * @return the gaussian activation layer
    */
-  public static GaussianActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static GaussianActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GaussianActivationLayer(json);
   }
   
@@ -104,7 +104,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("mean", mean);
     json.addProperty("stddev", stddev);

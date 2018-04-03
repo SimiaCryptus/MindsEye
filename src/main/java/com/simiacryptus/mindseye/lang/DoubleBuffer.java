@@ -157,7 +157,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @return the id
    */
-  public String getId() {
+  public CharSequence getId() {
     return this.layer.toString();
   }
   

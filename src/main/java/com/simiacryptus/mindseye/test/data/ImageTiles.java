@@ -232,7 +232,7 @@ public class ImageTiles {
       this.maxTileRows = maxTileRows;
       this.maxTileCols = maxTileCols;
     }
-
+  
     @Override
     protected void read(@Nonnull final List<Tensor> queue) {
       @Nonnull final ArrayList<File> files = new ArrayList<>(ImageTiles.readFiles(parentDirectiory).collect(Collectors.toList()));

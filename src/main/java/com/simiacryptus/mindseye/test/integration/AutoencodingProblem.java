@@ -192,7 +192,7 @@ public class AutoencodingProblem implements Problem {
     //TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
     
     log.h3("Training");
-    TestUtil.instrumentPerformance(log, supervisedNetwork);
+    TestUtil.instrumentPerformance(supervisedNetwork);
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
       new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
       new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
@@ -235,13 +235,9 @@ public class AutoencodingProblem implements Problem {
     
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
-      try {
-        @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
-        @Nullable final Tensor tensor = revNetwork.eval(input).getData().get(0);
-        log.out(log.image(tensor.toImage(), ""));
-      } catch (@Nonnull final IOException e) {
-        throw new RuntimeException(e);
-      }
+      @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
+      @Nullable final Tensor tensor = revNetwork.eval(input).getData().get(0);
+      log.out(log.image(tensor.toImage(), ""));
     }
     return this;
   }
@@ -255,14 +251,10 @@ public class AutoencodingProblem implements Problem {
    * @return the linked hash map
    */
   @Nonnull
-  public LinkedHashMap<String, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
-    try {
-      @Nonnull final LinkedHashMap<String, Object> row = new LinkedHashMap<>();
-      row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
-      row.put("Echo", log.image(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
-      return row;
-    } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
-    }
+  public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
+    @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
+    row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
+    row.put("Echo", log.image(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
+    return row;
   }
 }

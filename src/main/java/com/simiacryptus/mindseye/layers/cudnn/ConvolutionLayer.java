@@ -101,7 +101,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param json      the json
    * @param resources the resources
    */
-  protected ConvolutionLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected ConvolutionLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     this.kernel = Tensor.fromJson(json.get("filter"), resources);
     assert getKernel().isValid();
@@ -147,7 +147,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
    * @param rs   the rs
    * @return the convolution layer
    */
-  public static ConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ConvolutionLayer(json, rs);
   }
   
@@ -255,7 +255,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
         read.freeRef();
       }
     }) {
-
+  
       @Override
       public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);
@@ -278,7 +278,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("filter", getKernel().toJson(resources, dataSerializer));
     json.addProperty("batchBands", getBatchBands());

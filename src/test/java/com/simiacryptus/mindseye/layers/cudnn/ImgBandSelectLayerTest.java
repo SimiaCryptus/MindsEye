@@ -114,18 +114,18 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
       super(Precision.Double, 5, 2, 4);
     }
   }
-  
-  /**
-   * Basic 64-bit apply
-   */
-  public static class BigDouble extends ImgBandSelectLayerTest {
-    /**
-     * Instantiates a new Double.
-     */
-    public BigDouble() {
-      super(Precision.Double, 1024, 0, 256);
-    }
-  }
+
+//  /**
+//   * Basic 64-bit apply
+//   */
+//  public static class BigDouble extends ImgBandSelectLayerTest {
+//    /**
+//     * Instantiates a new Double.
+//     */
+//    public BigDouble() {
+//      super(Precision.Double, 1024, 0, 256);
+//    }
+//  }
   
   /**
    * Basic 32-bit apply

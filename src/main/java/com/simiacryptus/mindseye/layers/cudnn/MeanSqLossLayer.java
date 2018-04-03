@@ -21,12 +21,14 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
+import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Implements the RMS loss layer (without the final square root). Implemented as a sutnetwork.
@@ -36,13 +38,15 @@ public class MeanSqLossLayer extends PipelineNetwork {
   
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
+  private final InnerNode binaryNode;
+  private double alpha = 1.0;
   
   /**
    * Instantiates a new Mean sq loss layer.
    */
   public MeanSqLossLayer() {
     super(2);
-    wrap(new BinarySumLayer(1.0, -1.0), getInput(0), getInput(1));
+    this.binaryNode = wrap(new BinarySumLayer(alpha, -alpha), getInput(0), getInput(1));
     wrap(new SquareActivationLayer());
     wrap(new AvgReducerLayer());
   }
@@ -53,8 +57,10 @@ public class MeanSqLossLayer extends PipelineNetwork {
    * @param id the id
    * @param rs the rs
    */
-  protected MeanSqLossLayer(@Nonnull final JsonObject id, Map<String, byte[]> rs) {
+  protected MeanSqLossLayer(@Nonnull final JsonObject id, Map<CharSequence, byte[]> rs) {
     super(id, rs);
+    alpha = id.get("alpha").getAsDouble();
+    binaryNode = (InnerNode) nodesById.get(UUID.fromString(id.get("binaryNode").getAsString()));
   }
   
   /**
@@ -64,13 +70,38 @@ public class MeanSqLossLayer extends PipelineNetwork {
    * @param rs   the rs
    * @return the mean sq loss layer
    */
-  public static MeanSqLossLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static MeanSqLossLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MeanSqLossLayer(json, rs);
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
-    return super.getJson(resources, dataSerializer);
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
+    JsonObject json = super.getJson(resources, dataSerializer);
+    json.addProperty("alpha", alpha);
+    json.addProperty("binaryNode", binaryNode.id.toString());
+    return json;
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
+  public double getAlpha() {
+    return alpha;
+  }
+  
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
+  public MeanSqLossLayer setAlpha(final double alpha) {
+    this.alpha = alpha;
+    BinarySumLayer binarySumLayer = binaryNode.getLayer();
+    binarySumLayer.setLeftFactor(alpha);
+    binarySumLayer.setRightFactor(-alpha);
+    return this;
+  }
 }

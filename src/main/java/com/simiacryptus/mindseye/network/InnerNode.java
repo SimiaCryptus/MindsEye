@@ -39,7 +39,7 @@ public final class InnerNode extends LazyResult {
    * The Created by.
    */
   @SuppressWarnings("unused")
-  public final String[] createdBy = Util.currentStack();
+  public final CharSequence[] createdBy = Util.currentStack();
   private final DAGNetwork dagNetwork;
   @Nonnull
   private final DAGNode[] inputNodes;

@@ -46,8 +46,6 @@ import static com.simiacryptus.mindseye.lang.PersistanceMode.WEAK;
  */
 public abstract class RecycleBin<T> {
   
-  private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<ObjectWrapper>> recycling = new ConcurrentHashMap<>();
-  
   /**
    * The constant DOUBLES.
    */
@@ -71,7 +69,7 @@ public abstract class RecycleBin<T> {
    */
   protected static final Logger logger = LoggerFactory.getLogger(RecycleBin.class);
   private static volatile ScheduledExecutorService garbageTruck;
-  
+  private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<ObjectWrapper>> recycling = new ConcurrentHashMap<>();
   private final StackCounter allocations = new StackCounter();
   private final StackCounter frees = new StackCounter();
   private final StackCounter recycle_put = new StackCounter();
@@ -112,22 +110,6 @@ public abstract class RecycleBin<T> {
   }
   
   /**
-   * Clear.
-   *
-   * @return the long
-   */
-  public long clear() {
-    synchronized (recycling) {
-      long sum = recycling.entrySet().stream().mapToLong(e -> e.getValue().stream().mapToLong(ref -> {
-        Long length = e.getKey();
-        return freeItem(ref.obj.get(), length);
-      }).sum()).sum();
-      recycling.clear();
-      return sum;
-    }
-  }
-  
-  /**
    * Gets garbage truck.
    *
    * @return the garbage truck
@@ -154,6 +136,22 @@ public abstract class RecycleBin<T> {
     if (a == b) return true;
     if (a == null || b == null) return false;
     return a.equals(b);
+  }
+  
+  /**
+   * Clear.
+   *
+   * @return the long
+   */
+  public long clear() {
+    synchronized (recycling) {
+      long sum = recycling.entrySet().stream().mapToLong(e -> e.getValue().stream().mapToLong(ref -> {
+        Long length = e.getKey();
+        return freeItem(ref.obj.get(), length);
+      }).sum()).sum();
+      recycling.clear();
+      return sum;
+    }
   }
   
   /**
@@ -445,6 +443,17 @@ public abstract class RecycleBin<T> {
   }
   
   /**
+   * Sets purge freq.
+   *
+   * @param purgeFreq the purge freq
+   * @return the purge freq
+   */
+  public RecycleBin<T> setPurgeFreq(int purgeFreq) {
+    this.purgeFreq = purgeFreq;
+    return this;
+  }
+  
+  /**
    * Gets persistance mode.
    *
    * @return the persistance mode
@@ -556,17 +565,6 @@ public abstract class RecycleBin<T> {
   @Nonnull
   public RecycleBin<T> setMaxItemsPerBuffer(int maxItemsPerBuffer) {
     this.maxItemsPerBuffer = maxItemsPerBuffer;
-    return this;
-  }
-  
-  /**
-   * Sets purge freq.
-   *
-   * @param purgeFreq the purge freq
-   * @return the purge freq
-   */
-  public RecycleBin<T> setPurgeFreq(int purgeFreq) {
-    this.purgeFreq = purgeFreq;
     return this;
   }
   

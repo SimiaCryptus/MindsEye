@@ -95,7 +95,7 @@ public class ImgTileSelectLayer extends LayerBase {
     assert 3 == inDim.length;
     assert 3 == outDim.length;
     assert inDim[2] == outDim[2] : Arrays.toString(inDim) + "; " + Arrays.toString(outDim);
-    outputData.coordStream(true).forEach((c) -> {
+    outputData.coordStream(false).forEach((c) -> {
       int x = c.getCoords()[0] + posX;
       int y = c.getCoords()[1] + posY;
       int z = c.getCoords()[2];
@@ -119,7 +119,7 @@ public class ImgTileSelectLayer extends LayerBase {
    * @param rs   the rs
    * @return the img crop layer
    */
-  public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSelectLayer(json);
   }
   
@@ -186,7 +186,7 @@ public class ImgTileSelectLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeY);

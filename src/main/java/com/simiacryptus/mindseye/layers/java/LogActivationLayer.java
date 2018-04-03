@@ -53,7 +53,7 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
    * @param rs   the rs
    * @return the log activation layer
    */
-  public static LogActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static LogActivationLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new LogActivationLayer(json);
   }
   
@@ -81,7 +81,7 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

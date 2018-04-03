@@ -114,7 +114,7 @@ public class StackCounter {
    * @param fn    the fn
    * @return the string
    */
-  public String toString(@Nonnull final StackCounter other, @Nonnull final BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
+  public CharSequence toString(@Nonnull final StackCounter other, @Nonnull final BiFunction<DoubleStatistics, DoubleStatistics, Number> fn) {
     return StackCounter.toString(this, other, fn);
   }
   

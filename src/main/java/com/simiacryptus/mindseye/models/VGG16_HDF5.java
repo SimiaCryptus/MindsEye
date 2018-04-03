@@ -18,6 +18,7 @@
  */
 package com.simiacryptus.mindseye.models;
 
+import com.simiacryptus.mindseye.applications.ImageClassifier;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
@@ -120,6 +121,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    */
   protected void phase0() {
     add(new ImgMinSizeLayer(226, 226));
+    add(new ImgBandBiasLayer(3).set(new Tensor(-103.939, -116.779, -123.68)));
   }
   
   /**
@@ -324,7 +326,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * @param large the large
    * @return the large
    */
-  public VGG16_HDF5 setLarge(boolean large) {
+  public ImageClassifier setLarge(boolean large) {
     this.large = large;
     return this;
   }
@@ -344,7 +346,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * @param dense the dense
    * @return the dense
    */
-  public VGG16_HDF5 setDense(boolean dense) {
+  public ImageClassifier setDense(boolean dense) {
     this.dense = dense;
     return this;
   }
@@ -364,7 +366,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * @param finalPoolingMode the final pooling mode
    * @return the final pooling mode
    */
-  public VGG16_HDF5 setFinalPoolingMode(PoolingLayer.PoolingMode finalPoolingMode) {
+  public ImageClassifier setFinalPoolingMode(PoolingLayer.PoolingMode finalPoolingMode) {
     this.finalPoolingMode = finalPoolingMode;
     return this;
   }

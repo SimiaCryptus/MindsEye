@@ -30,29 +30,33 @@ import java.util.Random;
  */
 public abstract class ImgLinearSubnetLayerTest extends CudaLayerTestBase {
   
-  private final ConvolutionLayer convolutionLayer1 = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
-  private final ConvolutionLayer convolutionLayer2 = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
-  private final ConvolutionLayer convolutionLayer3 = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
+  private final Layer layer1 = new ActivationLayer(ActivationLayer.Mode.RELU);
+  private final Layer layer2 = new ActivationLayer(ActivationLayer.Mode.RELU);
+  private final Layer layer3 = new ActivationLayer(ActivationLayer.Mode.RELU);
+  private final int smallSize;
+  private final int largeSize;
   
   /**
    * Instantiates a new Img linear subnet layer test.
    */
   public ImgLinearSubnetLayerTest() {
-    testingBatchSize = 1;
+    testingBatchSize = 10;
+    smallSize = 2;
+    largeSize = 100;
   }
   
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3, 3, 3}
+      {smallSize, smallSize, 3}
     };
   }
   
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {1000, 1000, 3}
+      {largeSize, largeSize, 3}
     };
   }
   
@@ -60,9 +64,9 @@ public abstract class ImgLinearSubnetLayerTest extends CudaLayerTestBase {
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgLinearSubnetLayer()
-      .add(0, 1, convolutionLayer1)
-      .add(1, 2, convolutionLayer2)
-      .add(2, 3, convolutionLayer3);
+      .add(0, 1, layer1)
+      .add(1, 2, layer2)
+      .add(2, 3, layer3);
   }
   
   @Nullable
@@ -75,13 +79,7 @@ public abstract class ImgLinearSubnetLayerTest extends CudaLayerTestBase {
    * Basic Test
    */
   public static class Basic extends ImgLinearSubnetLayerTest {
-    
-    @Nullable
-    @Override
-    public Class<? extends Layer> getReferenceLayerClass() {
-      return null;
-    }
-    
+  
   }
   
 }

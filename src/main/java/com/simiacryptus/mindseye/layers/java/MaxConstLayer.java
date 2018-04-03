@@ -57,7 +57,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
    * @return the max const layer
    */
   @Nonnull
-  public static MaxConstLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MaxConstLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     @Nonnull final MaxConstLayer obj = new MaxConstLayer(json);
     obj.value = json.get("value").getAsDouble();
     return obj;
@@ -74,7 +74,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     return json;

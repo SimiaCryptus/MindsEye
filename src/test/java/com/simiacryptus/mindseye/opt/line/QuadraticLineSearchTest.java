@@ -47,7 +47,7 @@ public class QuadraticLineSearchTest extends MnistTestBase {
       return new IterativeTrainer(trainable)
         .setMonitor(monitor)
         .setOrientation(new GradientDescent())
-        .setLineSearchFactory((@Nonnull final String name) -> new QuadraticSearch())
+        .setLineSearchFactory((@Nonnull final CharSequence name) -> new QuadraticSearch())
         .setTimeout(3, TimeUnit.MINUTES)
         .setMaxIterations(500)
         .runAndFree();

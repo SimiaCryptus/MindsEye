@@ -165,7 +165,7 @@ public abstract class NLayerTest {
    * @param log the log
    */
   public void test(@Nonnull final NotebookOutput log) {
-
+  
     log.h1("%s", getClass().getSimpleName());
     @Nonnull final int[] inputDims = getInputDims();
     @Nonnull final ArrayList<int[]> workingSpec = new ArrayList<>();

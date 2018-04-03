@@ -83,7 +83,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgCropLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgCropLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     sizeX = json.get("sizeX").getAsInt();
     sizeY = json.get("sizeY").getAsInt();
@@ -99,18 +99,8 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgCropLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgCropLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgCropLayer(json, rs);
-  }
-  
-  /**
-   * Gets compatibility layer.
-   *
-   * @return the compatibility layer
-   */
-  @Nonnull
-  public Layer getCompatibilityLayer() {
-    return this.as(com.simiacryptus.mindseye.layers.java.ImgCropLayer.class);
   }
   
   /**
@@ -221,6 +211,16 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
     return viewDim;
   }
   
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
+  @Nonnull
+  public Layer getCompatibilityLayer() {
+    return this.as(com.simiacryptus.mindseye.layers.java.ImgCropLayer.class);
+  }
+  
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -256,8 +256,8 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
         throw new AssertionError(delta.length() + " != " + outputData.length());
       }
       assert delta.length() == length;
-    
-    
+  
+  
       if (input.isAlive()) {
         final TensorList passbackTensorList = CudaSystem.run(gpu -> {
           @Nullable final CudaTensor errorPtr = gpu.getTensor(delta, precision, MemoryType.Device, false);
@@ -275,7 +275,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   
   
     }) {
-    
+  
       @Override
       public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);
@@ -295,7 +295,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeY", sizeY);
     json.addProperty("sizeX", sizeX);

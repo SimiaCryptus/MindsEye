@@ -102,7 +102,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
    * @param rs   the rs
    * @return the binary noise layer
    */
-  public static BinaryNoiseLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BinaryNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BinaryNoiseLayer(json);
   }
   
@@ -125,13 +125,13 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
       data.addRef();
       input.accumulate(buffer, data);
     }) {
-    
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-    
-    
+  
+  
       @Override
       public boolean isAlive() {
         return input.isAlive();
@@ -141,7 +141,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("value", value);
     json.addProperty("enabled", enabled);

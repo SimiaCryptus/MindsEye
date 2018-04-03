@@ -68,7 +68,7 @@ The [NNLayer](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java
 
 A [NNResult](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/lang/NNResult.java) provides both the result data and a callback method to evaluate the gradient using a given DeltaSet. NNResult is also used as the input to the central eval method, which enables chaining these differentiable operations together. By chaining them together, we can form larger NNLayer components; they are composable.
 
-A [DeltaSet](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/lang/DeltaSet.java) provides a buffer of pending deltas to apply to various double arrays. It keeps references to the layer and specific double[] data location, and accumulates values in an identically sized buffer collection. This gives us a convenient interface for working with and applying delta vectors.
+A [DeltaSet](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/lang/DeltaSet.java) provides a buffer of pending deltas to apply to various double arrays. It keeps references to the layerType and specific double[] data location, and accumulates values in an identically sized buffer collection. This gives us a convenient interface for working with and applying delta vectors.
 
 ### Component Library
 
@@ -96,7 +96,7 @@ Supervised learning means that the ideal, desired output is given along with an 
 
 #### Composite Components
 
-Several other networks act primarily as components themselves, intended for use in a larger network. For example, regularization layers such as [Normalization Layer](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/layers/java/NormalizationMetaLayer.java) use a meta layer to aggregate some signal statistic, such as the average value, and then uses that value in an operation to remove the related component. For example, it might subtract the average value so that the result has a zero mean.
+Several other networks act primarily as components themselves, intended for use in a larger network. For example, regularization layers such as [Normalization Layer](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/layers/java/NormalizationMetaLayer.java) use a meta layerType to aggregate some signal statistic, such as the average value, and then uses that value in an operation to remove the related component. For example, it might subtract the average value so that the result has a zero mean.
 
 ### Optimization
 
@@ -122,7 +122,7 @@ The "gradient descent" part of SGD is defined by the simplest orientations strat
 
 ##### L1 and L2 normalization
 
-Normalization factors could be implemented as part of the network itself, summing its own weights into the output. However, we can also encapsulate the trainable object to modify the optimized function. We have two such components, [one](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/trainable/ConstL12Normalizer.java) uses constant factors and [the other ](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/eval/L12Normalizer.java)allows you to specify constants for each layer.
+Normalization factors could be implemented as part of the network itself, summing its own weights into the output. However, we can also encapsulate the trainable object to modify the optimized function. We have two such components, [one](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/trainable/ConstL12Normalizer.java) uses constant factors and [the other ](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/eval/L12Normalizer.java)allows you to specify constants for each layerType.
 
 ##### Momentum
 
@@ -138,11 +138,11 @@ In the case of [OWL-QN](https://github.com/SimiaCryptus/MindsEye/blob/master/src
 
 OWL-QN is also implemented as an orientations strategy which wraps another "base" strategy. This new strategy will then wrap the line search object returned by the base strategy, and this new line search object will implement the orthant.
 
-A very [similar strategy](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/orient/TrustRegionStrategy.java) is used in a more general fashion to support arbitrary per-layer trust regions, as discussed below.
+A very [similar strategy](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/orient/TrustRegionStrategy.java) is used in a more general fashion to support arbitrary per-layerType trust regions, as discussed below.
 
 #### Trust Regions
 
-[Trust Regions](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/region/TrustRegion.java) let us bound where each step takes us, controlling the search while minimally interfering with the overall optimization. They can cause the search to proceed with a different pattern, as in OWL-QN where we can promote sparse values. This can also be used to specify that a particular layer should not change at all, which is effectively a point-sized trust region. They can also enforce arbitrary constraints on the weights, such as "no weights are negative" in a particular bias layer.
+[Trust Regions](https://github.com/SimiaCryptus/MindsEye/blob/master/src/main/java/com/simiacryptus/mindseye/opt/region/TrustRegion.java) let us bound where each step takes us, controlling the search while minimally interfering with the overall optimization. They can cause the search to proceed with a different pattern, as in OWL-QN where we can promote sparse values. This can also be used to specify that a particular layerType should not change at all, which is effectively a point-sized trust region. They can also enforce arbitrary constraints on the weights, such as "no weights are negative" in a particular bias layerType.
 
 Trust regions work by remapping a proposed point (i.e. Set of parameters) onto its nearest point within the trust region, which is a multidimensional volume determined by the point at the start of each step. The result is visualized by an otherwise uninterrupted line search being projected onto the surface of a volume when the line leaves the volume. 
 

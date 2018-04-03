@@ -99,7 +99,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static BinarySumLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static BinarySumLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BinarySumLayer(json);
   }
   
@@ -259,7 +259,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("rightFactor", rightFactor);
     json.addProperty("leftFactor", leftFactor);

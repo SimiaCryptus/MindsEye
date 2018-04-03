@@ -64,7 +64,7 @@ public class CrossProductLayer extends LayerBase {
    * @param rs   the rs
    * @return the cross product layer
    */
-  public static CrossProductLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static CrossProductLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new CrossProductLayer(json);
   }
   
@@ -147,7 +147,7 @@ public class CrossProductLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

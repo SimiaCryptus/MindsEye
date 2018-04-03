@@ -124,27 +124,26 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
         nnResult.freeRef();
       }
       final TensorList resultData = result.getData();
-      final DoubleSummaryStatistics statistics = resultData.stream()
-        .flatMapToDouble(x -> {
-          double[] array = Arrays.stream(x.getData()).toArray();
-          x.freeRef();
-          return Arrays.stream(array);
-        }).summaryStatistics();
-      final double sum = statistics.getSum();
       @Nonnull final DeltaSet<Layer> deltaSet = new DeltaSet<Layer>();
-      @Nonnull PointSample pointSample;
+      @Nonnull StateSet<Layer> stateSet = null;
       try {
+        final DoubleSummaryStatistics statistics = resultData.stream()
+          .flatMapToDouble(x -> {
+            double[] array = Arrays.stream(x.getData()).toArray();
+            x.freeRef();
+            return Arrays.stream(array);
+          }).summaryStatistics();
+        final double sum = statistics.getSum();
         result.accumulate(deltaSet, 1.0);
+        stateSet = new StateSet<>(deltaSet);
         //log.info(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<LayerBase>.getMap().size(), DeltaSet<LayerBase>.getMagnitude()));
-        @Nonnull StateSet<Layer> stateSet = new StateSet<>(deltaSet);
-        pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
-        stateSet.freeRef();
+        return new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
       } finally {
+        if (null != stateSet) stateSet.freeRef();
         resultData.freeRefAsync();
         result.freeRefAsync();
         deltaSet.freeRefAsync();
       }
-      return pointSample;
     });
     if (null != monitor && verbosity() > 0) {
       monitor.log(String.format("Device completed %s items in %.3f sec", list.size(), timedResult.timeNanos / 1e9));

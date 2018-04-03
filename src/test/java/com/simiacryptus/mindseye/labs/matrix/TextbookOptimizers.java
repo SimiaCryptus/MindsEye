@@ -74,7 +74,7 @@ public class TextbookOptimizers extends OptimizerComparison {
       trainer.getRegimen().get(0)
         .setOrientation(new LBFGS())
         .setLineSearchFactory(name -> new ArmijoWolfeSearch()
-          .setAlpha(name.contains("LBFGS") ? 1.0 : 1e-6));
+          .setAlpha(name.toString().contains("LBFGS") ? 1.0 : 1e-6));
       return trainer;
     });
   };
@@ -91,7 +91,7 @@ public class TextbookOptimizers extends OptimizerComparison {
       trainer.getRegimen().get(0)
         .setOrientation(new OwlQn())
         .setLineSearchFactory(name -> new ArmijoWolfeSearch()
-          .setAlpha(name.contains("OWL") ? 1.0 : 1e-6));
+          .setAlpha(name.toString().contains("OWL") ? 1.0 : 1e-6));
       return trainer;
     });
   };

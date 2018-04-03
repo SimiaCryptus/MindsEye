@@ -79,7 +79,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
     }
   
     @Override
-    public String getDirectionType() {
+    public CharSequence getDirectionType() {
       return cursor.getDirectionType();
     }
   

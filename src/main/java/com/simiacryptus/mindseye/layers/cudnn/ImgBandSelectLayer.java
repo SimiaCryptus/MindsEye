@@ -84,7 +84,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgBandSelectLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgBandSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandSelectLayer(json);
   }
   
@@ -196,7 +196,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("from", getFrom());
     json.addProperty("to", getTo());

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.labs.encoding;
+package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.Tensor;

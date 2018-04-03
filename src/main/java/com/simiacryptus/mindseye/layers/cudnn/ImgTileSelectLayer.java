@@ -87,7 +87,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    * @param json the json
    * @param rs   the rs
    */
-  protected ImgTileSelectLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected ImgTileSelectLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     sizeY = json.get("sizeX").getAsInt();
     sizeX = json.get("sizeY").getAsInt();
@@ -103,18 +103,8 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSelectLayer(json, rs);
-  }
-  
-  /**
-   * Gets compatibility layer.
-   *
-   * @return the compatibility layer
-   */
-  @Nonnull
-  public Layer getCompatibilityLayer() {
-    return this.as(com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer.class);
   }
   
   /**
@@ -232,8 +222,8 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       outputPtr.dirty();
       inputTensorMemory.dirty();
-      Arrays.stream(new ReferenceCounting[]{sourceViewDescriptor}).forEach(ReferenceCounting::freeRef);
-      
+      Stream.<ReferenceCounting>of(sourceViewDescriptor, destinationViewDescriptor).forEach(ReferenceCounting::freeRef);
+  
       @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
         precision,//
         length,//
@@ -263,10 +253,19 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   public static int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
     @Nonnull final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i ->
-      Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) -
-        Math.max(offset[i], 0)
+      Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) - Math.max(offset[i], 0)
     );
     return viewDim;
+  }
+  
+  /**
+   * Gets compatibility layer.
+   *
+   * @return the compatibility layer
+   */
+  @Nonnull
+  public Layer getCompatibilityLayer() {
+    return this.as(com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer.class);
   }
   
   @Nullable
@@ -325,7 +324,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("sizeX", sizeX);
     json.addProperty("sizeY", sizeY);

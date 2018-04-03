@@ -63,7 +63,7 @@ public class SignReducerLayer extends DAGNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected SignReducerLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected SignReducerLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
@@ -75,7 +75,7 @@ public class SignReducerLayer extends DAGNetwork {
    * @param rs    the rs
    * @return the nn layer
    */
-  public static Layer fromJson(@Nonnull final JsonObject inner, Map<String, byte[]> rs) {
+  public static Layer fromJson(@Nonnull final JsonObject inner, Map<CharSequence, byte[]> rs) {
     return new SignReducerLayer(inner, rs);
   }
   

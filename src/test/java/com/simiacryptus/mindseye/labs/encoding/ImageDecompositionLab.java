@@ -83,7 +83,7 @@ public class ImageDecompositionLab {
    * @param args the input arguments
    * @throws Exception the exception
    */
-  public static void main(final String... args) throws Exception {
+  public static void main(final CharSequence... args) throws Exception {
     @Nonnull final ImageDecompositionLab lab = new ImageDecompositionLab();
     try (@Nonnull NotebookOutput log = lab.report()) {
       lab.run(log);
@@ -126,7 +126,7 @@ public class ImageDecompositionLab {
   @Nonnull
   public HtmlNotebookOutput report() {
     try {
-      @Nonnull final String directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
+      @Nonnull final CharSequence directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
       @Nonnull final File path = new File(Util.mkString(File.separator, "www", directoryName));
       path.mkdirs();
       @Nonnull final File logFile = new File(path, "index.html");
@@ -164,11 +164,7 @@ public class ImageDecompositionLab {
       }).toArray(i -> new Tensor[i][]);
   
     Arrays.stream(trainingImages).map(x -> x[1]).map(x -> x.toImage()).map(x -> {
-      try {
-        return log.image(x, "example");
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      return log.image(x, "example");
     }).forEach(str -> log.p(str));
   
     log.h1("First LayerBase");
@@ -428,7 +424,7 @@ public class ImageDecompositionLab {
         TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
-    
+  
       log.h2("Tuning");
       log.h3("Training");
       @Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
@@ -439,7 +435,7 @@ public class ImageDecompositionLab {
       EncodingUtil.printModel(log, innerModel, modelNo++);
       TestUtil.printDataStatistics(log, trainingData);
       history.clear();
-    
+  
       log.h2("Integration Training");
       log.h3("Training");
       @Nonnull final DAGNetwork trainingModel1 = EncodingUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);

@@ -169,7 +169,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the tensor
    */
   @Nullable
-  public static Tensor fromJson(@Nullable final JsonElement json, @Nullable Map<String, byte[]> resources) {
+  public static Tensor fromJson(@Nullable final JsonElement json, @Nullable Map<CharSequence, byte[]> resources) {
     if (null == json) return null;
     if (json.isJsonArray()) {
       final JsonArray array = json.getAsJsonArray();
@@ -217,7 +217,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       JsonElement base64 = jsonObject.get("base64");
       if (null == base64) {
         if (null == resources) throw new IllegalArgumentException("No Data Resources");
-        String resourceId = jsonObject.getAsJsonPrimitive("resource").getAsString();
+        CharSequence resourceId = jsonObject.getAsJsonPrimitive("resource").getAsString();
         tensor.setBytes(resources.get(resourceId), precision);
       }
       else {
@@ -458,7 +458,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @param doubles the doubles
    * @return the string
    */
-  public static String prettyPrint(double[] doubles) {
+  public static CharSequence prettyPrint(double[] doubles) {
     @Nonnull Tensor t = new Tensor(doubles);
     String prettyPrint = t.prettyPrint();
     t.freeRef();
@@ -1455,7 +1455,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the json element
    */
   @Nonnull
-  public JsonElement toJson(@Nullable Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonElement toJson(@Nullable Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     if (length() > 1024) {
       @Nonnull JsonObject obj = new JsonObject();
       @Nonnull int[] dimensions = getDimensions();
@@ -1548,6 +1548,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @Nonnull
   public BufferedImage toRgbImage(final int redBand, final int greenBand, final int blueBand) {
+    assertAlive();
     @Nonnull final int[] dims = getDimensions();
     @Nonnull final BufferedImage img = new BufferedImage(dims[0], dims[1], BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < img.getWidth(); x++) {
@@ -1605,29 +1606,29 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       return Double.toString(get(coords));
     }
     else {
-      List<String> list = IntStream.range(0, dimensions[coords.length]).mapToObj(i -> {
+      List<CharSequence> list = IntStream.range(0, dimensions[coords.length]).mapToObj(i -> {
         @Nonnull final int[] newCoord = Arrays.copyOf(coords, coords.length + 1);
         newCoord[coords.length] = i;
         return toString(prettyPrint, newCoord);
-      }).collect(Collectors.toList());
+      }).limit(15).collect(Collectors.toList());
       if (list.size() > 10) {
         list = list.subList(0, 8);
         list.add("...");
       }
       if (prettyPrint) {
         if (coords.length < dimensions.length - 2) {
-          final String str = list.stream().limit(10)
-            .map(s -> "\t" + s.replaceAll("\n", "\n\t"))
+          final CharSequence str = list.stream().limit(10)
+            .map(s -> "\t" + s.toString().replaceAll("\n", "\n\t"))
             .reduce((a, b) -> a + ",\n" + b).orElse("");
           return "[\n" + str + "\n]";
         }
         else {
-          final String str = list.stream().reduce((a, b) -> a + ", " + b).orElse("");
+          final CharSequence str = list.stream().reduce((a, b) -> a + ", " + b).orElse("");
           return "[ " + str + " ]";
         }
       }
       else {
-        final String str = list.stream().reduce((a, b) -> a + "," + b).orElse("");
+        final CharSequence str = list.stream().reduce((a, b) -> a + "," + b).orElse("");
         return "[ " + str + " ]";
       }
     }
@@ -1679,7 +1680,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   @Nullable
   public Tensor reshapeCast(@Nonnull int... dims) {
     if (0 == dims.length) throw new IllegalArgumentException();
-    if (length(dims) != length()) throw new IllegalArgumentException();
+    if (length(dims) != length()) throw new IllegalArgumentException(Arrays.toString(dims) + " != " + length());
     double[] data = getData();
     return new Tensor(dims, null == data ? null : RecycleBin.DOUBLES.copyOf(data, data.length));
   }

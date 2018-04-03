@@ -61,7 +61,7 @@ public class AparapiTest {
    *
    * @param _args the args
    */
-  public static void main(final String[] _args) {
+  public static void main(final CharSequence[] _args) {
     log.info("com.amd.aparapi.sample.info.Main");
     final List<OpenCLPlatform> platforms = new OpenCLPlatform().getOpenCLPlatforms();
     log.info("Machine contains " + platforms.size() + " OpenCL platforms");

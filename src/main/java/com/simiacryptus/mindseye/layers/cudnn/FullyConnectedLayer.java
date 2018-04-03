@@ -101,7 +101,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
    * @param json the json
    * @param rs   the rs
    */
-  protected FullyConnectedLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected FullyConnectedLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
@@ -117,7 +117,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static FullyConnectedLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static FullyConnectedLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new FullyConnectedLayer(json, rs);
   }
   
@@ -205,7 +205,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("outputDims", JsonUtil.getJson(outputDims));
     json.add("inputDims", JsonUtil.getJson(inputDims));

@@ -66,7 +66,10 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    *
    * @param bands the bands
    */
-  public ImgBandBiasLayer(int bands) {this(new Tensor(1, 1, bands));}
+  public ImgBandBiasLayer(int bands) {
+    this(new Tensor(1, 1, bands));
+    this.bias.freeRef();
+  }
   
   /**
    * Instantiates a new Product inputs layer.
@@ -84,7 +87,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @param id the id
    * @param rs the rs
    */
-  protected ImgBandBiasLayer(@Nonnull final JsonObject id, final Map<String, byte[]> rs) {
+  protected ImgBandBiasLayer(@Nonnull final JsonObject id, final Map<CharSequence, byte[]> rs) {
     super(id);
     this.precision = Precision.valueOf(id.getAsJsonPrimitive("precision").getAsString());
     this.bias = Tensor.fromJson(id.get("bias"), rs);
@@ -97,7 +100,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
    * @param rs   the rs
    * @return the product inputs layer
    */
-  public static ImgBandBiasLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ImgBandBiasLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandBiasLayer(json, rs);
   }
   
@@ -215,7 +218,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull JsonObject json = super.getJsonStub();
     json.addProperty("precision", precision.name());
     json.add("bias", bias.toJson(resources, dataSerializer));

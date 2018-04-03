@@ -69,7 +69,7 @@ public class AvgMetaLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected AvgMetaLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected AvgMetaLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatchCount = json.get("minBatchCount").getAsInt();
@@ -82,7 +82,7 @@ public class AvgMetaLayer extends LayerBase {
    * @param rs   the rs
    * @return the avg meta layer
    */
-  public static AvgMetaLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static AvgMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AvgMetaLayer(json, rs);
   }
   
@@ -157,7 +157,7 @@ public class AvgMetaLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     if (null != lastResult) {
       json.add("lastResult", lastResult.toJson(resources, dataSerializer));

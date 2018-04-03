@@ -34,7 +34,7 @@ public abstract class LineSearchCursorBase extends ReferenceCountingBase impleme
    *
    * @return the direction type
    */
-  public abstract String getDirectionType();
+  public abstract CharSequence getDirectionType();
   
   /**
    * Position delta setByCoord.

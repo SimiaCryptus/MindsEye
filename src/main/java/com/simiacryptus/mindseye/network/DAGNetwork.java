@@ -71,7 +71,7 @@ public abstract class DAGNetwork extends LayerBase {
   /**
    * The Labels.
    */
-  protected final LinkedHashMap<String, UUID> labels = new LinkedHashMap<>();
+  protected final LinkedHashMap<CharSequence, UUID> labels = new LinkedHashMap<>();
   /**
    * The Layers by id.
    */
@@ -98,7 +98,7 @@ public abstract class DAGNetwork extends LayerBase {
    * @param json the json
    * @param rs   the rs
    */
-  protected DAGNetwork(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected DAGNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     for (@Nonnull final JsonElement item : json.getAsJsonArray("inputs")) {
       @Nonnull final UUID key = UUID.fromString(item.getAsString());
@@ -123,7 +123,7 @@ public abstract class DAGNetwork extends LayerBase {
       assert null != layer;
       source_layersByNodeId.put(nodeId, layer);
     }
-    @Nonnull final LinkedHashMap<String, UUID> labels = new LinkedHashMap<>();
+    @Nonnull final LinkedHashMap<CharSequence, UUID> labels = new LinkedHashMap<>();
     for (@Nonnull final Entry<String, JsonElement> e : jsonLabels.entrySet()) {
       labels.put(e.getKey(), UUID.fromString(e.getValue().getAsString()));
     }
@@ -179,7 +179,7 @@ public abstract class DAGNetwork extends LayerBase {
    * @param head  the head
    * @return the dag node
    */
-  public InnerNode add(@Nullable final String label, @Nonnull final Layer layer, final DAGNode... head) {
+  public InnerNode add(@Nullable final CharSequence label, @Nonnull final Layer layer, final DAGNode... head) {
     assertAlive();
     assertConsistent();
     assert null != getInput();
@@ -229,7 +229,7 @@ public abstract class DAGNetwork extends LayerBase {
    */
   protected boolean assertConsistent() {
     assert null != getInput();
-    for (@Nonnull final Entry<String, UUID> e : labels.entrySet()) {
+    for (@Nonnull final Entry<CharSequence, UUID> e : labels.entrySet()) {
       assert nodesById.containsKey(e.getValue());
     }
     for (@Nonnull final Entry<UUID, DAGNode> e : nodesById.entrySet()) {
@@ -303,7 +303,7 @@ public abstract class DAGNetwork extends LayerBase {
    * @param key the key
    * @return the by label
    */
-  public DAGNode getByLabel(final String key) {
+  public DAGNode getByLabel(final CharSequence key) {
     return nodesById.get(labels.get(key));
   }
   
@@ -316,7 +316,7 @@ public abstract class DAGNetwork extends LayerBase {
    */
   @Nullable
   @SuppressWarnings("unchecked")
-  public <T extends Layer> T getByName(@Nullable final String name) {
+  public <T extends Layer> T getByName(@Nullable final CharSequence name) {
     if (null == name) return null;
     @Nonnull final AtomicReference<Layer> result = new AtomicReference<>();
     visitLayers(n -> {
@@ -388,7 +388,7 @@ public abstract class DAGNetwork extends LayerBase {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     @Nonnull final JsonArray inputs = new JsonArray();
     json.add("inputs", inputs);

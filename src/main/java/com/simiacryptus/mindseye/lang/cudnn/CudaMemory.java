@@ -54,7 +54,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   /**
    * The Mi b.
    */
-  static final int MiB = K * 1024;
+  static final long MiB = K * 1024;
   /**
    * The Gi b.
    */
@@ -98,12 +98,10 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the long
    */
   public static double clearWeakMemory(final int deviceId) {
-    logLoad();
     double totalFreed = 0;
     for (final MemoryType type : MemoryType.values()) {
       totalFreed += type.purge(deviceId);
     }
-    logLoad();
     return totalFreed;
   }
   
@@ -137,7 +135,6 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the long
    */
   public static double evictMemory(final int deviceId) {
-    logLoad();
     double bytes = RegisteredObjectBase.getLivingInstances(SimpleConvolutionLayer.class).mapToLong(x -> x.evictDeviceData(deviceId)).sum();
     logger.info(String.format("Cleared %e bytes from ConvolutionFilters for device %s", bytes, deviceId));
     double tensorListsFreed = CudaTensorList.evictToHeap(deviceId);
@@ -260,7 +257,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     else {
       synchronize();
       CudaSystem.run(gpu -> {
-        CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
+        CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyKind.cudaMemcpyDeviceToHost);
       });
       CudaMemory.getGpuStats(deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }

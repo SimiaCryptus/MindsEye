@@ -94,7 +94,7 @@ public class MaxDropoutNoiseLayer extends LayerBase {
    * @param rs   the rs
    * @return the max dropout noise layer
    */
-  public static MaxDropoutNoiseLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MaxDropoutNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxDropoutNoiseLayer(json);
   }
   
@@ -178,7 +178,7 @@ public class MaxDropoutNoiseLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("kernelSize", JsonUtil.getJson(kernelSize));
     return json;

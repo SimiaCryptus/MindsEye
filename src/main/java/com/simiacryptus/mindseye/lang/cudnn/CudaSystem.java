@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.simiacryptus.mindseye.lang.CoreSettings;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -67,12 +68,6 @@ import java.util.stream.IntStream;
  */
 public class CudaSystem {
   
-  private static final Map<Integer, Long> syncTimes = new HashMap<>();
-  
-  /**
-   * The constant INSTANCE.
-   */
-//  public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).getNetwork());
   /**
    * The constant apiLog.
    */
@@ -113,7 +108,6 @@ public class CudaSystem {
    * The constant cudaMalloc_execution.
    */
   protected static final DoubleStatistics cudaMalloc_execution = new DoubleStatistics();
-  
   /**
    * The constant cudaDeviceSynchronize_execution.
    */
@@ -142,7 +136,6 @@ public class CudaSystem {
    * The constant cudaDeviceSetLimit_execution.
    */
   protected static final DoubleStatistics cudaDeviceSetLimit_execution = new DoubleStatistics();
-  
   /**
    * The constant cudaMemcpyAsync_execution.
    */
@@ -171,8 +164,6 @@ public class CudaSystem {
    * The constant cudnnSetReduceTensorDescriptor_execution.
    */
   protected static final DoubleStatistics cudnnSetReduceTensorDescriptor_execution = new DoubleStatistics();
-  
-  
   /**
    * The constant cudnnActivationBackward_execution.
    */
@@ -233,12 +224,10 @@ public class CudaSystem {
    * The constant cudnnOpTensor_execution.
    */
   protected static final DoubleStatistics cudnnOpTensor_execution = new DoubleStatistics();
-  
   /**
    * The constant cudnnReduceTensor_execution.
    */
   protected static final DoubleStatistics cudnnReduceTensor_execution = new DoubleStatistics();
-  
   /**
    * The constant cudnnPoolingBackward_execution.
    */
@@ -335,15 +324,28 @@ public class CudaSystem {
    * The constant syncLock.
    */
   protected static final Object syncLock = new Object();
+  /**
+   * The constant handlePools.
+   */
+  protected static final HashMap<Integer, ResourcePool<CudnnHandle>> handlePools = new HashMap<>();
+  private static final Map<Integer, Long> syncTimes = new HashMap<>();
   private static final Executor garbageTruck = MoreExecutors.directExecutor();
   //Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("gpu-free-%d").setDaemon(true).getNetwork());
+  private static final int deviceCount = init();
+  private static final HashMap<Integer, Object> deviceLocks = new HashMap<>();
+//  private final List<StackTraceElement[]> dirty = new ArrayList<>();
   /**
    * The constant gpuGeneration.
    */
   @Nonnull
   public static AtomicInteger gpuGeneration = new AtomicInteger(0);
   private static volatile StaticResourcePool<CudnnHandle> pool;
-//  private final List<StackTraceElement[]> dirty = new ArrayList<>();
+  /**
+   * The Execution thread.
+   */
+  protected final ExecutorService executionThread = CoreSettings.INSTANCE.isSingleThreaded() ?
+    MoreExecutors.newDirectExecutorService() :
+    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
   
   /**
    * Instantiates a new Gpu system.
@@ -377,7 +379,7 @@ public class CudaSystem {
     @Nonnull int[] driverVersion = {0};
     JCuda.cudaRuntimeGetVersion(runtimeVersion);
     JCuda.cudaDriverGetVersion(driverVersion);
-    @Nonnull String jCudaVersion = JCuda.getJCudaVersion();
+    @Nonnull CharSequence jCudaVersion = JCuda.getJCudaVersion();
     out.printf("Time: %s; Driver %s; Runtime %s; Lib %s%n", new Date(), driverVersion[0], runtimeVersion[0], jCudaVersion);
     @Nonnull long[] free = {0};
     @Nonnull long[] total = {0};
@@ -406,8 +408,8 @@ public class CudaSystem {
    * @return the map
    */
   @Nonnull
-  protected static Map<String, String> toMap(@Nonnull DoubleStatistics obj) {
-    @Nonnull HashMap<String, String> map = new HashMap<>();
+  protected static Map<CharSequence, CharSequence> toMap(@Nonnull DoubleStatistics obj) {
+    @Nonnull HashMap<CharSequence, CharSequence> map = new HashMap<>();
     if (0 < obj.getCount()) {
       map.put("stddev", Double.toString(obj.getStandardDeviation()));
       map.put("mean", Double.toString(obj.getAverage()));
@@ -424,8 +426,8 @@ public class CudaSystem {
    * @return the execution statistics
    */
   @Nonnull
-  public static final Map<String, Map<String, String>> getExecutionStatistics() {
-    @Nonnull HashMap<String, Map<String, String>> map = new HashMap<>();
+  public static final Map<CharSequence, Map<CharSequence, CharSequence>> getExecutionStatistics() {
+    @Nonnull HashMap<CharSequence, Map<CharSequence, CharSequence>> map = new HashMap<>();
     map.put("createPoolingDescriptor", toMap(createPoolingDescriptor_execution));
     map.put("cudaDeviceReset", toMap(cudaDeviceReset_execution));
     map.put("cudaFree", toMap(cudaFree_execution));
@@ -477,8 +479,8 @@ public class CudaSystem {
     map.put("cudaStreamSynchronize", toMap(cudaStreamSynchronize_execution));
     map.put("cudaMemcpyAsync", toMap(cudaMemcpyAsync_execution));
     map.put("cudaSetDeviceFlags", toMap(cudaSetDeviceFlags_execution));
-    
-    for (String entry : map.entrySet().stream().filter(x -> x.getValue().isEmpty()).map(x -> x.getKey()).collect(Collectors.toList())) {
+  
+    for (CharSequence entry : map.entrySet().stream().filter(x -> x.getValue().isEmpty()).map(x -> x.getKey()).collect(Collectors.toList())) {
       map.remove(entry);
     }
     return map;
@@ -530,11 +532,6 @@ public class CudaSystem {
     handle(result);
     return result;
   }
-  
-  /**
-   * The constant handlePools.
-   */
-  protected static final HashMap<Integer, ResourcePool<CudnnHandle>> handlePools = new HashMap<>();
   
   /**
    * Gets device.
@@ -821,8 +818,6 @@ public class CudaSystem {
     return result;
   }
   
-  private static final int deviceCount = init();
-  
   /**
    * Device count int.
    *
@@ -880,7 +875,7 @@ public class CudaSystem {
    * @param obj the obj
    * @return the string
    */
-  protected static String renderToLog(final Object obj) {
+  protected static CharSequence renderToLog(final Object obj) {
     if (obj instanceof int[]) {
       if (((int[]) obj).length < 10) {
         return Arrays.toString((int[]) obj);
@@ -922,16 +917,6 @@ public class CudaSystem {
     CudaSystem.handle(result);
     return tensorOuputDims;
   }
-  
-  /**
-   * Remove log boolean.
-   *
-   * @param apiLog the api log
-   * @return the boolean
-   */
-  public static boolean removeLog(PrintStream apiLog) {
-    return CudaSystem.apiLog.remove(apiLog);
-  }
 
 //  /**
 //   * With device.
@@ -951,6 +936,15 @@ public class CudaSystem {
 //    }
 //  }
   
+  /**
+   * Remove log boolean.
+   *
+   * @param apiLog the api log
+   * @return the boolean
+   */
+  public static boolean removeLog(PrintStream apiLog) {
+    return CudaSystem.apiLog.remove(apiLog);
+  }
   
   /**
    * Add log.
@@ -963,19 +957,14 @@ public class CudaSystem {
   }
   
   /**
-   * The Execution thread.
-   */
-  protected final ExecutorService executionThread = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(toString()).build());
-  
-  /**
    * Log.
    *
    * @param method the method
    * @param result the result
    * @param args   the args
    */
-  public static void log(final String method, final Object result, @Nullable final Object[] args) {
-    String callstack = !CudaSettings.INSTANCE.isLogStack() ? "" : TestUtil.toString(Arrays.stream(Thread.currentThread().getStackTrace())
+  public static void log(final CharSequence method, final Object result, @Nullable final Object[] args) {
+    CharSequence callstack = !CudaSettings.INSTANCE.isLogStack() ? "" : TestUtil.toString(Arrays.stream(Thread.currentThread().getStackTrace())
       .filter(x -> true
           && x.getClassName().startsWith("com.simiacryptus.mindseye.")
         //&& !x.getClassName().startsWith("com.simiacryptus.mindseye.lang.")
@@ -983,7 +972,7 @@ public class CudaSystem {
       )
       //.limit(10)
       .toArray(i -> new StackTraceElement[i]), ", ");
-    @Nonnull final String paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
+    @Nonnull final CharSequence paramString = null == args ? "" : Arrays.stream(args).map(CudaSystem::renderToLog).reduce((a, b) -> a + ", " + b).orElse("");
     final String message = String.format("%.6f @ %s(%d): %s(%s) = %s via [%s]", (System.nanoTime() - CudaSystem.start) / 1e9, Thread.currentThread().getName(), getThreadDeviceId(), method, paramString, result, callstack);
     try {
       CudaSystem.apiLog.forEach(apiLog -> CudaSystem.logThread.submit(() -> apiLog.println(message)));
@@ -1226,8 +1215,6 @@ public class CudaSystem {
     return deviceCount;
   }
   
-  private static final HashMap<Integer, Object> deviceLocks = new HashMap<>();
-  
   /**
    * Synchronize.
    *
@@ -1240,7 +1227,7 @@ public class CudaSystem {
     if (null == val) val = 0L;
     if (null == val || val < time) {
       final Long finalVal = val;
-      String caller = !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller();
+      CharSequence caller = !CudaSettings.INSTANCE.isProfileMemoryIO() ? "" : TestUtil.getCaller();
       withDevice(device, gpu -> {
         if (null == finalVal || finalVal < time) {
           synchronized (deviceLocks.computeIfAbsent(device, d -> new Object())) {
@@ -1270,6 +1257,22 @@ public class CudaSystem {
   }
   
   /**
+   * The constant POOL.
+   *
+   * @param deviceId the device id
+   * @return the pool
+   */
+  public static ResourcePool<CudnnHandle> getPool(final int deviceId) {
+    assert deviceId >= 0;
+    return handlePools.computeIfAbsent(deviceId, d -> new ResourcePool<CudnnHandle>(32) {
+      @Override
+      public CudnnHandle create() {
+        return new CudnnHandle(deviceId);
+      }
+    });
+  }
+  
+  /**
    * Cleanup.
    */
   protected void cleanup() {
@@ -1286,21 +1289,5 @@ public class CudaSystem {
      * @return the device id
      */
     int getDeviceId();
-  }
-  
-  /**
-   * The constant POOL.
-   *
-   * @param deviceId the device id
-   * @return the pool
-   */
-  public static ResourcePool<CudnnHandle> getPool(final int deviceId) {
-    assert deviceId >= 0;
-    return handlePools.computeIfAbsent(deviceId, d -> new ResourcePool<CudnnHandle>(32) {
-      @Override
-      public CudnnHandle create() {
-        return new CudnnHandle(deviceId);
-      }
-    });
   }
 }

@@ -132,6 +132,11 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
       return network;
     }
   
+    @Override
+    protected Class<?> getTargetClass() {
+      return BinarySumLayer.class;
+    }
+  
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {

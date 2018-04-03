@@ -101,7 +101,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
    * @param rs   the rs
    * @return the activation layer
    */
-  public static ActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static ActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ActivationLayer(json);
   }
   
@@ -161,7 +161,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
             length, inputSize[2], inputSize[1], inputSize[0],
             inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
           @Nonnull final CudaMemory outputData =
-            gpu.allocate(precision.size * 1l * inputDims * length, MemoryType.Managed.normalize(), true);
+            gpu.allocate((long) precision.size * inputDims * length, MemoryType.Managed.normalize(), true);
           outputTensor = CudaTensor.wrap(outputData, outputDescriptor, precision);
         }
   
@@ -191,9 +191,8 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
             final TensorList data = CudaSystem.run(gpu -> {
               @Nullable CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
               @Nullable CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
-              outPtr.addRef();
               assert length == delta.length();
-              CudaTensor localOut = outPtr.getDenseAndFree(gpu);
+              CudaTensor localOut = outPtr.getDense(gpu);
               delta.freeRef();
               CudaTensor passbackTensor;
 //            if (sameStrides(deltaTensor.descriptor, inputTensor.descriptor)) {
@@ -278,7 +277,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("mode", mode);
     json.addProperty("precision", precision.name());

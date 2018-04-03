@@ -104,7 +104,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
   
         @Nonnull
         @Override
-        public String getDirectionType() {
+        public CharSequence getDirectionType() {
           return CURSOR_NAME;
         }
   

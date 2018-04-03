@@ -35,7 +35,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -128,7 +127,7 @@ public class MNIST {
     @Nullable InputStream stream = null;
     try {
       stream = Util.cacheStream(TestUtil.S3_ROOT.resolve(name));
-    } catch (@Nonnull NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+    } catch (@Nonnull NoSuchAlgorithmException | KeyManagementException e) {
       throw new RuntimeException(e);
     }
     final byte[] fileData = IOUtils.toByteArray(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(stream))));

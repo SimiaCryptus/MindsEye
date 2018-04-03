@@ -51,7 +51,7 @@ public abstract class WrapperLayer extends LayerBase {
    * @param json the json
    * @param rs   the rs
    */
-  public WrapperLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public WrapperLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     this.inner = Layer.fromJson(json.getAsJsonObject("inner"), rs);
   }
@@ -104,7 +104,7 @@ public abstract class WrapperLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("inner", getInner().getJson(resources, dataSerializer));
     return json;

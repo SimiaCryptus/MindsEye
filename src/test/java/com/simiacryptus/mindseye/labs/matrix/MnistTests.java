@@ -199,14 +199,14 @@ public class MnistTests {
   
     @Nonnull
     @Override
-    public String getDatasetName() {
+    public CharSequence getDatasetName() {
       return "MNIST";
     }
   
     @Nonnull
     @Override
     public ReportType getReportType() {
-      return ReportType.Training;
+      return ReportType.Experiments;
     }
   
   }

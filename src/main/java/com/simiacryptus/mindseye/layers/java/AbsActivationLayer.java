@@ -53,7 +53,7 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
    * @param rs   the rs
    * @return the abs activation layer
    */
-  public static AbsActivationLayer fromJson(final JsonObject json, Map<String, byte[]> rs) {
+  public static AbsActivationLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AbsActivationLayer(json);
   }
   
@@ -70,7 +70,7 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
   

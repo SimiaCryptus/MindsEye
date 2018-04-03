@@ -79,7 +79,7 @@ public class InceptionLayer extends DAGNetwork {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJson(resources, dataSerializer);
     json.add("root", getHead().getLayer().getJson(resources, dataSerializer));
     return json;

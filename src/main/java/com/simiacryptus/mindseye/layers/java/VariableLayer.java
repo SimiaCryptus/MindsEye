@@ -39,7 +39,7 @@ public class VariableLayer extends WrapperLayer {
    * @param json the json
    * @param rs   the rs
    */
-  protected VariableLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected VariableLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
   }
   
@@ -59,7 +59,7 @@ public class VariableLayer extends WrapperLayer {
    * @param rs   the rs
    * @return the variable layer
    */
-  public static VariableLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static VariableLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new VariableLayer(json, rs);
   }
   
@@ -70,7 +70,7 @@ public class VariableLayer extends WrapperLayer {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJson(resources, dataSerializer);
     json.add("heapCopy", getInner().getJson(resources, dataSerializer));
     return json;

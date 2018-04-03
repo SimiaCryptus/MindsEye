@@ -17,17 +17,13 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.demo;
+package com.simiacryptus.mindseye.app;
 
+import com.simiacryptus.mindseye.applications.ImageClassifier;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.models.Hdf5Archive;
-import com.simiacryptus.mindseye.models.ImageClassifier;
-import com.simiacryptus.mindseye.models.VGG16;
-import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.TableOutput;
-import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
@@ -39,29 +35,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
- * We load a pretrained convolutional neural network (VGG16) along apply the CalTech101 image dataset to perform a
- * demonstration of Image Recognition.
+ * The type Image classification base.
  */
-public class ImageClassificationDemo extends ArtistryDemo {
-  
-  /**
-   * Instantiates a new Image classification demo.
-   *
-   * @param args the args
-   */
-  public ImageClassificationDemo(final String... args) {
-  
-  }
-  
-  /**
-   * The entry point of application.
-   *
-   * @param args the input arguments
-   */
-  public static void main(String[] args) {
-    ImageClassificationDemo demo = new ImageClassificationDemo(args);
-    demo.run(demo::run);
-  }
+public abstract class ImageClassificationBase extends ArtistryAppBase {
   
   /**
    * Test.
@@ -69,24 +45,27 @@ public class ImageClassificationDemo extends ArtistryDemo {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    
-    
     log.h1("Model");
+    log.p("In this demonstration, we will show how to load an image recognition network and use it to identify object in images.");
+    log.p("We start by loading the VGG16 pretrained model using the HD5 importer. This downloads, if needed, the weights from a file in S3 and re-constructs the network architecture by custom code.");
+    log.p("Next, we need an example image to analyze:");
+    log.p("We pass this image to the categorization network, and get the following top-10 results. Note that multiple objects may be detected, and the total percentage may be greater than 100%.");
+    log.p("Once we have categories identified, we can attempt to localize each object category within the image. We do this via a pipeline starting with the backpropagated input signal delta and applying several filters e.g. blurring and normalization to produce an alpha channel. When applied to the input image, we highlight the image areas related to the object type in question. Note that this produces a fuzzy blob, which does indicate object location but is a poor indicator of object boundaries. Below we perform this task for the top 5 object categories:");
     ImageClassifier vgg16 = loadModel(log);
-  
+    
     log.h1("Data");
     Tensor[] images = loadData(log);
-  
+    
     log.h1("Prediction");
-    List<LinkedHashMap<String, Double>> predictions = log.code(() -> {
+    List<LinkedHashMap<CharSequence, Double>> predictions = log.code(() -> {
       return vgg16.predict(5, images);
     });
-  
+    
     log.h1("Results");
     log.code(() -> {
       @Nonnull TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {
-        @Nonnull HashMap<String, Object> row = new HashMap<>();
+        @Nonnull HashMap<CharSequence, Object> row = new HashMap<>();
         row.put("Image", log.image(images[i].toImage(), ""));
         row.put("Prediction", predictions.get(i).entrySet().stream()
           .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
@@ -120,13 +99,7 @@ public class ImageClassificationDemo extends ArtistryDemo {
    * @param log the log
    * @return the image classifier
    */
-  public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
-    return log.code(() -> {
-      VGG16_HDF5 vgg16_hdf5 = VGG16.fromS3_HDF5();
-      vgg16_hdf5.getNetwork();
-      return vgg16_hdf5;
-    });
-  }
+  public abstract ImageClassifier loadModel(@Nonnull NotebookOutput log);
   
   /**
    * Gets shuffle comparator.
@@ -139,50 +112,9 @@ public class ImageClassificationDemo extends ArtistryDemo {
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
   
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return ImageClassifier.class;
-  }
-  
   @Nonnull
   @Override
   public ReportType getReportType() {
-    return ReportType.Demos;
-  }
-  
-  /**
-   * The type Java.
-   */
-  public static class Java extends ImageClassificationDemo {
-    /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     */
-    public static void main(String[] args) {
-      ImageClassificationDemo demo = new ImageClassificationDemo.Java();
-      demo.run(demo::run);
-    }
-    
-    @Override
-    public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
-      return log.code(() -> {
-        try {
-          VGG16_HDF5.JBLAS model = new VGG16_HDF5.JBLAS(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5"))));
-          model.getNetwork();
-          return model;
-        } catch (@Nonnull final RuntimeException e) {
-          throw e;
-        } catch (Throwable e) {
-          throw new RuntimeException(e);
-        }
-      });
-    }
-    
+    return ReportType.Applications;
   }
 }

@@ -32,6 +32,7 @@ public class BisectionSearch implements LineSearchStrategy {
   
   private double currentRate = 1.0;
   private double zeroTol = 1e-20;
+  private double spanTol = 1e-3;
   
   /**
    * Gets current rate.
@@ -102,7 +103,7 @@ public class BisectionSearch implements LineSearchStrategy {
       if (loopCount++ > 100) {
         break;
       }
-      if ((rightRight - leftX) * 2.0 / (leftX + rightRight) < Math.pow(10, -3)) {
+      if ((rightRight - leftX) * 2.0 / (leftX + rightRight) < spanTol) {
         monitor.log(String.format("Right limit is nonconvergent at %s/%s", leftX, rightRight));
         return cursor.step(leftX, monitor).point;
       }
@@ -164,5 +165,25 @@ public class BisectionSearch implements LineSearchStrategy {
         return searchPoint.point;
       }
     }
+  }
+  
+  /**
+   * Gets span tol.
+   *
+   * @return the span tol
+   */
+  public double getSpanTol() {
+    return spanTol;
+  }
+  
+  /**
+   * Sets span tol.
+   *
+   * @param spanTol the span tol
+   * @return the span tol
+   */
+  public BisectionSearch setSpanTol(double spanTol) {
+    this.spanTol = spanTol;
+    return this;
   }
 }

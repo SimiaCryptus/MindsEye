@@ -120,7 +120,7 @@ public class MaxPoolingLayer extends LayerBase {
    * @param rs   the rs
    * @return the max subsample layer
    */
-  public static MaxPoolingLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static MaxPoolingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxPoolingLayer(json,
       JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
@@ -198,7 +198,7 @@ public class MaxPoolingLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("heapCopy", JsonUtil.getJson(kernelDims));
     return json;

@@ -228,6 +228,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
      */
     public Float() {
       super(Precision.Float, 2, 1, 8, 1200);
+      tolerance = 1e-2;
     }
   }
   

@@ -68,7 +68,7 @@ public class HyperbolicActivationLayer extends LayerBase {
    * @param json      the json
    * @param resources the resources
    */
-  protected HyperbolicActivationLayer(@Nonnull final JsonObject json, Map<String, byte[]> resources) {
+  protected HyperbolicActivationLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     weights = Tensor.fromJson(json.get("weights"), resources);
     negativeMode = json.getAsJsonPrimitive("negativeMode").getAsInt();
@@ -81,7 +81,7 @@ public class HyperbolicActivationLayer extends LayerBase {
    * @param rs   the rs
    * @return the hyperbolic activation layer
    */
-  public static HyperbolicActivationLayer fromJson(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  public static HyperbolicActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new HyperbolicActivationLayer(json, rs);
   }
   
@@ -171,7 +171,7 @@ public class HyperbolicActivationLayer extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.add("weights", weights.toJson(resources, dataSerializer));
     json.addProperty("negativeMode", negativeMode);

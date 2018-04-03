@@ -69,7 +69,7 @@ public final class PlaceholderLayer<T> extends LayerBase {
   
   @Nonnull
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     throw new UnsupportedOperationException();
   }
   

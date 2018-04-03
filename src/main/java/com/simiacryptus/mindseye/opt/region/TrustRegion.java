@@ -37,7 +37,6 @@ public interface TrustRegion {
    * @param point the point
    * @return the double [ ]
    */
-  @Deprecated
   default double[] project(final double[] state, final double[] point) {
     throw new NotImplementedException();
   }

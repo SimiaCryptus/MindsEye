@@ -60,7 +60,7 @@ public class TargetValueLayer extends DAGNetwork {
    * @param json the json
    * @param rs   the rs
    */
-  protected TargetValueLayer(@Nonnull final JsonObject json, Map<String, byte[]> rs) {
+  protected TargetValueLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
     target = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
@@ -73,7 +73,7 @@ public class TargetValueLayer extends DAGNetwork {
    * @param rs    the rs
    * @return the nn layer
    */
-  public static Layer fromJson(@Nonnull final JsonObject inner, Map<String, byte[]> rs) {
+  public static Layer fromJson(@Nonnull final JsonObject inner, Map<CharSequence, byte[]> rs) {
     return new TargetValueLayer(inner, rs);
   }
   
@@ -83,7 +83,7 @@ public class TargetValueLayer extends DAGNetwork {
   }
   
   @Override
-  public JsonObject getJson(Map<String, byte[]> resources, DataSerializer dataSerializer) {
+  public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("target", target.getId().toString());
     return json;
