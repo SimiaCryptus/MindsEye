@@ -56,11 +56,13 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -548,5 +550,9 @@ public class ArtistryUtil {
     functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> {
       return new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2).setParallel(parallelLossFunctions));
     }).get();
+  }
+  
+  public static List<CharSequence> getFiles(CharSequence file) {
+    return Arrays.stream(new File(file.toString()).listFiles()).map(File::getName).collect(Collectors.toList());
   }
 }

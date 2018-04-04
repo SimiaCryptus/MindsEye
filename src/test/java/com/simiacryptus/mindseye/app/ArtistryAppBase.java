@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.app;
 
+import com.simiacryptus.mindseye.applications.ArtistryUtil;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.util.StreamNanoHTTPD;
@@ -34,12 +35,24 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * The type ArtistryAppBase demo.
  */
 public abstract class ArtistryAppBase extends NotebookReportBase {
   private static final Logger logger = LoggerFactory.getLogger(ArtistryAppBase.class);
+  
+  protected final CharSequence lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+  protected final String monkey = "H:\\SimiaCryptus\\Artistry\\capuchin-monkey-2759768_960_720.jpg";
+  protected final CharSequence vanGogh1 = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\Van_Gogh_-_Portrait_of_Pere_Tanguy_1887-8.jpg";
+  protected final CharSequence vanGogh2 = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Dr_Paul_Gachet_-_Google_Art_Project.jpg";
+  protected final CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+  protected final CharSequence maJolie = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\Ma_Jolie_Pablo_Picasso.jpg";
+  protected final List<CharSequence> picasso = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\");
+  protected final List<CharSequence> vangogh = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\vangogh\\picasso\\");
+
+
   /**
    * The Server.
    */

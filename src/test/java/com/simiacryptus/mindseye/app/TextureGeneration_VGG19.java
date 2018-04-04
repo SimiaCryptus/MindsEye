@@ -30,7 +30,6 @@ import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -65,24 +64,12 @@ public class TextureGeneration_VGG19 extends ArtistryAppBase {
     final AtomicInteger imageSize = new AtomicInteger(256);
     styleTransfer.parallelLossFunctions = true;
     double growthFactor = Math.sqrt(1.5);
-    CharSequence lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
-    String monkey = "H:\\SimiaCryptus\\Artistry\\capuchin-monkey-2759768_960_720.jpg";
-    CharSequence vanGogh1 = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\Van_Gogh_-_Portrait_of_Pere_Tanguy_1887-8.jpg";
-    CharSequence vanGogh2 = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Dr_Paul_Gachet_-_Google_Art_Project.jpg";
-    CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
-    CharSequence maJolie = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\Ma_Jolie_Pablo_Picasso.jpg";
     
     Map<List<CharSequence>, TextureGeneration.StyleCoefficients> styles = new HashMap<>();
     double coeff_mean = 1e0;
     double coeff_cov = 1e0;
-    styles.put(Arrays.asList(
-      //threeMusicians, maJolie
-      vanGogh1, vanGogh2
-      ), new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-//      .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
-//        .set(CVPipe_VGG19.Layer.Layer_1a, coeff_mean, coeff_cov)
+    styles.put(vangogh, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
         .set(CVPipe_VGG19.Layer.Layer_1b, coeff_mean, coeff_cov)
-//        .set(CVPipe_VGG19.Layer.Layer_1c, coeff_mean, coeff_cov)
         .set(CVPipe_VGG19.Layer.Layer_1d, coeff_mean, coeff_cov)
     );
     int trainingMinutes = 90;
