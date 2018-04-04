@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -213,6 +214,68 @@ public class ArtistryUtil {
     canvas.set(Tensor.fromRGB(newImage));
   }
   
+  public static Tensor paint_Plasma(final int size, int bands, final double noiseAmplitude, final double noisePower) {
+    Tensor baseColor = new Tensor(1, 1, bands).setByCoord(c -> 100 + 200 * (Math.random() - 0.5));
+    Tensor seed = new Tensor(2, 2, bands).setByCoord(c -> baseColor.get(0, 0, c.getCoords()[2]));
+    while (seed.getDimensions()[0] < size) {
+      seed = expandPlasma(seed, Math.pow(noiseAmplitude, noisePower) / Math.pow(seed.getDimensions()[0], noisePower));
+    }
+    return seed;
+  }
+  
+  public static Tensor expandPlasma(final Tensor seed, double noise) {
+    int radius = seed.getDimensions()[0];
+    int bands = seed.getDimensions()[2];
+    int size = radius * 2;
+    Tensor returnValue = new Tensor(size, size, bands);
+    DoubleUnaryOperator fn = x -> Math.max(Math.min(x + noise * (Math.random() - 0.5), 255), 0);
+    IntUnaryOperator addr = x -> {
+      while (x >= size) x -= size;
+      while (x < 0) x += size;
+      return x;
+    };
+    for (int band = 0; band < bands; band++) {
+      for (int x = 0; x < size; x += 2) {
+        for (int y = 0; y < size; y += 2) {
+          double value = seed.get(x / 2, y / 2, band);
+          value = fn.applyAsDouble(value);
+          returnValue.set(x, y, band, value);
+        }
+      }
+      for (int x = 1; x < size; x += 2) {
+        for (int y = 1; y < size; y += 2) {
+          double value = (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y - 1), band)) +
+            (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y + 1), band)) +
+            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y - 1), band)) +
+            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y + 1), band));
+          value = fn.applyAsDouble(value / 4);
+          returnValue.set(x, y, band, value);
+        }
+      }
+      for (int x = 0; x < size; x += 2) {
+        for (int y = 1; y < size; y += 2) {
+          double value = (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y), band)) +
+            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y), band)) +
+            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y - 1), band)) +
+            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y + 1), band));
+          value = fn.applyAsDouble(value / 4);
+          returnValue.set(x, y, band, value);
+        }
+      }
+      for (int x = 1; x < size; x += 2) {
+        for (int y = 0; y < size; y += 2) {
+          double value = (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y), band)) +
+            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y), band)) +
+            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y - 1), band)) +
+            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y + 1), band));
+          value = fn.applyAsDouble(value / 4);
+          returnValue.set(x, y, band, value);
+        }
+      }
+    }
+    return returnValue;
+  }
+  
   /**
    * Avg pipeline network.
    *
@@ -336,10 +399,10 @@ public class ArtistryUtil {
    * @return the buffered image
    */
   @Nonnull
-  public static BufferedImage load(final String image, final int imageSize) {
+  public static BufferedImage load(final CharSequence image, final int imageSize) {
     BufferedImage bufferedImage;
     try {
-      bufferedImage = ImageIO.read(new File(image));
+      bufferedImage = ImageIO.read(new File(image.toString()));
       bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -356,10 +419,10 @@ public class ArtistryUtil {
    * @return the buffered image
    */
   @Nonnull
-  public static BufferedImage load(final String imageFile, final int width, final int height) {
+  public static BufferedImage load(final CharSequence imageFile, final int width, final int height) {
     BufferedImage image;
     try {
-      image = ImageIO.read(new File(imageFile));
+      image = ImageIO.read(new File(imageFile.toString()));
       image = TestUtil.resize(image, width, height);
     } catch (IOException e) {
       throw new RuntimeException(e);
