@@ -17,10 +17,8 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.app;
+package com.simiacryptus.mindseye.applications;
 
-import com.simiacryptus.mindseye.applications.ArtistryUtil;
-import com.simiacryptus.mindseye.applications.StyleTransfer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.models.VGG19;

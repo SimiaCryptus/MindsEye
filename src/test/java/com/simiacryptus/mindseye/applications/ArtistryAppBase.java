@@ -17,9 +17,8 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.app;
+package com.simiacryptus.mindseye.applications;
 
-import com.simiacryptus.mindseye.applications.ArtistryUtil;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.util.StreamNanoHTTPD;
@@ -50,7 +49,7 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
   protected final CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
   protected final CharSequence maJolie = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\Ma_Jolie_Pablo_Picasso.jpg";
   protected final List<CharSequence> picasso = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\");
-  protected final List<CharSequence> vangogh = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\vangogh\\picasso\\");
+  protected final List<CharSequence> vangogh = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\");
 
 
   /**

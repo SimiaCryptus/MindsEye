@@ -17,10 +17,8 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.app;
+package com.simiacryptus.mindseye.applications;
 
-import com.simiacryptus.mindseye.applications.ArtistryUtil;
-import com.simiacryptus.mindseye.applications.TextureGeneration;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.models.VGG19;
@@ -61,45 +59,71 @@ public class TextureGeneration_VGG19 extends ArtistryAppBase {
     TextureGeneration.VGG19 styleTransfer = new TextureGeneration.VGG19();
     init(log);
     Precision precision = Precision.Float;
-    final AtomicInteger imageSize = new AtomicInteger(256);
     styleTransfer.parallelLossFunctions = true;
     double growthFactor = Math.sqrt(1.5);
-    
-    Map<List<CharSequence>, TextureGeneration.StyleCoefficients> styles = new HashMap<>();
-    double coeff_mean = 1e0;
-    double coeff_cov = 1e0;
-    styles.put(vangogh, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-        .set(CVPipe_VGG19.Layer.Layer_1b, coeff_mean, coeff_cov)
-        .set(CVPipe_VGG19.Layer.Layer_1d, coeff_mean, coeff_cov)
-    );
     int trainingMinutes = 90;
-    
+    int phases = 2;
+  
+    BufferedImage canvas = initCanvas(new AtomicInteger(256));
+    {
+      double coeff_mean = 1e0;
+      double coeff_cov = 1e0;
+      Map<List<CharSequence>, TextureGeneration.StyleCoefficients> styles = new HashMap<>();
+      styles.put(picasso, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+          .set(CVPipe_VGG19.Layer.Layer_1a, coeff_mean, coeff_cov)
+          .set(CVPipe_VGG19.Layer.Layer_1b, coeff_mean, coeff_cov)
+//        .set(CVPipe_VGG19.Layer.Layer_1d, coeff_mean, coeff_cov)
+      );
+      canvas = run(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, styles, trainingMinutes, canvas, phases);
+    }
+  
+    double coeff_mean = 1e1;
+    double coeff_cov = 1e0;
+    Map<List<CharSequence>, TextureGeneration.StyleCoefficients> styles = new HashMap<>();
+    styles.put(picasso, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+      .set(CVPipe_VGG19.Layer.Layer_1c, coeff_mean, coeff_cov)
+      .set(CVPipe_VGG19.Layer.Layer_1d, coeff_mean, coeff_cov)
+    );
+    canvas = run(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, styles, trainingMinutes, canvas, phases);
+  
+    log.setFrontMatterProperty("status", "OK");
+  }
+  
+  public BufferedImage run(@Nonnull final NotebookOutput log, final TextureGeneration.VGG19 styleTransfer, final Precision precision, final AtomicInteger imageSize, final double growthFactor, final Map<List<CharSequence>, TextureGeneration.StyleCoefficients> styles, final int trainingMinutes, BufferedImage canvasImage, final int phases) {
     log.h1("Phase 0");
-    BufferedImage canvasImage = ArtistryUtil.load(monkey, imageSize.get());
-    canvasImage = ArtistryUtil.randomize(canvasImage, x -> 100 + 200 * (FastRandom.INSTANCE.random() - 0.5));
-    canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
-    canvasImage = ArtistryUtil.paint_Plasma(imageSize.get(), 3, 100.0, 1.4).toImage();
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     TextureGeneration.StyleSetup styleSetup;
+    TextureGeneration.NeuralSetup measureStyle;
     
     styleImages.clear();
     styleImages.putAll(styles.keySet().stream().flatMap(Collection::stream).collect(Collectors.toMap(x -> x, image -> ArtistryUtil.load(image, imageSize.get()))));
     styleSetup = new TextureGeneration.StyleSetup(precision, styleImages, styles);
+    measureStyle = styleTransfer.measureStyle(styleSetup);
     
-    TextureGeneration.NeuralSetup measureStyle = styleTransfer.measureStyle(styleSetup);
+    canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
     canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle);
-    for (int i = 1; i < 3; i++) {
+    for (int i = 1; i < phases; i++) {
       log.h1("Phase " + i);
       imageSize.set((int) (imageSize.get() * growthFactor));
-      canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
       
       styleImages.clear();
       styleImages.putAll(styles.keySet().stream().flatMap(Collection::stream).collect(Collectors.toMap(x -> x, image -> ArtistryUtil.load(image, imageSize.get()))));
       styleSetup = new TextureGeneration.StyleSetup(precision, styleImages, styles);
+      measureStyle = styleTransfer.measureStyle(styleSetup);
       
+      canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
       canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle);
     }
-    log.setFrontMatterProperty("status", "OK");
+    return canvasImage;
+  }
+  
+  @Nonnull
+  public BufferedImage initCanvas(final AtomicInteger imageSize) {
+    BufferedImage canvasImage = ArtistryUtil.load(monkey, imageSize.get());
+    canvasImage = ArtistryUtil.randomize(canvasImage, x -> 100 + 200 * (FastRandom.INSTANCE.random() - 0.5));
+    canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
+    canvasImage = ArtistryUtil.paint_Plasma(imageSize.get(), 3, 100.0, 1.4).toImage();
+    return canvasImage;
   }
   
 }

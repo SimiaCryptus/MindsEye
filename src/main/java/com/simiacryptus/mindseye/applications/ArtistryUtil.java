@@ -404,7 +404,9 @@ public class ArtistryUtil {
   public static BufferedImage load(final CharSequence image, final int imageSize) {
     BufferedImage bufferedImage;
     try {
-      bufferedImage = ImageIO.read(new File(image.toString()));
+      File input = new File(image.toString());
+      if (!input.exists()) throw new IllegalArgumentException("Not Found: " + input);
+      bufferedImage = ImageIO.read(input);
       bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -553,6 +555,8 @@ public class ArtistryUtil {
   }
   
   public static List<CharSequence> getFiles(CharSequence file) {
-    return Arrays.stream(new File(file.toString()).listFiles()).map(File::getName).collect(Collectors.toList());
+    File[] array = new File(file.toString()).listFiles();
+    if (null == array) throw new IllegalArgumentException("Not Found: " + file);
+    return Arrays.stream(array).map(File::getAbsolutePath).collect(Collectors.toList());
   }
 }
