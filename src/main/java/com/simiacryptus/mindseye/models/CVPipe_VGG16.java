@@ -32,87 +32,87 @@ import java.util.UUID;
 /**
  * The type Multi layer vgg 16.
  */
-public class MultiLayerVGG19 implements MultiLayerImageNetwork<MultiLayerVGG19.LayerType> {
+public class CVPipe_VGG16 implements CVPipe<CVPipe_VGG16.Layer> {
   /**
    * The constant INSTANCE.
    */
-  public static final MultiLayerVGG19 INSTANCE = build();
-  private final Map<LayerType, UUID> nodes = new HashMap<>();
-  private final Map<LayerType, PipelineNetwork> prototypes = new HashMap<>();
+  public static final CVPipe_VGG16 INSTANCE = build();
+  private final Map<Layer, UUID> nodes = new HashMap<>();
+  private final Map<Layer, PipelineNetwork> prototypes = new HashMap<>();
   private PipelineNetwork network = new PipelineNetwork();
   
-  private static MultiLayerVGG19 build() {
-    MultiLayerVGG19 obj = new MultiLayerVGG19();
+  private static CVPipe_VGG16 build() {
+    CVPipe_VGG16 obj = new CVPipe_VGG16();
     try {
-      new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
+      new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
         @Override
         protected void phase0() {
           super.phase0();
-          obj.nodes.put(LayerType.Layer_0, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_0, pipeline.copy());
+          obj.nodes.put(Layer.Layer_0, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_0, pipeline.copy());
         }
         
         @Override
         protected void phase1a() {
           super.phase1a();
-          obj.nodes.put(LayerType.Layer_1a, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_1a, pipeline.copy());
+          obj.nodes.put(Layer.Layer_1a, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_1a, pipeline.copy());
         }
         
         @Override
         protected void phase1b() {
           super.phase1b();
-          obj.nodes.put(LayerType.Layer_1b, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_1b, pipeline.copy());
+          obj.nodes.put(Layer.Layer_1b, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_1b, pipeline.copy());
         }
         
         @Override
         protected void phase1c() {
           super.phase1c();
-          obj.nodes.put(LayerType.Layer_1c, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_1c, pipeline.copy());
+          obj.nodes.put(Layer.Layer_1c, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_1c, pipeline.copy());
         }
         
         @Override
         protected void phase1d() {
           super.phase1d();
-          obj.nodes.put(LayerType.Layer_1d, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_1d, pipeline.copy());
+          obj.nodes.put(Layer.Layer_1d, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_1d, pipeline.copy());
         }
         
         @Override
         protected void phase1e() {
           super.phase1e();
-          obj.nodes.put(LayerType.Layer_1e, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_1e, pipeline.copy());
+          obj.nodes.put(Layer.Layer_1e, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_1e, pipeline.copy());
         }
-        
+  
         @Override
         protected void phase2a() {
           super.phase2a();
-          obj.nodes.put(LayerType.Layer_2a, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_2a, pipeline.copy());
+          obj.nodes.put(Layer.Layer_2a, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_2a, pipeline.copy());
         }
-        
+  
         @Override
         protected void phase2b() {
           super.phase2b();
-          obj.nodes.put(LayerType.Layer_2b, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_2b, pipeline.copy());
+          obj.nodes.put(Layer.Layer_2b, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_2b, pipeline.copy());
         }
-        
+  
         @Override
         protected void phase3a() {
           super.phase3a();
-          obj.nodes.put(LayerType.Layer_3a, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_3a, pipeline.copy());
+          obj.nodes.put(Layer.Layer_3a, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_3a, pipeline.copy());
         }
-        
+  
         @Override
         protected void phase3b() {
           super.phase3b();
-          obj.nodes.put(LayerType.Layer_3b, pipeline.getHead().getId());
-          obj.prototypes.put(LayerType.Layer_3b, pipeline.copy());
+          obj.nodes.put(Layer.Layer_3b, pipeline.getHead().getId());
+          obj.prototypes.put(Layer.Layer_3b, pipeline.copy());
           obj.network = (PipelineNetwork) pipeline.freeze();
           throw new RuntimeException("Abort Network Construction");
         }
@@ -125,12 +125,12 @@ public class MultiLayerVGG19 implements MultiLayerImageNetwork<MultiLayerVGG19.L
   }
   
   @Override
-  public Map<LayerType, UUID> getNodes() {
+  public Map<Layer, UUID> getNodes() {
     return Collections.unmodifiableMap(nodes);
   }
   
   @Override
-  public Map<LayerType, PipelineNetwork> getPrototypes() {
+  public Map<Layer, PipelineNetwork> getPrototypes() {
     return Collections.unmodifiableMap(prototypes);
   }
   
@@ -142,7 +142,7 @@ public class MultiLayerVGG19 implements MultiLayerImageNetwork<MultiLayerVGG19.L
   /**
    * The enum Layer type.
    */
-  public enum LayerType implements LayerEnum<LayerType> {
+  public enum Layer implements LayerEnum<Layer> {
     /**
      * Layer 0 layer type.
      */

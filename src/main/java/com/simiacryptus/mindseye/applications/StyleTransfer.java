@@ -21,19 +21,17 @@ package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
-import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
+import com.simiacryptus.mindseye.models.CVPipe;
+import com.simiacryptus.mindseye.models.CVPipe_VGG16;
+import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.models.LayerEnum;
-import com.simiacryptus.mindseye.models.MultiLayerImageNetwork;
-import com.simiacryptus.mindseye.models.MultiLayerVGG16;
-import com.simiacryptus.mindseye.models.MultiLayerVGG19;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -72,7 +70,7 @@ import java.util.stream.Stream;
  * @param <T> the type parameter
  * @param <U> the type parameter
  */
-public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> {
+public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>> {
   
   private static final Logger logger = LoggerFactory.getLogger(StyleTransfer.class);
   /**
@@ -136,7 +134,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
           //        .setOrientation(new QQN())
           .setOrientation(new TrustRegionStrategy() {
             @Override
-            public TrustRegion getRegionPolicy(final Layer layer) {
+            public TrustRegion getRegionPolicy(final com.simiacryptus.mindseye.lang.Layer layer) {
               return new RangeConstraint().setMin(1e-2).setMax(256);
             }
           })
@@ -384,9 +382,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
    */
   public PipelineNetwork buildNetwork(NeuralSetup setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
     List<Tuple2<Double, DAGNode>> functions = getFitnessComponents(setup, nodeMap);
-    functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> {
-      return new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2).setParallel(parallelLossFunctions));
-    }).get();
+    ArtistryUtil.reduce(network, functions, parallelLossFunctions);
     return network;
   }
   
@@ -411,15 +407,15 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
   /**
    * The type Vgg 16.
    */
-  public static class VGG16 extends StyleTransfer<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
-    
-    public MultiLayerVGG16 getInstance() {
-      return MultiLayerVGG16.INSTANCE;
+  public static class VGG16 extends StyleTransfer<CVPipe_VGG16.Layer, CVPipe_VGG16> {
+  
+    public CVPipe_VGG16 getInstance() {
+      return CVPipe_VGG16.INSTANCE;
     }
     
     @Nonnull
-    public MultiLayerVGG16.LayerType[] getLayerTypes() {
-      return MultiLayerVGG16.LayerType.values();
+    public CVPipe_VGG16.Layer[] getLayerTypes() {
+      return CVPipe_VGG16.Layer.values();
     }
     
   }
@@ -427,15 +423,15 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends MultiLayer
   /**
    * The type Vgg 19.
    */
-  public static class VGG19 extends StyleTransfer<MultiLayerVGG19.LayerType, MultiLayerVGG19> {
-    
-    public MultiLayerVGG19 getInstance() {
-      return MultiLayerVGG19.INSTANCE;
+  public static class VGG19 extends StyleTransfer<CVPipe_VGG19.Layer, CVPipe_VGG19> {
+  
+    public CVPipe_VGG19 getInstance() {
+      return CVPipe_VGG19.INSTANCE;
     }
     
     @Nonnull
-    public MultiLayerVGG19.LayerType[] getLayerTypes() {
-      return MultiLayerVGG19.LayerType.values();
+    public CVPipe_VGG19.Layer[] getLayerTypes() {
+      return CVPipe_VGG19.Layer.values();
     }
     
   }

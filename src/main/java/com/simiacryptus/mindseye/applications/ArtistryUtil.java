@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
+import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
@@ -36,6 +37,7 @@ import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.PCAUtil;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -44,6 +46,7 @@ import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.util.lang.Tuple2;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.hadoop.yarn.webapp.MimeType;
 
@@ -53,6 +56,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Supplier;
@@ -475,5 +479,11 @@ public class ArtistryUtil {
       }
       return defaultValue;
     }
+  }
+  
+  public static void reduce(final PipelineNetwork network, final List<Tuple2<Double, DAGNode>> functions, final boolean parallelLossFunctions) {
+    functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> {
+      return new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2).setParallel(parallelLossFunctions));
+    }).get();
   }
 }

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer;
@@ -29,10 +28,10 @@ import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
+import com.simiacryptus.mindseye.models.CVPipe;
+import com.simiacryptus.mindseye.models.CVPipe_VGG16;
+import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.models.LayerEnum;
-import com.simiacryptus.mindseye.models.MultiLayerImageNetwork;
-import com.simiacryptus.mindseye.models.MultiLayerVGG16;
-import com.simiacryptus.mindseye.models.MultiLayerVGG19;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -66,7 +65,7 @@ import java.util.concurrent.TimeUnit;
  * @param <T> the type parameter
  * @param <U> the type parameter
  */
-public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImageNetwork<T>> {
+public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   private static final Logger logger = LoggerFactory.getLogger(DeepDream.class);
   
   /**
@@ -152,7 +151,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
         .setIterationsPerSample(100)
         .setOrientation(new TrustRegionStrategy() {
           @Override
-          public TrustRegion getRegionPolicy(final Layer layer) {
+          public TrustRegion getRegionPolicy(final com.simiacryptus.mindseye.lang.Layer layer) {
             return new RangeConstraint();
           }
         })
@@ -275,15 +274,15 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
   /**
    * The type Vgg 16.
    */
-  public static class VGG16 extends DeepDream<MultiLayerVGG16.LayerType, MultiLayerVGG16> {
-    
-    public MultiLayerVGG16 getInstance() {
-      return MultiLayerVGG16.INSTANCE;
+  public static class VGG16 extends DeepDream<CVPipe_VGG16.Layer, CVPipe_VGG16> {
+  
+    public CVPipe_VGG16 getInstance() {
+      return CVPipe_VGG16.INSTANCE;
     }
     
     @Nonnull
-    public MultiLayerVGG16.LayerType[] getLayerTypes() {
-      return MultiLayerVGG16.LayerType.values();
+    public CVPipe_VGG16.Layer[] getLayerTypes() {
+      return CVPipe_VGG16.Layer.values();
     }
     
   }
@@ -291,15 +290,15 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends MultiLayerImag
   /**
    * The type Vgg 19.
    */
-  public static class VGG19 extends DeepDream<MultiLayerVGG19.LayerType, MultiLayerVGG19> {
-    
-    public MultiLayerVGG19 getInstance() {
-      return MultiLayerVGG19.INSTANCE;
+  public static class VGG19 extends DeepDream<CVPipe_VGG19.Layer, CVPipe_VGG19> {
+  
+    public CVPipe_VGG19 getInstance() {
+      return CVPipe_VGG19.INSTANCE;
     }
     
     @Nonnull
-    public MultiLayerVGG19.LayerType[] getLayerTypes() {
-      return MultiLayerVGG19.LayerType.values();
+    public CVPipe_VGG19.Layer[] getLayerTypes() {
+      return CVPipe_VGG19.Layer.values();
     }
     
   }

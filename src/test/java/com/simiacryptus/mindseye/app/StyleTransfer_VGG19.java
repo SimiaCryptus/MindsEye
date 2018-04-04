@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.app;
 import com.simiacryptus.mindseye.applications.ArtistryUtil;
 import com.simiacryptus.mindseye.applications.StyleTransfer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.mindseye.models.MultiLayerVGG19;
+import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
@@ -71,20 +71,21 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
     CharSequence maJolie = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\Ma_Jolie_Pablo_Picasso.jpg";
     
     Map<List<CharSequence>, StyleTransfer.StyleCoefficients> styles = new HashMap<>();
-    double coeff_mean = 1e1;
+    double coeff_mean = 1e0;
     double coeff_cov = 1e0;
     styles.put(Arrays.asList(
       //threeMusicians, maJolie
       vanGogh1, vanGogh2
       ), new StyleTransfer.StyleCoefficients(StyleTransfer.CenteringMode.Origin)
-//      .set(MultiLayerVGG19.LayerType.Layer_0, 1e0, 1e0)
-//        .set(MultiLayerVGG19.LayerType.Layer_1a, coeff_mean, coeff_cov)
-        .set(MultiLayerVGG19.LayerType.Layer_1b, coeff_mean, coeff_cov)
-//        .set(MultiLayerVGG19.LayerType.Layer_1c, coeff_mean, coeff_cov)
-        .set(MultiLayerVGG19.LayerType.Layer_1d, coeff_mean, coeff_cov)
+//      .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
+//        .set(CVPipe_VGG19.Layer.Layer_1a, coeff_mean, coeff_cov)
+        .set(CVPipe_VGG19.Layer.Layer_1b, coeff_mean, coeff_cov)
+//        .set(CVPipe_VGG19.Layer.Layer_1c, coeff_mean, coeff_cov)
+        .set(CVPipe_VGG19.Layer.Layer_1d, coeff_mean, coeff_cov)
     );
     StyleTransfer.ContentCoefficients contentCoefficients = new StyleTransfer.ContentCoefficients()
-      .set(MultiLayerVGG19.LayerType.Layer_1c, 1e0);
+      .set(CVPipe_VGG19.Layer.Layer_1b, 1e1)
+      .set(CVPipe_VGG19.Layer.Layer_1c, 1e1);
     int trainingMinutes = 90;
     
     log.h1("Phase 0");
@@ -103,7 +104,7 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
       contentCoefficients, styleImages, styles);
     StyleTransfer.NeuralSetup measureStyle = styleTransfer.measureStyle(styleSetup);
     canvasImage = styleTransfer.styleTransfer(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle);
-    for (int i = 1; i < 10; i++) {
+    for (int i = 1; i < 3; i++) {
       log.h1("Phase " + i);
       imageSize = (int) (imageSize * growthFactor);
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
