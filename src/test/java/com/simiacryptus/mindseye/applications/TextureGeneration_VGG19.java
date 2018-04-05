@@ -62,34 +62,29 @@ public class TextureGeneration_VGG19 extends ArtistryAppBase {
     styleTransfer.parallelLossFunctions = true;
     double growthFactor = Math.sqrt(1.5);
     int trainingMinutes = 90;
-    int phases = 2;
-  
+    final int maxIterations = 50;
     BufferedImage canvas = initCanvas(new AtomicInteger(256));
+  
     {
-      double coeff_mean = 1e0;
-      double coeff_cov = 1e0;
       Map<List<CharSequence>, TextureGeneration.StyleCoefficients> styles = new HashMap<>();
-      styles.put(picasso, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(CVPipe_VGG19.Layer.Layer_1a, coeff_mean, coeff_cov)
-          .set(CVPipe_VGG19.Layer.Layer_1b, coeff_mean, coeff_cov)
-//        .set(CVPipe_VGG19.Layer.Layer_1d, coeff_mean, coeff_cov)
+      styles.put(vangogh, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
+        .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
       );
-      canvas = run(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, styles, trainingMinutes, canvas, phases);
+      canvas = run(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, styles, trainingMinutes, canvas, 2, maxIterations);
     }
   
-    double coeff_mean = 1e1;
-    double coeff_cov = 1e0;
     Map<List<CharSequence>, TextureGeneration.StyleCoefficients> styles = new HashMap<>();
     styles.put(picasso, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-      .set(CVPipe_VGG19.Layer.Layer_1c, coeff_mean, coeff_cov)
-      .set(CVPipe_VGG19.Layer.Layer_1d, coeff_mean, coeff_cov)
+      .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
+      .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
     );
-    canvas = run(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, styles, trainingMinutes, canvas, phases);
+    canvas = run(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, styles, trainingMinutes, canvas, 2, maxIterations);
   
     log.setFrontMatterProperty("status", "OK");
   }
   
-  public BufferedImage run(@Nonnull final NotebookOutput log, final TextureGeneration.VGG19 styleTransfer, final Precision precision, final AtomicInteger imageSize, final double growthFactor, final Map<List<CharSequence>, TextureGeneration.StyleCoefficients> styles, final int trainingMinutes, BufferedImage canvasImage, final int phases) {
+  public BufferedImage run(@Nonnull final NotebookOutput log, final TextureGeneration.VGG19 styleTransfer, final Precision precision, final AtomicInteger imageSize, final double growthFactor, final Map<List<CharSequence>, TextureGeneration.StyleCoefficients> styles, final int trainingMinutes, BufferedImage canvasImage, final int phases, final int maxIterations) {
     log.h1("Phase 0");
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     TextureGeneration.StyleSetup styleSetup;
@@ -101,7 +96,7 @@ public class TextureGeneration_VGG19 extends ArtistryAppBase {
     measureStyle = styleTransfer.measureStyle(styleSetup);
     
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
-    canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle);
+    canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations);
     for (int i = 1; i < phases; i++) {
       log.h1("Phase " + i);
       imageSize.set((int) (imageSize.get() * growthFactor));
@@ -112,7 +107,7 @@ public class TextureGeneration_VGG19 extends ArtistryAppBase {
       measureStyle = styleTransfer.measureStyle(styleSetup);
       
       canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
-      canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle);
+      canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations);
     }
     return canvasImage;
   }

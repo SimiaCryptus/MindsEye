@@ -64,13 +64,13 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
    */
   @Test
   public final void run() {
-    run(this::run, getClass().getSimpleName() + "_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
+    run(notebookOutput -> run(notebookOutput), getClass().getSimpleName() + "_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
   }
   
   /**
    * Run.
+   *  @param notebookOutput the notebook output
    *
-   * @param notebookOutput the notebook output
    */
   protected abstract void run(final NotebookOutput notebookOutput);
   

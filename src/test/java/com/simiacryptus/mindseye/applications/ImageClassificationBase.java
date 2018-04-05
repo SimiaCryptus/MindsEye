@@ -40,8 +40,8 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
   
   /**
    * Test.
+   *  @param log the log
    *
-   * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
     log.h1("Model");

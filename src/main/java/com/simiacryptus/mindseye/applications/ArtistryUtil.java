@@ -230,7 +230,8 @@ public class ArtistryUtil {
     int bands = seed.getDimensions()[2];
     int size = radius * 2;
     Tensor returnValue = new Tensor(size, size, bands);
-    DoubleUnaryOperator fn = x -> Math.max(Math.min(x + noise * (Math.random() - 0.5), 255), 0);
+    DoubleUnaryOperator fn1 = x -> Math.max(Math.min(x + noise * (Math.random() - 0.5), 255), 0);
+    DoubleUnaryOperator fn2 = x -> Math.max(Math.min(x + Math.sqrt(2) * noise * (Math.random() - 0.5), 255), 0);
     IntUnaryOperator addr = x -> {
       while (x >= size) x -= size;
       while (x < 0) x += size;
@@ -240,7 +241,6 @@ public class ArtistryUtil {
       for (int x = 0; x < size; x += 2) {
         for (int y = 0; y < size; y += 2) {
           double value = seed.get(x / 2, y / 2, band);
-          value = fn.applyAsDouble(value);
           returnValue.set(x, y, band, value);
         }
       }
@@ -250,7 +250,7 @@ public class ArtistryUtil {
             (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y + 1), band)) +
             (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y - 1), band)) +
             (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y + 1), band));
-          value = fn.applyAsDouble(value / 4);
+          value = fn2.applyAsDouble(value / 4);
           returnValue.set(x, y, band, value);
         }
       }
@@ -260,7 +260,7 @@ public class ArtistryUtil {
             (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y), band)) +
             (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y - 1), band)) +
             (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y + 1), band));
-          value = fn.applyAsDouble(value / 4);
+          value = fn1.applyAsDouble(value / 4);
           returnValue.set(x, y, band, value);
         }
       }
@@ -270,7 +270,7 @@ public class ArtistryUtil {
             (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y), band)) +
             (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y - 1), band)) +
             (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y + 1), band));
-          value = fn.applyAsDouble(value / 4);
+          value = fn1.applyAsDouble(value / 4);
           returnValue.set(x, y, band, value);
         }
       }
@@ -490,37 +490,9 @@ public class ArtistryUtil {
     canvas.setByCoord(c -> FastRandom.INSTANCE.random());
   }
   
-  /**
-   * Wrap tiles avg layer.
-   *
-   * @param subnet the subnet
-   * @return the layer
-   */
-  protected static Layer wrapTilesAvg(final Layer subnet) {
-    return wrapTilesAvg(subnet, 0, 0, 0, 0, 400, 400);
-  }
-  
-  /**
-   * Wrap tiles avg layer.
-   *
-   * @param subnet     the subnet
-   * @param borderX1   the border x 1
-   * @param borderY1   the border y 1
-   * @param borderX2   the border x 2
-   * @param borderY2   the border y 2
-   * @param tileWidth  the tile width
-   * @param tileHeight the tile height
-   * @return the layer
-   */
-  protected static Layer wrapTilesAvg(final Layer subnet, final int borderX1, final int borderY1, final int borderX2, final int borderY2, final int tileWidth, final int tileHeight) {
-    PipelineNetwork network1 = new PipelineNetwork(1);
-    if (borderX1 != 0 || borderY1 != 0)
-      network1.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer(borderX1, borderY1));
-    network1.add(subnet);
-    if (borderX2 != 0 || borderY2 != 0)
-      network1.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer(-borderX2, -borderY2));
+  protected static Layer wrapAvg(final Layer subnet) {
     PipelineNetwork network = new PipelineNetwork(1);
-    network.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgTileSubnetLayer(network1, tileWidth, tileHeight, tileWidth - 2 * borderX1, tileHeight - 2 * borderY1));
+    network.add(subnet);
     network.wrap(new BandAvgReducerLayer());
     return network;
   }

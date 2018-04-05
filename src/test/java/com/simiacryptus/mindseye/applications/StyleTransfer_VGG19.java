@@ -28,7 +28,6 @@ import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,31 +63,25 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
     double growthFactor = Math.sqrt(1.5);
     
     Map<List<CharSequence>, StyleTransfer.StyleCoefficients> styles = new HashMap<>();
-    double coeff_mean = 1e0;
-    double coeff_cov = 1e0;
-    styles.put(Arrays.asList(
-      //threeMusicians, maJolie
-      vanGogh1, vanGogh2
-      ), new StyleTransfer.StyleCoefficients(StyleTransfer.CenteringMode.Origin)
+    List<CharSequence> styleSources = vangogh;
+    styles.put(styleSources, new StyleTransfer.StyleCoefficients(StyleTransfer.CenteringMode.Origin)
 //      .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
-//        .set(CVPipe_VGG19.Layer.Layer_1a, coeff_mean, coeff_cov)
-        .set(CVPipe_VGG19.Layer.Layer_1b, coeff_mean, coeff_cov)
-//        .set(CVPipe_VGG19.Layer.Layer_1c, coeff_mean, coeff_cov)
-        .set(CVPipe_VGG19.Layer.Layer_1d, coeff_mean, coeff_cov)
+        .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
+        .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
+        .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
+        .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
     );
     StyleTransfer.ContentCoefficients contentCoefficients = new StyleTransfer.ContentCoefficients()
       .set(CVPipe_VGG19.Layer.Layer_1b, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1c, 1e0);
     int trainingMinutes = 90;
+    int maxIterations = 150;
     
     log.h1("Phase 0");
     BufferedImage canvasImage = ArtistryUtil.load(monkey, imageSize.get());
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
     canvasImage = TestUtil.resize(TestUtil.resize(canvasImage, 25, true), imageSize.get(), true);
-//    canvasImage = randomize(canvasImage, x -> 10 * (FastRandom.INSTANCE.random()) * (FastRandom.INSTANCE.random() < 0.9 ? 1 : 0));
-    canvasImage = ArtistryUtil.randomize(canvasImage, x -> x + 2 * 1 * (FastRandom.INSTANCE.random() - 0.5));
-//    canvasImage = randomize(canvasImage, x -> 10*(FastRandom.INSTANCE.random()-0.5));
-//    canvasImage = randomize(canvasImage, x -> x*(FastRandom.INSTANCE.random()));
+    canvasImage = ArtistryUtil.randomize(canvasImage, x -> x * 0 + 100 + 10 * 2 * (FastRandom.INSTANCE.random() - 0.5));
     BufferedImage contentImage = ArtistryUtil.load(monkey, canvasImage.getWidth(), canvasImage.getHeight());
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     StyleTransfer.StyleSetup styleSetup;
@@ -98,7 +91,7 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
     styleSetup = new StyleTransfer.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
     
     StyleTransfer.NeuralSetup measureStyle = styleTransfer.measureStyle(styleSetup);
-    canvasImage = styleTransfer.styleTransfer(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle);
+    canvasImage = styleTransfer.styleTransfer(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations);
     for (int i = 1; i < 3; i++) {
       log.h1("Phase " + i);
       imageSize.set((int) (imageSize.get() * growthFactor));
@@ -108,7 +101,7 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
       styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))));
       styleSetup = new StyleTransfer.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
   
-      canvasImage = styleTransfer.styleTransfer(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle);
+      canvasImage = styleTransfer.styleTransfer(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations);
     }
     log.setFrontMatterProperty("status", "OK");
   }

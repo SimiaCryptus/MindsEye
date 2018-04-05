@@ -88,7 +88,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the buffered image
    */
   public BufferedImage styleTransfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
-    return styleTransfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle);
+    return styleTransfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50);
   }
   
   /**
@@ -100,9 +100,10 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
    * @param measureStyle    the measure style
+   * @param maxIterations
    * @return the buffered image
    */
-  public BufferedImage styleTransfer(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
+  public BufferedImage styleTransfer(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations) {
     BufferedImage result = ArtistryUtil.logExceptionWithDefault(log, () -> {
       log.p("Input Content:");
       log.p(log.image(styleParameters.contentImage, "Content Image"));
@@ -138,6 +139,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
               return new RangeConstraint().setMin(1e-2).setMax(256);
             }
           })
+          .setMaxIterations(maxIterations)
           .setIterationsPerSample(100)
           //        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
           .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
@@ -198,7 +200,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         double covScale = 0 == covRms ? 1 : (1.0 / covRms);
         styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
           network.wrap(new ValueLayer(covariance), new DAGNode[]{}),
-          network.wrap(ArtistryUtil.wrapTilesAvg(new GramianLayer()), recentered))
+          network.wrap(new GramianLayer(), recentered))
         ));
       }
       if (styleParams.mean != 0) {
@@ -240,15 +242,15 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
           continue;
         System.gc();
-        Tensor mean = ArtistryUtil.wrapTilesAvg(ArtistryUtil.avg(network.copy())).eval(styleInput).getDataAndFree().getAndFree(0);
+        Tensor mean = ArtistryUtil.wrapAvg(network.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
         styleTarget.mean.put(layerType, mean);
         logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
         logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
         if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
           continue;
         System.gc();
-        Tensor cov0 = ArtistryUtil.wrapTilesAvg(ArtistryUtil.gram(network.copy())).eval(styleInput).getDataAndFree().getAndFree(0);
-        Tensor cov1 = ArtistryUtil.wrapTilesAvg(ArtistryUtil.gram(network.copy(), mean)).eval(styleInput).getDataAndFree().getAndFree(0);
+        Tensor cov0 = ArtistryUtil.gram(network.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
+        Tensor cov1 = ArtistryUtil.gram(network.copy(), mean).eval(styleInput).getDataAndFree().getAndFree(0);
         styleTarget.cov0.put(layerType, cov0);
         styleTarget.cov1.put(layerType, cov1);
         int featureBands = mean.getDimensions()[2];

@@ -47,8 +47,8 @@ public class DeepDream_VGG19 extends ArtistryAppBase {
   
   /**
    * Test.
+   *  @param log the log
    *
-   * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
     DeepDream<CVPipe_VGG19.Layer, CVPipe_VGG19> dreamBase = new DeepDream.VGG19();
