@@ -29,6 +29,7 @@ import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The type Deep dream vgg 19.
@@ -54,21 +55,21 @@ public class DeepDream_VGG19 extends ArtistryAppBase {
     DeepDream<CVPipe_VGG19.Layer, CVPipe_VGG19> dreamBase = new DeepDream.VGG19();
     init(log);
     Precision precision = Precision.Float;
-    int imageSize = 800;
+    final AtomicInteger imageSize = new AtomicInteger(800);
   
-    Map<CVPipe_VGG19.Layer, DeepDream.ContentCoefficients> contentCoefficients = new HashMap<>();
-    contentCoefficients.put(CVPipe_VGG19.Layer.Layer_1d, new DeepDream.ContentCoefficients(0, 1e-1));
-//    contentCoefficients.put(CVPipe_VGG19.Layer.Layer_1e, new ContentCoefficients(0, 1e0));
-    contentCoefficients.put(CVPipe_VGG19.Layer.Layer_2b, new DeepDream.ContentCoefficients(0, 1e0));
-    contentCoefficients.put(CVPipe_VGG19.Layer.Layer_3a, new DeepDream.ContentCoefficients(0, 1e1));
+    Map<CVPipe_VGG19.Layer, DeepDream.ContentCoefficients> dreamCoeff = new HashMap<>();
+    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1d, new DeepDream.ContentCoefficients(0, 1e-1));
+//    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1e, new ContentCoefficients(0, 1e0));
+    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_2b, new DeepDream.ContentCoefficients(0, 1e0));
+    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_3a, new DeepDream.ContentCoefficients(0, 1e1));
     int trainingMinutes = 180;
     
     log.h1("Phase 0");
-    BufferedImage canvasImage = ArtistryUtil.load(lakeAndForest, imageSize);
+    BufferedImage canvasImage = ArtistryUtil.load(lakeAndForest, imageSize.get());
     //canvasImage = randomize(canvasImage);
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+    canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
     BufferedImage contentImage = ArtistryUtil.load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-    dreamBase.deepDream(server, log, canvasImage, new DeepDream.StyleSetup(precision, contentImage, contentCoefficients), trainingMinutes);
+    dreamBase.deepDream(server, log, canvasImage, new DeepDream.StyleSetup(precision, contentImage, dreamCoeff), trainingMinutes, 50);
     
     log.setFrontMatterProperty("status", "OK");
   }

@@ -136,7 +136,7 @@ public class AvgReducerLayer extends LayerBase implements MultiPrecision<AvgRedu
     return new Result(result, (DeltaSet<Layer> ctx, TensorList delta) -> {
       
       // Not supported by CuDNN?
-//      CudaTensorList passback = CudaSystem.run(gpu -> {
+//      CudaTensorList passback = CudaSystem.generate(gpu -> {
 //        CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
 //        CudaMemory deltaMemory = deltaTensor.getMemory(gpu);
 //

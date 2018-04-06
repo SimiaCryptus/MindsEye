@@ -19,11 +19,11 @@
 
 package com.simiacryptus.mindseye.applications;
 
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
@@ -58,7 +58,7 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
     StyleTransfer.VGG19 styleTransfer = new StyleTransfer.VGG19();
     init(log);
     Precision precision = Precision.Float;
-    final AtomicInteger imageSize = new AtomicInteger(400);
+    final AtomicInteger imageSize = new AtomicInteger(256);
     styleTransfer.parallelLossFunctions = true;
     double growthFactor = Math.sqrt(1.5);
     
@@ -72,16 +72,15 @@ public class StyleTransfer_VGG19 extends ArtistryAppBase {
         .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
     );
     StyleTransfer.ContentCoefficients contentCoefficients = new StyleTransfer.ContentCoefficients()
-      .set(CVPipe_VGG19.Layer.Layer_1b, 1e0)
-      .set(CVPipe_VGG19.Layer.Layer_1c, 1e0);
+      .set(CVPipe_VGG19.Layer.Layer_1b, 3e0)
+      .set(CVPipe_VGG19.Layer.Layer_1c, 3e0);
     int trainingMinutes = 90;
     int maxIterations = 150;
     
     log.h1("Phase 0");
     BufferedImage canvasImage = ArtistryUtil.load(monkey, imageSize.get());
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
-    canvasImage = TestUtil.resize(TestUtil.resize(canvasImage, 25, true), imageSize.get(), true);
-    canvasImage = ArtistryUtil.randomize(canvasImage, x -> x * 0 + 100 + 10 * 2 * (FastRandom.INSTANCE.random() - 0.5));
+    canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(TestUtil.resize(canvasImage, 16, true)), imageSize.get(), 1000.0, 1.1).toImage();
     BufferedImage contentImage = ArtistryUtil.load(monkey, canvasImage.getWidth(), canvasImage.getHeight());
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     StyleTransfer.StyleSetup styleSetup;

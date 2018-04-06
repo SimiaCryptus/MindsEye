@@ -50,6 +50,7 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
   protected final CharSequence maJolie = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\Ma_Jolie_Pablo_Picasso.jpg";
   protected final List<CharSequence> picasso = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\");
   protected final List<CharSequence> vangogh = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\");
+  protected final List<CharSequence> michelangelo = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\michelangelo\\");
 
 
   /**

@@ -35,6 +35,8 @@ import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.TileCycleLayer;
+import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -217,59 +219,73 @@ public class ArtistryUtil {
   }
   
   public static Tensor paint_Plasma(final int size, int bands, final double noiseAmplitude, final double noisePower) {
+    return expandPlasma(initSquare(bands), size, noiseAmplitude, noisePower);
+  }
+  
+  @Nonnull
+  private static Tensor initSquare(final int bands) {
     Tensor baseColor = new Tensor(1, 1, bands).setByCoord(c -> 100 + 200 * (Math.random() - 0.5));
-    Tensor seed = new Tensor(2, 2, bands).setByCoord(c -> baseColor.get(0, 0, c.getCoords()[2]));
-    while (seed.getDimensions()[0] < size) {
-      seed = expandPlasma(seed, Math.pow(noiseAmplitude, noisePower) / Math.pow(seed.getDimensions()[0], noisePower));
+    return new Tensor(2, 2, bands).setByCoord(c -> baseColor.get(0, 0, c.getCoords()[2]));
+  }
+  
+  @Nonnull
+  public static Tensor expandPlasma(Tensor image, final int width, final double noiseAmplitude, final double noisePower) {
+    while (image.getDimensions()[0] < width) {
+      image = expandPlasma(image, Math.pow(noiseAmplitude / image.getDimensions()[0], noisePower));
     }
-    return seed;
+    return image;
   }
   
   public static Tensor expandPlasma(final Tensor seed, double noise) {
-    int radius = seed.getDimensions()[0];
     int bands = seed.getDimensions()[2];
-    int size = radius * 2;
-    Tensor returnValue = new Tensor(size, size, bands);
+    int width = seed.getDimensions()[0] * 2;
+    int height = seed.getDimensions()[1] * 2;
+    Tensor returnValue = new Tensor(width, height, bands);
     DoubleUnaryOperator fn1 = x -> Math.max(Math.min(x + noise * (Math.random() - 0.5), 255), 0);
     DoubleUnaryOperator fn2 = x -> Math.max(Math.min(x + Math.sqrt(2) * noise * (Math.random() - 0.5), 255), 0);
-    IntUnaryOperator addr = x -> {
-      while (x >= size) x -= size;
-      while (x < 0) x += size;
+    IntUnaryOperator addrX = x -> {
+      while (x >= width) x -= width;
+      while (x < 0) x += width;
+      return x;
+    };
+    IntUnaryOperator addrY = x -> {
+      while (x >= height) x -= height;
+      while (x < 0) x += height;
       return x;
     };
     for (int band = 0; band < bands; band++) {
-      for (int x = 0; x < size; x += 2) {
-        for (int y = 0; y < size; y += 2) {
+      for (int x = 0; x < width; x += 2) {
+        for (int y = 0; y < height; y += 2) {
           double value = seed.get(x / 2, y / 2, band);
           returnValue.set(x, y, band, value);
         }
       }
-      for (int x = 1; x < size; x += 2) {
-        for (int y = 1; y < size; y += 2) {
-          double value = (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y - 1), band)) +
-            (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y + 1), band)) +
-            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y - 1), band)) +
-            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y + 1), band));
+      for (int x = 1; x < width; x += 2) {
+        for (int y = 1; y < height; y += 2) {
+          double value = (returnValue.get(addrX.applyAsInt(x - 1), addrY.applyAsInt(y - 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x - 1), addrY.applyAsInt(y + 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x + 1), addrY.applyAsInt(y - 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x + 1), addrY.applyAsInt(y + 1), band));
           value = fn2.applyAsDouble(value / 4);
           returnValue.set(x, y, band, value);
         }
       }
-      for (int x = 0; x < size; x += 2) {
-        for (int y = 1; y < size; y += 2) {
-          double value = (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y), band)) +
-            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y), band)) +
-            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y - 1), band)) +
-            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y + 1), band));
+      for (int x = 0; x < width; x += 2) {
+        for (int y = 1; y < height; y += 2) {
+          double value = (returnValue.get(addrX.applyAsInt(x - 1), addrY.applyAsInt(y), band)) +
+            (returnValue.get(addrX.applyAsInt(x + 1), addrY.applyAsInt(y), band)) +
+            (returnValue.get(addrX.applyAsInt(x), addrY.applyAsInt(y - 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x), addrY.applyAsInt(y + 1), band));
           value = fn1.applyAsDouble(value / 4);
           returnValue.set(x, y, band, value);
         }
       }
-      for (int x = 1; x < size; x += 2) {
-        for (int y = 0; y < size; y += 2) {
-          double value = (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y), band)) +
-            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y), band)) +
-            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y - 1), band)) +
-            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y + 1), band));
+      for (int x = 1; x < width; x += 2) {
+        for (int y = 0; y < height; y += 2) {
+          double value = (returnValue.get(addrX.applyAsInt(x - 1), addrY.applyAsInt(y), band)) +
+            (returnValue.get(addrX.applyAsInt(x + 1), addrY.applyAsInt(y), band)) +
+            (returnValue.get(addrX.applyAsInt(x), addrY.applyAsInt(y - 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x), addrY.applyAsInt(y + 1), band));
           value = fn1.applyAsDouble(value / 4);
           returnValue.set(x, y, band, value);
         }
@@ -530,5 +546,13 @@ public class ArtistryUtil {
     File[] array = new File(file.toString()).listFiles();
     if (null == array) throw new IllegalArgumentException("Not Found: " + file);
     return Arrays.stream(array).map(File::getAbsolutePath).collect(Collectors.toList());
+  }
+  
+  public static PipelineNetwork tileCycle(final PipelineNetwork network) {
+    PipelineNetwork netNet = new PipelineNetwork(1);
+    netNet.wrap(new AvgReducerLayer(),
+      netNet.wrap(network, netNet.getInput(0)),
+      netNet.wrap(network, netNet.wrap(new TileCycleLayer(), netNet.getInput(0))));
+    return netNet;
   }
 }

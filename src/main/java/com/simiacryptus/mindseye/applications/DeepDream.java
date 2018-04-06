@@ -67,6 +67,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   private static final Logger logger = LoggerFactory.getLogger(DeepDream.class);
+  private boolean tiled = false;
   
   /**
    * Deep dream buffered image.
@@ -78,7 +79,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    */
   @Nonnull
   public BufferedImage deepDream(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
-    return deepDream(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes);
+    return deepDream(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, 50);
   }
   
   /**
@@ -89,22 +90,19 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
+   * @param maxIterations
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage deepDream(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
+  public BufferedImage deepDream(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final int maxIterations) {
     PipelineNetwork network = fitnessNetwork(processStats(styleParameters));
     log.p("Input Parameters:");
     log.code(() -> {
       return ArtistryUtil.toJson(styleParameters);
     });
-    log.p("Input Content:");
-    log.p(log.image(styleParameters.contentImage, "Content Image"));
-    log.p("Input Canvas:");
-    log.p(log.image(canvasImage, "Input Canvas"));
-    BufferedImage result = train(server, log, canvasImage, network, styleParameters.precision, trainingMinutes);
-    log.p("Output Canvas:");
-    log.p(log.image(result, "Output Canvas"));
+    BufferedImage result = train(server, log, canvasImage, network, styleParameters.precision, trainingMinutes, maxIterations);
+    log.p("Result:");
+    log.p(log.image(result, "Result"));
     return result;
   }
   
@@ -119,7 +117,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    */
   @Nonnull
   public BufferedImage train(final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
-    return train(null, new NullNotebookOutput(), canvasImage, network, precision, trainingMinutes);
+    return train(null, new NullNotebookOutput(), canvasImage, network, precision, trainingMinutes, 50);
   }
   
   /**
@@ -131,19 +129,25 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @param network         the network
    * @param precision       the precision
    * @param trainingMinutes the training minutes
+   * @param maxIterations
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage train(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
+  public BufferedImage train(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, PipelineNetwork network, final Precision precision, final int trainingMinutes, final int maxIterations) {
     System.gc();
     Tensor canvas = Tensor.fromRGB(canvasImage);
     TestUtil.monitorImage(canvas, false, false);
     network.setFrozen(true);
     ArtistryUtil.setPrecision(network, precision);
-    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     TestUtil.instrumentPerformance(network);
     if (null != server) ArtistryUtil.addLayersHandler(network, server);
-    
+    if (tiled) network = ArtistryUtil.tileCycle(network);
+    train(log, network, canvas, trainingMinutes, maxIterations);
+    return canvas.toImage();
+  }
+  
+  public void train(@Nonnull final NotebookOutput log, final PipelineNetwork network, final Tensor canvas, final int trainingMinutes, final int maxIterations) {
+    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
@@ -155,6 +159,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
             return new RangeConstraint();
           }
         })
+        .setMaxIterations(maxIterations)
         .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e3))
 //        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
 //        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
@@ -163,7 +168,6 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
         .runAndFree();
       return TestUtil.plot(history);
     });
-    return canvas.toImage();
   }
   
   /**
@@ -270,6 +274,15 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the instance
    */
   public abstract U getInstance();
+  
+  public boolean isTiled() {
+    return tiled;
+  }
+  
+  public DeepDream<T, U> setTiled(boolean tiled) {
+    this.tiled = tiled;
+    return this;
+  }
   
   /**
    * The type Vgg 16.

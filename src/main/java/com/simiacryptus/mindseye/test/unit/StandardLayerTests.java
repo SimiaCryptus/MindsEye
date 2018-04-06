@@ -81,7 +81,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   /**
    * The Test training.
    */
-  protected boolean testTraining = true;
+  protected boolean testTraining = false;
   /**
    * The Test equivalency.
    */
