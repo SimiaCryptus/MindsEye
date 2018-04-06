@@ -22,7 +22,6 @@ package com.simiacryptus.mindseye.applications;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
-import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -37,17 +36,7 @@ import java.util.stream.Collectors;
 /**
  * The type Style transfer vgg 19.
  */
-public class StyleTransfer_VGG19 extends ArtistryAppBase {
-  
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return VGG19.class;
-  }
+public class StyleTransfer_VGG19 extends ArtistryAppBase_VGG19 {
   
   /**
    * Test.

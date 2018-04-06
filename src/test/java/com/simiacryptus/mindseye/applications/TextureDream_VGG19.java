@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
-import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
@@ -34,17 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The type Style transfer vgg 19.
  */
-public class TextureDream_VGG19 extends ArtistryAppBase {
-  
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return VGG19.class;
-  }
+public class TextureDream_VGG19 extends ArtistryAppBase_VGG19 {
   
   /**
    * Test.
@@ -65,9 +54,7 @@ public class TextureDream_VGG19 extends ArtistryAppBase {
     {
       Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
       textureStyle.put(picasso, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-        .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
-      );
-      textureStyle.put(this.michelangelo, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
         .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
         .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
       );
@@ -86,9 +73,9 @@ public class TextureDream_VGG19 extends ArtistryAppBase {
     {
       Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
       textureStyle.put(this.michelangelo, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-        .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
         .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
         .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
+        .set(CVPipe_VGG19.Layer.Layer_1e, 1e0, 1e0)
       );
       canvas = TextureGeneration.generate(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, textureStyle, 90, canvas, 2, iterations, server);
     }

@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
-import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -34,17 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The type Deep dream vgg 19.
  */
-public class DeepDream_VGG19 extends ArtistryAppBase {
-  
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return VGG19.class;
-  }
+public class DeepDream_VGG19 extends ArtistryAppBase_VGG19 {
   
   /**
    * Test.

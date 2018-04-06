@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
-import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
@@ -38,17 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The type Style transfer vgg 19.
  */
-public class DreamIndex extends ArtistryAppBase {
-  
-  /**
-   * Gets target class.
-   *
-   * @return the target class
-   */
-  @Nonnull
-  protected Class<?> getTargetClass() {
-    return VGG19.class;
-  }
+public class DreamIndex_VGG19 extends ArtistryAppBase_VGG19 {
   
   /**
    * Test.

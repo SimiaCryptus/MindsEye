@@ -19,29 +19,18 @@
 
 package com.simiacryptus.mindseye.applications;
 
-import com.simiacryptus.util.io.NotebookOutput;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.simiacryptus.mindseye.models.VGG19;
 
 import javax.annotation.Nonnull;
 
-/**
- * The type Image classifier apply base.
- */
-public class ObjectLocation_VGG19 extends ArtistryAppBase_VGG19 {
-  
-  private static final Logger logger = LoggerFactory.getLogger(ObjectLocation_VGG19.class);
-  
+public abstract class ArtistryAppBase_VGG19 extends ArtistryAppBase {
   /**
-   * Test.
-   *  @param log the log
+   * Gets target class.
    *
+   * @return the target class
    */
-  public void run(@Nonnull NotebookOutput log) {
-    ObjectLocation self = new ObjectLocation.VGG19();
-  
-    self.run(log);
+  @Nonnull
+  protected final Class<?> getTargetClass() {
+    return VGG19.class;
   }
-  
-  
 }
