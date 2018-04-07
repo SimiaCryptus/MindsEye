@@ -17,23 +17,29 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.applications;
-
-import com.simiacryptus.mindseye.models.CVPipe_VGG19;
+package com.simiacryptus.mindseye.lang.cudnn;
 
 import javax.annotation.Nonnull;
 
 /**
- * The type Artistry app base vgg 19.
+ * An interface for CuDNN layers apply configurable numeric precision.
+ *
+ * @param <T> the parent type, specified for return values.
  */
-public abstract class ArtistryAppBase_VGG19 extends ArtistryAppBase {
+public interface MultiPrecision<T> {
   /**
-   * Gets target class.
+   * Gets precision.
    *
-   * @return the target class
+   * @return the precision
+   */
+  Precision getPrecision();
+  
+  /**
+   * Sets precision.
+   *
+   * @param precision the precision
+   * @return the precision
    */
   @Nonnull
-  protected final Class<?> getTargetClass() {
-    return CVPipe_VGG19.class;
-  }
+  T setPrecision(Precision precision);
 }

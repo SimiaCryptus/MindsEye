@@ -273,18 +273,18 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
           default:
             throw new RuntimeException();
         }
+        int[] covDim = covariance.getDimensions();
+        double covRms = covariance.rms();
         if (styleParams.enhance != 0) {
-          styleComponents.add(new Tuple2<>(-styleParams.enhance, network.wrap(new AvgReducerLayer(),
+          styleComponents.add(new Tuple2<>(-(0 == covRms ? styleParams.enhance : (styleParams.enhance / covRms)), network.wrap(new AvgReducerLayer(),
             network.wrap(new SquareActivationLayer(), recentered))));
         }
         if (styleParams.cov != 0) {
-          int[] covDim = covariance.getDimensions();
           assert 0 < covDim[2] : Arrays.toString(covDim);
           int inputBands = mean.getDimensions()[2];
           assert 0 < inputBands : Arrays.toString(mean.getDimensions());
           int outputBands = covDim[2] / inputBands;
           assert 0 < outputBands : Arrays.toString(covDim) + " / " + inputBands;
-          double covRms = covariance.rms();
           double covScale = 0 == covRms ? 1 : (1.0 / covRms);
           styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
             network.wrap(new ValueLayer(covariance), new DAGNode[]{}),

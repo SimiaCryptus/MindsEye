@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.conv3;
+package com.simiacryptus.mindseye.layers.cudnn.cba;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -33,6 +33,7 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
 import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
+import com.simiacryptus.mindseye.lang.cudnn.CudaPointer;
 import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
@@ -44,10 +45,12 @@ import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.util.Util;
+import jcuda.jcudnn.cudnnActivationDescriptor;
 import jcuda.jcudnn.cudnnConvolutionBwdDataAlgo;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
 import jcuda.jcudnn.cudnnConvolutionMode;
 import jcuda.jcudnn.cudnnFilterDescriptor;
+import jcuda.jcudnn.cudnnTensorDescriptor;
 import jcuda.jcudnn.cudnnTensorFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -246,14 +249,23 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
           (long) Tensor.length(outputDims) * length * precision.size, MemoryType.Managed.normalize(), true);
         CudaMemory inputTensorMemory = inputTensor.getMemory(gpu);
 //        inputTensorMemory.synchronize();
-        CudaSystem.handle(gpu.cudnnConvolutionForward(precision.getPointer(1.0),
+  
+        final cudnnTensorDescriptor zDesc = null;
+        final CudaPointer z = null;
+        final cudnnTensorDescriptor biasDesc = null;
+        final CudaPointer bias = null;
+        final cudnnActivationDescriptor activationDesc = null;
+  
+        CudaSystem.handle(gpu.cudnnConvolutionBiasActivationForward(precision.getPointer(1.0),
           inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
           filterDescriptor.getPtr(), filterPtr.getPtr(),
           convolutionDescriptor.getPtr(),
           forwardAlgorithm,
           null == forwardWorkspace ? null : forwardWorkspace.getPtr(),
           null == forwardWorkspace ? 0 : forwardWorkspace.size,
-          precision.getPointer(0.0), outputDescriptor.getPtr(), outputBuffer.getPtr()));
+          precision.getPointer(0.0),
+          zDesc, z, biasDesc, bias, activationDesc,
+          outputDescriptor.getPtr(), outputBuffer.getPtr()));
         assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         forwardWorkspace.dirty();
         filterPtr.dirty();

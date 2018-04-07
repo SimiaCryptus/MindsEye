@@ -29,7 +29,7 @@ import java.io.PrintStream;
 /**
  * The Keras Zoo contains a deep CNN called VGG16 which is designed to classify images. Import it from an HDF5 file.
  */
-public class VGG16_HDF5_Test extends ImageClassifierTestBase {
+public class VGG19_HDF5_Test extends ImageClassifierTestBase {
   
   @Override
   public ImageClassifier getImageClassifier(@Nonnull NotebookOutput log) {
@@ -38,16 +38,16 @@ public class VGG16_HDF5_Test extends ImageClassifierTestBase {
     log.p(log.file((String) null, "cuda.log", "GPU Log"));
     
     return log.code(() -> {
-      @Nonnull ImageClassifier vgg16_hdf5 = VGG16.fromHDF5();
-      ((HasHDF5) vgg16_hdf5).getHDF5().print();
-      return vgg16_hdf5;
+      @Nonnull ImageClassifier vgg19_hdf5 = VGG19.fromHDF5();
+      ((HasHDF5) vgg19_hdf5).getHDF5().print();
+      return vgg19_hdf5;
     });
   }
   
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {
-    return VGG16.class;
+    return VGG19.class;
   }
   
 }

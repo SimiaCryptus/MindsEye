@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn.conv3;
+package com.simiacryptus.mindseye.layers.cudnn.cba;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -110,7 +110,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    */
   @Test
   public void verifyWeights() {
-    @Nonnull com.simiacryptus.mindseye.layers.cudnn.conv3.ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
+    @Nonnull com.simiacryptus.mindseye.layers.cudnn.cba.ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
     @Nonnull int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
     @Nullable Tensor testData = new Tensor(kernelDims).mapAndFree(x -> random());
     explodedNetwork.write(testData);

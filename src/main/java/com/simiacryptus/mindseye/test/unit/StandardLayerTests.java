@@ -35,6 +35,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.util.io.IOUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
@@ -352,7 +353,19 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
   
   
-  private static final HashMap<String, TreeMap<String, String>> javadocs = Javadoc.loadModelSummary();
+  private static final HashMap<String, TreeMap<String, String>> javadocs = loadJavadoc();
+  
+  @Nonnull
+  private static HashMap<String, TreeMap<String, String>> loadJavadoc() {
+    try {
+      HashMap<String, TreeMap<String, String>> javadocData = Javadoc.loadModelSummary();
+      IOUtil.writeJson(new TreeMap<>(javadocData), new File("./javadoc.json"));
+      return javadocData;
+    } catch (Throwable e) {
+      logger.warn("Error loading javadocs", e);
+      return new HashMap<>();
+    }
+  }
   
   /**
    * Test.
@@ -362,11 +375,13 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public void run(@Nonnull final NotebookOutput log) {
   
     TreeMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
-    log.p("Class Javadoc: " + javadoc.get(":class"));
-    javadoc.remove(":class");
-    javadoc.forEach((key, doc) -> {
-      log.p(String.format("Field __%s__: %s", key, doc));
-    });
+    if (null != javadoc) {
+      log.p("Class Javadoc: " + javadoc.get(":class"));
+      javadoc.remove(":class");
+      javadoc.forEach((key, doc) -> {
+        log.p(String.format("Field __%s__: %s", key, doc));
+      });
+    }
   
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     int[][] smallDims = getSmallDims(new Random(seed));

@@ -25,7 +25,6 @@ import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,13 +51,13 @@ public class TextureDream_VGG19 extends ArtistryAppBase_VGG19 {
     BufferedImage canvas = TextureGeneration.initCanvas(new AtomicInteger(256));
   
     Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
-    textureStyle.put(Arrays.asList(threeMusicians), new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Dynamic)
+    textureStyle.put(vangogh, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Dynamic)
 //        .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
         //.set(CVPipe_VGG19.Layer.Layer_1a, 1e-1, 1e-1)
         .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
-        .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
-//          .set(CVPipe_VGG19.Layer.Layer_1d, 1e1, 0)
-//          .set(CVPipe_VGG19.Layer.Layer_1e, 1e1, 0)
+        .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
+        .set(CVPipe_VGG19.Layer.Layer_1d, 1e1, 1e1)
+        .set(CVPipe_VGG19.Layer.Layer_1e, 1e1, 1e1)
 //        .set(CVPipe_VGG19.Layer.Layer_2b, 1e1, 0, 0)
     );
     canvas = TextureGeneration.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, 90, canvas, 3, 10, server, 512);
