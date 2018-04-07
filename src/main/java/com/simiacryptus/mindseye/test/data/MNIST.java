@@ -162,7 +162,6 @@ public class MNIST {
    * Training data stream stream.
    *
    * @return the stream
-   * @throws IOException the io exception
    */
   public static Stream<LabeledObject<Tensor>> trainingDataStream() {
     return MNIST.training.stream();
@@ -172,7 +171,6 @@ public class MNIST {
    * Validation data stream stream.
    *
    * @return the stream
-   * @throws IOException the io exception
    */
   public static Stream<LabeledObject<Tensor>> validationDataStream() {
     return MNIST.validation.stream();

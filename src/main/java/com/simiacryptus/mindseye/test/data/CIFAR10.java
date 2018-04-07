@@ -108,7 +108,6 @@ public class CIFAR10 {
    * Training data stream stream.
    *
    * @return the stream
-   * @throws IOException the io exception
    */
   public static Stream<LabeledObject<Tensor>> trainingDataStream() {
     return CIFAR10.training.stream();

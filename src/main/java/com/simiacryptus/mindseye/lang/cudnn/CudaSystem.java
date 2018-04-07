@@ -613,7 +613,6 @@ public class CudaSystem {
    *
    * @param limit the limit
    * @param value the value
-   * @return the int
    */
   public static void cudaDeviceSetLimit(final int limit, long value) {
     long startTime = System.nanoTime();
@@ -630,7 +629,6 @@ public class CudaSystem {
    * @param src                 the src
    * @param count               the count
    * @param cudaMemcpyKind_kind the cuda memcpy kind kind
-   * @return the int
    */
   public static void cudaMemcpy(final CudaPointer dst, final CudaPointer src, final long count, final int cudaMemcpyKind_kind) {
     long startTime = System.nanoTime();
@@ -706,7 +704,6 @@ public class CudaSystem {
    * @param mem   the mem
    * @param c     the c
    * @param count the count
-   * @return the int
    */
   public static void cudaMemset(final CudaPointer mem, final int c, final long count) {
     long startTime = System.nanoTime();

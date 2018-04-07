@@ -1745,7 +1745,6 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
      *
      * @param value the value
      * @param index the index
-     * @return the double
      */
     void eval(double value, Coordinate index);
   }
