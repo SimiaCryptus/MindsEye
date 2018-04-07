@@ -100,7 +100,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
    * @param measureStyle    the measure style
-   * @param maxIterations
+   * @param maxIterations   the max iterations
    * @return the buffered image
    */
   public BufferedImage styleTransfer(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations) {

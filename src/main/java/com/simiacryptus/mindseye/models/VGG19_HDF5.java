@@ -23,7 +23,6 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgMinSizeLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgModulusPaddingLayer;
@@ -31,6 +30,7 @@ import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer;
+import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
 import com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -378,7 +378,7 @@ public class VGG19_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     
     private int samples;
     private double density;
-    
+  
     /**
      * Instantiates a new Vgg 16 hdf 5.
      *
@@ -424,7 +424,7 @@ public class VGG19_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       
       add(new StochasticSamplingSubnetLayer(stochasticNet, samples));
     }
-    
+  
     /**
      * The Samples.
      *
@@ -433,7 +433,7 @@ public class VGG19_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     public int getSamples() {
       return samples;
     }
-    
+  
     /**
      * Sets samples.
      *
@@ -444,7 +444,7 @@ public class VGG19_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       this.samples = samples;
       return this;
     }
-    
+  
     /**
      * Gets density.
      *
@@ -453,7 +453,7 @@ public class VGG19_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     public double getDensity() {
       return density;
     }
-    
+  
     /**
      * Sets density.
      *

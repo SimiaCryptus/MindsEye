@@ -108,7 +108,7 @@ public abstract class TileCycleLayerTest extends CudaLayerTestBase {
    * The type Chained.
    */
   public static class Chained extends TileCycleLayerTest {
-    
+  
     /**
      * Instantiates a new Chained.
      */
@@ -123,7 +123,7 @@ public abstract class TileCycleLayerTest extends CudaLayerTestBase {
       //return wrap(imgCropLayer);
       return imgCropLayer;
     }
-    
+  
     /**
      * Wrap nn layer.
      *

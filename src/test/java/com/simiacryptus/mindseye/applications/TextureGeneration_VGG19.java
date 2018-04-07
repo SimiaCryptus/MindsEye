@@ -56,8 +56,8 @@ public class TextureGeneration_VGG19 extends ArtistryAppBase_VGG19 {
       .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
     );
-    canvas = TextureGeneration.generate(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, textureStyle, trainingMinutes, canvas, 2, maxIterations, server);
-  
+    canvas = TextureGeneration.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, trainingMinutes, canvas, 2, maxIterations, server, 0);
+    
     log.setFrontMatterProperty("status", "OK");
   }
   

@@ -42,17 +42,56 @@ import java.util.List;
 public abstract class ArtistryAppBase extends NotebookReportBase {
   private static final Logger logger = LoggerFactory.getLogger(ArtistryAppBase.class);
   
+  /**
+   * The Lake and forest.
+   */
   protected final CharSequence lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+  /**
+   * The Monkey.
+   */
   protected final String monkey = "H:\\SimiaCryptus\\Artistry\\capuchin-monkey-2759768_960_720.jpg";
+  /**
+   * The Van gogh 1.
+   */
   protected final CharSequence vanGogh1 = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\Van_Gogh_-_Portrait_of_Pere_Tanguy_1887-8.jpg";
+  /**
+   * The Van gogh 2.
+   */
   protected final CharSequence vanGogh2 = "H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\800px-Vincent_van_Gogh_-_Dr_Paul_Gachet_-_Google_Art_Project.jpg";
+  /**
+   * The Three musicians.
+   */
   protected final CharSequence threeMusicians = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\800px-Pablo_Picasso,_1921,_Nous_autres_musiciens_(Three_Musicians),_oil_on_canvas,_204.5_x_188.3_cm,_Philadelphia_Museum_of_Art.jpg";
+  /**
+   * The Ma jolie.
+   */
   protected final CharSequence maJolie = "H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\Ma_Jolie_Pablo_Picasso.jpg";
+  /**
+   * The Picasso.
+   */
   protected final List<CharSequence> picasso = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\picasso\\");
+  /**
+   * The Vangogh.
+   */
   protected final List<CharSequence> vangogh = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\vangogh\\");
+  /**
+   * The Michelangelo.
+   */
   protected final List<CharSequence> michelangelo = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\michelangelo\\");
-
-
+  /**
+   * The Figures.
+   */
+  protected final List<CharSequence> figures = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\figure\\");
+  /**
+   * The Escher.
+   */
+  protected final List<CharSequence> escher = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\escher\\");
+  /**
+   * The Waldo.
+   */
+  protected final List<CharSequence> waldo = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\waldo\\");
+  
+  
   /**
    * The Server.
    */
@@ -70,8 +109,8 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
   
   /**
    * Run.
-   *  @param notebookOutput the notebook output
    *
+   * @param notebookOutput the notebook output
    */
   protected abstract void run(final NotebookOutput notebookOutput);
   

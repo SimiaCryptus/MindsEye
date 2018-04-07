@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.conv3;
 
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 

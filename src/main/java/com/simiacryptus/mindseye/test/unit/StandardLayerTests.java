@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.test.unit;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.devutil.Javadoc;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
@@ -29,7 +30,7 @@ import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaError;
-import com.simiacryptus.mindseye.layers.cudnn.Explodable;
+import com.simiacryptus.mindseye.layers.Explodable;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -50,6 +51,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -350,17 +352,28 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   }
   
   
+  private static final HashMap<String, TreeMap<String, String>> javadocs = Javadoc.loadModelSummary();
+  
   /**
    * Test.
    *
    * @param log the log
    */
   public void run(@Nonnull final NotebookOutput log) {
+  
+    TreeMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
+    log.p("Class Javadoc: " + javadoc.get(":class"));
+    javadoc.remove(":class");
+    javadoc.forEach((key, doc) -> {
+      log.p(String.format("Field __%s__: %s", key, doc));
+    });
+  
     long seed = (long) (Math.random() * Long.MAX_VALUE);
     int[][] smallDims = getSmallDims(new Random(seed));
     final Layer smallLayer = getLayer(smallDims, new Random(seed));
     int[][] largeDims = getLargeDims(new Random(seed));
     final Layer largeLayer = getLayer(largeDims, new Random(seed));
+  
     try {
       if (smallLayer instanceof DAGNetwork) {
         try {

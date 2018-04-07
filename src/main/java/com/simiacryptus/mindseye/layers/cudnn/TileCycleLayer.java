@@ -33,6 +33,7 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
 import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,12 +85,12 @@ public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycl
   /**
    * Copy cuda tensor.
    *
-   * @param gpu              the gpu
-   * @param input            the input tensor
-   * @param length           the length
-   * @param precision        the precision
-   * @param splitX
-   * @param splitY
+   * @param gpu       the gpu
+   * @param input     the input tensor
+   * @param length    the length
+   * @param precision the precision
+   * @param splitX    the split x
+   * @param splitY    the split y
    * @return the cuda tensor
    */
   public static CudaTensor copy(final CudnnHandle gpu, final CudaTensor input, final int length, Precision precision, final int splitX, final int splitY) {
@@ -106,13 +107,13 @@ public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycl
         input.descriptor.hStride,//
         input.descriptor.wStride);
       @Nonnull final CudaMemory outputBuffer = gpu.allocate((long) length * imageDescriptor.nStride * precision.size, MemoryType.Managed.normalize(), true);
-    
-    
+  
+  
       int splitY1 = splitY;
       int splitY2 = input.descriptor.height - splitY1;
       int splitX1 = splitX;
       int splitX2 = input.descriptor.width - splitX1;
-    
+  
       {
         @Nonnull final CudaDevice.CudaTensorDescriptor tileDescriptor = gpu.newTensorDescriptor(
           precision,//
@@ -135,7 +136,7 @@ public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycl
           tileDescriptor.freeRef();
         }
       }
-    
+  
       {
         @Nonnull final CudaDevice.CudaTensorDescriptor tileDescriptor = gpu.newTensorDescriptor(
           precision,//
@@ -158,7 +159,7 @@ public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycl
           tileDescriptor.freeRef();
         }
       }
-    
+  
       {
         @Nonnull final CudaDevice.CudaTensorDescriptor tileDescriptor = gpu.newTensorDescriptor(
           precision,//
@@ -181,7 +182,7 @@ public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycl
           tileDescriptor.freeRef();
         }
       }
-    
+  
       @Nonnull final CudaDevice.CudaTensorDescriptor tileDescriptor = gpu.newTensorDescriptor(
         precision,//
         length,//
@@ -202,8 +203,8 @@ public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycl
       } finally {
         tileDescriptor.freeRef();
       }
-    
-    
+  
+  
       inputTensorMemory.dirty();
       outputBuffer.dirty();
       return CudaTensor.wrap(outputBuffer, imageDescriptor, precision);

@@ -23,6 +23,9 @@ import com.simiacryptus.mindseye.models.VGG19;
 
 import javax.annotation.Nonnull;
 
+/**
+ * The type Artistry app base vgg 19.
+ */
 public abstract class ArtistryAppBase_VGG19 extends ArtistryAppBase {
   /**
    * Gets target class.

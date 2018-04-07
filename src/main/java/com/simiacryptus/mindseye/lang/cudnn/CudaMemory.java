@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.RegisteredObjectBase;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayer;
 import jcuda.runtime.cudaMemcpyKind;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

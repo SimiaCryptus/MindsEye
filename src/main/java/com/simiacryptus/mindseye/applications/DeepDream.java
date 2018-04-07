@@ -90,7 +90,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param maxIterations
+   * @param maxIterations   the max iterations
    * @return the buffered image
    */
   @Nonnull
@@ -129,7 +129,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @param network         the network
    * @param precision       the precision
    * @param trainingMinutes the training minutes
-   * @param maxIterations
+   * @param maxIterations   the max iterations
    * @return the buffered image
    */
   @Nonnull
@@ -146,6 +146,15 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
     return canvas.toImage();
   }
   
+  /**
+   * Train.
+   *
+   * @param log             the log
+   * @param network         the network
+   * @param canvas          the canvas
+   * @param trainingMinutes the training minutes
+   * @param maxIterations   the max iterations
+   */
   public void train(@Nonnull final NotebookOutput log, final PipelineNetwork network, final Tensor canvas, final int trainingMinutes, final int maxIterations) {
     @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     log.code(() -> {
@@ -275,10 +284,21 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    */
   public abstract U getInstance();
   
+  /**
+   * Is tiled boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTiled() {
     return tiled;
   }
   
+  /**
+   * Sets tiled.
+   *
+   * @param tiled the tiled
+   * @return the tiled
+   */
   public DeepDream<T, U> setTiled(boolean tiled) {
     this.tiled = tiled;
     return this;

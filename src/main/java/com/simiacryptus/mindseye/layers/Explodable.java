@@ -17,31 +17,18 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers;
 
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
-
-import javax.annotation.Nonnull;
+import com.simiacryptus.mindseye.lang.Layer;
 
 /**
- * An interface for CuDNN layers apply configurable numeric precision.
- *
- * @param <T> the parent type, specified for return values.
+ * An (LayerBase) object which can be exploded into an equivalent network apply more fine-grained components.
  */
-public interface MultiPrecision<T> {
+public interface Explodable {
   /**
-   * Gets precision.
+   * Explode nn layer.
    *
-   * @return the precision
+   * @return the nn layer
    */
-  Precision getPrecision();
-  
-  /**
-   * Sets precision.
-   *
-   * @param precision the precision
-   * @return the precision
-   */
-  @Nonnull
-  T setPrecision(Precision precision);
+  Layer explode();
 }

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

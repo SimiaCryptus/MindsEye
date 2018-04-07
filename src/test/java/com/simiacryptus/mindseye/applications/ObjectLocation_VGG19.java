@@ -34,8 +34,8 @@ public class ObjectLocation_VGG19 extends ArtistryAppBase_VGG19 {
   
   /**
    * Test.
-   *  @param log the log
    *
+   * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
     ObjectLocation self = new ObjectLocation.VGG19();

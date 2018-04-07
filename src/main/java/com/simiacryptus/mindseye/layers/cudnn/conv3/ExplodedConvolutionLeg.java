@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.conv3;
 
 import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.Delta;
@@ -27,6 +27,10 @@ import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgTileSubnetLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -91,12 +95,12 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
       int paddingX = (convolutionParams.masterFilterDimensions[0] - 1) / 2;
       int paddingY = (convolutionParams.masterFilterDimensions[1] - 1) / 2;
-  
-      SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(filterDimensions[0], filterDimensions[1], inputBandsSq) //
+      
+      SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(filterDimensions[0], filterDimensions[1], inputBands, inputBands, ActivationLayer.Mode.RELU) //
         .setStrideX(this.convolutionParams.strideX) //
         .setStrideY(this.convolutionParams.strideY) //
         .setPrecision(this.convolutionParams.precision);
-  
+      
       PipelineNetwork stackableConv = new PipelineNetwork(1);
       if (paddingY != 0 || paddingX != 0) stackableConv.add(new ImgZeroPaddingLayer(paddingX, paddingY));
       stackableConv.add(simpleConvolutionLayer);

@@ -21,9 +21,9 @@ package com.simiacryptus.mindseye.network.util;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.NProductLayer;
+import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 
 import javax.annotation.Nonnull;
 import java.util.Map;

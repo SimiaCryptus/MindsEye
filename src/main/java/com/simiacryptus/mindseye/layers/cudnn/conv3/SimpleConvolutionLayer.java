@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.conv3;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -40,7 +40,9 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
 import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.util.Util;
 import jcuda.jcudnn.cudnnConvolutionBwdDataAlgo;
 import jcuda.jcudnn.cudnnConvolutionDescriptor;
@@ -78,6 +80,14 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    */
   public final Tensor kernel;
   /**
+   * The Bias.
+   */
+  public final Tensor bias;
+  /**
+   * The Mode.
+   */
+  public final ActivationLayer.Mode mode;
+  /**
    * The Filter.
    */
   @Nullable
@@ -92,19 +102,22 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    * Instantiates a new Convolution layer.
    */
   protected SimpleConvolutionLayer() {
-    this(null);
+    this(null, null, null);
   }
   
   /**
    * Instantiates a new Convolution layer.
    *
-   * @param width  the width
-   * @param height the height
-   * @param bands  the bands
+   * @param width    the width
+   * @param height   the height
+   * @param inBands  the in bands
+   * @param outBands the out bands
+   * @param mode     the mode
    */
-  public SimpleConvolutionLayer(final int width, final int height, final int bands) {
-    this(new Tensor(width, height, bands));
+  public SimpleConvolutionLayer(final int width, final int height, final int inBands, final int outBands, final ActivationLayer.Mode mode) {
+    this(new Tensor(width, height, inBands * outBands), new Tensor(width, height, outBands), mode);
     kernel.freeRef();
+    bias.freeRef();
     assert !false || 0 == (width - 1) % 2 : "Simple kernels must have odd width";
     assert !false || 0 == (height - 1) % 2 : "Simple kernels must have odd height";
   }
@@ -118,6 +131,8 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   protected SimpleConvolutionLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     kernel = Tensor.fromJson(json.get("filter"), resources);
+    bias = Tensor.fromJson(json.get("bias"), resources);
+    mode = ActivationLayer.Mode.valueOf(json.get("mode").getAsString());
     strideX = json.get("strideX").getAsInt();
     strideY = json.get("strideY").getAsInt();
     setPaddingX(json.get("paddingX").getAsInt());
@@ -129,8 +144,10 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    * Instantiates a new Convolution layer.
    *
    * @param kernel the filter
+   * @param bias   the bias
+   * @param mode   the mode
    */
-  protected SimpleConvolutionLayer(@Nonnull final Tensor kernel) {
+  protected SimpleConvolutionLayer(@Nonnull final Tensor kernel, @Nonnull final Tensor bias, final ActivationLayer.Mode mode) {
     super();
     @Nonnull int[] kernelSize = kernel.getDimensions();
     if (kernelSize.length != 3) throw new IllegalArgumentException();
@@ -138,6 +155,8 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     if (kernelSize[1] <= 0) throw new IllegalArgumentException();
     if (kernelSize[2] <= 0) throw new IllegalArgumentException();
     this.kernel = kernel;
+    this.bias = bias;
+    this.mode = mode;
     this.kernel.addRef(this);
     this.setPaddingX((int) Math.ceil((kernelSize[0] - 1) / 2.0));
     this.setPaddingY((int) Math.ceil((kernelSize[1] - 1) / 2.0));
@@ -346,7 +365,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               filterPtr.dirty();
               deltaTensorMemory.freeRef();
               inputDescriptor.addRef();
-  
+              
               return CudaTensorList.wrap(CudaTensor.wrap(passbackMemory, inputDescriptor, precision), length, inputSize, precision);
             } catch (@Nonnull final Throwable e) {
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
@@ -366,12 +385,12 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       };
       Stream.of(learnFn, backpropFn).forEach(Runnable::run);
     }) {
-  
+      
       @Override
       public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
-  
+      
       @Override
       protected void _free() {
         kernel.freeRef();
@@ -529,26 +548,26 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         return new Result(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
           throw new IllegalStateException();
         }) {
-  
-  
+          
+          
           @Override
           protected void _free() {
             Arrays.stream(array).forEach(x -> x.freeRef());
           }
-  
+          
           @Override
           public boolean isAlive() {
             return false;
           }
         };
       }
-  
+      
       @Nonnull
       @Override
       public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
-  
+      
       @Nonnull
       @Override
       public List<double[]> state() {
@@ -561,19 +580,34 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
-    JsonElement value;
-    try {
-      value = kernel.toJson(resources, dataSerializer);
-    } catch (Throwable e) {
-      throw new RuntimeException("Error serializing convolution" + Arrays.toString(this.kernel.getDimensions()), e);
-    }
-    json.add("filter", value);
+    json.add("filter", toJson(resources, dataSerializer, kernel));
+    json.add("bias", toJson(resources, dataSerializer, bias));
+    json.addProperty("mode", mode.name());
     json.addProperty("strideX", strideX);
     json.addProperty("strideY", strideY);
     json.addProperty("paddingX", getPaddingX());
     json.addProperty("paddingY", getPaddingY());
     json.addProperty("precision", precision.name());
     return json;
+  }
+  
+  /**
+   * To json json element.
+   *
+   * @param resources      the resources
+   * @param dataSerializer the data serializer
+   * @param kernel         the kernel
+   * @return the json element
+   */
+  @Nonnull
+  public JsonElement toJson(final Map<CharSequence, byte[]> resources, @Nonnull final DataSerializer dataSerializer, final Tensor kernel) {
+    JsonElement value;
+    try {
+      value = kernel.toJson(resources, dataSerializer);
+    } catch (Throwable e) {
+      throw new RuntimeException("Error serializing convolution" + Arrays.toString(this.kernel.getDimensions()), e);
+    }
+    return value;
   }
   
   /**

@@ -25,6 +25,7 @@ import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,51 +50,33 @@ public class TextureDream_VGG19 extends ArtistryAppBase_VGG19 {
     styleTransfer.parallelLossFunctions = true;
     double growthFactor = Math.sqrt(2);
     BufferedImage canvas = TextureGeneration.initCanvas(new AtomicInteger(256));
-    
-    int iterations = 10;
-    {
-      Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
-      textureStyle.put(picasso, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+  
+    Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
+    textureStyle.put(Arrays.asList(threeMusicians), new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Dynamic)
+//        .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
+        //.set(CVPipe_VGG19.Layer.Layer_1a, 1e-1, 1e-1)
         .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
         .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
-        .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
-      );
-      canvas = TextureGeneration.generate(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, textureStyle, 90, canvas, 1, iterations, server);
-    }
-    
+//          .set(CVPipe_VGG19.Layer.Layer_1d, 1e1, 0)
+//          .set(CVPipe_VGG19.Layer.Layer_1e, 1e1, 0)
+//        .set(CVPipe_VGG19.Layer.Layer_2b, 1e1, 0, 0)
+    );
+    canvas = TextureGeneration.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, 90, canvas, 3, 10, server, 512);
+  
     {
       Map<CVPipe_VGG19.Layer, DeepDream.ContentCoefficients> dreamCoeff = new HashMap<>();
-      dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1d, new DeepDream.ContentCoefficients(0, 1e-2));
-      dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1e, new DeepDream.ContentCoefficients(0, 1e-1));
-      dreamCoeff.put(CVPipe_VGG19.Layer.Layer_2b, new DeepDream.ContentCoefficients(0, 1e0));
-      dreamCoeff.put(CVPipe_VGG19.Layer.Layer_3a, new DeepDream.ContentCoefficients(0, 1e1));
-      canvas = deepDream.deepDream(server, log, canvas, new DeepDream.StyleSetup(precision, canvas, dreamCoeff), 90, iterations);
+      dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1a, new DeepDream.ContentCoefficients(0, 1e-2));
+      dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1b, new DeepDream.ContentCoefficients(0, 1e-1));
+      canvas = deepDream.deepDream(server, log, canvas, new DeepDream.StyleSetup(precision, canvas, dreamCoeff), 90, 5);
     }
-    
-    {
-      Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
-      textureStyle.put(this.michelangelo, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-        .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
-        .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
-        .set(CVPipe_VGG19.Layer.Layer_1e, 1e0, 1e0)
-      );
-      canvas = TextureGeneration.generate(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, textureStyle, 90, canvas, 2, iterations, server);
-    }
-    
+  
     Map<CVPipe_VGG19.Layer, DeepDream.ContentCoefficients> dreamCoeff = new HashMap<>();
-    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1d, new DeepDream.ContentCoefficients(0, 1e-1));
+    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1d, new DeepDream.ContentCoefficients(0, 1e-2));
+    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1e, new DeepDream.ContentCoefficients(0, 1e-1));
     dreamCoeff.put(CVPipe_VGG19.Layer.Layer_2b, new DeepDream.ContentCoefficients(0, 1e0));
     dreamCoeff.put(CVPipe_VGG19.Layer.Layer_3a, new DeepDream.ContentCoefficients(0, 1e1));
-    canvas = deepDream.deepDream(server, log, canvas, new DeepDream.StyleSetup(precision, canvas, dreamCoeff), 90, iterations);
-    
-    Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
-    textureStyle.put(this.michelangelo, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-      .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
-      .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
-      .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
-    );
-    canvas = TextureGeneration.generate(log, styleTransfer, precision, new AtomicInteger(256), growthFactor, textureStyle, 90, canvas, 2, iterations, server);
-    
+    canvas = deepDream.deepDream(server, log, canvas, new DeepDream.StyleSetup(precision, canvas, dreamCoeff), 90, 5);
+  
     log.setFrontMatterProperty("status", "OK");
   }
   

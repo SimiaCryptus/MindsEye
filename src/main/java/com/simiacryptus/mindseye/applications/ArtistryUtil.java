@@ -24,18 +24,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.TileCycleLayer;
+import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
@@ -218,6 +218,15 @@ public class ArtistryUtil {
     canvas.set(Tensor.fromRGB(newImage));
   }
   
+  /**
+   * Paint plasma tensor.
+   *
+   * @param size           the size
+   * @param bands          the bands
+   * @param noiseAmplitude the noise amplitude
+   * @param noisePower     the noise power
+   * @return the tensor
+   */
   public static Tensor paint_Plasma(final int size, int bands, final double noiseAmplitude, final double noisePower) {
     return expandPlasma(initSquare(bands), size, noiseAmplitude, noisePower);
   }
@@ -228,6 +237,15 @@ public class ArtistryUtil {
     return new Tensor(2, 2, bands).setByCoord(c -> baseColor.get(0, 0, c.getCoords()[2]));
   }
   
+  /**
+   * Expand plasma tensor.
+   *
+   * @param image          the image
+   * @param width          the width
+   * @param noiseAmplitude the noise amplitude
+   * @param noisePower     the noise power
+   * @return the tensor
+   */
   @Nonnull
   public static Tensor expandPlasma(Tensor image, final int width, final double noiseAmplitude, final double noisePower) {
     while (image.getDimensions()[0] < width) {
@@ -236,6 +254,13 @@ public class ArtistryUtil {
     return image;
   }
   
+  /**
+   * Expand plasma tensor.
+   *
+   * @param seed  the seed
+   * @param noise the noise
+   * @return the tensor
+   */
   public static Tensor expandPlasma(final Tensor seed, double noise) {
     int bands = seed.getDimensions()[2];
     int width = seed.getDimensions()[0] * 2;
@@ -506,6 +531,12 @@ public class ArtistryUtil {
     canvas.setByCoord(c -> FastRandom.INSTANCE.random());
   }
   
+  /**
+   * Wrap avg layer.
+   *
+   * @param subnet the subnet
+   * @return the layer
+   */
   protected static Layer wrapAvg(final Layer subnet) {
     PipelineNetwork network = new PipelineNetwork(1);
     network.add(subnet);
@@ -536,18 +567,37 @@ public class ArtistryUtil {
     }
   }
   
+  /**
+   * Reduce.
+   *
+   * @param network               the network
+   * @param functions             the functions
+   * @param parallelLossFunctions the parallel loss functions
+   */
   public static void reduce(final PipelineNetwork network, final List<Tuple2<Double, DAGNode>> functions, final boolean parallelLossFunctions) {
     functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> {
       return new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2).setParallel(parallelLossFunctions));
     }).get();
   }
   
+  /**
+   * Gets files.
+   *
+   * @param file the file
+   * @return the files
+   */
   public static List<CharSequence> getFiles(CharSequence file) {
     File[] array = new File(file.toString()).listFiles();
     if (null == array) throw new IllegalArgumentException("Not Found: " + file);
     return Arrays.stream(array).map(File::getAbsolutePath).collect(Collectors.toList());
   }
   
+  /**
+   * Tile cycle pipeline network.
+   *
+   * @param network the network
+   * @return the pipeline network
+   */
   public static PipelineNetwork tileCycle(final PipelineNetwork network) {
     PipelineNetwork netNet = new PipelineNetwork(1);
     netNet.wrap(new AvgReducerLayer(),
