@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import com.simiacryptus.mindseye.layers.cudnn.SimpleConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1059,7 +1059,7 @@ public abstract class VGG extends ImageClassifier {
    * The type Vgg 16 zip.
    */
   public static class Static extends VGG16 {
-    
+  
     /**
      * Instantiates a new Static.
      *

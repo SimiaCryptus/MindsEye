@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.layers.StochasticComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

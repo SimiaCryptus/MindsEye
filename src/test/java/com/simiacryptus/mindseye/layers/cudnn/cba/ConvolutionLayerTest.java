@@ -17,12 +17,13 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.cba;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.CudaLayerTestBase;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
@@ -109,7 +110,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    */
   @Test
   public void verifyWeights() {
-    @Nonnull ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
+    @Nonnull com.simiacryptus.mindseye.layers.cudnn.cba.ExplodedConvolutionGrid explodedNetwork = this.convolutionLayer.getExplodedNetwork();
     @Nonnull int[] kernelDims = this.convolutionLayer.getKernel().getDimensions();
     @Nullable Tensor testData = new Tensor(kernelDims).mapAndFree(x -> random());
     explodedNetwork.write(testData);
@@ -168,14 +169,14 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class BandExpand extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Asymmetric apply.
      */
     public BandExpand() {
       super(1, 3, 6, Precision.Double, 16, 1, 3, 600);
     }
-  
+    
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
@@ -183,7 +184,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
         {1, 1, inputBands}
       };
     }
-  
+    
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
@@ -196,21 +197,21 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class BandLimit extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Asymmetric apply.
      */
     public BandLimit() {
       super(1, 3, 2, Precision.Double, 16, 1, 3, 600);
     }
-  
+    
   }
   
   /**
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class SqGrid extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Asymmetric apply.
      */
@@ -224,7 +225,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class IrregularGrid extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Asymmetric apply.
      */
@@ -238,7 +239,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Reduces the number of color bands from 6 to 3 (radius 3; 64-bit precision)
    */
   public static class BandReduceTest extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Asymmetric apply.
      */
@@ -252,7 +253,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Test using 64-bit precision apply a radius of 1
    */
   public static class Double extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Double.
      */
@@ -274,7 +275,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       super(3, 3, 3, Precision.Double, 16, 1, 3, 600);
       convolutionLayer.setPaddingXY(0, 0);
     }
-  
+    
   }
   
   /**
@@ -293,7 +294,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Convert from 7 bands to 5; this is meant to not divide evenly for testing. (64-bit)
    */
   public static class IrregularTest extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Irregular apply.
      */
@@ -306,14 +307,14 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Convert from 7 bands to 5; this is meant to not divide evenly for testing. (32-bit)
    */
   public static class IrregularTest_Float extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new Irregular apply float.
      */
     public IrregularTest_Float() {
       super(3, 7, 5, Precision.Float, 16, 1, 3, 600);
     }
-  
+    
     @Override
     public ComponentTest<ToleranceStatistics> getDerivativeTester() {
       if (!validateDifferentials) return null;
@@ -372,7 +373,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Basic Test
    */
   public abstract static class VeryBigTest extends Big {
-  
+    
     /**
      * Instantiates a new V big.
      *
@@ -407,7 +408,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * Basic Test
    */
   public abstract static class Big extends ConvolutionLayerTest {
-  
+    
     /**
      * Instantiates a new BigTests.
      *

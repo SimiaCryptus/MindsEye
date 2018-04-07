@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.java;
+package com.simiacryptus.mindseye.layers;
 
 import java.util.Random;
 

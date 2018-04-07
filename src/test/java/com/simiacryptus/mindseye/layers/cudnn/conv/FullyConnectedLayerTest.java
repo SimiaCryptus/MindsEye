@@ -17,10 +17,11 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers.cudnn.conv;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
+import com.simiacryptus.mindseye.layers.cudnn.CudaLayerTestBase;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;

@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.eval.TrainableDataMask;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgCropLayer;
 import com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer;

@@ -193,6 +193,10 @@ public class CudaSystem {
    */
   protected static final DoubleStatistics cudnnConvolutionForward_execution = new DoubleStatistics();
   /**
+   * The constant cudnnConvolutionForward_execution.
+   */
+  protected static final DoubleStatistics cudnnConvolutionBiasActivationForward_execution = new DoubleStatistics();
+  /**
    * The constant cudnnDestroyActivationDescriptor_execution.
    */
   protected static final DoubleStatistics cudnnDestroyActivationDescriptor_execution = new DoubleStatistics();

@@ -35,6 +35,7 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -267,7 +268,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     private final Layer inner;
     private final int fromBand;
     private final int toBand;
-  
+
     /**
      * Instantiates a new Subnet leg.
      *
@@ -281,7 +282,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       this.toBand = toBand;
       this.inner.addRef();
     }
-    
+  
     /**
      * Instantiates a new Rescaled subnet layer.
      *
@@ -299,7 +300,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       super._free();
       inner.freeRef();
     }
-    
+  
     /**
      * Gets json.
      *

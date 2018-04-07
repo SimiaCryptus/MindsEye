@@ -54,7 +54,7 @@ public class ImgReshapeLayer extends LayerBase {
    *
    * @param kernelSizeX the kernel size x
    * @param kernelSizeY the kernel size y
-   * @param expand      the expand
+   * @param expand      the expandPlasma
    */
   public ImgReshapeLayer(final int kernelSizeX, final int kernelSizeY, final boolean expand) {
     super();
@@ -72,7 +72,7 @@ public class ImgReshapeLayer extends LayerBase {
     super(json);
     kernelSizeX = json.getAsJsonPrimitive("kernelSizeX").getAsInt();
     kernelSizeY = json.getAsJsonPrimitive("kernelSizeY").getAsInt();
-    expand = json.getAsJsonPrimitive("expand").getAsBoolean();
+    expand = json.getAsJsonPrimitive("expandPlasma").getAsBoolean();
   }
   
   /**
@@ -112,7 +112,7 @@ public class ImgReshapeLayer extends LayerBase {
   }
   
   /**
-   * Copy expand tensor.
+   * Copy expandPlasma tensor.
    *
    * @param inputData  the input data
    * @param outputData the output data
@@ -225,7 +225,7 @@ public class ImgReshapeLayer extends LayerBase {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("kernelSizeX", kernelSizeX);
     json.addProperty("kernelSizeY", kernelSizeX);
-    json.addProperty("expand", expand);
+    json.addProperty("expandPlasma", expand);
     return json;
   }
   

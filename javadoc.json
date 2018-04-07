@@ -1,0 +1,2693 @@
+{
+  "com.simiacryptus.mindseye.applications.ArtistryAppBase": {
+    ":class": "The type ArtistryAppBase demo.",
+    "server": "The Server."
+  },
+  "com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19": {
+    ":class": "The type Artistry app base vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.ArtistryUtil": {
+    ":class": "The type Artistry util."
+  },
+  "com.simiacryptus.mindseye.applications.DeepDream": {
+    ":class": "This notebook implements the Style Transfer protocol outlined in <a href=\"https://arxiv.org/abs/1508.06576\">A Neural Algorithm of Artistic Style</a>",
+    "tiled": "Sets tiled."
+  },
+  "com.simiacryptus.mindseye.applications.DeepDream.ContentCoefficients": {
+    ":class": "The type Content coefficients."
+  },
+  "com.simiacryptus.mindseye.applications.DeepDream.ContentTarget": {
+    ":class": "The type Content target.",
+    "content": "The Content."
+  },
+  "com.simiacryptus.mindseye.applications.DeepDream.NeuralSetup": {
+    ":class": "The type Neural setup.",
+    "contentTarget": "The Content target."
+  },
+  "com.simiacryptus.mindseye.applications.DeepDream.StyleSetup": {
+    ":class": "The type Style setup."
+  },
+  "com.simiacryptus.mindseye.applications.DeepDream.VGG16": {
+    ":class": "The type Vgg 16."
+  },
+  "com.simiacryptus.mindseye.applications.DeepDream.VGG19": {
+    ":class": "The type Vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.DeepDream_VGG19": {
+    ":class": "The type Deep dream vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.DreamIndex_VGG19": {
+    ":class": "The type Style transfer vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.ImageClassificationBase": {
+    ":class": "The type Image classification base."
+  },
+  "com.simiacryptus.mindseye.applications.ImageClassification_VGG19": {
+    ":class": "We load a pretrained convolutional neural network (VGG16) along apply the CalTech101 image dataset to perform a demonstration of Image Recognition."
+  },
+  "com.simiacryptus.mindseye.applications.ImageClassification_VGG19.HFD5": {
+    ":class": "The type HDF5_JBLAS."
+  },
+  "com.simiacryptus.mindseye.applications.ImageClassifier": {
+    ":class": "The type Image classifier.",
+    "batchSize": "Sets batch size.",
+    "cachedLayer": "The Network.",
+    "cnt": "The Cnt.",
+    "precision": "Sets precision.",
+    "prototype": "The Prototype."
+  },
+  "com.simiacryptus.mindseye.applications.ObjectLocation": {
+    ":class": "The type Object location."
+  },
+  "com.simiacryptus.mindseye.applications.ObjectLocation.VGG16": {
+    ":class": "The type Vgg 16."
+  },
+  "com.simiacryptus.mindseye.applications.ObjectLocation.VGG19": {
+    ":class": "The type Vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.ObjectLocation_VGG19": {
+    ":class": "The type Image classifier apply base."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer": {
+    ":class": "This notebook implements the Style Transfer protocol outlined in <a href=\"https://arxiv.org/abs/1508.06576\">A Neural Algorithm of Artistic Style</a>",
+    "parallelLossFunctions": "The Parallel loss functions."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer.ContentCoefficients": {
+    ":class": "The type Content coefficients."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer.ContentTarget": {
+    ":class": "The type Content target.",
+    "content": "The Content."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer.LayerStyleParams": {
+    ":class": "The type Layer style params."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer.NeuralSetup": {
+    ":class": "The type Neural setup.",
+    "contentTarget": "The Content target.",
+    "styleTargets": "The Style targets."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer.StyleCoefficients": {
+    ":class": "The type Style coefficients."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer.StyleSetup": {
+    ":class": "The type Style setup.",
+    "contentImage": "The Content image."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer.StyleTarget": {
+    ":class": "The type Style target.",
+    "cov0": "The Cov.",
+    "cov1": "The Cov.",
+    "mean": "The Mean."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer.VGG16": {
+    ":class": "The type Vgg 16."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer.VGG19": {
+    ":class": "The type Vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.StyleTransfer_VGG19": {
+    ":class": "The type Style transfer vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.TextureDream_VGG19": {
+    ":class": "The type Style transfer vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration": {
+    ":class": "This notebook implements the Style Transfer protocol outlined in <a href=\"https://arxiv.org/abs/1508.06576\">A Neural Algorithm of Artistic Style</a>",
+    "parallelLossFunctions": "The Parallel loss functions.",
+    "tiled": "Sets tiled."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration.ContentCoefficients": {
+    ":class": "The type Content coefficients."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration.ContentTarget": {
+    ":class": "The type Content target.",
+    "content": "The Content."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration.LayerStyleParams": {
+    ":class": "The type Layer style params."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration.NeuralSetup": {
+    ":class": "The type Neural setup.",
+    "contentTarget": "The Content target.",
+    "styleTargets": "The Style targets."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration.StyleCoefficients": {
+    ":class": "The type Style coefficients."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration.StyleSetup": {
+    ":class": "The type Style setup."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration.StyleTarget": {
+    ":class": "The type Style target.",
+    "cov0": "The Cov.",
+    "cov1": "The Cov.",
+    "mean": "The Mean."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration.VGG16": {
+    ":class": "The type Vgg 16."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration.VGG19": {
+    ":class": "The type Vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.TextureGeneration_VGG19": {
+    ":class": "The type Style transfer vgg 19."
+  },
+  "com.simiacryptus.mindseye.eval.ArrayTrainable": {
+    ":class": "Basic training component which evaluates a static array of data on a network. Evaluation is subject to batch-size conditions to manage execution memory requirements.",
+    "trainingData": "Sets training data."
+  },
+  "com.simiacryptus.mindseye.eval.BasicTrainable": {
+    ":class": "This class handles dispatching network evaluations, and distributing the evaluations to the system GPU(s). This is the main class the handles actual execution for training purposes.",
+    "data": "The Data.",
+    "mask": "The Mask.",
+    "verbosity": "Sets verbose."
+  },
+  "com.simiacryptus.mindseye.eval.BatchedTrainable": {
+    ":class": "Base class to manage batched execution, where a data setByCoord is executed in segments in order to manage execution memory requirements.",
+    "verbose": "Sets verbose."
+  },
+  "com.simiacryptus.mindseye.eval.CachedTrainable": {
+    ":class": "A wrapper which maintains a hisotry of N prior evaluations. If a detectable repeated evaluation is requested, the cached result is used.",
+    "historySize": "Sets history size.",
+    "verbose": "Sets verbose."
+  },
+  "com.simiacryptus.mindseye.eval.ConstL12Normalizer": {
+    ":class": "This Trainable wrapper adds additional L1 and L2 terms for weight normalization. Both coefficients are universal for the network (does not depend on layer) and are setByCoord statically.",
+    "factor_L1": "Sets factor l 1.",
+    "factor_L2": "Sets factor l 2."
+  },
+  "com.simiacryptus.mindseye.eval.DataTrainable": {
+    ":class": "A base class for Trainable objects advertizing an API for setting and accessing the training data.",
+    "data": "Sets data."
+  },
+  "com.simiacryptus.mindseye.eval.L12Normalizer": {
+    ":class": "Abstract base class for a trainable wrapper that adds per-layer L1 and L2 normalization constants. It allows the implementing class to choose the coefficients for each layer."
+  },
+  "com.simiacryptus.mindseye.eval.LocalSparkTrainable": {
+    ":class": "A debugging class which replaces SparkTrainable apply an implementation that uses direct method calls instead of RMI. This can be useful for debugging in some situations."
+  },
+  "com.simiacryptus.mindseye.eval.SampledArrayTrainable": {
+    ":class": "This type handles the data selection part of stochastic gradient descent training. Between each epoch, a \"reset\" method is called to re-sample the training data and pass it to the heapCopy Trainable implementation.",
+    "minSamples": "Sets min samples."
+  },
+  "com.simiacryptus.mindseye.eval.SampledCachedTrainable": {
+    ":class": "A type-merging class for Trainable objects which are both Sampled and Cached."
+  },
+  "com.simiacryptus.mindseye.eval.SampledTrainable": {
+    ":class": "A trainable contract for variable sample size; smaller values result in faster but less representative evaluations.",
+    "trainingSize": "Sets training size."
+  },
+  "com.simiacryptus.mindseye.eval.SparkTrainable": {
+    ":class": "A training implementation which holds data as a Spark RDD and distributes network evaluation over the partitions.",
+    "partitions": "Sets partitions.",
+    "sampledRDD": "The Sampled rdd.",
+    "storageLevel": "Sets storage level.",
+    "verbose": "Sets verbose."
+  },
+  "com.simiacryptus.mindseye.eval.SparkTrainable.PartitionTask": {
+    ":class": "The type Partition task.",
+    "verbose": "The Verbose."
+  },
+  "com.simiacryptus.mindseye.eval.SparkTrainable.ReducableResult": {
+    ":class": "The type Reducable result."
+  },
+  "com.simiacryptus.mindseye.eval.TensorListTrainable": {
+    ":class": "This class handles dispatching network evaluations, and distributing the evaluations to the system GPU(s). This is the main class the handles actual execution for training purposes.",
+    "data": "Sets data.",
+    "mask": "The Mask.",
+    "verbosity": "Sets verbose."
+  },
+  "com.simiacryptus.mindseye.eval.Trainable": {
+    ":class": "Base class for an object which can be evaluated using differential weights. This represents a function without inputs and apply only one output. The internal weights, effectively the function's input, are adjusted to minimize this output."
+  },
+  "com.simiacryptus.mindseye.eval.TrainableBase": {
+    ":class": "Base class for an object which can be evaluated using differential weights. This represents a function without inputs and apply only one output. The internal weights, effectively the function's input, are adjusted to minimize this output."
+  },
+  "com.simiacryptus.mindseye.eval.TrainableDataMask": {
+    ":class": "A Trainable supplemental contract exposing a boolean mask which configures which, if any, input columns are to be adjusted by the learning procedure. This can be used to trainCjGD per-row, non-shared parameters.",
+    "mask": "Sets mask."
+  },
+  "com.simiacryptus.mindseye.eval.TrainableWrapper": {
+    ":class": "A base class for a Trainable type which wraps an heapCopy type of the same kind."
+  },
+  "com.simiacryptus.mindseye.labs.encoding.EncodingUtil": {
+    ":class": "The type Image encoding util."
+  },
+  "com.simiacryptus.mindseye.labs.encoding.EncodingUtil.ConvolutionExtractor": {
+    "column": "The Column.",
+    "image": "The Image.",
+    "x": "The X.",
+    "y": "The Y."
+  },
+  "com.simiacryptus.mindseye.labs.encoding.FindFeatureSpace": {
+    ":class": "The type Find feature space.",
+    "averages": "The Averages.",
+    "vectors": "The Vectors."
+  },
+  "com.simiacryptus.mindseye.labs.encoding.FindPCAFeatures": {
+    ":class": "The type Find feature space."
+  },
+  "com.simiacryptus.mindseye.labs.encoding.ImageDecompositionLab": {
+    ":class": "The type Image encoding pca apply.",
+    "dataPipeline": "The MnistProblemData pipeline.",
+    "displayImage": "The Display image.",
+    "modelNo": "The Model no."
+  },
+  "com.simiacryptus.mindseye.labs.encoding.ImageDecompositionLab.AddLayerStep": {
+    ":class": "The type Add layer runStep."
+  },
+  "com.simiacryptus.mindseye.labs.encoding.ImageDecompositionLab.InitializationStep": {
+    ":class": "The type Initialization runStep."
+  },
+  "com.simiacryptus.mindseye.labs.encoding.ImageDecompositionLab.TranscodeStep": {
+    ":class": "The type Transcode runStep."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.AllTrainingTests": {
+    ":class": "The type All training tests.",
+    "batchSize": "The Batch size.",
+    "timeoutMinutes": "The Timeout minutes."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.CaltechTests": {
+    ":class": "The type Mnist apply base."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.CaltechTests.All_Caltech_Tests": {
+    ":class": "Basic demonstratin problems involving the Caltech101 image dataset."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.CaltechTests.QQN": {
+    ":class": "Basic demonstration problems involving the Caltech101 image dataset and Quadratic Quasi-Newton optimizer"
+  },
+  "com.simiacryptus.mindseye.labs.matrix.CifarTests": {
+    ":class": "The type Mnist apply base."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.CifarTests.All_CIFAR_Tests": {
+    ":class": "The type All cifar tests."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.CifarTests.OWL_QN": {
+    ":class": "Owls are deadly and silent forest raptors. HOOT! HOOT!"
+  },
+  "com.simiacryptus.mindseye.labs.matrix.CifarTests.QQN": {
+    ":class": "Quadratic Quasi-Newton optimization applied to basic problems apply the CIFAR10 image dataset."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.CifarTests.SGD": {
+    ":class": "Classic Stochastic Gradient Descent optimization applied to basic problems apply the CIFAR10 image dataset."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.MnistTests": {
+    ":class": "The type Mnist apply base."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.MnistTests.All_MNIST_Tests": {
+    ":class": "The type All mnist tests."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.MnistTests.OWL_QN": {
+    ":class": "Owls are to be respected and feared. HOOT!"
+  },
+  "com.simiacryptus.mindseye.labs.matrix.MnistTests.QQN": {
+    ":class": "Quadraic Quasi-Newton handwriting recognition."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.MnistTests.SGD": {
+    ":class": "Stochastic Gradient Descent applied to Handwriting Recognition!"
+  },
+  "com.simiacryptus.mindseye.labs.matrix.OptimizerComparison": {
+    ":class": "The type Optimizer comparison.",
+    "data": "The Data.",
+    "fwdFactory": "The Fwd factory.",
+    "revFactory": "The Rev factory.",
+    "timeoutMinutes": "Sets timeout minutes."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.Research": {
+    ":class": "We compare some traditional baseline optimizers against proprietary MindsEye optimization components."
+  },
+  "com.simiacryptus.mindseye.labs.matrix.TextbookOptimizers": {
+    ":class": "We compare a variety of conventional \"textbook\" optimizer configurations against a standard optimization benchmarking suite."
+  },
+  "com.simiacryptus.mindseye.lang.ComponentException": {
+    ":class": "An exception occured within a LayerBase component. This is most often due to invalid input or configuration."
+  },
+  "com.simiacryptus.mindseye.lang.ConstantResult": {
+    ":class": "A special type of Result which ignores backpropigation; it has a constant value."
+  },
+  "com.simiacryptus.mindseye.lang.Coordinate": {
+    ":class": "A data structure to represent an index/coordinate/tuple for referencing elements in a Tensor. It contains both the physical (1-d) and logical (N-d) indicies of the element.",
+    "coords": "Sets coords.",
+    "index": "Sets index."
+  },
+  "com.simiacryptus.mindseye.lang.CoreSettings": {
+    ":class": "The type Cuda settings."
+  },
+  "com.simiacryptus.mindseye.lang.DataSerializer": {
+    ":class": "Provides a data serialization interface designed for converting arrays of doubles to/from arrays of bytes. Implementations may use reduced precision and other lossy compression techniques."
+  },
+  "com.simiacryptus.mindseye.lang.DataSerializerTest": {
+    ":class": "The type Tensor apply."
+  },
+  "com.simiacryptus.mindseye.lang.Delta": {
+    ":class": "An arithmetic delta being staged to effect an in-memory change to a double[] array. In comparison apply the State class via geometric analogy, this would be a vector whereas State is a point.",
+    "deltaCompensation": "The Delta compensation."
+  },
+  "com.simiacryptus.mindseye.lang.DeltaSet": {
+    ":class": "This is a collection of Deltas being staged for particular layers. Provides indexing capabilities to reference the deltas based on physical references (to double[] objects) and based on logical referants (i.e. layers) Provides collection-arithmetic operations appropriate to the Delta's vector geometric archtype."
+  },
+  "com.simiacryptus.mindseye.lang.DoubleArrayStatsFacade": {
+    ":class": "A stateless wrapper class that provides accessors for statistical metrics of a given scalar array."
+  },
+  "com.simiacryptus.mindseye.lang.DoubleBuffer": {
+    ":class": "A generic alternate memory buffer being staged in relation to an existing double[] array.",
+    "delta": "The Delta."
+  },
+  "com.simiacryptus.mindseye.lang.DoubleBufferSet": {
+    ":class": "A collection of DoubleBuffer objects being staged for particular layers. Provides indexing capabilities to reference the deltas based on physical references (to double[] objects) and based on logical referants (i.e. layers)"
+  },
+  "com.simiacryptus.mindseye.lang.DoubleBufferSet.Delegate": {
+    ":class": "The type Delegate."
+  },
+  "com.simiacryptus.mindseye.lang.IterativeStopException": {
+    ":class": "Used to communicate that an iterative learning process should be terminated gracefully."
+  },
+  "com.simiacryptus.mindseye.lang.Layer": {
+    ":class": "The interface Layer.",
+    "frozen": "Sets frozen.",
+    "name": "Sets name."
+  },
+  "com.simiacryptus.mindseye.lang.LayerBase": {
+    ":class": "The basic type of Neural Network LayerBase supporting the backpropigation model of learning. In general, these components define differentiable functions and the accompanying derivatives. The interface is designed to support composability; see DAGNetwork for composition details.",
+    "frozen": "Sets frozen.",
+    "name": "Sets name."
+  },
+  "com.simiacryptus.mindseye.lang.LifecycleException": {
+    ":class": "A runtime exception when performing an invalid operation on a ReferenceCounted object."
+  },
+  "com.simiacryptus.mindseye.lang.MutableResult": {
+    ":class": "The type Mutable result."
+  },
+  "com.simiacryptus.mindseye.lang.PointSample": {
+    ":class": "Represents an evaluation record used during optimization of a function apply one scalar output and many inputs. We track both a record of the network's state, and a record of the gradient evaluated at that point.",
+    "rate": "Sets rate."
+  },
+  "com.simiacryptus.mindseye.lang.RecycleBin": {
+    ":class": "This is a recycling mechanism to reuse short-term-lifecycle T objects of regular length. It is a convenience mechanism to optimize tight loops which would otherwise require careful and complex coding to minimize allocations and avoid excessive GC load",
+    "maxItemsPerBuffer": "Sets max items per buffer.",
+    "maxLengthPerBuffer": "Sets max bytes per buffer.",
+    "minLengthPerBuffer": "Sets min bytes per buffer.",
+    "persistanceMode": "Sets persistance mode.",
+    "profiling": "Sets profiling.",
+    "purgeFreq": "Sets purge freq."
+  },
+  "com.simiacryptus.mindseye.lang.RecycleBin.ObjectWrapper": {},
+  "com.simiacryptus.mindseye.lang.ReferenceCounting": {
+    ":class": "Interface for objects apply reference counting. Reference counted objects will be freed when the last reference is freed, in a guaranteed-once-only manner. In general, valid reference counting behavior can be maintained by observing a few rules: 1) References should be freed as soon as they are finished being used 2) Only reference counting objects should be used to hold pointers to other reference counting objects, and those pointers should be freed & clears when the object is freed. 3) If returning a reference to an object from a method, increment its reference count. 4) Handle reference counted objects within the scope of a single method when possible. (i.e. prefer to keep them on the stack, not heap.)"
+  },
+  "com.simiacryptus.mindseye.lang.ReferenceCountingBase": {
+    ":class": "The base implementation for ReferenceCounting objects. Provides state management and debugging facilities. If assertions are enabled, stack traces are recorded to provide detailed logs for debugging LifecycleExceptions."
+  },
+  "com.simiacryptus.mindseye.lang.ReferenceWrapper": {
+    ":class": "The type Reference wrapper."
+  },
+  "com.simiacryptus.mindseye.lang.RegisteredObjectBase": {
+    ":class": "The type Registered object base."
+  },
+  "com.simiacryptus.mindseye.lang.RegisteredObjectBase.ObjectRecords": {},
+  "com.simiacryptus.mindseye.lang.ReshapedTensorList": {
+    ":class": "A wrapper TensorList data to override the existing tensor layer. Can be used for example to flatten or unflatten a tensor to/from a rank-1 array."
+  },
+  "com.simiacryptus.mindseye.lang.Result": {
+    ":class": "Encapsulates the results of evaluating neural network. It includes both the result data and a function which can be evaluated to determine the learning gradient. Does not hold a reference on the result data object, allowing that data to be freed when possible while preserving the gradient callback."
+  },
+  "com.simiacryptus.mindseye.lang.SerialPrecision.Rational": {
+    ":class": "The type Rational."
+  },
+  "com.simiacryptus.mindseye.lang.Settings": {
+    ":class": "The type Settings.",
+    "logger": "The constant logger."
+  },
+  "com.simiacryptus.mindseye.lang.Singleton": {
+    ":class": "An asynchronous, settable reference buffer. Allows consumers to block until a value is availble."
+  },
+  "com.simiacryptus.mindseye.lang.StackCounter": {
+    ":class": "A diagnostics tool that accumulates weighted stack trace statistics. Can be used to track hot spots in code related to custom variable-intensity events.",
+    "stats": "The Stats."
+  },
+  "com.simiacryptus.mindseye.lang.StackCounter.StackFrame": {
+    ":class": "The type Stack frame."
+  },
+  "com.simiacryptus.mindseye.lang.State": {
+    ":class": "Alternate version being staged to effect an in-memory change to a double[] array. In comparison apply the Delta class via geometric analogy, this would be a point whereas Delta is a vector."
+  },
+  "com.simiacryptus.mindseye.lang.StateSet": {
+    ":class": "A collection of State objects being staged for particular layers. Provides indexing capabilities to reference the deltas based on physical references (to double[] objects) and based on logical referants (i.e. layers) Provides collection-arithmetic operations appropriate to the State's 'point' geometric archtype."
+  },
+  "com.simiacryptus.mindseye.lang.Tensor": {
+    ":class": "A multi-dimensional array of data. Represented internally as a single double[] array. This class is central to data handling in MindsEye, and may have some odd-looking or suprising optimizations.",
+    "all": "Sets all.",
+    "byCoord": "Fill by coord tensor.",
+    "bytes": "Sets bytes.",
+    "data": "The Data.",
+    "parallelByIndex": "Sets parallel by index."
+  },
+  "com.simiacryptus.mindseye.lang.Tensor.CoordOperator": {
+    ":class": "The interface Coord operator."
+  },
+  "com.simiacryptus.mindseye.lang.Tensor.TupleOperator": {
+    ":class": "The interface Tuple operator."
+  },
+  "com.simiacryptus.mindseye.lang.TensorArray": {
+    ":class": "An on-heap implementation of the TensorList data container."
+  },
+  "com.simiacryptus.mindseye.lang.TensorList": {
+    ":class": "This abstract data container is used to pass data between LayerBase components. It potentially represents data stored off-heap, such as on a particular GPU. Use of this abstract class allows optimizations where adjacent GPU components can operate apply minimal CPU-GPU data transfer."
+  },
+  "com.simiacryptus.mindseye.lang.TensorTest": {
+    ":class": "The type Tensor apply."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaDevice": {
+    ":class": "The type Gpu device."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaDevice.CudaTensorDescriptor": {
+    ":class": "The type Cuda tensor descriptor."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaError": {
+    ":class": "A low-level exception occured while executing GPU instructions"
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaMemory": {
+    ":class": "A GPU memory segment"
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaPointer": {
+    ":class": "The type Cuda pointer."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaResource": {
+    ":class": "A managed resource containing a native CudaSystem resource, bound to its lifecycle apply a prearranged destructor."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaResourceBase": {
+    ":class": "The type Cuda resource base.",
+    "ptr": "The Ptr."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaSettings": {
+    ":class": "The type Cuda settings."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaStream": {
+    ":class": "The type Cuda stream."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaSystem": {
+    ":class": "Main library wrapper class around the CudaSystem API, providing logging and managed wrappers."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaSystem.CudaDeviceResource": {
+    ":class": "The interface Cuda device resource."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaTensor": {
+    ":class": "The type Cuda tensor."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudaTensorList": {
+    ":class": "A TensorList data object stored on a GPU apply a configurable precision.",
+    "gpuCopy": "The Ptr.",
+    "heapCopy": "The Heap copy."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudnnHandle": {
+    ":class": "The type Gpu handle."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.CudnnTest": {
+    ":class": "The type Cudnn layer apply base."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.DeviceMetrics": {
+    ":class": "The type Gpu stats."
+  },
+  "com.simiacryptus.mindseye.lang.cudnn.MultiPrecision": {
+    ":class": "An interface for CuDNN layers apply configurable numeric precision.",
+    "precision": "Sets precision."
+  },
+  "com.simiacryptus.mindseye.layers.Explodable": {
+    ":class": "An (LayerBase) object which can be exploded into an equivalent network apply more fine-grained components."
+  },
+  "com.simiacryptus.mindseye.layers.LayerTestBase": {
+    ":class": "The type LayerBase apply base."
+  },
+  "com.simiacryptus.mindseye.layers.MetaLayerTestBase": {
+    ":class": "The type Meta layer apply base."
+  },
+  "com.simiacryptus.mindseye.layers.StochasticComponent": {
+    ":class": "A parent interface for layers which should be \"shuffled\" often, generally when the layer has some random noise-determining state. This is needed since even noise-introducing layers must behave well as analytic functions between shuffles to guarantee the optimizer will converge.",
+    "random": "The constant randomize."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.AparapiTest": {
+    ":class": "The type Aparapi apply."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.AparapiTest.Convolution": {
+    ":class": "The interface Convolution."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.AparapiTest.TestKernel": {
+    ":class": "The type Test kernel."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.BackpropKernel": {
+    ":class": "The type Backprop kernel.",
+    "input": "The Input.",
+    "inputSize": "The Input size.",
+    "kernelOffset": "The Kernel offset.",
+    "kernelSize": "The Kernel size.",
+    "output": "The Output.",
+    "outputSize": "The Output size.",
+    "weights": "The Weights."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.ConvolutionController": {
+    ":class": "The type Convolution controller.",
+    "paddingX": "Sets padding x.",
+    "paddingY": "Sets padding y."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer": {
+    ":class": "This convolution layer is often used as the reference implementation for other convolution implementation. It uses OpenCL via Aparapi to compile Java into GPU-accellerated kernels. Due to its simple implementation and limitations of Aparapi, it is not as fast as CudaSystem-powered layers.",
+    "paddingX": "Sets padding x.",
+    "paddingY": "Sets padding y.",
+    "weights": "Sets weights."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayerTest": {
+    ":class": "The type Convolution layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayerTest.Basic": {
+    ":class": "Basic 3x3 convolution apply 2 color bands"
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayerTest.Downsize": {
+    ":class": "Reducing the number of bands (output less data than input)"
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayerTest.Upsize": {
+    ":class": "Increasing the number of bands (output more data than input)"
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.ConvolveKernel": {
+    ":class": "The type Convolve kernel.",
+    "input": "The Input.",
+    "inputSize": "The Input size.",
+    "kernelOffset": "The Kernel offset.",
+    "kernelSize": "The Kernel size.",
+    "output": "The Output.",
+    "outputSize": "The Output size.",
+    "weights": "The Weights."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.GradientKernel": {
+    ":class": "The type Gradient kernel.",
+    "input": "The Input.",
+    "inputSize": "The Input size.",
+    "kernelOffset": "The Kernel offset.",
+    "kernelSize": "The Kernel size.",
+    "output": "The Output.",
+    "outputSize": "The Output size.",
+    "paralellism": "The Paralellism.",
+    "weightSize": "The Weight size.",
+    "weights": "The Weights."
+  },
+  "com.simiacryptus.mindseye.layers.aparapi.OpenCL": {
+    ":class": "The type Open cl."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ActivationLayer": {
+    ":class": "The generic Activation layer, exposing the activation types provided by CudaSystem. This layer is stateless and is determined by a univariate function, e.g. ReLU or Sigmoid."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ActivationLayerTest": {
+    ":class": "The type Activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ActivationLayerTest.ReLu_Double": {
+    ":class": "Configured apply double (64-bit) precision, y=x&lt;0?0:x"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ActivationLayerTest.ReLu_Float": {
+    ":class": "Configured apply float (32-bit) precision, y=x&lt;0?0:x"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ActivationLayerTest.Sigmoid_Double": {
+    ":class": "Configured apply double (64-bit) precision using the Sigmoid function"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ActivationLayerTest.Sigmoid_Float": {
+    ":class": "Configured apply float (32-bit) precision using the Sigmoid function"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer": {
+    ":class": "Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayerTest": {
+    ":class": "The type Img band bias layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayerTest.Asymmetric": {
+    ":class": "Inputs asymmetric (height != width) images"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayerTest.Double": {
+    ":class": "Basic apply in double (64-bit) precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayerTest.Float": {
+    ":class": "Basic apply using float (32-bit) precision."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer": {
+    ":class": "Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.",
+    "alpha": "Sets alpha."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayerTest": {
+    ":class": "The type Img band bias layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayerTest.Asymmetric": {
+    ":class": "Inputs asymmetric (height != width) images"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayerTest.Double": {
+    ":class": "Basic apply in double (64-bit) precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayerTest.Float": {
+    ":class": "Basic apply using float (32-bit) precision."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayerTest.Negative": {
+    ":class": "Basic apply in double (64-bit) precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer": {
+    ":class": "Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.",
+    "alpha": "Sets alpha.",
+    "mode": "Sets mode."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandReducerLayerTest": {
+    ":class": "The type Img band bias layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandReducerLayerTest.Asymmetric": {
+    ":class": "Inputs asymmetric (height != width) images"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandReducerLayerTest.Double": {
+    ":class": "Basic apply in double (64-bit) precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandReducerLayerTest.Float": {
+    ":class": "Basic apply using float (32-bit) precision."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BandReducerLayerTest.Negative": {
+    ":class": "Basic apply in double (64-bit) precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer": {
+    ":class": "Computes a weighted binary sum of two layers. Provides two weighting coefficients, one for each input. This can be used to implement a summation layer, a difference layer, a scaling layer, or any combination.",
+    "leftFactor": "Sets left factor.",
+    "rightFactor": "Sets right factor."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BinarySumLayerTest": {
+    ":class": "The type BinarySumLayerTest layer apply.",
+    "smallSize": "The Small size."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BinarySumLayerTest.Double_Add": {
+    ":class": "Adds using double (64-bit) precision, C = A + B"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BinarySumLayerTest.Double_List": {
+    ":class": "The type Double list."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BinarySumLayerTest.Double_Subtract": {
+    ":class": "Subtracts using double (64-bit) precision, C = A - B"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BinarySumLayerTest.Float_Add": {
+    ":class": "Adds using float (32-bit) precision, C = A + B"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BinarySumLayerTest.Float_Avg": {
+    ":class": "Binary averaging using float (32-bit) precision, C = (A + B) / 2"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.BinarySumLayerTest.OnePlusOne": {
+    ":class": "Ensures addition can be used to implement a doubling (x2) function"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.CudaLayerTestBase": {
+    ":class": "The type Cudnn layer apply base."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer": {
+    ":class": "This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation layers, such as the square needed in MeanSqLossLayer."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.GateBiasLayerTest": {
+    ":class": "The type Product layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.GateBiasLayerTest.Double": {
+    ":class": "Multiplication of 2 inputs using 64-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.GateBiasLayerTest.Float": {
+    ":class": "Multiplication of 2 inputs using 32-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.GramianLayer": {
+    ":class": "A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all inputs are connected to all outputs via seperate coefficients.",
+    "alpha": "Sets alpha."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.GramianLayerTest": {
+    ":class": "The type Fully connected layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.GramianLayerTest.Deep": {
+    ":class": "The type Deep."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.GramianLayerTest.Image": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer": {
+    ":class": "This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation layers, such as the square needed in MeanSqLossLayer.",
+    "andFree": "Sets and free.",
+    "bias": "Sets bias.",
+    "weights": "Add weights img band bias layer.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayerTest": {
+    ":class": "The type Img band bias layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayerTest.Double": {
+    ":class": "Basic 64-bit apply"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayerTest.Float": {
+    ":class": "Basic 32-bit apply"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgBandSelectLayer": {
+    ":class": "Concatenates two or more inputs, assuming they have the same width and height, to produce an image apply both inputs' color bands. (e.g. Used in Inception modules in GoogLeNet.)",
+    "from": "Sets max bands.",
+    "to": "Sets to."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgBandSelectLayerTest": {
+    ":class": "The type Img concat layer apply.",
+    "inputBands": "The Input bands.",
+    "layer": "The LayerBase."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgBandSelectLayerTest.Double": {
+    ":class": "Basic 64-bit apply"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgBandSelectLayerTest.Float": {
+    ":class": "Basic 32-bit apply"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayer": {
+    ":class": "Concatenates two or more inputs, assuming they have the same width and height, to produce an image apply both inputs' color bands. (e.g. Used in Inception modules in GoogLeNet.)",
+    "maxBands": "Sets max bands.",
+    "parallel": "Sets parallel."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayerTest": {
+    ":class": "The type Img concat layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayerTest.BandConcatLimitTest": {
+    ":class": "Test truncation feature that both concatenates images and limits the image to N bands, discarding the last as needed."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayerTest.BandLimitTest": {
+    ":class": "Test truncation feature that limits the image to N bands, discarding the last as needed."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayerTest.Big": {
+    ":class": "The type BigTests."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayerTest.Double": {
+    ":class": "Basic 64-bit apply"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayerTest.Float": {
+    ":class": "Basic 32-bit apply"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgCropLayer": {
+    ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgCropLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgCropLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgCropLayerTest.Chained": {
+    ":class": "The type Chained."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgLinearSubnetLayer": {
+    ":class": "This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work across larger image regions.",
+    "parallel": "Sets parallel."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgLinearSubnetLayer.SubnetLeg": {
+    ":class": "The type Subnet leg."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgLinearSubnetLayerTest": {
+    ":class": "The type Rascaled subnet layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgLinearSubnetLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgMinSizeLayer": {
+    ":class": "Increases the resolution of the input by selecting a larger centered window. The output image will have the same number of color bands, and the area outside the source image will be setWeights to 0."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgModulusPaddingLayer": {
+    ":class": "Increases the resolution of the input by selecting a larger centered window. The output image will have the same number of color bands, and the area outside the source image will be setWeights to 0.",
+    "offsetX": "Sets offset x."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgModulusPaddingLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgModulusPaddingLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileAssemblyLayer": {
+    ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands.",
+    "parallel": "Sets parallel."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileAssemblyLayer.BackpropParams": {},
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileAssemblyLayer.CopyParams": {},
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileAssemblyLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileAssemblyLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileSelectLayer": {
+    ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileSelectLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileSelectLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileSubnetLayer": {
+    ":class": "This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work across larger image regions.",
+    "parallel": "Sets parallel."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileSubnetLayerTest": {
+    ":class": "The type Rascaled subnet layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileSubnetLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer": {
+    ":class": "Increases the resolution of the input by selecting a larger centered window. The output image will have the same number of color bands, and the area outside the source image will be setWeights to 0.",
+    "createdBy": "The Created by."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer": {
+    ":class": "Implements the RMS loss layer (without the final square root). Implemented as a sutnetwork.",
+    "alpha": "Sets alpha."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayerTest": {
+    ":class": "The type Mean sq loss layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayerTest.Asymetric": {
+    ":class": "Test using asymmetric input."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayerTest.Basic": {
+    ":class": "Basic apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.NProductLayer": {
+    ":class": "This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation layers, such as the square needed in MeanSqLossLayer."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.NProductLayerTest": {
+    ":class": "The type Product layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.NProductLayerTest.Double": {
+    ":class": "Multiplication of 2 inputs using 64-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.NProductLayerTest.Double3": {
+    ":class": "Multiplication of 3 inputs using 64-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.NProductLayerTest.Float": {
+    ":class": "Multiplication of 2 inputs using 32-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.PoolingLayer": {
+    ":class": "The standard image-pixel pooling layer. Using a configurable stride and window size, reduces pixels using either the Max or Avg operation.",
+    "alpha": "Sets alpha.",
+    "mode": "Sets mode.",
+    "paddingX": "Sets padding x.",
+    "paddingY": "Sets padding y.",
+    "strideX": "Sets stride x.",
+    "strideY": "Sets stride y.",
+    "windowX": "Sets window x.",
+    "windowY": "Sets window y."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.PoolingLayerTest": {
+    ":class": "The type Pooling layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.PoolingLayerTest.Asymmetric": {
+    ":class": "Test using an asymmetric window size."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.PoolingLayerTest.Double": {
+    ":class": "Basic 64-bit apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.PoolingLayerTest.Float": {
+    ":class": "Basic 32-bit apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ProductLayer": {
+    ":class": "This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation layers, such as the square needed in MeanSqLossLayer."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ProductLayerTest": {
+    ":class": "The type Product layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ProductLayerTest.Double": {
+    ":class": "Multiplication of 2 inputs using 64-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ProductLayerTest.Float": {
+    ":class": "Multiplication of 2 inputs using 32-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.RescaledSubnetLayer": {
+    ":class": "This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work across larger image regions. Implemented via CudaSystem."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.RescaledSubnetLayerTest": {
+    ":class": "The type Rescaled subnet layer apply.",
+    "convolutionLayer": "The Convolution layer."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.RescaledSubnetLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer": {
+    ":class": "The classic \"softmax\" layer. All outputs will sum to 1 and be proportional to the log of the input.",
+    "algorithm": "Sets algorithm.",
+    "mode": "Sets mode."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayerTest": {
+    ":class": "The type Softmax activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayerTest.Pixel": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayerTest.PixelLog": {
+    ":class": "The type Pixel log."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer": {
+    ":class": "This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation layers, such as the square needed in MeanSqLossLayer.",
+    "alpha": "Sets alpha."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayerTest": {
+    ":class": "The type Product layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayerTest.Double": {
+    ":class": "Multiplication of 2 inputs using 64-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayerTest.Float": {
+    ":class": "Multiplication of 2 inputs using 32-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayerTest.Negative": {
+    ":class": "Multiplication of 2 inputs using 64-bit precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.StochasticSamplingSubnetLayer": {
+    ":class": "This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work across larger image regions."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer": {
+    ":class": "Computes a weighted binary sum of two layers. Provides two weighting coefficients, one for each input. This can be used to implement a summation layer, a difference layer, a scaling layer, or any combination.",
+    "parallel": "Sets parallel."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumInputsLayerTest": {
+    ":class": "The type BinarySumLayerTest layer apply.",
+    "inputBands": "The Input bands.",
+    "inputs": "The Inputs."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumInputsLayerTest.Big": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumInputsLayerTest.Big_Double_Add": {
+    ":class": "Adds using double (64-bit) precision, C = A + B"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumInputsLayerTest.Double_Add": {
+    ":class": "The type Double add."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumInputsLayerTest.Double_List": {
+    ":class": "The type Double list."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumInputsLayerTest.Float_Add": {
+    ":class": "Adds using float (32-bit) precision, C = A + B"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumInputsLayerTest.OnePlusOne": {
+    ":class": "Ensures addition can be used to implement a doubling (x2) function"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumReducerLayer": {
+    ":class": "Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumReducerLayerTest": {
+    ":class": "The type Img band bias layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumReducerLayerTest.Asymmetric": {
+    ":class": "Inputs asymmetric (height != width) images"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumReducerLayerTest.Double": {
+    ":class": "Basic apply in double (64-bit) precision"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.SumReducerLayerTest.Float": {
+    ":class": "Basic apply using float (32-bit) precision."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.TileCycleLayer": {
+    ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.TileCycleLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.TileCycleLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.TileCycleLayerTest.Chained": {
+    ":class": "The type Chained."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ValueLayer": {
+    ":class": "This layer does not require any input, and produces a constant output. This constant can be tuned by optimization processes."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayer": {
+    ":class": "This is the general convolution layer, allowing any number of input and output bands at high scale. It implements an explosion operation to produce a convolution network whose components have a managabe size and the same overall function.",
+    "andFree": "Sets and free.",
+    "batchBands": "Sets batch bands.",
+    "paddingX": "Sets padding x.",
+    "paddingY": "Sets padding y.",
+    "strideX": "Sets stride x.",
+    "strideY": "Sets stride y.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest": {
+    ":class": "The type Convolution layer apply.",
+    "convolutionLayer": "The Convolution layer.",
+    "largeSize": "The Large size.",
+    "smallSize": "The Small size."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.BandExpand": {
+    ":class": "Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.BandLimit": {
+    ":class": "Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.BandReduceTest": {
+    ":class": "Reduces the number of color bands from 6 to 3 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.Big": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.Big1": {
+    ":class": "The type Big 1."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.Double": {
+    ":class": "Test using 64-bit precision apply a radius of 1"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.Float": {
+    ":class": "Test using 32-bit precision apply a radius of 1"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.IrregularGrid": {
+    ":class": "Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.IrregularTest": {
+    ":class": "Convert from 7 bands to 5; this is meant to not divide evenly for testing. (64-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.IrregularTest_Float": {
+    ":class": "Convert from 7 bands to 5; this is meant to not divide evenly for testing. (32-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.NoPadding": {
+    ":class": "Tests apply no zero-padding; the output will be radius-1 smaller than the input. This currently tests a workaround where CudaSystem does not seem to support convolutions that change resolution."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.SqGrid": {
+    ":class": "Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionLayerTest.VeryBigTest": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ConvolutionParams": {
+    ":class": "Contains the parameters of a convolution"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ExplodedConvolutionGrid": {
+    ":class": "The higher level of convolution construction logic. Provides support for large numbers of input bands by splitting the network into sub-networks that consider only a subset of the input bands, then summing the results together. This strategy remains valid so long as the sub-networks are purely linear."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.ExplodedConvolutionLeg": {
+    ":class": "A lower level of convolution desconstruction logic, implements support for an arbitrary number of output bands by splitting the convolution into even batches of input x input kernel dimensions. These results are then concatenated together as successive image bands. Even at small scale, this breakdown is required because CuDNN only supports convolutions apply equal input/output band counts."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.FullyConnectedLayer": {
+    ":class": "A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all inputs are connected to all outputs via seperate coefficients.",
+    "batchBands": "Sets batch bands.",
+    "weights": "Sets weights.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.FullyConnectedLayerTest": {
+    ":class": "The type Fully connected layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.FullyConnectedLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.FullyConnectedLayerTest.Big1": {
+    ":class": "Large-dimension test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.FullyConnectedLayerTest.BigTests": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.FullyConnectedLayerTest.Big_VGG": {
+    ":class": "Large-dimension test using the size of the largest layer in VGG16"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayer": {
+    ":class": "This convolution layer only supports an equal number of input and output bands. It is used as the foundational component for ConvolutionLayer, since the CudaSystem api has this restriction (in recent versions).",
+    "paddingX": "Sets padding x.",
+    "paddingY": "Sets padding y.",
+    "strideX": "Sets stride x.",
+    "strideY": "Sets stride y.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest": {
+    ":class": "The type Simple convolution layer apply.",
+    "largeSize": "The Large radius.",
+    "layer": "The LayerBase.",
+    "smallSize": "The Small radius."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.Basic": {
+    ":class": "Maximally-basic single-value \"convolution\" in 64 bits"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.Big": {
+    ":class": "Simple 256x256 band 1-pixel \"convolution\""
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.Big0": {
+    ":class": "Simple 256x256 band 1-pixel \"convolution\""
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.Bug_Control": {
+    ":class": "Base allocationOverflow configuration demonstrating the absence of failure in this case."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.Image": {
+    ":class": "Typical 3x3 image convolution (64-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.Image_Float": {
+    ":class": "Typical 3x3 image convolution (32-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.Matrix": {
+    ":class": "Basic single-band 3x3 image filter."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.MultiBand": {
+    ":class": "Basic multi-band, 1-pixel-radius filter."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.PaddingBug": {
+    ":class": "Demonstration of a suspected CudaSystem bug when using 0 padding apply the GPU convolution operation."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.cba.SimpleConvolutionLayerTest.SpanBug": {
+    ":class": "Typical 3x3 image convolution (64-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer": {
+    ":class": "This is the general convolution layer, allowing any number of input and output bands at high scale. It implements an explosion operation to produce a convolution network whose components have a managabe size and the same overall function.",
+    "andFree": "Sets and free.",
+    "batchBands": "Sets batch bands.",
+    "paddingX": "Sets padding x.",
+    "paddingY": "Sets padding y.",
+    "strideX": "Sets stride x.",
+    "strideY": "Sets stride y.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest": {
+    ":class": "The type Convolution layer apply.",
+    "convolutionLayer": "The Convolution layer.",
+    "largeSize": "The Large size.",
+    "smallSize": "The Small size."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.BandExpand": {
+    ":class": "Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.BandLimit": {
+    ":class": "Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.BandReduceTest": {
+    ":class": "Reduces the number of color bands from 6 to 3 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.Big": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.Big1": {
+    ":class": "The type Big 1."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.Double": {
+    ":class": "Test using 64-bit precision apply a radius of 1"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.Float": {
+    ":class": "Test using 32-bit precision apply a radius of 1"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.IrregularGrid": {
+    ":class": "Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.IrregularTest": {
+    ":class": "Convert from 7 bands to 5; this is meant to not divide evenly for testing. (64-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.IrregularTest_Float": {
+    ":class": "Convert from 7 bands to 5; this is meant to not divide evenly for testing. (32-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.NoPadding": {
+    ":class": "Tests apply no zero-padding; the output will be radius-1 smaller than the input. This currently tests a workaround where CudaSystem does not seem to support convolutions that change resolution."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.SqGrid": {
+    ":class": "Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayerTest.VeryBigTest": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionParams": {
+    ":class": "Contains the parameters of a convolution"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ExplodedConvolutionGrid": {
+    ":class": "The higher level of convolution construction logic. Provides support for large numbers of input bands by splitting the network into sub-networks that consider only a subset of the input bands, then summing the results together. This strategy remains valid so long as the sub-networks are purely linear."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.ExplodedConvolutionLeg": {
+    ":class": "A lower level of convolution desconstruction logic, implements support for an arbitrary number of output bands by splitting the convolution into even batches of input x input kernel dimensions. These results are then concatenated together as successive image bands. Even at small scale, this breakdown is required because CuDNN only supports convolutions apply equal input/output band counts."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.FullyConnectedLayer": {
+    ":class": "A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all inputs are connected to all outputs via seperate coefficients.",
+    "batchBands": "Sets batch bands.",
+    "weights": "Sets weights.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.FullyConnectedLayerTest": {
+    ":class": "The type Fully connected layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.FullyConnectedLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.FullyConnectedLayerTest.Big1": {
+    ":class": "Large-dimension test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.FullyConnectedLayerTest.BigTests": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.FullyConnectedLayerTest.Big_VGG": {
+    ":class": "Large-dimension test using the size of the largest layer in VGG16"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayer": {
+    ":class": "This convolution layer only supports an equal number of input and output bands. It is used as the foundational component for ConvolutionLayer, since the CudaSystem api has this restriction (in recent versions).",
+    "paddingX": "Sets padding x.",
+    "paddingY": "Sets padding y.",
+    "strideX": "Sets stride x.",
+    "strideY": "Sets stride y.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest": {
+    ":class": "The type Simple convolution layer apply.",
+    "largeSize": "The Large radius.",
+    "layer": "The LayerBase.",
+    "smallSize": "The Small radius."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.Basic": {
+    ":class": "Maximally-basic single-value \"convolution\" in 64 bits"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.Big": {
+    ":class": "Simple 256x256 band 1-pixel \"convolution\""
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.Big0": {
+    ":class": "Simple 256x256 band 1-pixel \"convolution\""
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.Bug_Control": {
+    ":class": "Base allocationOverflow configuration demonstrating the absence of failure in this case."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.Image": {
+    ":class": "Typical 3x3 image convolution (64-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.Image_Float": {
+    ":class": "Typical 3x3 image convolution (32-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.Matrix": {
+    ":class": "Basic single-band 3x3 image filter."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.MultiBand": {
+    ":class": "Basic multi-band, 1-pixel-radius filter."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.PaddingBug": {
+    ":class": "Demonstration of a suspected CudaSystem bug when using 0 padding apply the GPU convolution operation."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayerTest.SpanBug": {
+    ":class": "Typical 3x3 image convolution (64-bit)"
+  },
+  "com.simiacryptus.mindseye.layers.java.AbsActivationLayer": {
+    ":class": "The Absolute Value."
+  },
+  "com.simiacryptus.mindseye.layers.java.AbsActivationLayerTest": {
+    ":class": "The type Abs activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.AbsActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ActivationLayerTestBase": {
+    ":class": "The type Activation layer apply base."
+  },
+  "com.simiacryptus.mindseye.layers.java.AssertDimensionsLayer": {
+    ":class": "This layer is a pass-thru except that it throws an error if the dimensions are not consistent apply its setting."
+  },
+  "com.simiacryptus.mindseye.layers.java.AssertDimensionsLayerTest": {
+    ":class": "The type Assert dimensions layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.AssertDimensionsLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgMetaLayer": {
+    ":class": "Computes the average value for each element across all elements of an execution batch. The output batch size will always be one.",
+    "lastResult": "The Last result.",
+    "minBatchCount": "Sets min batch count."
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgMetaLayerTest": {
+    ":class": "The type Avg meta layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgMetaLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgPoolingLayer": {
+    ":class": "A local-pooling layer which sets all elements to the average value."
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgPoolingLayer.IndexMapKey": {
+    ":class": "The type Index map key.",
+    "kernel": "The Kernel.",
+    "output": "The Output."
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgPoolingLayer.LayerCacheLoader": {},
+  "com.simiacryptus.mindseye.layers.java.AvgPoolingLayerTest": {
+    ":class": "The type Avg subsample layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgPoolingLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgReducerLayer": {
+    ":class": "Computes the average value across all elements of each input tensor. The output dimensions are always 1x1x1."
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgReducerLayerTest": {
+    ":class": "The type Avg reducer layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.AvgReducerLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.BiasLayer": {
+    ":class": "Adds a bias tensor to the input. Expects a single input of the same dimension as the bias tensor.",
+    "weights": "Sets weights.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.java.BiasLayerTest": {
+    ":class": "The type Bias layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.BiasLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.BiasLayerTest.Reducing": {
+    ":class": "Tests applying a single bias value on all inputs."
+  },
+  "com.simiacryptus.mindseye.layers.java.BiasMetaLayer": {
+    ":class": "The type Bias meta layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.BiasMetaLayerTest": {
+    ":class": "The type Bias meta layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.BiasMetaLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.BinaryEntropyActivationLayer": {
+    ":class": "The type Binary entropy activation layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.BinaryEntropyActivationLayerTest": {
+    ":class": "The type Binary entropy activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.BinaryNoiseLayer": {
+    ":class": "The type Binary noise layer.",
+    "maskList": "The Mask list.",
+    "value": "Sets value."
+  },
+  "com.simiacryptus.mindseye.layers.java.BinaryNoiseLayerTest": {
+    ":class": "The type Binary noise layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.CrossDifferenceLayer": {
+    ":class": "The type Cross difference layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.CrossDifferenceLayerTest": {
+    ":class": "The type Cross difference layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.CrossDifferenceLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.CrossDotMetaLayer": {
+    ":class": "The type Cross dot meta layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.CrossDotMetaLayerTest": {
+    ":class": "The type Cross dot meta layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.CrossDotMetaLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.CrossProductLayer": {
+    ":class": "The type Cross product layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.CrossProductLayerTest": {
+    ":class": "The type Cross product layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.CrossProductLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.DropoutNoiseLayer": {
+    ":class": "Randomly selects a fraction of the inputs and sets all other elements to zero.",
+    "seed": "The Seed.",
+    "value": "Sets value."
+  },
+  "com.simiacryptus.mindseye.layers.java.DropoutNoiseLayerTest": {
+    ":class": "The type Dropout noise layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.DropoutNoiseLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.EntropyLayer": {
+    ":class": "The type Entropy layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.EntropyLayerTest": {
+    ":class": "The type Entropy layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.EntropyLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.EntropyLossLayer": {
+    ":class": "An entropy-based cost function. The output value is the expected number of nats needed to encode a category chosen using the first input as a distribution, but using the second input distribution for the encoding scheme."
+  },
+  "com.simiacryptus.mindseye.layers.java.EntropyLossLayerTest": {
+    ":class": "The type Entropy loss layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.EntropyLossLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.FullyConnectedLayer": {
+    ":class": "A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all inputs are connected to all outputs via seperate coefficients.",
+    "byCoord": "Sets weights.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.java.FullyConnectedLayerTest": {
+    ":class": "The type Fully connected layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.FullyConnectedLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer": {
+    ":class": "A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all inputs are connected to all outputs via seperate coefficients.",
+    "byCoord": "Sets weights.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayerTest": {
+    ":class": "The type Fully connected layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayerTest.Image": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.GaussianActivationLayer": {
+    ":class": "This activation layer uses the unit gaussian curve. The maximal response, at x=0, is y=1. At +/- infinity, the value is zero."
+  },
+  "com.simiacryptus.mindseye.layers.java.GaussianActivationLayerTest": {
+    ":class": "The type Gaussian activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.GaussianActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.GaussianNoiseLayer": {
+    ":class": "Adds uniform random gaussian noise to all input elements.",
+    "value": "Sets value."
+  },
+  "com.simiacryptus.mindseye.layers.java.GaussianNoiseLayerTest": {
+    ":class": "The type Gaussian noise layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.GaussianNoiseLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.HyperbolicActivationLayer": {
+    ":class": "This activation layer uses a parameterized hyperbolic function. This function, ion various parameterizations, can resemble: x^2, abs(x), x^3, x However, at high +/- x, the behavior is nearly linear.",
+    "scale": "Sets scale."
+  },
+  "com.simiacryptus.mindseye.layers.java.HyperbolicActivationLayerTest": {
+    ":class": "The type Hyperbolic activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.HyperbolicActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer": {
+    ":class": "Adds a per-color-band value offset to the single tensor input.",
+    "andFree": "Sets and free.",
+    "weights": "Sets weights.",
+    "weightsLog": "Sets weights log."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgBandBiasLayerTest": {
+    ":class": "The type Img band bias layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgBandBiasLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgBandScaleLayer": {
+    ":class": "Scales the input using per-color-band coefficients",
+    "weights": "Sets weights."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgBandScaleLayerTest": {
+    ":class": "The type Img band scale layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgBandScaleLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer": {
+    ":class": "Selects specific color bands from the input, producing an image apply the same resolution but fewer bands."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgBandSelectLayerTest": {
+    ":class": "The type Img band select layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgBandSelectLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgConcatLayer": {
+    ":class": "Concatenates two or more images apply the same resolution so the output contains all input color bands.",
+    "maxBands": "Sets max bands."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgConcatLayerTest": {
+    ":class": "The type Img concat layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgConcatLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgCropLayer": {
+    ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgCropLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgCropLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgPixelGateLayer": {
+    ":class": "Scales the input using per-color-band coefficients"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgPixelGateLayerTest": {
+    ":class": "The type Img band select layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgPixelGateLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgPixelSoftmaxLayer": {
+    ":class": "Scales the input using per-color-band coefficients"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgPixelSoftmaxLayerTest": {
+    ":class": "The type Img band select layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgPixelSoftmaxLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgPixelSumLayer": {
+    ":class": "Scales the input using per-color-band coefficients"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgPixelSumLayerTest": {
+    ":class": "The type Img band select layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgPixelSumLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgReshapeLayer": {
+    ":class": "Reduces or expands image resolution by rearranging the values in NxN tiles to effectively stripe the small-scale spacial dimension across N^2 color bands."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgReshapeLayerTest": {
+    ":class": "The type Img reshapeCast layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgReshapeLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgTileAssemblyLayer": {
+    ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgTileAssemblyLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgTileAssemblyLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer": {
+    ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgTileSelectLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgTileSelectLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgTileSubnetLayer": {
+    ":class": "This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work across larger image regions."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgTileSubnetLayerTest": {
+    ":class": "The type Rascaled subnet layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgTileSubnetLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer": {
+    ":class": "Increases the resolution of the input by selecting a larger centered window. The output image will have the same number of color bands, and the area outside the source image will be setWeights to 0."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.L1NormalizationLayer": {
+    ":class": "Normalizes the input so that the L1 magnitude (ie sum of abs) is 1.",
+    "maxInput": "The Max input."
+  },
+  "com.simiacryptus.mindseye.layers.java.L1NormalizationLayerTest": {
+    ":class": "The type L 1 normalization layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.L1NormalizationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.LinearActivationLayer": {
+    ":class": "A tunable linear (y=A*x+B) function, whose parameters can participate in learning. Defaults to y=1*x+0, and is NOT frozen by default.",
+    "bias": "Sets bias.",
+    "scale": "Sets scale."
+  },
+  "com.simiacryptus.mindseye.layers.java.LinearActivationLayerTest": {
+    ":class": "The type Linear activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.LinearActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.LogActivationLayer": {
+    ":class": "A y=log(abs(x)) activation function. Note the discontinuity at 0."
+  },
+  "com.simiacryptus.mindseye.layers.java.LogActivationLayerTest": {
+    ":class": "The type Log activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.LogActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.LoggingWrapperLayer": {
+    ":class": "This wrapper adds a highly verbose amount of logging to System.out detailing all inputs and outputs during forward and backwards evaluation. Intended as a diagnostic and demonstration tool."
+  },
+  "com.simiacryptus.mindseye.layers.java.LoggingWrapperLayerTest": {
+    ":class": "The type Logging wrapper layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.LoggingWrapperLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxConstLayer": {
+    ":class": "Enforces a maximum-value constraint on the input signal, rounding down any values exceeding a setByCoord threshold.",
+    "value": "Sets value."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxConstLayerTest": {
+    ":class": "The type Max const layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxConstLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxDropoutNoiseLayer": {
+    ":class": "Selects the maximum value in each NxN cell, setting all other values to zero. This introduces sparsity into the signal, but does not reduce resolution."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxDropoutNoiseLayerTest": {
+    ":class": "The type Max dropout noise layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxDropoutNoiseLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxImageBandLayer": {
+    ":class": "Selects the highest value in each color band, emitting a 1x1xN tensor."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxImageBandLayer.CalcRegionsParameter": {
+    ":class": "The type Calc regions parameter.",
+    "inputDims": "The Input dims.",
+    "kernelDims": "The Kernel dims."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxImageBandLayerTest": {
+    ":class": "The type Max image band layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxImageBandLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxMetaLayer": {
+    ":class": "The type Max meta layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxMetaLayerTest": {
+    ":class": "The type Max meta layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxMetaLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxPoolingLayer": {
+    ":class": "The type Max subsample layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxPoolingLayer.CalcRegionsParameter": {
+    ":class": "The type Calc regions parameter.",
+    "inputDims": "The Input dims.",
+    "kernelDims": "The Kernel dims."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxPoolingLayerTest": {
+    ":class": "The type Max subsample layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.MaxPoolingLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.MeanSqLossLayer": {
+    ":class": "An RMS-differencing loss function without the final square root."
+  },
+  "com.simiacryptus.mindseye.layers.java.MeanSqLossLayerTest": {
+    ":class": "The type Mean sq loss layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.MeanSqLossLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.MonitoringSynapse": {
+    ":class": "A diagnostic pass-through layer that collects value statistics of forward and backprop signals."
+  },
+  "com.simiacryptus.mindseye.layers.java.MonitoringSynapseTest": {
+    ":class": "The type Monitoring synapse apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.MonitoringSynapseTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer": {
+    ":class": "A diagnostic wrapper that collects performance data and, if enabled, value statistics of output and backprop signals."
+  },
+  "com.simiacryptus.mindseye.layers.java.MonitoringWrapperTest": {
+    ":class": "The type Monitoring wrapper apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.MonitoringWrapperTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer": {
+    ":class": "The type Normalization meta layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.NormalizationMetaLayerTest": {
+    ":class": "The type Normalization meta layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.NormalizationMetaLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer": {
+    ":class": "A multi-purpose Nth-power exponential function. Has reasonably efficient specialized (pure java) implementations of many common signed rational values, such as +/-0.5, +/-1.0, 2.0, etc",
+    "power": "Sets power."
+  },
+  "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayerTest": {
+    ":class": "The type Nth power activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayerTest.InvPowerTest": {
+    ":class": "Tests x^-1 aka 1/x"
+  },
+  "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayerTest.InvSqrtPowerTest": {
+    ":class": "Tests x^-1/2 aka 1/sqrt(x)"
+  },
+  "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayerTest.NthPowerTest": {
+    ":class": "Tests an irregular power"
+  },
+  "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayerTest.SquarePowerTest": {
+    ":class": "Tests x^2"
+  },
+  "com.simiacryptus.mindseye.layers.java.NthPowerActivationLayerTest.ZeroPowerTest": {
+    ":class": "Tests x^0 aka 1"
+  },
+  "com.simiacryptus.mindseye.layers.java.PlaceholderLayer": {
+    ":class": "An ephemeral, non-serializable, non-evaluatable layer. Used when a layer is required as an identifier, e.g. DeltaSet"
+  },
+  "com.simiacryptus.mindseye.layers.java.ProductInputsLayer": {
+    ":class": "Multiplies all inputs together, element-by-element."
+  },
+  "com.simiacryptus.mindseye.layers.java.ProductInputsLayerTest": {
+    ":class": "The type Product inputs layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ProductInputsLayerTest.N1Test": {
+    ":class": "Multiply one multivariate input apply a univariate input"
+  },
+  "com.simiacryptus.mindseye.layers.java.ProductInputsLayerTest.NNNTest": {
+    ":class": "Multiply three multivariate inputs"
+  },
+  "com.simiacryptus.mindseye.layers.java.ProductInputsLayerTest.NNTest": {
+    ":class": "Multiply two multivariate inputs"
+  },
+  "com.simiacryptus.mindseye.layers.java.ProductLayer": {
+    ":class": "The type Product layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.ProductLayerTest": {
+    ":class": "The type Product layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ProductLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ReLuActivationLayer": {
+    ":class": "Rectified Linear Unit. y=(x&lt;0)?0:x",
+    "weight": "Sets weight.",
+    "weights": "Sets weights."
+  },
+  "com.simiacryptus.mindseye.layers.java.ReLuActivationLayerTest": {
+    ":class": "The type Re lu activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ReLuActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer": {
+    ":class": "This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work across larger image regions."
+  },
+  "com.simiacryptus.mindseye.layers.java.RescaledSubnetLayerTest": {
+    ":class": "The type Rascaled subnet layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.RescaledSubnetLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ReshapeLayer": {
+    ":class": "A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all inputs are connected to all outputs via seperate coefficients."
+  },
+  "com.simiacryptus.mindseye.layers.java.ReshapeLayerTest": {
+    ":class": "The type Rascaled subnet layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ReshapeLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.ReshapeLayerTest.Basic1": {
+    ":class": "The type Basic 1."
+  },
+  "com.simiacryptus.mindseye.layers.java.ReshapeLayerTest.Big": {
+    ":class": "The type BigTests."
+  },
+  "com.simiacryptus.mindseye.layers.java.ReshapeLayerTest.Big0": {
+    ":class": "The type BigTests 0."
+  },
+  "com.simiacryptus.mindseye.layers.java.ReshapeLayerTest.Big1": {
+    ":class": "The type BigTests 1."
+  },
+  "com.simiacryptus.mindseye.layers.java.ReshapeLayerTest.Big2": {
+    ":class": "The type BigTests 2."
+  },
+  "com.simiacryptus.mindseye.layers.java.ScaleMetaLayer": {
+    ":class": "The type Scale meta layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.ScaleMetaLayerTest": {
+    ":class": "The type Scale meta layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ScaleMetaLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer": {
+    ":class": "The classic activation function, either \"sigmoid\" or \"tanh\" dependiong on the setting of \"balanced\". If balanced==true, the function exhibits odd symmetry (f(x) == -f(-x)) If balanced==false, the function is bounded to (0,1)",
+    "balanced": "Sets balanced."
+  },
+  "com.simiacryptus.mindseye.layers.java.SigmoidActivationLayerTest": {
+    ":class": "The type Sigmoid activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SigmoidActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.SignReducerLayer": {
+    ":class": "The type Sign reducer layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.SignReducerLayerTest": {
+    ":class": "The type Sign reducer layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SignReducerLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.SignReducerLayerTest.Normal": {
+    ":class": "The type Normal."
+  },
+  "com.simiacryptus.mindseye.layers.java.SimpleActivationLayer": {
+    ":class": "A parent class for all stateless, univariate \"activation\" functions."
+  },
+  "com.simiacryptus.mindseye.layers.java.SinewaveActivationLayer": {
+    ":class": "Calculates y=sin(x) in radians apply signed unit amplitude.",
+    "balanced": "Sets balanced."
+  },
+  "com.simiacryptus.mindseye.layers.java.SinewaveActivationLayerTest": {
+    ":class": "The type Sinewave activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SinewaveActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer": {
+    ":class": "The classic \"softmax\" layer. All outputs will sum to 1 and be proportional to the log of the input.",
+    "maxInput": "The Max input."
+  },
+  "com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayerTest": {
+    ":class": "The type Softmax activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.SqActivationLayer": {
+    ":class": "Specialized square activation function. Deprecated. Use NthPowerActivationLayer."
+  },
+  "com.simiacryptus.mindseye.layers.java.SqActivationLayerTest": {
+    ":class": "The type Sq activation layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SqActivationLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.StaticScalarLossLayer": {
+    ":class": "The type Static scalar loss layer.",
+    "target": "Sets target."
+  },
+  "com.simiacryptus.mindseye.layers.java.StaticScalarLossLayerTest": {
+    ":class": "The type Static scalar loss layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.StaticScalarLossLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.StdDevMetaLayer": {
+    ":class": "The type Std dev meta layer."
+  },
+  "com.simiacryptus.mindseye.layers.java.StdDevMetaLayerTest": {
+    ":class": "The type Std dev meta layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.StdDevMetaLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayer": {
+    ":class": "The type Binary noise layer.",
+    "density": "Sets value.",
+    "dimensions": "The Dimensions.",
+    "masks": "The Mask list."
+  },
+  "com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayerTest": {
+    ":class": "The type Product layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.StochasticBinaryNoiseLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.StochasticSamplingSubnetLayer": {
+    ":class": "This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work across larger image regions."
+  },
+  "com.simiacryptus.mindseye.layers.java.StochasticSamplingSubnetLayerTest": {
+    ":class": "The type Rascaled subnet layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.StochasticSamplingSubnetLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.SumInputsLayer": {
+    ":class": "Sums all inputs together, element-by-element, assuming they all have the same dimension."
+  },
+  "com.simiacryptus.mindseye.layers.java.SumInputsLayerTest": {
+    ":class": "The type Sum inputs layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SumInputsLayerTest.N1Test": {
+    ":class": "The type N 1 apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SumInputsLayerTest.NNTest": {
+    ":class": "The type Nn apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SumInputsLayerTest.OnePlusOne": {
+    ":class": "Ensures addition can be used to implement a doubling (x2) function"
+  },
+  "com.simiacryptus.mindseye.layers.java.SumMetaLayer": {
+    ":class": "The type Sum meta layer.",
+    "minBatches": "Sets min batches."
+  },
+  "com.simiacryptus.mindseye.layers.java.SumMetaLayerTest": {
+    ":class": "The type Sum meta layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SumMetaLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.SumReducerLayer": {
+    ":class": "Sums all input values to produce a single-element output."
+  },
+  "com.simiacryptus.mindseye.layers.java.SumReducerLayerTest": {
+    ":class": "The type Sum reducer layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.SumReducerLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.TargetValueLayer": {
+    ":class": "Works as a single-input terminal loss function which compares the input apply a preset constant target tensor.",
+    "target": "Sets target."
+  },
+  "com.simiacryptus.mindseye.layers.java.TargetValueLayerTest": {
+    ":class": "The type Target value layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.TargetValueLayerTest.Normal": {
+    ":class": "Basic apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.ValueLayer": {
+    ":class": "This layer does not require any input, and produces a constant output. This constant can be tuned by optimization processes.",
+    "data": "Sets data."
+  },
+  "com.simiacryptus.mindseye.layers.java.VariableLayer": {
+    ":class": "Acts as a mutable placeholder layer, whose heapCopy implementation can be setByCoord and changed.",
+    "inner": "Sets heapCopy."
+  },
+  "com.simiacryptus.mindseye.layers.java.VariableLayerTest": {
+    ":class": "The type Variable layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.java.VariableLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.java.WrapperLayer": {
+    ":class": "A base class for layers whose actual behavior is delegated.",
+    "inner": "Sets inner."
+  },
+  "com.simiacryptus.mindseye.models.CVPipe": {
+    ":class": "The interface Multi layer image network."
+  },
+  "com.simiacryptus.mindseye.models.CVPipe_VGG16": {
+    ":class": "The type Multi layer vgg 16."
+  },
+  "com.simiacryptus.mindseye.models.CVPipe_VGG19": {
+    ":class": "The type Multi layer vgg 16."
+  },
+  "com.simiacryptus.mindseye.models.HasHDF5": {
+    ":class": "The interface Has hdf 5."
+  },
+  "com.simiacryptus.mindseye.models.Hdf5Archive": {
+    ":class": "Class for reading arrays and JSON strings from HDF5 achive files. Originally part of deeplearning4j."
+  },
+  "com.simiacryptus.mindseye.models.ImageClassifierTestBase": {
+    ":class": "The type Image classifier apply base."
+  },
+  "com.simiacryptus.mindseye.models.LayerEnum": {
+    ":class": "The interface Layer enum."
+  },
+  "com.simiacryptus.mindseye.models.NetworkFactory": {
+    ":class": "A network factory designed to be called within a report, apply extra details being logged to the report output."
+  },
+  "com.simiacryptus.mindseye.models.VGG": {
+    ":class": "The type Vgg."
+  },
+  "com.simiacryptus.mindseye.models.VGG.Static": {
+    ":class": "The type Vgg 16 zip."
+  },
+  "com.simiacryptus.mindseye.models.VGG16": {
+    ":class": "Details about this network architecture can be found in the following arXiv paper: Very Deep Convolutional Networks for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the models."
+  },
+  "com.simiacryptus.mindseye.models.VGG16_HDF5": {
+    ":class": "Details about this network architecture can be found in the following arXiv paper: Very Deep Convolutional Networks for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the models.",
+    "convolutionOrder": "The Convolution order.",
+    "dense": "Sets dense.",
+    "finalPoolingMode": "Sets final pooling mode.",
+    "fullyconnectedOrder": "The Fullyconnected order.",
+    "large": "Sets large."
+  },
+  "com.simiacryptus.mindseye.models.VGG16_HDF5.JBLAS": {
+    ":class": "The type Jblas.",
+    "samples": "The Samples."
+  },
+  "com.simiacryptus.mindseye.models.VGG16_HDF5.Noisy": {
+    ":class": "The type Noisy.",
+    "density": "Sets density.",
+    "samples": "Sets samples."
+  },
+  "com.simiacryptus.mindseye.models.VGG16_HDF5_Test": {
+    ":class": "The Keras Zoo contains a deep CNN called VGG16 which is designed to classify images. Import it from an HDF5 file."
+  },
+  "com.simiacryptus.mindseye.models.VGG19": {
+    ":class": "Details about this network architecture can be found in the following arXiv paper: Very Deep Convolutional Networks for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the models."
+  },
+  "com.simiacryptus.mindseye.models.VGG19_HDF5": {
+    ":class": "Details about this network architecture can be found in the following arXiv paper: Very Deep Convolutional Networks for Large-Scale Image Recognition K. Simonyan, A. Zisserman arXiv:1409.1556 Please cite the paper if you use the models.",
+    "convolutionOrder": "The Convolution order.",
+    "dense": "Sets dense.",
+    "finalPoolingMode": "Sets final pooling mode.",
+    "fullyconnectedOrder": "The Fullyconnected order.",
+    "large": "Sets large."
+  },
+  "com.simiacryptus.mindseye.models.VGG19_HDF5.Noisy": {
+    ":class": "The type Noisy.",
+    "density": "Sets density.",
+    "samples": "Sets samples."
+  },
+  "com.simiacryptus.mindseye.models.VGG19_HDF5_Test": {
+    ":class": "The Keras Zoo contains a deep CNN called VGG16 which is designed to classify images. Import it from an HDF5 file."
+  },
+  "com.simiacryptus.mindseye.network.ConvPipelineTest": {
+    ":class": "The type Conv pipeline apply."
+  },
+  "com.simiacryptus.mindseye.network.CountingResult": {
+    ":class": "A result type for evaluating the backpropigation phase of an Acyclic Directed Graph. Since the result of a given compoent in a network can be used multiple times, we can improve efficiency of backprop by accumulating all the backpropigating delta signals into a single signal before evaluating further backwards."
+  },
+  "com.simiacryptus.mindseye.network.CountingResult.CountingAccumulator": {
+    ":class": "The type Counting accumulator."
+  },
+  "com.simiacryptus.mindseye.network.DAGNetwork": {
+    ":class": "Directed Acyclical Graph Network The base class for all conventional network wiring."
+  },
+  "com.simiacryptus.mindseye.network.DAGNode": {
+    ":class": "This is a logical node used within a network graph definition. It is associated apply a LayerBase WITHOUT a 1:1 relation assumtion; i.e. the same logical layer CAN be used twice in the same graph. Also, the layer assigned to a node can be updated, which can be useful for adding/removing instrumentation wrappers.",
+    "layer": "Sets layer."
+  },
+  "com.simiacryptus.mindseye.network.DeepConvolution": {
+    ":class": "The type Convolution network apply.",
+    "radius": "The Radius."
+  },
+  "com.simiacryptus.mindseye.network.DeepConvolution.ExpandPipeline": {
+    ":class": "The type Four layer."
+  },
+  "com.simiacryptus.mindseye.network.DeepConvolution.NarrowingPipeline": {
+    ":class": "The type Four layer."
+  },
+  "com.simiacryptus.mindseye.network.DeepConvolution.SigmoidPipeline": {
+    ":class": "The type Four layer."
+  },
+  "com.simiacryptus.mindseye.network.DeepConvolution.UniformPipeline": {
+    ":class": "The type Four layer."
+  },
+  "com.simiacryptus.mindseye.network.DeepLinear": {
+    ":class": "The type Convolution network apply."
+  },
+  "com.simiacryptus.mindseye.network.DeepLinear.NarrowingPipeline": {
+    ":class": "The type Four layer."
+  },
+  "com.simiacryptus.mindseye.network.DeepLinear.SigmoidPipeline": {
+    ":class": "The type Four layer."
+  },
+  "com.simiacryptus.mindseye.network.DeepLinear.UniformPipeline": {
+    ":class": "The type Four layer."
+  },
+  "com.simiacryptus.mindseye.network.GraphEvaluationContext": {
+    ":class": "This class provides the index for re-using the output of any given node during a single network evaluation, such that each node is executed minimally."
+  },
+  "com.simiacryptus.mindseye.network.InnerNode": {
+    ":class": "A calculation node, to be evaluated by a network once the inputs are available.",
+    "parallel": "Sets parallel."
+  },
+  "com.simiacryptus.mindseye.network.InputNode": {
+    ":class": "A node providing access to given inputs for LayerBase evaluation."
+  },
+  "com.simiacryptus.mindseye.network.LazyResult": {
+    ":class": "A base class for a network node providing cached lazy evaluation; It gaurantees a node is only evaluated once, and only if and when needed."
+  },
+  "com.simiacryptus.mindseye.network.NLayerTest": {
+    ":class": "The type N layer apply."
+  },
+  "com.simiacryptus.mindseye.network.PipelineNetwork": {
+    ":class": "A simple network architecture based on the assumption of a linear sequence of components. Each component added becomes the new head node, and a default add method appends a new node on the existing head.",
+    "head": "Sets head."
+  },
+  "com.simiacryptus.mindseye.network.PipelineTest": {
+    ":class": "The type N layer apply."
+  },
+  "com.simiacryptus.mindseye.network.SimpleLossNetwork": {
+    ":class": "The basic supervised network archetype. The network has two inputs; the input and the examplar output. A given component is then evaluated on the input, and the resulting output is combined apply the exemplar output via the loss function."
+  },
+  "com.simiacryptus.mindseye.network.SupervisedNetwork": {
+    ":class": "The type Supervised network."
+  },
+  "com.simiacryptus.mindseye.network.util.AutoencoderNetwork": {
+    ":class": "The type Autoencoder network."
+  },
+  "com.simiacryptus.mindseye.network.util.AutoencoderNetwork.Builder": {
+    ":class": "The type Builder.",
+    "dropout": "Sets dropout.",
+    "initPeak": "Sets init peak.",
+    "initRadius": "Sets init radius.",
+    "initStiffness": "Sets init stiffness.",
+    "noise": "Sets noise."
+  },
+  "com.simiacryptus.mindseye.network.util.AutoencoderNetwork.RecursiveBuilder": {
+    ":class": "The type Recursive builder."
+  },
+  "com.simiacryptus.mindseye.network.util.AutoencoderNetwork.TrainingParameters": {
+    ":class": "The type Training parameters.",
+    "endFitness": "Sets end fitness.",
+    "l1normalization": "Sets l 1 normalization.",
+    "l2normalization": "Sets l 2 normalization.",
+    "maxIterations": "Sets max iterations.",
+    "monitor": "Sets monitor.",
+    "orient": "Sets orient.",
+    "sampleSize": "Sets sample size.",
+    "step": "Sets runStep.",
+    "timeoutMinutes": "Sets timeout minutes."
+  },
+  "com.simiacryptus.mindseye.network.util.EvolvingNetwork": {
+    ":class": "The interface Evolving network."
+  },
+  "com.simiacryptus.mindseye.network.util.InceptionLayer": {
+    ":class": "The type Inception layer.",
+    "convolutionLayers": "The Convolution layers.",
+    "weights": "Sets weights."
+  },
+  "com.simiacryptus.mindseye.network.util.PolynomialConvolutionNetwork": {
+    ":class": "The type Polynomial convolution network."
+  },
+  "com.simiacryptus.mindseye.network.util.PolynomialNetwork": {
+    ":class": "The type Polynomial network.",
+    "alpha": "The Alpha.",
+    "alphaBias": "The Alpha bias.",
+    "corrections": "The Corrections.",
+    "head": "The Head."
+  },
+  "com.simiacryptus.mindseye.network.util.PolynomialNetwork.Correcton": {
+    ":class": "The type Correcton."
+  },
+  "com.simiacryptus.mindseye.network.util.SigmoidTreeNetwork": {
+    ":class": "The type Sigmoid tree network.",
+    "initialFuzzyCoeff": "The Initial fuzzy coeff.",
+    "skipChildStage": "Sets skip child stage.",
+    "skipFuzzy": "Sets skip fuzzy."
+  },
+  "com.simiacryptus.mindseye.network.util.SparseAutoencoderTrainer": {
+    ":class": "The type Sparse autoencoder trainer."
+  },
+  "com.simiacryptus.mindseye.opt.IterativeTrainer": {
+    ":class": "The basic type of training loop, which integrates a Trainable object apply an Orientation and Line Search strategy",
+    "currentIteration": "Sets current iteration.",
+    "iterationsPerSample": "Sets iterations per sample.",
+    "lineSearchFactory": "Sets line search factory.",
+    "maxIterations": "Sets max iterations.",
+    "monitor": "Sets monitor.",
+    "orientation": "Sets orientation.",
+    "terminateThreshold": "Sets terminate threshold.",
+    "timeout": "Sets timeout."
+  },
+  "com.simiacryptus.mindseye.opt.LayerRateDiagnosticTrainer": {
+    ":class": "This trains a subject apply a diagnostic goal: trainCjGD each layer individually, and measure the ideal rate for each phase. This can indicate how balanced a network is, and how to trainCjGD it.",
+    "currentIteration": "Sets current iteration.",
+    "iterationsPerSample": "Sets iterations per sample.",
+    "maxIterations": "Sets max iterations.",
+    "monitor": "Sets monitor.",
+    "orientation": "Sets orientation.",
+    "strict": "Sets strict.",
+    "terminateThreshold": "Sets terminate threshold.",
+    "timeout": "Sets timeout."
+  },
+  "com.simiacryptus.mindseye.opt.LayerRateDiagnosticTrainer.LayerStats": {
+    ":class": "The type LayerBase stats."
+  },
+  "com.simiacryptus.mindseye.opt.MnistTestBase": {
+    ":class": "The type Mnist apply base.",
+    "modelNo": "The Model no."
+  },
+  "com.simiacryptus.mindseye.opt.RoundRobinTrainer": {
+    ":class": "This basic training class provides support for a sequence of independant training configuration, e.g. Generative Adversarial Networks.",
+    "currentIteration": "Sets current iteration.",
+    "iterationsPerSample": "Sets iterations per sample.",
+    "lineSearchFactory": "Sets line search factory.",
+    "maxIterations": "Sets max iterations.",
+    "monitor": "Sets monitor.",
+    "orientations": "Sets orientations.",
+    "terminateThreshold": "Sets terminate threshold.",
+    "timeout": "Sets timeout."
+  },
+  "com.simiacryptus.mindseye.opt.Step": {
+    ":class": "Data describing the result of a given training iteration evaluation."
+  },
+  "com.simiacryptus.mindseye.opt.TrainingMonitor": {
+    ":class": "The base class for defining callbacks to monitor training tasks."
+  },
+  "com.simiacryptus.mindseye.opt.ValidatingTrainer": {
+    ":class": "This training class attempts to manage the sample size hyperparameter and convergence criteria via the periodic evaluation of a validation function. It uses an itermediate \"epoch\" loop where a target learning improvement and overtraining ratio are sought. It also supports multiple stages to each epoch, allowing use cases such as GAN and layerwise training.",
+    "adjustmentFactor": "Sets adjustment factor.",
+    "adjustmentTolerance": "Sets adjustment tolerance.",
+    "currentIteration": "Sets current iteration.",
+    "disappointmentThreshold": "Sets disappointment threshold.",
+    "epochIterations": "Sets runPhase iterations.",
+    "improvmentStaleThreshold": "Sets improvment stale threshold.",
+    "lineSearchFactory": "Sets line search factory.",
+    "maxEpochIterations": "Sets max runPhase iterations.",
+    "maxIterations": "Sets max iterations.",
+    "maxTrainingSize": "Sets max training size.",
+    "minEpochIterations": "Sets min runPhase iterations.",
+    "minTrainingSize": "Sets min training size.",
+    "monitor": "Sets monitor.",
+    "orientation": "Sets orientation.",
+    "overtrainingTarget": "Sets overtraining target.",
+    "pessimism": "Sets pessimism.",
+    "terminateThreshold": "Sets terminate threshold.",
+    "timeout": "Sets timeout.",
+    "trainingSize": "Sets training size.",
+    "trainingTarget": "Sets training target."
+  },
+  "com.simiacryptus.mindseye.opt.ValidatingTrainer.EpochParams": {
+    "iterations": "The Iterations.",
+    "timeoutMs": "The Timeout ms.",
+    "trainingSize": "The Training size.",
+    "validation": "The Validation."
+  },
+  "com.simiacryptus.mindseye.opt.ValidatingTrainer.EpochResult": {
+    "continueTraining": "The Continue training.",
+    "currentPoint": "The Current point.",
+    "iterations": "The Iterations.",
+    "priorMean": "The Prior point."
+  },
+  "com.simiacryptus.mindseye.opt.ValidatingTrainer.PerformanceWrapper": {},
+  "com.simiacryptus.mindseye.opt.ValidatingTrainer.StepResult": {},
+  "com.simiacryptus.mindseye.opt.ValidatingTrainer.TrainingPhase": {
+    ":class": "The type Training phase.",
+    "lineSearchFactory": "Sets line search factory.",
+    "lineSearchStrategyMap": "Sets line search strategy map.",
+    "orientation": "Sets orientation.",
+    "trainingSubject": "Sets training subject."
+  },
+  "com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch": {
+    ":class": "Commonly used \"loose\" criteria for the line search iteration.",
+    "absoluteTolerance": "Sets absolute tolerance.",
+    "alpha": "Sets alpha.",
+    "alphaGrowth": "Sets alpha growth.",
+    "c1": "Sets c 1.",
+    "c2": "Sets c 2.",
+    "maxAlpha": "Sets max alpha.",
+    "minAlpha": "Sets min alpha.",
+    "relativeTolerance": "Sets relative tolerance.",
+    "strongWolfe": "Sets strong wolfe."
+  },
+  "com.simiacryptus.mindseye.opt.line.BisectionLineSearchTest": {
+    ":class": "The type Bisection line search apply."
+  },
+  "com.simiacryptus.mindseye.opt.line.BisectionSearch": {
+    ":class": "An exact line search method which ignores the quantity of the derivative, using only sign. Signs are sufficient to find and detect bracketing conditions. When the solution is bracketed, the next iteration always tests the midpoint.",
+    "currentRate": "Sets current rate.",
+    "spanTol": "Sets span tol.",
+    "zeroTol": "Sets zero tol."
+  },
+  "com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor": {
+    ":class": "A wrapper for a line search cursor which tracks the best-known point."
+  },
+  "com.simiacryptus.mindseye.opt.line.LineSearchCursor": {
+    ":class": "A mutable cursor which represents a 1-d optimization problem."
+  },
+  "com.simiacryptus.mindseye.opt.line.LineSearchCursorBase": {
+    ":class": "A mutable cursor which represents a 1-d optimization problem."
+  },
+  "com.simiacryptus.mindseye.opt.line.LineSearchPoint": {
+    ":class": "A particular point in a LayerBase line search phase. Contains both the high-dimensional position and derivative, and the simplified one-dimensional positiion and derivative."
+  },
+  "com.simiacryptus.mindseye.opt.line.LineSearchStrategy": {
+    ":class": "Base interface for providing a solver for line search problems."
+  },
+  "com.simiacryptus.mindseye.opt.line.QuadraticLineSearchTest": {
+    ":class": "The type Quadratic line search apply."
+  },
+  "com.simiacryptus.mindseye.opt.line.QuadraticSearch": {
+    ":class": "This exact line search method uses a linear interpolation of the derivative to find the extrema, where dx/dy = 0. Bracketing conditions are established apply logic that largely ignores derivatives, due to heuristic observations.",
+    "absoluteTolerance": "Sets absolute tolerance.",
+    "currentRate": "Sets current rate.",
+    "minRate": "Sets min rate.",
+    "relativeTolerance": "Sets relative tolerance.",
+    "stepSize": "Sets runStep size."
+  },
+  "com.simiacryptus.mindseye.opt.line.QuadraticSearch.LocateInitialRightPoint": {},
+  "com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor": {
+    ":class": "A basic line search cursor representing a linear parametric path.",
+    "directionType": "Sets direction type."
+  },
+  "com.simiacryptus.mindseye.opt.line.StaticLearningRate": {
+    ":class": "A very basic line search which uses a static rate, searching lower rates when iterations do not result in improvement.",
+    "minimumRate": "Sets minimum rate.",
+    "rate": "Sets rate."
+  },
+  "com.simiacryptus.mindseye.opt.line.StaticRateTest": {
+    ":class": "The type Static rate apply."
+  },
+  "com.simiacryptus.mindseye.opt.orient.DescribeOrientationWrapper": {
+    ":class": "This wrapper adds extra logging to the orientation step."
+  },
+  "com.simiacryptus.mindseye.opt.orient.GDTest": {
+    ":class": "The type Gd apply."
+  },
+  "com.simiacryptus.mindseye.opt.orient.GradientDescent": {
+    ":class": "The most basic type of orientation, which uses the raw function gradient."
+  },
+  "com.simiacryptus.mindseye.opt.orient.LBFGS": {
+    ":class": "An implementation of the Limited-Memory Broyden–Fletcher–Goldfarb–Shanno algorithm https://en.m.wikipedia.org/wiki/Limited-memory_BFGS",
+    "maxHistory": "Sets max history.",
+    "minHistory": "Sets min history.",
+    "verbose": "The Verbose."
+  },
+  "com.simiacryptus.mindseye.opt.orient.LBFGS.Stats": {},
+  "com.simiacryptus.mindseye.opt.orient.LBFGSTest": {
+    ":class": "The type Lbfgs apply."
+  },
+  "com.simiacryptus.mindseye.opt.orient.LayerReweightingStrategy": {
+    ":class": "This wrapping strategy alters the (Simple)LineCursor returned by the heapCopy strategy to effectively tune the learning rate for each layer."
+  },
+  "com.simiacryptus.mindseye.opt.orient.LayerReweightingStrategy.HashMapLayerReweightingStrategy": {
+    ":class": "The type Hash map layer reweighting strategy."
+  },
+  "com.simiacryptus.mindseye.opt.orient.MomentumStrategy": {
+    ":class": "A simple momentum module which uses a cumulative decay algorithm to add a momentum term to any orientation strategy (if it yields a SimpleLineSearch cursor)",
+    "carryOver": "Sets carry over.",
+    "prevDelta": "The Prev delta."
+  },
+  "com.simiacryptus.mindseye.opt.orient.MomentumTest": {
+    ":class": "The type Momentum apply."
+  },
+  "com.simiacryptus.mindseye.opt.orient.OWLQNTest": {
+    ":class": "The type Owlqn apply."
+  },
+  "com.simiacryptus.mindseye.opt.orient.OrientationStrategy": {
+    ":class": "Base class for the \"orientation\" optimization sub-component. This class interprets the result of the differential function evaluation result at the start of a training iteration, transforming the multi-dimensional point-vector-function entity into a one-dimensional search sub-problem."
+  },
+  "com.simiacryptus.mindseye.opt.orient.OrientationStrategyBase": {
+    ":class": "The type Orientation strategy base."
+  },
+  "com.simiacryptus.mindseye.opt.orient.OwlQn": {
+    ":class": "Orthant-Wise Limited-memory Quasi-Newton optimization This is a modified L-BFGS algorithm which uses orthant trust regions to bound the cursor path during the line search phase of each iteration",
+    "factor_L1": "Sets factor l 1.",
+    "zeroTol": "Sets zero tol."
+  },
+  "com.simiacryptus.mindseye.opt.orient.QQN": {
+    ":class": "Quadratic Quasi-Newton optimization This method hybridizes pure gradient descent apply higher-order quasinewton implementations such as L-BFGS. During each iteration, a quadratic curve is interpolated which aligns apply the gradient's direction prediction and intersects apply the quasinewton's optimal point prediction. A simple parameteric quadratic function blends both heapCopy cursors into a simple nonlinear path which should combine the stability of both methods.",
+    "maxHistory": "Sets max history.",
+    "minHistory": "Sets min history."
+  },
+  "com.simiacryptus.mindseye.opt.orient.QQNTest": {
+    ":class": "The type Qqn apply."
+  },
+  "com.simiacryptus.mindseye.opt.orient.QuantifyOrientationWrapper": {
+    ":class": "An orientation wrapper which adds additional log statements."
+  },
+  "com.simiacryptus.mindseye.opt.orient.RecursiveSubspace": {
+    ":class": "An recursive optimization strategy which projects the current space into a reduced-dimensional subspace for a sub-optimization batch apply.",
+    "iterations": "Sets iterations.",
+    "terminateThreshold": "Sets terminate threshold."
+  },
+  "com.simiacryptus.mindseye.opt.orient.RecursiveSubspaceTest": {
+    ":class": "The type Lbfgs apply."
+  },
+  "com.simiacryptus.mindseye.opt.orient.RecursiveSubspaceTest.Baseline": {
+    ":class": "The type Baseline."
+  },
+  "com.simiacryptus.mindseye.opt.orient.RecursiveSubspaceTest.Demo": {
+    ":class": "The type Demo."
+  },
+  "com.simiacryptus.mindseye.opt.orient.RecursiveSubspaceTest.Normalized": {
+    ":class": "The type Normalized."
+  },
+  "com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy": {
+    ":class": "A generalization of the OWL-QN algorithm, this wrapping strategy projects an heapCopy cursor to the interior of a trust region, which can be defined per-layer. Any simple orientation strategy can be used as the heapCopy, most commonly either GD or LBFGS. Many trust regions can be defined; see the com.simiacryptus.mindseye.opt.region package.",
+    "maxHistory": "Sets max history."
+  },
+  "com.simiacryptus.mindseye.opt.orient.ValidatingOrientationWrapper": {
+    ":class": "This strategy uses finite-difference methods to estimate a numerical derivative, and compares it apply the derivative supplied by the heapCopy's cursor. This is a diagnostic tool; extra processing is used to estimate derivatives which should agree apply the programmatic derivatives to an appropriate degree."
+  },
+  "com.simiacryptus.mindseye.opt.orient.ValidatingOrientationWrapper.ValidatingLineSearchCursor": {},
+  "com.simiacryptus.mindseye.opt.region.AdaptiveTrustSphere": {
+    ":class": "This trust region uses recent position history to define an ellipsoid volume for the n+1 line search",
+    "divisor": "Sets divisor.",
+    "lookback": "Sets lookback."
+  },
+  "com.simiacryptus.mindseye.opt.region.CompoundRegion": {
+    ":class": "This combination region yields the effective itersection of the trust region volumes."
+  },
+  "com.simiacryptus.mindseye.opt.region.DistanceConstraint": {
+    ":class": "This constraint ensures that the L2 magnitude of the weight delta cannot exceed a simple threshold. A simpler version of AdaptiveTrustSphere, it places a limit on the step size for a given layer.",
+    "max": "Sets max."
+  },
+  "com.simiacryptus.mindseye.opt.region.GrowthSphere": {
+    ":class": "This trust region restricts a weight vector so that it cannot increase in L2 magnitude beyond a certian amount each iteration. This effectively generates a spherical trust region centered on the origin apply the current position X distance into the sphere interior. A growth factor must be allowed for to provide convergence behavior so that the search algorithm can reach all possible weightings.",
+    "allowShrink": "Sets allow shrink.",
+    "growthFactor": "Sets growth factor.",
+    "minRadius": "Sets min radius."
+  },
+  "com.simiacryptus.mindseye.opt.region.LayerTrustRegionMap": {
+    ":class": "A concrete class of the TrustRegion orientation strategy base class, this uses a map collection to store per-layer Trust Region configurations.",
+    "defaultRegionPolicy": "Sets default region policy."
+  },
+  "com.simiacryptus.mindseye.opt.region.LinearSumConstraint": {
+    ":class": "This constrains a weight vector based on a single hyperplane which prevents immediate increases to the L1 magnitude. (Note: This region can allow effective L1 increases, if at least one weight changes sign; this allows for our entire search space to be reachable.)",
+    "permitDecrease": "Sets permit decrease."
+  },
+  "com.simiacryptus.mindseye.opt.region.LinearSumConstraintTest": {
+    ":class": "The type Linear sum constraint apply."
+  },
+  "com.simiacryptus.mindseye.opt.region.MeanVarianceGradient": {
+    ":class": "This highly-constrained region allows ONLY changes to the mean/stddev of the weight vector components. Experimental; no proven use case.",
+    "max": "Sets max."
+  },
+  "com.simiacryptus.mindseye.opt.region.ProportionalityConstraint": {
+    ":class": "This strict region allows only raw scaling of weights; it is similar to but more constrained than MeanVarianceGradient"
+  },
+  "com.simiacryptus.mindseye.opt.region.RangeConstraint": {
+    ":class": "This constraint ensures that the L2 magnitude of the weight delta cannot exceed a simple threshold. A simpler version of AdaptiveTrustSphere, it places a limit on the step size for a given layer.",
+    "max": "Sets max.",
+    "min": "Sets min."
+  },
+  "com.simiacryptus.mindseye.opt.region.SingleOrthant": {
+    ":class": "A Single-orthant trust region. These are used in OWL-QN to proven effect in training sparse models where an exact value of zero for many weights is desired.",
+    "zeroTol": "Sets zero tol."
+  },
+  "com.simiacryptus.mindseye.opt.region.SingleOrthantTrustRegionTest": {
+    ":class": "The type Single orthant trust region apply."
+  },
+  "com.simiacryptus.mindseye.opt.region.StaticConstraint": {
+    ":class": "This type of trust region prevents any change the the given weight vector."
+  },
+  "com.simiacryptus.mindseye.opt.region.TrustRegion": {
+    ":class": "The base class for the component representing the trust region volumes used for optimization. This interface provides optional use of a position history, describing previous iterations' position, along apply the current position. These states can be used to define the relevant trust region. The trust region is implemented as a projection function which ensures a candidate state is either within the trust region volume, or on the boundary. If projection is needed, it must end up at the boundary and it must be the closest point, apply the vector from the input to point point being normal to the trust region surface at the position of the output."
+  },
+  "com.simiacryptus.mindseye.opt.region.TrustSphereTest": {
+    ":class": "The type Trust sphere apply."
+  },
+  "com.simiacryptus.mindseye.opt.trainable.L1NormalizationTest": {
+    ":class": "The type L 1 normalization apply."
+  },
+  "com.simiacryptus.mindseye.opt.trainable.L2NormalizationTest": {
+    ":class": "The type L 2 normalization apply."
+  },
+  "com.simiacryptus.mindseye.opt.trainable.SimpleGradientDescentTest": {
+    ":class": "The type Simple gradient descent apply."
+  },
+  "com.simiacryptus.mindseye.opt.trainable.SimpleStochasticGradientDescentTest": {
+    ":class": "The type Simple stochastic gradient descent apply."
+  },
+  "com.simiacryptus.mindseye.test.NotebookReportBase": {
+    ":class": "The type Notebook output apply base.",
+    "absoluteUrl": "The Absolute url.",
+    "preferStatic": "The Prefer static.",
+    "useMarkdown": "The Use markdown."
+  },
+  "com.simiacryptus.mindseye.test.NotebookReportBase.SimpleNotebookReportBase": {
+    ":class": "The type Simple notebook report base."
+  },
+  "com.simiacryptus.mindseye.test.PCAUtil": {
+    ":class": "The type Pca util."
+  },
+  "com.simiacryptus.mindseye.test.ProblemRun": {
+    ":class": "The type Problem apply."
+  },
+  "com.simiacryptus.mindseye.test.SimpleEval": {
+    ":class": "The type Simple trainAll."
+  },
+  "com.simiacryptus.mindseye.test.SimpleGpuEval": {
+    ":class": "The type Simple gpu apply."
+  },
+  "com.simiacryptus.mindseye.test.SimpleListEval": {
+    ":class": "The type Simple list trainAll.",
+    "layerDerivative": "Sets layer derivative."
+  },
+  "com.simiacryptus.mindseye.test.SimpleResult": {
+    ":class": "The interface Simple result."
+  },
+  "com.simiacryptus.mindseye.test.StepRecord": {
+    ":class": "The type Step record."
+  },
+  "com.simiacryptus.mindseye.test.TestUtil": {
+    ":class": "The type Image apply util."
+  },
+  "com.simiacryptus.mindseye.test.ToleranceStatistics": {
+    ":class": "The type Tolerance statistics."
+  },
+  "com.simiacryptus.mindseye.test.data.CIFAR10": {
+    ":class": "Mirrored from https://www.cs.toronto.edu/~kriz/cifar.html For more information, and for citation, please see: Learning Multiple Layers of Features from Tiny Images, Alex Krizhevsky, 2009. https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf"
+  },
+  "com.simiacryptus.mindseye.test.data.CIFARDatasetDemo": {
+    ":class": "The type Image classifier apply base."
+  },
+  "com.simiacryptus.mindseye.test.data.Caltech101": {
+    ":class": "Caltech 101 Images When using, please cite: L. Fei-Fei, R. Fergus and P. Perona. Learning generative visual models from few training examples: an incremental Bayesian approach tested on 101 object categories. IEEE. CVPR 2004, Workshop on Generative-Model Based Vision. 2004 For more information see http://www.vision.caltech.edu/Image_Datasets/Caltech101"
+  },
+  "com.simiacryptus.mindseye.test.data.CaltechDatasetDemo": {
+    ":class": "The type Image classifier apply base."
+  },
+  "com.simiacryptus.mindseye.test.data.ImageCategoryDatasetDemo": {
+    ":class": "The type Image category dataset demo."
+  },
+  "com.simiacryptus.mindseye.test.data.ImageTiles": {
+    ":class": "The type Image tiles."
+  },
+  "com.simiacryptus.mindseye.test.data.ImageTiles.ImageTensorLoader": {
+    ":class": "The type Image tensor loader."
+  },
+  "com.simiacryptus.mindseye.test.data.MNIST": {
+    ":class": "References: [LeCun et al., 1998a] Y. LeCun, L. Bottou, Y. Bengio, and P. Haffner. \"Gradient-based learning applied to document recognition.\" Proceedings of the IEEE, 86(11):2278-2324, November 1998. See Also: http://yann.lecun.com/exdb/mnist"
+  },
+  "com.simiacryptus.mindseye.test.data.MNistDatasetDemo": {
+    ":class": "The type Image classifier apply base."
+  },
+  "com.simiacryptus.mindseye.test.integration.AutoencodingProblem": {
+    ":class": "The type Mnist apply base.",
+    "timeoutMinutes": "Sets timeout minutes."
+  },
+  "com.simiacryptus.mindseye.test.integration.CIFARProblemData": {
+    ":class": "The type Cifar problem data."
+  },
+  "com.simiacryptus.mindseye.test.integration.CaltechProblemData": {
+    ":class": "Caltech 101 Image Dataset."
+  },
+  "com.simiacryptus.mindseye.test.integration.ClassifyProblem": {
+    ":class": "The type Mnist apply base.",
+    "batchSize": "Sets batch size.",
+    "timeoutMinutes": "Sets timeout minutes."
+  },
+  "com.simiacryptus.mindseye.test.integration.EncodingProblem": {
+    ":class": "The type Mnist encoding apply.",
+    "batchSize": "Sets batch size.",
+    "features": "Sets features.",
+    "timeoutMinutes": "Sets timeout minutes.",
+    "trainingSize": "Sets training size."
+  },
+  "com.simiacryptus.mindseye.test.integration.FwdNetworkFactory": {
+    ":class": "The interface Fwd network factory."
+  },
+  "com.simiacryptus.mindseye.test.integration.ImageProblemData": {
+    ":class": "The interface Image data."
+  },
+  "com.simiacryptus.mindseye.test.integration.MnistProblemData": {
+    ":class": "The type Mnist problem data."
+  },
+  "com.simiacryptus.mindseye.test.integration.OptimizationStrategy": {
+    ":class": "The interface Optimization strategy."
+  },
+  "com.simiacryptus.mindseye.test.integration.Problem": {
+    ":class": "The interface Problem."
+  },
+  "com.simiacryptus.mindseye.test.integration.RevNetworkFactory": {
+    ":class": "The interface Rev network factory."
+  },
+  "com.simiacryptus.mindseye.test.integration.SupplementedProblemData": {
+    ":class": "The type Linear apply."
+  },
+  "com.simiacryptus.mindseye.test.unit.BatchDerivativeTester": {
+    ":class": "The type Derivative tester.",
+    "testFeedback": "Sets apply feedback.",
+    "testLearning": "Sets apply learning.",
+    "verbose": "Sets verbose.",
+    "verify": "Sets verify."
+  },
+  "com.simiacryptus.mindseye.test.unit.BatchDerivativeTester.IOPair": {},
+  "com.simiacryptus.mindseye.test.unit.BatchingTester": {
+    ":class": "The type Batching tester.",
+    "batchSize": "Sets batch size."
+  },
+  "com.simiacryptus.mindseye.test.unit.ComponentTest": {
+    ":class": "The interface Derivative tester."
+  },
+  "com.simiacryptus.mindseye.test.unit.ComponentTestBase": {
+    ":class": "The type Component test base."
+  },
+  "com.simiacryptus.mindseye.test.unit.CudaLayerTester": {
+    ":class": "The type Batching tester.",
+    "batchSize": "Sets batch size."
+  },
+  "com.simiacryptus.mindseye.test.unit.EquivalencyTester": {
+    ":class": "The type Equivalency tester."
+  },
+  "com.simiacryptus.mindseye.test.unit.PerformanceTester": {
+    ":class": "The type Performance tester.",
+    "batches": "Sets batches.",
+    "samples": "Sets samples.",
+    "testEvaluation": "Sets apply evaluation.",
+    "testLearning": "Sets apply learning."
+  },
+  "com.simiacryptus.mindseye.test.unit.ReferenceIO": {
+    ":class": "The type Reference io.",
+    "referenceIO": "The Reference io."
+  },
+  "com.simiacryptus.mindseye.test.unit.SerializationTest": {
+    ":class": "The type Json apply.",
+    "persist": "Sets persist."
+  },
+  "com.simiacryptus.mindseye.test.unit.SingleDerivativeTester": {
+    ":class": "The type Derivative tester.",
+    "testFeedback": "Sets apply feedback.",
+    "testLearning": "Sets apply learning.",
+    "verbose": "Sets verbose.",
+    "verify": "Sets verify."
+  },
+  "com.simiacryptus.mindseye.test.unit.StandardLayerTests": {
+    ":class": "The type LayerBase apply base.",
+    "testEquivalency": "The Test equivalency.",
+    "testTraining": "Sets test training.",
+    "testingBatchSize": "The Testing batch size.",
+    "tolerance": "The Tolerance.",
+    "validateBatchExecution": "The Validate batch execution.",
+    "validateDifferentials": "The Validate differentials."
+  },
+  "com.simiacryptus.mindseye.test.unit.StandardLayerTests.Invocation": {},
+  "com.simiacryptus.mindseye.test.unit.TestError": {
+    ":class": "The type Test error."
+  },
+  "com.simiacryptus.mindseye.test.unit.TrainingTester": {
+    ":class": "The type Derivative tester.",
+    "batches": "Sets batches.",
+    "randomizationMode": "Sets randomization mode.",
+    "throwExceptions": "Sets throw exceptions.",
+    "verbose": "Sets verbose."
+  },
+  "com.simiacryptus.mindseye.test.unit.TrainingTester.ComponentResult": {
+    ":class": "The type Component result.",
+    "complete": "The Complete.",
+    "input": "The Input.",
+    "model": "The Model."
+  },
+  "com.simiacryptus.mindseye.test.unit.TrainingTester.ProblemResult": {
+    ":class": "The type Problem result.",
+    "map": "The Map."
+  },
+  "com.simiacryptus.mindseye.test.unit.TrainingTester.TestResult": {
+    ":class": "The type Test result.",
+    "iterPlot": "The Iter plot.",
+    "timePlot": "The Time plot.",
+    "value": "The Value."
+  },
+  "com.simiacryptus.mindseye.test.unit.TrainingTester.TrainingResult": {
+    ":class": "The type Training result.",
+    "type": "The Type.",
+    "value": "The Value."
+  }
+}

@@ -47,7 +47,7 @@ public class VGG16_HDF5_Test extends ImageClassifierTestBase {
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {
-    return VGG16_HDF5.class;
+    return VGG16.class;
   }
   
 }

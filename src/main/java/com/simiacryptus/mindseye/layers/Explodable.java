@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.layers.cudnn;
+package com.simiacryptus.mindseye.layers;
 
 import com.simiacryptus.mindseye.lang.Layer;
 

@@ -20,8 +20,8 @@
 package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
 import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.java.ImgCropLayer;

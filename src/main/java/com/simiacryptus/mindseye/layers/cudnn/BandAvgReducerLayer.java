@@ -36,6 +36,7 @@ import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
 import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
 import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
+import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import jcuda.jcudnn.cudnnIndicesType;
 import jcuda.jcudnn.cudnnNanPropagation;
@@ -140,7 +141,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
         x.freeRef();
         return tensor;
       }).toArray(i -> new Tensor[i]));
-//      passback = CudaSystem.run(gpu -> {
+//      passback = CudaSystem.generate(gpu -> {
 //        CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
 //        @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
 //          length, inputSize[2], inputSize[1], inputSize[0]);

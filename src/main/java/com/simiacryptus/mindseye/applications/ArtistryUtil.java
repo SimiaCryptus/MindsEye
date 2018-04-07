@@ -24,17 +24,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
-import com.simiacryptus.mindseye.layers.cudnn.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.TileCycleLayer;
+import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
+import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -216,61 +218,100 @@ public class ArtistryUtil {
     canvas.set(Tensor.fromRGB(newImage));
   }
   
+  /**
+   * Paint plasma tensor.
+   *
+   * @param size           the size
+   * @param bands          the bands
+   * @param noiseAmplitude the noise amplitude
+   * @param noisePower     the noise power
+   * @return the tensor
+   */
   public static Tensor paint_Plasma(final int size, int bands, final double noiseAmplitude, final double noisePower) {
-    Tensor baseColor = new Tensor(1, 1, bands).setByCoord(c -> 100 + 200 * (Math.random() - 0.5));
-    Tensor seed = new Tensor(2, 2, bands).setByCoord(c -> baseColor.get(0, 0, c.getCoords()[2]));
-    while (seed.getDimensions()[0] < size) {
-      seed = expandPlasma(seed, Math.pow(noiseAmplitude, noisePower) / Math.pow(seed.getDimensions()[0], noisePower));
-    }
-    return seed;
+    return expandPlasma(initSquare(bands), size, noiseAmplitude, noisePower);
   }
   
+  @Nonnull
+  private static Tensor initSquare(final int bands) {
+    Tensor baseColor = new Tensor(1, 1, bands).setByCoord(c -> 100 + 200 * (Math.random() - 0.5));
+    return new Tensor(2, 2, bands).setByCoord(c -> baseColor.get(0, 0, c.getCoords()[2]));
+  }
+  
+  /**
+   * Expand plasma tensor.
+   *
+   * @param image          the image
+   * @param width          the width
+   * @param noiseAmplitude the noise amplitude
+   * @param noisePower     the noise power
+   * @return the tensor
+   */
+  @Nonnull
+  public static Tensor expandPlasma(Tensor image, final int width, final double noiseAmplitude, final double noisePower) {
+    while (image.getDimensions()[0] < width) {
+      image = expandPlasma(image, Math.pow(noiseAmplitude / image.getDimensions()[0], noisePower));
+    }
+    return image;
+  }
+  
+  /**
+   * Expand plasma tensor.
+   *
+   * @param seed  the seed
+   * @param noise the noise
+   * @return the tensor
+   */
   public static Tensor expandPlasma(final Tensor seed, double noise) {
-    int radius = seed.getDimensions()[0];
     int bands = seed.getDimensions()[2];
-    int size = radius * 2;
-    Tensor returnValue = new Tensor(size, size, bands);
-    DoubleUnaryOperator fn = x -> Math.max(Math.min(x + noise * (Math.random() - 0.5), 255), 0);
-    IntUnaryOperator addr = x -> {
-      while (x >= size) x -= size;
-      while (x < 0) x += size;
+    int width = seed.getDimensions()[0] * 2;
+    int height = seed.getDimensions()[1] * 2;
+    Tensor returnValue = new Tensor(width, height, bands);
+    DoubleUnaryOperator fn1 = x -> Math.max(Math.min(x + noise * (Math.random() - 0.5), 255), 0);
+    DoubleUnaryOperator fn2 = x -> Math.max(Math.min(x + Math.sqrt(2) * noise * (Math.random() - 0.5), 255), 0);
+    IntUnaryOperator addrX = x -> {
+      while (x >= width) x -= width;
+      while (x < 0) x += width;
+      return x;
+    };
+    IntUnaryOperator addrY = x -> {
+      while (x >= height) x -= height;
+      while (x < 0) x += height;
       return x;
     };
     for (int band = 0; band < bands; band++) {
-      for (int x = 0; x < size; x += 2) {
-        for (int y = 0; y < size; y += 2) {
+      for (int x = 0; x < width; x += 2) {
+        for (int y = 0; y < height; y += 2) {
           double value = seed.get(x / 2, y / 2, band);
-          value = fn.applyAsDouble(value);
           returnValue.set(x, y, band, value);
         }
       }
-      for (int x = 1; x < size; x += 2) {
-        for (int y = 1; y < size; y += 2) {
-          double value = (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y - 1), band)) +
-            (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y + 1), band)) +
-            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y - 1), band)) +
-            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y + 1), band));
-          value = fn.applyAsDouble(value / 4);
+      for (int x = 1; x < width; x += 2) {
+        for (int y = 1; y < height; y += 2) {
+          double value = (returnValue.get(addrX.applyAsInt(x - 1), addrY.applyAsInt(y - 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x - 1), addrY.applyAsInt(y + 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x + 1), addrY.applyAsInt(y - 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x + 1), addrY.applyAsInt(y + 1), band));
+          value = fn2.applyAsDouble(value / 4);
           returnValue.set(x, y, band, value);
         }
       }
-      for (int x = 0; x < size; x += 2) {
-        for (int y = 1; y < size; y += 2) {
-          double value = (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y), band)) +
-            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y), band)) +
-            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y - 1), band)) +
-            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y + 1), band));
-          value = fn.applyAsDouble(value / 4);
+      for (int x = 0; x < width; x += 2) {
+        for (int y = 1; y < height; y += 2) {
+          double value = (returnValue.get(addrX.applyAsInt(x - 1), addrY.applyAsInt(y), band)) +
+            (returnValue.get(addrX.applyAsInt(x + 1), addrY.applyAsInt(y), band)) +
+            (returnValue.get(addrX.applyAsInt(x), addrY.applyAsInt(y - 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x), addrY.applyAsInt(y + 1), band));
+          value = fn1.applyAsDouble(value / 4);
           returnValue.set(x, y, band, value);
         }
       }
-      for (int x = 1; x < size; x += 2) {
-        for (int y = 0; y < size; y += 2) {
-          double value = (returnValue.get(addr.applyAsInt(x - 1), addr.applyAsInt(y), band)) +
-            (returnValue.get(addr.applyAsInt(x + 1), addr.applyAsInt(y), band)) +
-            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y - 1), band)) +
-            (returnValue.get(addr.applyAsInt(x), addr.applyAsInt(y + 1), band));
-          value = fn.applyAsDouble(value / 4);
+      for (int x = 1; x < width; x += 2) {
+        for (int y = 0; y < height; y += 2) {
+          double value = (returnValue.get(addrX.applyAsInt(x - 1), addrY.applyAsInt(y), band)) +
+            (returnValue.get(addrX.applyAsInt(x + 1), addrY.applyAsInt(y), band)) +
+            (returnValue.get(addrX.applyAsInt(x), addrY.applyAsInt(y - 1), band)) +
+            (returnValue.get(addrX.applyAsInt(x), addrY.applyAsInt(y + 1), band));
+          value = fn1.applyAsDouble(value / 4);
           returnValue.set(x, y, band, value);
         }
       }
@@ -404,7 +445,9 @@ public class ArtistryUtil {
   public static BufferedImage load(final CharSequence image, final int imageSize) {
     BufferedImage bufferedImage;
     try {
-      bufferedImage = ImageIO.read(new File(image.toString()));
+      File input = new File(image.toString());
+      if (!input.exists()) throw new IllegalArgumentException("Not Found: " + input);
+      bufferedImage = ImageIO.read(input);
       bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -489,36 +532,14 @@ public class ArtistryUtil {
   }
   
   /**
-   * Wrap tiles avg layer.
+   * Wrap avg layer.
    *
    * @param subnet the subnet
    * @return the layer
    */
-  protected static Layer wrapTilesAvg(final Layer subnet) {
-    return wrapTilesAvg(subnet, 0, 0, 0, 0, 400, 400);
-  }
-  
-  /**
-   * Wrap tiles avg layer.
-   *
-   * @param subnet     the subnet
-   * @param borderX1   the border x 1
-   * @param borderY1   the border y 1
-   * @param borderX2   the border x 2
-   * @param borderY2   the border y 2
-   * @param tileWidth  the tile width
-   * @param tileHeight the tile height
-   * @return the layer
-   */
-  protected static Layer wrapTilesAvg(final Layer subnet, final int borderX1, final int borderY1, final int borderX2, final int borderY2, final int tileWidth, final int tileHeight) {
-    PipelineNetwork network1 = new PipelineNetwork(1);
-    if (borderX1 != 0 || borderY1 != 0)
-      network1.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer(borderX1, borderY1));
-    network1.add(subnet);
-    if (borderX2 != 0 || borderY2 != 0)
-      network1.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgZeroPaddingLayer(-borderX2, -borderY2));
+  protected static Layer wrapAvg(final Layer subnet) {
     PipelineNetwork network = new PipelineNetwork(1);
-    network.wrap(new com.simiacryptus.mindseye.layers.cudnn.ImgTileSubnetLayer(network1, tileWidth, tileHeight, tileWidth - 2 * borderX1, tileHeight - 2 * borderY1));
+    network.add(subnet);
     network.wrap(new BandAvgReducerLayer());
     return network;
   }
@@ -546,13 +567,42 @@ public class ArtistryUtil {
     }
   }
   
+  /**
+   * Reduce.
+   *
+   * @param network               the network
+   * @param functions             the functions
+   * @param parallelLossFunctions the parallel loss functions
+   */
   public static void reduce(final PipelineNetwork network, final List<Tuple2<Double, DAGNode>> functions, final boolean parallelLossFunctions) {
     functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> {
       return new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2).setParallel(parallelLossFunctions));
     }).get();
   }
   
+  /**
+   * Gets files.
+   *
+   * @param file the file
+   * @return the files
+   */
   public static List<CharSequence> getFiles(CharSequence file) {
-    return Arrays.stream(new File(file.toString()).listFiles()).map(File::getName).collect(Collectors.toList());
+    File[] array = new File(file.toString()).listFiles();
+    if (null == array) throw new IllegalArgumentException("Not Found: " + file);
+    return Arrays.stream(array).map(File::getAbsolutePath).collect(Collectors.toList());
+  }
+  
+  /**
+   * Tile cycle pipeline network.
+   *
+   * @param network the network
+   * @return the pipeline network
+   */
+  public static PipelineNetwork tileCycle(final PipelineNetwork network) {
+    PipelineNetwork netNet = new PipelineNetwork(1);
+    netNet.wrap(new AvgReducerLayer(),
+      netNet.wrap(network, netNet.getInput(0)),
+      netNet.wrap(network, netNet.wrap(new TileCycleLayer(), netNet.getInput(0))));
+    return netNet;
   }
 }

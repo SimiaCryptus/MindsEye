@@ -118,7 +118,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     public Class<? extends Layer> getReferenceLayerClass() {
       return com.simiacryptus.mindseye.layers.java.SumInputsLayer.class;
     }
-
+  
     @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {

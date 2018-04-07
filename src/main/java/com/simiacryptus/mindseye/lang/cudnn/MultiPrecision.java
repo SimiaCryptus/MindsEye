@@ -17,42 +17,29 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.app;
-
-import com.simiacryptus.mindseye.applications.ObjectLocation;
-import com.simiacryptus.util.io.NotebookOutput;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.simiacryptus.mindseye.lang.cudnn;
 
 import javax.annotation.Nonnull;
 
 /**
- * The type Image classifier apply base.
+ * An interface for CuDNN layers apply configurable numeric precision.
+ *
+ * @param <T> the parent type, specified for return values.
  */
-public class ObjectLocation_VGG19 extends ArtistryAppBase {
-  
-  private static final Logger logger = LoggerFactory.getLogger(ObjectLocation_VGG19.class);
+public interface MultiPrecision<T> {
+  /**
+   * Gets precision.
+   *
+   * @return the precision
+   */
+  Precision getPrecision();
   
   /**
-   * Gets target class.
+   * Sets precision.
    *
-   * @return the target class
+   * @param precision the precision
+   * @return the precision
    */
   @Nonnull
-  protected Class<?> getTargetClass() {
-    return ObjectLocation.VGG19.class;
-  }
-  
-  /**
-   * Test.
-   *
-   * @param log the log
-   */
-  public void run(@Nonnull NotebookOutput log) {
-    ObjectLocation self = new ObjectLocation.VGG19();
-  
-    self.run(log);
-  }
-  
-  
+  T setPrecision(Precision precision);
 }

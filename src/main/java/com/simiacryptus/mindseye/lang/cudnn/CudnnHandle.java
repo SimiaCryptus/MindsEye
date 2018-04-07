@@ -595,6 +595,51 @@ public class CudnnHandle extends CudaDevice {
   }
   
   /**
+   * Cudnn convolution forward int.
+   *
+   * @param alpha                the alpha
+   * @param xDesc                the x desc
+   * @param x                    the x
+   * @param wDesc                the w desc
+   * @param w                    the w
+   * @param convDesc             the conv desc
+   * @param algo                 the algo
+   * @param workSpace            the work space
+   * @param workSpaceSizeInBytes the work space size in bytes
+   * @param beta                 the beta
+   * @param yDesc                the y desc
+   * @param y                    the y
+   * @return the int
+   */
+  public int cudnnConvolutionBiasActivationForward(
+    final CudaPointer alpha,
+    final cudnnTensorDescriptor xDesc,
+    final CudaPointer x,
+    final cudnnFilterDescriptor wDesc,
+    final CudaPointer w,
+    final cudnnConvolutionDescriptor convDesc,
+    final int algo,
+    final CudaPointer workSpace,
+    final long workSpaceSizeInBytes,
+    final CudaPointer beta,
+    
+    final cudnnTensorDescriptor zDesc,
+    final CudaPointer z,
+    final cudnnTensorDescriptor biasDesc,
+    final CudaPointer bias,
+    final cudnnActivationDescriptor activationDesc,
+    
+    final cudnnTensorDescriptor yDesc,
+    final CudaPointer y) {
+    assert CudaDevice.isThreadDeviceId(getDeviceId());
+    long startTime = System.nanoTime();
+    final int result = JCudnn.cudnnConvolutionBiasActivationForward(this.handle, alpha, xDesc, x, wDesc, w, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, zDesc, z, biasDesc, bias, activationDesc, yDesc, y);
+    cudnnConvolutionBiasActivationForward_execution.accept((System.nanoTime() - startTime) / 1e9);
+    log("cudnnConvolutionBiasActivationForward", result, new Object[]{this, alpha, xDesc, x, wDesc, w, convDesc, algo, workSpace, workSpaceSizeInBytes, beta, zDesc, z, biasDesc, bias, activationDesc, yDesc, y});
+    return result;
+  }
+  
+  /**
    * Cudnn op tensor int.
    *
    * @param opTensorDesc the op tensor desc

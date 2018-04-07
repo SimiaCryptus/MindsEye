@@ -23,7 +23,7 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.layers.java.StochasticComponent;
+import com.simiacryptus.mindseye.layers.StochasticComponent;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.line.FailsafeLineSearchCursor;
