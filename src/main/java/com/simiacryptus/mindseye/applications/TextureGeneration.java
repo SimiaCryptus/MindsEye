@@ -106,7 +106,6 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @return the buffered image
    */
   public static BufferedImage generate(@Nonnull final NotebookOutput log, final VGG19 styleTransfer, final Precision precision, int imageSize, final double growthFactor, final Map<List<CharSequence>, StyleCoefficients> styles, final int trainingMinutes, BufferedImage canvasImage, final int phases, final int maxIterations, final StreamNanoHTTPD server, int styleSize) {
-    log.h1("Phase 0");
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     StyleSetup styleSetup;
     NeuralSetup measureStyle;
@@ -125,7 +124,6 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
     canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations);
     for (int i = 1; i < phases; i++) {
-      log.h1("Phase " + i);
       imageSize *= growthFactor;
       styleSize *= growthFactor;
       

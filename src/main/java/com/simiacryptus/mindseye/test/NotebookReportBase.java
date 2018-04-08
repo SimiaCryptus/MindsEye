@@ -63,11 +63,12 @@ public abstract class NotebookReportBase {
    */
   protected boolean preferStatic = Boolean.parseBoolean(System.getProperty("preferStatic", "true"));
   
+  private String tag = System.getProperty("GIT_TAG","master");
   /**
    * The Absolute url.
    */
   @Nonnull
-  protected CharSequence absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/master/src/";
+  protected CharSequence absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/" + tag + "/src/";
   
   /**
    * Print header string.

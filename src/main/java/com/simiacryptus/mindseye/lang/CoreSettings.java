@@ -44,7 +44,7 @@ public class CoreSettings implements Settings {
     this.lifecycleDebug = Settings.get("DEBUG_LIFECYCLE", true);
     this.doubleCacheMode = Settings.get("DOUBLE_CACHE_MODE", PersistanceMode.WEAK);
     this.backpropAggregationSize = Settings.get("BACKPROP_AGG_SIZE", 2);
-    MarkdownNotebookOutput.MAX_OUTPUT = Settings.get("MAX_OUTPUT", 100 * 1024);
+    MarkdownNotebookOutput.MAX_OUTPUT = Settings.get("MAX_OUTPUT", 2 * 1024);
     if (CudaSettings.INSTANCE == null) throw new RuntimeException();
   }
   

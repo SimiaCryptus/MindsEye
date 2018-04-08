@@ -59,6 +59,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
@@ -589,7 +590,7 @@ public class ArtistryUtil {
   public static List<CharSequence> getFiles(CharSequence file) {
     File[] array = new File(file.toString()).listFiles();
     if (null == array) throw new IllegalArgumentException("Not Found: " + file);
-    return Arrays.stream(array).map(File::getAbsolutePath).collect(Collectors.toList());
+    return Arrays.stream(array).map(File::getAbsolutePath).sorted(Comparator.naturalOrder()).collect(Collectors.toList());
   }
   
   /**

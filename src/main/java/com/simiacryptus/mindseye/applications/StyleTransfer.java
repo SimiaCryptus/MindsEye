@@ -23,10 +23,12 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GateBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
 import com.simiacryptus.mindseye.models.CVPipe;
 import com.simiacryptus.mindseye.models.CVPipe_VGG16;
@@ -175,7 +177,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       double meanScale = 0 == meanRms ? 1 : (1.0 / meanRms);
       InnerNode negTarget = network.wrap(new ValueLayer(mean.scale(-1)), new DAGNode[]{});
       InnerNode negAvg = network.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
-      if (styleParams.cov != 0) {
+      if (styleParams.enhance != 0 || styleParams.cov != 0) {
         DAGNode recentered;
         switch (centeringMode) {
           case Origin:
@@ -191,17 +193,23 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
             throw new RuntimeException();
         }
         int[] covDim = covariance.getDimensions();
-        assert 0 < covDim[2] : Arrays.toString(covDim);
-        int inputBands = mean.getDimensions()[2];
-        assert 0 < inputBands : Arrays.toString(mean.getDimensions());
-        int outputBands = covDim[2] / inputBands;
-        assert 0 < outputBands : Arrays.toString(covDim) + " / " + inputBands;
         double covRms = covariance.rms();
-        double covScale = 0 == covRms ? 1 : (1.0 / covRms);
-        styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
-          network.wrap(new ValueLayer(covariance), new DAGNode[]{}),
-          network.wrap(new GramianLayer(), recentered))
-        ));
+        if (styleParams.enhance != 0) {
+          styleComponents.add(new Tuple2<>(-(0 == covRms ? styleParams.enhance : (styleParams.enhance / covRms)), network.wrap(new AvgReducerLayer(),
+            network.wrap(new SquareActivationLayer(), recentered))));
+        }
+        if (styleParams.cov != 0) {
+          assert 0 < covDim[2] : Arrays.toString(covDim);
+          int inputBands = mean.getDimensions()[2];
+          assert 0 < inputBands : Arrays.toString(mean.getDimensions());
+          int outputBands = covDim[2] / inputBands;
+          assert 0 < outputBands : Arrays.toString(covDim) + " / " + inputBands;
+          double covScale = 0 == covRms ? 1 : (1.0 / covRms);
+          styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
+            network.wrap(new ValueLayer(covariance), new DAGNode[]{}),
+            network.wrap(new GramianLayer(), recentered))
+          ));
+        }
       }
       if (styleParams.mean != 0) {
         styleComponents.add(new Tuple2<>(styleParams.mean,
@@ -475,16 +483,19 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
      * The Coeff style cov 0.
      */
     public final double cov;
-    
+    private final double enhance;
+  
     /**
      * Instantiates a new Layer style params.
      *
      * @param mean the mean
      * @param cov  the cov
+     * @param enhance
      */
-    public LayerStyleParams(final double mean, final double cov) {
+    public LayerStyleParams(final double mean, final double cov, final double enhance) {
       this.mean = mean;
       this.cov = cov;
+      this.enhance = enhance;
     }
   }
   
@@ -568,8 +579,19 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
      * @param coeff_style_cov  the coeff style cov
      * @return the style coefficients
      */
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
-      params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov));
+    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {return set(layerType, coeff_style_mean, coeff_style_cov, 0.0);}
+  
+    /**
+     * Set style coefficients.
+     *
+     * @param layerType        the layer type
+     * @param coeff_style_mean the coeff style mean
+     * @param coeff_style_cov  the coeff style cov
+     * @param dream
+     * @return the style coefficients
+     */
+    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov, final double dream) {
+      params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov, dream));
       return this;
     }
     

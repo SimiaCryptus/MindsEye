@@ -46,6 +46,7 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
    * The Lake and forest.
    */
   protected final CharSequence lakeAndForest = "H:\\SimiaCryptus\\Artistry\\Owned\\IMG_20170624_153541213-EFFECTS.jpg";
+  protected final List<CharSequence> owned = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\Owned\\");
   /**
    * The Monkey.
    */
