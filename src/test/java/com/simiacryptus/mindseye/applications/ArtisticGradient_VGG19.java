@@ -51,20 +51,22 @@ public class ArtisticGradient_VGG19 extends ArtistryAppBase_VGG19 {
     init(log);
     Precision precision = Precision.Float;
     styleTransfer.parallelLossFunctions = true;
-    int phases = 5;
+    int phases = 3;
     int maxIterations = 5;
     int geometricEnd = 4;
     int trainingMinutes = 90;
     int startImageSize = 256;
-    double growthFactor = Math.pow(geometricEnd, (double) 1 / (2 * phases));
+    int sizeSteps = 6;
+    double totalMag = 1e2;
+    double minContentCoeff = 2e-1;
     Arrays.asList(
       Arrays.asList(maJolie),
       waldo.subList(0, 1),
       Arrays.asList(threeMusicians)
     ).forEach(styleSources -> {
-      owned.stream().limit(4).forEach(contentSource -> {
-        DoubleStream.iterate(2e-1, x -> x * 2).limit(3).forEach(contentMixingCoeff -> {
-          styleTransfer(log, styleTransfer, precision, new AtomicInteger(startImageSize), growthFactor, contentSource, create(x ->
+      owned.stream().limit(2).forEach(contentSource -> {
+        DoubleStream.iterate(minContentCoeff, x -> x * Math.pow(totalMag, 1.0 / sizeSteps)).limit(sizeSteps).forEach(contentMixingCoeff -> {
+          styleTransfer(log, styleTransfer, precision, new AtomicInteger(startImageSize), Math.pow(geometricEnd, 1.0 / (2 * phases)), contentSource, create(x ->
               x.put(styleSources, new StyleTransfer.StyleCoefficients(StyleTransfer.CenteringMode.Origin)
                 .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 1e0)
                 .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
