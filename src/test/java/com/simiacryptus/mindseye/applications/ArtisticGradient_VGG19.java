@@ -50,27 +50,29 @@ public class ArtisticGradient_VGG19 extends ArtistryAppBase_VGG19 {
     StyleTransfer.VGG19 styleTransfer = new StyleTransfer.VGG19();
     init(log);
     Precision precision = Precision.Float;
-    final AtomicInteger imageSize = new AtomicInteger(256);
     styleTransfer.parallelLossFunctions = true;
-    double growthFactor = Math.sqrt(2);
-    int phases = 2;
-    int maxIterations = 10;
+    int phases = 5;
+    int maxIterations = 5;
+    int geometricEnd = 4;
     int trainingMinutes = 90;
+    int startImageSize = 256;
+    double growthFactor = Math.pow(geometricEnd, (double) 1 / (2 * phases));
     Arrays.asList(
-      Arrays.asList(threeMusicians),
+      Arrays.asList(maJolie),
       waldo.subList(0, 1),
-      Arrays.asList(maJolie)
+      Arrays.asList(threeMusicians)
     ).forEach(styleSources -> {
       owned.stream().limit(4).forEach(contentSource -> {
         DoubleStream.iterate(2e-1, x -> x * 2).limit(3).forEach(contentMixingCoeff -> {
-          styleTransfer(log, styleTransfer, precision, imageSize, growthFactor, contentSource, create(x ->
+          styleTransfer(log, styleTransfer, precision, new AtomicInteger(startImageSize), growthFactor, contentSource, create(x ->
               x.put(styleSources, new StyleTransfer.StyleCoefficients(StyleTransfer.CenteringMode.Origin)
-                .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 1e-1)
-                .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e-1)
+                .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 1e0)
+                .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
+                .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
               )),
             new StyleTransfer.ContentCoefficients()
-              .set(CVPipe_VGG19.Layer.Layer_1b, contentMixingCoeff)
-              .set(CVPipe_VGG19.Layer.Layer_1c, contentMixingCoeff),
+              .set(CVPipe_VGG19.Layer.Layer_1c, contentMixingCoeff)
+              .set(CVPipe_VGG19.Layer.Layer_1d, contentMixingCoeff),
             trainingMinutes, maxIterations, phases);
         });
       });
@@ -78,9 +80,8 @@ public class ArtisticGradient_VGG19 extends ArtistryAppBase_VGG19 {
     log.setFrontMatterProperty("status", "OK");
   }
   
-  public void styleTransfer(final @Nonnull NotebookOutput log, final StyleTransfer.VGG19 styleTransfer, final Precision precision, final AtomicInteger imageSize, final double growthFactor, final CharSequence contentSource, final Map<List<CharSequence>, StyleTransfer.StyleCoefficients> styles, final StyleTransfer.ContentCoefficients contentCoefficients, final int trainingMinutes, final int maxIterations, final int phases) {
-    BufferedImage canvasImage;
-    canvasImage = init(contentSource, imageSize.get());
+  public void styleTransfer(@Nonnull final NotebookOutput log, final StyleTransfer.VGG19 styleTransfer, final Precision precision, final AtomicInteger imageSize, final double growthFactor, final CharSequence contentSource, final Map<List<CharSequence>, StyleTransfer.StyleCoefficients> styles, final StyleTransfer.ContentCoefficients contentCoefficients, final int trainingMinutes, final int maxIterations, final int phases) {
+    BufferedImage canvasImage = init(contentSource, imageSize.get());
     for (int i = 0; i < phases; i++) {
       if (0 < i) {
         imageSize.set((int) (imageSize.get() * growthFactor));
