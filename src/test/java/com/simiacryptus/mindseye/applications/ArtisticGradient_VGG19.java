@@ -26,7 +26,10 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -60,10 +63,17 @@ public class ArtisticGradient_VGG19 extends ArtistryAppBase_VGG19 {
     double totalMag = 1e2;
     double minContentCoeff = 2e-1;
     Arrays.asList(
-      Arrays.asList(maJolie),
-      waldo.subList(0, 1),
-      Arrays.asList(threeMusicians)
+      vangogh.subList(0, 1),
+      figures.subList(0, 1),
+      picasso.subList(0, 1)
     ).forEach(styleSources -> {
+      styleSources.forEach(img -> {
+        try {
+          log.p(log.image(ImageIO.read(new File(img.toString())), "Source Style Image"));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
       owned.stream().limit(2).forEach(contentSource -> {
         DoubleStream.iterate(minContentCoeff, x -> x * Math.pow(totalMag, 1.0 / sizeSteps)).limit(sizeSteps).forEach(contentMixingCoeff -> {
           styleTransfer(log, styleTransfer, precision, new AtomicInteger(startImageSize), Math.pow(geometricEnd, 1.0 / (2 * phases)), contentSource, create(x ->

@@ -250,7 +250,10 @@ public class ArtistryUtil {
   @Nonnull
   public static Tensor expandPlasma(Tensor image, final int width, final double noiseAmplitude, final double noisePower) {
     while (image.getDimensions()[0] < width) {
-      image = expandPlasma(image, Math.pow(noiseAmplitude / image.getDimensions()[0], noisePower));
+      Tensor newImage = expandPlasma(image, Math.pow(noiseAmplitude / image.getDimensions()[0], noisePower));
+      image.freeRef();
+      image = newImage;
+      
     }
     return image;
   }
@@ -540,7 +543,7 @@ public class ArtistryUtil {
    */
   protected static Layer wrapAvg(final Layer subnet) {
     PipelineNetwork network = new PipelineNetwork(1);
-    network.add(subnet);
+    network.wrap(subnet);
     network.wrap(new BandAvgReducerLayer());
     return network;
   }
