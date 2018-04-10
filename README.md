@@ -1,5 +1,5 @@
 
-<script src="https://www.publicalbum.org/js/pa-ins.min.js">
+<script async src="https://www.publicalbum.org/js/pa-ins.min.js">
 </script>
 <ins class="pa-widget-gallery" style="width:100%;height:480px;" data-url="https://photos.app.goo.gl/5SeREKdmYuIzMSv12" data-uid="a90e0a139729a5c528a40248a28bb24d40e5e2e34fe08d8ff242a931a974be64" data-delay="2" data-repeat="true">
 </ins>
