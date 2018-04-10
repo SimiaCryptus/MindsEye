@@ -2,9 +2,7 @@
 
 # MindsEye - Java 8 Neural Networks
 
-<div>
-  <iframe src="https://photos.google.com/share/AF1QipMfFN08quJuNFjezUEEkWeXA3xvktgSFKO04Gcvw3p0fYCWZsv7Y_bhtK9k-inljA/photo/AF1QipPNBCT7vNU2Rq38FKCoWS7IlEi6z_ISg0yrtFMt?key=WGNrYXRNeDdVVHJkTzFBLXcxZG9XNFV2Ykk1MG5R" width="600" height="400" style="border: none;"></iframe>
-</div>
+<div><iframe src="https://photos.google.com/share/AF1QipMfFN08quJuNFjezUEEkWeXA3xvktgSFKO04Gcvw3p0fYCWZsv7Y_bhtK9k-inljA/photo/AF1QipPNBCT7vNU2Rq38FKCoWS7IlEi6z_ISg0yrtFMt?key=WGNrYXRNeDdVVHJkTzFBLXcxZG9XNFV2Ykk1MG5R" width="600" height="400" style="border: none;"></iframe></div>
 
 
 ![Sample Texture cresated by MindsEye](StyleTransferDemo.12.png)
