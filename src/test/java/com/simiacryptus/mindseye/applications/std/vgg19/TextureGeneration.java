@@ -47,18 +47,18 @@ public class TextureGeneration extends ArtistryAppBase_VGG19 {
     init(log);
     Precision precision = Precision.Float;
     styleTransfer.parallelLossFunctions = true;
-    double growthFactor = Math.sqrt(4);
+    double growthFactor = Math.sqrt(2);
     int trainingMinutes = 90;
     final int maxIterations = 5;
     BufferedImage canvas = TextureGenerationBase.initCanvas(new AtomicInteger(256));
   
     Map<List<CharSequence>, TextureGenerationBase.StyleCoefficients> textureStyle = new HashMap<>();
-    textureStyle.put(vangogh, new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+    textureStyle.put(vangogh.subList(0, 1), new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
       .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
     );
-    canvas = TextureGenerationBase.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, trainingMinutes, canvas, 2, maxIterations, log.getHttpd(), 0);
+    canvas = TextureGenerationBase.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, trainingMinutes, canvas, 2, maxIterations, log.getHttpd(), 256);
     
     log.setFrontMatterProperty("status", "OK");
   }

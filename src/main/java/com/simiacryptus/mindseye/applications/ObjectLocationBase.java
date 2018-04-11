@@ -159,7 +159,9 @@ public abstract class ObjectLocationBase {
         Arrays.stream(sortedIndices).limit(10).mapToObj(col -> "<th>" + categories.get(col) + "</th>").reduce((a, b) -> a + b).get(),
         Arrays.stream(sortedIndices).limit(10).mapToObj(r -> {
           return String.format("<tr><td>%s</td>%s</tr>", categories.get(r), Arrays.stream(sortedIndices).limit(10).mapToObj(col -> {
-            return String.format("<td>%.4f</td>", Math.acos(vectors.get(categories.get(r)).dot(vectors.get(categories.get(col)))));
+            Tensor l = vectors.get(categories.get(r));
+            Tensor r2 = vectors.get(categories.get(col));
+            return String.format("<td>%.4f</td>", (null == l || null == r2) ? 0 : Math.acos(l.dot(r2)));
           }).reduce((a, b) -> a + b).get());
         }).reduce((a, b) -> a + b).orElse("")));
     });

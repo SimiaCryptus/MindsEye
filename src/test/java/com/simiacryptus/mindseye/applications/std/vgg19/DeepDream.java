@@ -47,13 +47,13 @@ public class DeepDream extends ArtistryAppBase_VGG19 {
     DeepDreamBase<CVPipe_VGG19.Layer, CVPipe_VGG19> dreamBase = new DeepDreamBase.VGG19();
     init(log);
     Precision precision = Precision.Float;
-    final AtomicInteger imageSize = new AtomicInteger(600);
+    final AtomicInteger imageSize = new AtomicInteger(400);
   
     Map<CVPipe_VGG19.Layer, DeepDreamBase.ContentCoefficients> dreamCoeff = new HashMap<>();
     dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1d, new DeepDreamBase.ContentCoefficients(0, 1e-1));
 //    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1e, new ContentCoefficients(0, 1e0));
     dreamCoeff.put(CVPipe_VGG19.Layer.Layer_2b, new DeepDreamBase.ContentCoefficients(0, 1e0));
-    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_3a, new DeepDreamBase.ContentCoefficients(0, 1e1));
+    //dreamCoeff.put(CVPipe_VGG19.Layer.Layer_3a, new DeepDreamBase.ContentCoefficients(0, 1e1));
     int trainingMinutes = 90;
     int maxIterations = 10;
     
