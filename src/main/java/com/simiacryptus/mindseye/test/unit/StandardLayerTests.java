@@ -373,7 +373,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * @param log the log
    */
   public void run(@Nonnull final NotebookOutput log) {
-  
     TreeMap<String, String> javadoc = javadocs.get(getTargetClass().getCanonicalName());
     if (null != javadoc) {
       log.p("Class Javadoc: " + javadoc.get(":class"));

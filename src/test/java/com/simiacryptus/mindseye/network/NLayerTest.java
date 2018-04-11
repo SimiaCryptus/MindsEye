@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.unit.SerializationTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
@@ -154,7 +155,7 @@ public abstract class NLayerTest {
    */
   @Test
   public void test() throws Throwable {
-    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(((Object) this).getClass(), null)) {
+    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(NotebookReportBase.getTestReportLocation(((Object) this).getClass()), null)) {
       test(log);
     }
   }

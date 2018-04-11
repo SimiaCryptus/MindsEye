@@ -32,9 +32,9 @@ import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgTileCycleLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.TileCycleLayer;
 import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
@@ -44,7 +44,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.PCAUtil;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
-import com.simiacryptus.util.StreamNanoHTTPD;
+import com.simiacryptus.util.FileNanoHTTPD;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -78,15 +78,15 @@ public class ArtistryUtil {
    * @param painterNetwork the painter network
    * @param server         the server
    */
-  public static void addLayersHandler(final DAGNetwork painterNetwork, final StreamNanoHTTPD server) {
-    if (null != server) server.addSyncHandler("layers.json", MimeType.JSON, out -> {
+  public static void addLayersHandler(final DAGNetwork painterNetwork, final FileNanoHTTPD server) {
+    if (null != server) server.addHandler("layers.json", MimeType.JSON, out -> {
       try {
         JsonUtil.MAPPER.writer().writeValue(out, TestUtil.samplePerformance(painterNetwork));
         out.close();
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    }, false);
+    });
   }
   
   /**
@@ -606,7 +606,7 @@ public class ArtistryUtil {
     PipelineNetwork netNet = new PipelineNetwork(1);
     netNet.wrap(new AvgReducerLayer(),
       netNet.wrap(network, netNet.getInput(0)),
-      netNet.wrap(network, netNet.wrap(new TileCycleLayer(), netNet.getInput(0))));
+      netNet.wrap(network, netNet.wrap(new ImgTileCycleLayer(), netNet.getInput(0))));
     return netNet;
   }
 }

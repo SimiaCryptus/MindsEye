@@ -68,6 +68,19 @@ public interface Settings {
    * @param defaultValue the default value
    * @return the int
    */
+  static String get(final String key, final String defaultValue) {
+    String value = System.getProperty(key, defaultValue);
+    logger.info(String.format("%s = %s", key, value));
+    return value;
+  }
+  
+  /**
+   * Gets int.
+   *
+   * @param key          the key
+   * @param defaultValue the default value
+   * @return the int
+   */
   static int get(final String key, final int defaultValue) {
     int value = Integer.parseInt(System.getProperty(key, Integer.toString(defaultValue)));
     logger.info(String.format("%s = %s", key, value));

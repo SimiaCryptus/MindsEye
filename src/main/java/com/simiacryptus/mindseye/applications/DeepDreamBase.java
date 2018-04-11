@@ -42,7 +42,7 @@ import com.simiacryptus.mindseye.opt.region.RangeConstraint;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.StreamNanoHTTPD;
+import com.simiacryptus.util.FileNanoHTTPD;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.io.NullNotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
@@ -65,8 +65,8 @@ import java.util.concurrent.TimeUnit;
  * @param <T> the type parameter
  * @param <U> the type parameter
  */
-public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
-  private static final Logger logger = LoggerFactory.getLogger(DeepDream.class);
+public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>> {
+  private static final Logger logger = LoggerFactory.getLogger(DeepDreamBase.class);
   private boolean tiled = false;
   
   /**
@@ -94,7 +94,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage deepDream(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final int maxIterations) {
+  public BufferedImage deepDream(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final int maxIterations) {
     PipelineNetwork network = fitnessNetwork(processStats(styleParameters));
     log.p("Input Parameters:");
     log.code(() -> {
@@ -133,7 +133,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage train(final StreamNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, PipelineNetwork network, final Precision precision, final int trainingMinutes, final int maxIterations) {
+  public BufferedImage train(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, PipelineNetwork network, final Precision precision, final int trainingMinutes, final int maxIterations) {
     System.gc();
     Tensor canvas = Tensor.fromRGB(canvasImage);
     TestUtil.monitorImage(canvas, false, false);
@@ -299,7 +299,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @param tiled the tiled
    * @return the tiled
    */
-  public DeepDream<T, U> setTiled(boolean tiled) {
+  public DeepDreamBase<T, U> setTiled(boolean tiled) {
     this.tiled = tiled;
     return this;
   }
@@ -307,7 +307,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   /**
    * The type Vgg 16.
    */
-  public static class VGG16 extends DeepDream<CVPipe_VGG16.Layer, CVPipe_VGG16> {
+  public static class VGG16 extends DeepDreamBase<CVPipe_VGG16.Layer, CVPipe_VGG16> {
   
     public CVPipe_VGG16 getInstance() {
       return CVPipe_VGG16.INSTANCE;
@@ -323,7 +323,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   /**
    * The type Vgg 19.
    */
-  public static class VGG19 extends DeepDream<CVPipe_VGG19.Layer, CVPipe_VGG19> {
+  public static class VGG19 extends DeepDreamBase<CVPipe_VGG19.Layer, CVPipe_VGG19> {
   
     public CVPipe_VGG19 getInstance() {
       return CVPipe_VGG19.INSTANCE;

@@ -19,22 +19,17 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.HtmlNotebookOutput;
 import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.lang.CodeUtil;
-import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.awt.*;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -54,21 +49,6 @@ public abstract class NotebookReportBase {
     SysOutInterceptor.INSTANCE.init();
   }
   
-  /**
-   * The Use markdown.
-   */
-  protected boolean useMarkdown = Boolean.parseBoolean(System.getProperty("useMarkdown", "true"));
-  /**
-   * The Prefer static.
-   */
-  protected boolean preferStatic = Boolean.parseBoolean(System.getProperty("preferStatic", "true"));
-  
-  private String tag = System.getProperty("GIT_TAG","master");
-  /**
-   * The Absolute url.
-   */
-  @Nonnull
-  protected CharSequence absoluteUrl = "https://github.com/SimiaCryptus/MindsEye/tree/" + tag + "/src/";
   
   /**
    * Print header string.
@@ -88,6 +68,20 @@ public abstract class NotebookReportBase {
     return javadoc;
   }
   
+  @Nonnull
+  public static File getTestReportLocation(@Nonnull final Class<?> sourceClass, @Nonnull final CharSequence... suffix) {
+    final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
+    final CharSequence methodName = callingFrame.getMethodName();
+    final String className = sourceClass.getCanonicalName();
+    String classFilename = className.replaceAll("\\.", "/").replaceAll("\\$", "/");
+    @Nonnull File path = new File(Util.mkString(File.separator, "reports", classFilename));
+    for (int i = 0; i < suffix.length - 1; i++) path = new File(path, suffix[i].toString());
+    String testName = suffix.length == 0 ? String.valueOf(methodName) : suffix[suffix.length - 1].toString();
+    path = new File(new File(path, new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date())), testName + ".md");
+    path.getParentFile().mkdirs();
+    return path;
+  }
+  
   /**
    * Gets report type.
    *
@@ -96,37 +90,9 @@ public abstract class NotebookReportBase {
   @Nonnull
   public abstract ReportType getReportType();
   
-  /**
-   * Run.
-   *
-   * @param fn      the fn
-   * @param logPath the log path
-   */
-  public void run(@Nonnull Consumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
-    try (@Nonnull NotebookOutput log = getLog(logPath.length == 0 ? new String[]{getClass().getSimpleName()} : logPath)) {
-      printHeader(log);
-      @Nonnull TimedResult<Void> time = TimedResult.time(() -> {
-        try {
-          fn.accept(log);
-          log.setFrontMatterProperty("result", "OK");
-        } catch (Throwable e) {
-          log.setFrontMatterProperty("result", getExceptionString(e).toString().replaceAll("\n", "<br/>").trim());
-          throw (RuntimeException) (e instanceof RuntimeException ? e : new RuntimeException(e));
-        }
-      });
-      log.setFrontMatterProperty("execution_time", String.format("%.6f", time.timeNanos / 1e9));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
   @Nonnull
-  private CharSequence getExceptionString(Throwable e) {
-    if (e instanceof RuntimeException && e.getCause() != null && e.getCause() != e)
-      return getExceptionString(e.getCause());
-    if (e.getCause() != null && e.getCause() != e)
-      return e.getClass().getSimpleName() + " / " + getExceptionString(e.getCause());
-    return e.getClass().getSimpleName();
+  public static NotebookOutput getLog(final File reportLocation) {
+    return MarkdownNotebookOutput.get(reportLocation, TestSettings.INSTANCE.codeUrl);
   }
   
   /**
@@ -155,6 +121,20 @@ public abstract class NotebookReportBase {
   }
   
   /**
+   * Run.
+   *
+   * @param fn      the fn
+   * @param logPath the log path
+   */
+  public void run(@Nonnull Consumer<NotebookOutput> fn, @Nonnull CharSequence... logPath) {
+    try (@Nonnull NotebookOutput log = getLog(logPath)) {
+      NotebookOutput.concat(this::printHeader, MarkdownNotebookOutput.wrapFrontmatter(fn)).accept(log);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  /**
    * Gets log.
    *
    * @param logPath the log path
@@ -162,29 +142,8 @@ public abstract class NotebookReportBase {
    */
   @Nonnull
   public NotebookOutput getLog(CharSequence... logPath) {
-    try {
-      if (useMarkdown) {
-        return MarkdownNotebookOutput.get(getTargetClass(), absoluteUrl, logPath);
-      }
-      else {
-        @Nonnull final CharSequence directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
-        @Nonnull final File path = new File(Util.mkString(File.separator, "www", directoryName));
-        path.mkdirs();
-        @Nonnull final File logFile = new File(path, "index.html");
-        @Nonnull final HtmlNotebookOutput log;
-        if (preferStatic) {
-          log = new HtmlNotebookOutput(path, new FileOutputStream(logFile));
-          Desktop.getDesktop().browse(logFile.toURI());
-        }
-        else {
-          @Nonnull final StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
-          log = new HtmlNotebookOutput(path, server.dataReciever);
-        }
-        return log;
-      }
-    } catch (@Nonnull final IOException e) {
-      throw new RuntimeException(e);
-    }
+    if (null == logPath || logPath.length == 0) logPath = new String[]{getClass().getSimpleName()};
+    return getLog(getTestReportLocation(getTargetClass(), logPath));
   }
   
   /**
@@ -223,22 +182,4 @@ public abstract class NotebookReportBase {
     Experiments
   }
   
-  /**
-   * The type Simple notebook report base.
-   */
-  public abstract static class SimpleNotebookReportBase extends NotebookReportBase {
-    /**
-     * Run.
-     */
-    public void run() {
-      run(this::run);
-    }
-  
-    /**
-     * Run.
-     *
-     * @param notebookOutput the notebook output
-     */
-    protected abstract void run(NotebookOutput notebookOutput);
-  }
 }

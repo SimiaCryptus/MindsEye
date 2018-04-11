@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
-import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.hadoop.yarn.webapp.MimeType;
@@ -92,12 +91,6 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
    */
   protected final List<CharSequence> waldo = ArtistryUtil.getFiles("H:\\SimiaCryptus\\Artistry\\portraits\\waldo\\");
   
-  
-  /**
-   * The Server.
-   */
-  protected StreamNanoHTTPD server;
-  
   /**
    * Test.
    *
@@ -127,23 +120,18 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
    * @param log the log
    */
   public void init(final NotebookOutput log) {
-    try {
-      server = new StreamNanoHTTPD(9090).init();
-      server.addSyncHandler("gpu.json", MimeType.JSON, out -> {
-        try {
-          JsonUtil.MAPPER.writer().writeValue(out, CudaSystem.getExecutionStatistics());
-          //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
-          out.close();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }, false);
-      //server.dataReciever
-      //server.init();
-      //server.start();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    log.getHttpd().addHandler("gpu.json", MimeType.JSON, out -> {
+      try {
+        JsonUtil.MAPPER.writer().writeValue(out, CudaSystem.getExecutionStatistics());
+        //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
+        out.close();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+    //server.dataReciever
+    //server.init();
+    //server.start();
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
