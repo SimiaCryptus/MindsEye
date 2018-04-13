@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.applications.std.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.ArtistryUtil;
 import com.simiacryptus.mindseye.applications.DeepDreamBase;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -58,7 +59,7 @@ public class DeepDream extends ArtistryAppBase_VGG19 {
     int maxIterations = 10;
     
     log.h1("Phase 0");
-    CharSequence source = owned.get(0);
+    CharSequence source = ArtistryData.owned.get(0);
     BufferedImage canvasImage = ArtistryUtil.load(source, imageSize.get());
     //canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);

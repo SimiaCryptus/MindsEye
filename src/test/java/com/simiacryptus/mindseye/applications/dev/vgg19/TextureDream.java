@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.applications.dev.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.DeepDreamBase;
 import com.simiacryptus.mindseye.applications.TextureGenerationBase;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -60,9 +61,9 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
     int trainingMinutes = 90;
 
     Arrays.asList(
-      Arrays.asList(threeMusicians),
-      waldo.subList(0,1),
-      Arrays.asList(maJolie)
+      Arrays.asList(ArtistryData.threeMusicians),
+      ArtistryData.waldo.subList(0, 1),
+      Arrays.asList(ArtistryData.maJolie)
     ).forEach(styleSources->{
   
       final FileNanoHTTPD server = log.getHttpd();

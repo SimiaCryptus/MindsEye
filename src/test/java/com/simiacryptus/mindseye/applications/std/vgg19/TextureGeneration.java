@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.applications.std.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.TextureGenerationBase;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
@@ -53,7 +54,7 @@ public class TextureGeneration extends ArtistryAppBase_VGG19 {
     BufferedImage canvas = TextureGenerationBase.initCanvas(new AtomicInteger(256));
   
     Map<List<CharSequence>, TextureGenerationBase.StyleCoefficients> textureStyle = new HashMap<>();
-    textureStyle.put(vangogh.subList(0, 1), new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+    textureStyle.put(ArtistryData.vangogh.subList(0, 1), new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
       .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)

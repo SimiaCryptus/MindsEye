@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.applications.dev.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.DeepDreamBase;
 import com.simiacryptus.mindseye.applications.TextureGenerationBase;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -57,8 +58,8 @@ public class DreamIndex extends ArtistryAppBase_VGG19 {
     double growthFactor = Math.sqrt(2);
     int iterations = 10;
     int trainingMinutes = 90;
-    
-    for (CharSequence file : picasso) {
+  
+    for (CharSequence file : ArtistryData.picasso) {
       log.h2("Image: " + file);
       try {
         log.p(log.image(ImageIO.read(new File(file.toString())), "Input Image"));

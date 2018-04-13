@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.applications.dev.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.ArtistryUtil;
 import com.simiacryptus.mindseye.applications.StyleTransferBase;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -29,16 +30,14 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 
@@ -58,45 +57,43 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
     Precision precision = Precision.Float;
     styleTransfer.parallelLossFunctions = true;
     styleTransfer.setTiled(false);
-    int phases = 4;
+    int phases = 3;
     int geometricEnd = 4 * 4;
-    int maxIterations = 5;
+    int maxIterations = 10;
     int trainingMinutes = 90;
     int startImageSize = 256;
-    int sizeSteps = 6;
-    double totalMag = 1e2;
-    double minContentCoeff = 2e-1;
-    Arrays.asList(
-      vangogh.subList(0, 1),
-      figures.subList(0, 1),
-      picasso.subList(0, 1)
-    ).forEach(styleSources -> {
-      styleSources.forEach(img -> {
-        try {
-          log.p(log.image(ImageIO.read(new File(img.toString())), "Source Style Image"));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
-      owned.stream().limit(2).forEach(contentSource -> {
-        DoubleStream.iterate(minContentCoeff, x -> x * Math.pow(totalMag, 1.0 / sizeSteps)).limit(sizeSteps).forEach(contentMixingCoeff -> {
-          styleTransfer(log, styleTransfer, precision, new AtomicInteger(startImageSize), Math.pow(geometricEnd, 1.0 / (2 * phases)), contentSource, create(x ->
-              x.put(styleSources, new StyleTransferBase.StyleCoefficients(StyleTransferBase.CenteringMode.Origin)
-                .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 1e0)
-                .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
-                .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
-              )),
-            new StyleTransferBase.ContentCoefficients()
-              .set(CVPipe_VGG19.Layer.Layer_1c, contentMixingCoeff)
-              .set(CVPipe_VGG19.Layer.Layer_1d, contentMixingCoeff),
-            trainingMinutes, maxIterations, phases);
+    Supplier<DoubleStream> contentCoeffStream = () -> DoubleStream.iterate(5e-1, x -> x * Math.pow(1e2, 1.0 / 4)).limit(4);
+    Supplier<DoubleStream> dreamCoeffStream = () -> DoubleStream.iterate(1e-3, x -> x * Math.pow(1e1, 1.0 / 4)).limit(4);
+  
+    ArtistryData.space.stream().forEach(contentSource -> {
+      ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x)).collect(Collectors.toList()).forEach(styleSources -> {
+        dreamCoeffStream.get().forEach(dreamCoeff -> {
+          BufferedImage[] imgs = contentCoeffStream.get().mapToObj(contentMixingCoeff -> {
+            return styleTransfer(log, styleTransfer, precision, new AtomicInteger(startImageSize), Math.pow(geometricEnd, 1.0 / (2 * phases)), contentSource, create(x ->
+              {
+                x.put(styleSources, new StyleTransferBase.StyleCoefficients(StyleTransferBase.CenteringMode.Origin)
+                    .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0, dreamCoeff)
+                    .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, dreamCoeff)
+                    .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, dreamCoeff)
+                  //.set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, dreamCoeff)
+                );
+              }),
+              new StyleTransferBase.ContentCoefficients()
+                .set(CVPipe_VGG19.Layer.Layer_1c, contentMixingCoeff)
+                .set(CVPipe_VGG19.Layer.Layer_1d, contentMixingCoeff),
+              trainingMinutes, maxIterations, phases);
+          }).toArray(i -> new BufferedImage[i]);
+          log.p(TestUtil.animatedGif(log,
+            //IntStream.range(1-imgs.length,imgs.length).map(x->Math.abs(x)).mapToObj(i->imgs[i]).toArray(i->new BufferedImage[i])
+            imgs
+          ));
         });
       });
     });
     log.setFrontMatterProperty("status", "OK");
   }
   
-  public void styleTransfer(@Nonnull final NotebookOutput log, final StyleTransferBase.VGG19 styleTransfer, final Precision precision, final AtomicInteger imageSize, final double growthFactor, final CharSequence contentSource, final Map<List<CharSequence>, StyleTransferBase.StyleCoefficients> styles, final StyleTransferBase.ContentCoefficients contentCoefficients, final int trainingMinutes, final int maxIterations, final int phases) {
+  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final StyleTransferBase.VGG19 styleTransfer, final Precision precision, final AtomicInteger imageSize, final double growthFactor, final CharSequence contentSource, final Map<List<CharSequence>, StyleTransferBase.StyleCoefficients> styles, final StyleTransferBase.ContentCoefficients contentCoefficients, final int trainingMinutes, final int maxIterations, final int phases) {
     BufferedImage canvasImage = init(contentSource, imageSize.get());
     for (int i = 0; i < phases; i++) {
       if (0 < i) {
@@ -110,6 +107,7 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
       canvasImage = styleTransfer.styleTransfer(log.getHttpd(), log, canvasImage, styleSetup,
         trainingMinutes, styleTransfer.measureStyle(styleSetup), maxIterations);
     }
+    return canvasImage;
   }
   
   @Nonnull

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.applications.std.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.ArtistryUtil;
 import com.simiacryptus.mindseye.applications.StyleTransferBase;
 import com.simiacryptus.mindseye.lang.Tensor;
@@ -55,7 +56,7 @@ public class StyleTransfer extends ArtistryAppBase_VGG19 {
     double growthFactor = Math.sqrt(4);
   
     Map<List<CharSequence>, StyleTransferBase.StyleCoefficients> styles = new HashMap<>();
-    List<CharSequence> styleSources = vangogh;
+    List<CharSequence> styleSources = ArtistryData.vangogh;
     styles.put(styleSources, new StyleTransferBase.StyleCoefficients(StyleTransferBase.CenteringMode.Origin)
         .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
         .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
@@ -69,10 +70,10 @@ public class StyleTransfer extends ArtistryAppBase_VGG19 {
     int phases = 2;
     
     log.h1("Phase 0");
-    BufferedImage canvasImage = ArtistryUtil.load(monkey, imageSize.get());
+    BufferedImage canvasImage = ArtistryUtil.load(ArtistryData.monkey, imageSize.get());
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
     canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(TestUtil.resize(canvasImage, 16, true)), imageSize.get(), 1000.0, 1.1).toImage();
-    BufferedImage contentImage = ArtistryUtil.load(monkey, canvasImage.getWidth(), canvasImage.getHeight());
+    BufferedImage contentImage = ArtistryUtil.load(ArtistryData.monkey, canvasImage.getWidth(), canvasImage.getHeight());
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     StyleTransferBase.StyleSetup styleSetup;
     

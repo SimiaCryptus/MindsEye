@@ -53,7 +53,6 @@ import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.hadoop.yarn.webapp.MimeType;
 
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -429,54 +428,21 @@ public class ArtistryUtil {
    */
   @Nonnull
   public static BufferedImage load(final CharSequence image) {
-    BufferedImage bufferedImage;
-    try {
-      bufferedImage = ImageIO.read(new File(image.toString()));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return bufferedImage;
+    return HadoopUtil.getImage(image);
   }
   
-  /**
-   * Load buffered image.
-   *
-   * @param image     the image
-   * @param imageSize the image size
-   * @return the buffered image
-   */
   @Nonnull
   public static BufferedImage load(final CharSequence image, final int imageSize) {
-    BufferedImage bufferedImage;
-    try {
-      File input = new File(image.toString());
-      if (!input.exists()) throw new IllegalArgumentException("Not Found: " + input);
-      bufferedImage = ImageIO.read(input);
-      bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    BufferedImage bufferedImage = HadoopUtil.getImage(image);
+    bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
     return bufferedImage;
   }
   
-  /**
-   * Load buffered image.
-   *
-   * @param imageFile the style
-   * @param width     the width
-   * @param height    the height
-   * @return the buffered image
-   */
   @Nonnull
-  public static BufferedImage load(final CharSequence imageFile, final int width, final int height) {
-    BufferedImage image;
-    try {
-      image = ImageIO.read(new File(imageFile.toString()));
-      image = TestUtil.resize(image, width, height);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return image;
+  public static BufferedImage load(final CharSequence image, final int width, final int height) {
+    BufferedImage bufferedImage = HadoopUtil.getImage(image);
+    bufferedImage = TestUtil.resize(bufferedImage, width, height);
+    return bufferedImage;
   }
   
   /**
@@ -590,11 +556,16 @@ public class ArtistryUtil {
    * @param file the file
    * @return the files
    */
-  public static List<CharSequence> getFiles(CharSequence file) {
+  public static List<CharSequence> getHadoopFiles(CharSequence file) {
+    return HadoopUtil.getFiles(file);
+  }
+  
+  public static List<CharSequence> getLocalFiles(CharSequence file) {
     File[] array = new File(file.toString()).listFiles();
     if (null == array) throw new IllegalArgumentException("Not Found: " + file);
     return Arrays.stream(array).map(File::getAbsolutePath).sorted(Comparator.naturalOrder()).collect(Collectors.toList());
   }
+  
   
   /**
    * Tile cycle pipeline network.

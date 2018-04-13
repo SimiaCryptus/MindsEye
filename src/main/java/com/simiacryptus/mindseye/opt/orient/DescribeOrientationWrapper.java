@@ -66,7 +66,7 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
 //    if(x.layer instanceof PlaceholderLayer) {
 //      return "Input";
 //    }
-//    return x.layer.toString();
+//    return x.layer.toStream();
   }
   
   /**
