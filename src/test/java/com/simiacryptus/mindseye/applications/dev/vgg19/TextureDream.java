@@ -59,12 +59,9 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
     int phases = 1;
     int maxIterations = 10;
     int trainingMinutes = 90;
-
-    Arrays.asList(
-      Arrays.asList(ArtistryData.threeMusicians),
-      ArtistryData.waldo.subList(0, 1),
-      Arrays.asList(ArtistryData.maJolie)
-    ).forEach(styleSources->{
+  
+  
+    ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x)).forEach(styleSources -> {
   
       final FileNanoHTTPD server = log.getHttpd();
       TextureGenerationBase.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->

@@ -70,10 +70,10 @@ public class StyleTransfer extends ArtistryAppBase_VGG19 {
     int phases = 2;
     
     log.h1("Phase 0");
-    BufferedImage canvasImage = ArtistryUtil.load(ArtistryData.monkey, imageSize.get());
+    BufferedImage canvasImage = ArtistryUtil.load(ArtistryData.CLASSIC_STYLES.get(0), imageSize.get());
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
     canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(TestUtil.resize(canvasImage, 16, true)), imageSize.get(), 1000.0, 1.1).toImage();
-    BufferedImage contentImage = ArtistryUtil.load(ArtistryData.monkey, canvasImage.getWidth(), canvasImage.getHeight());
+    BufferedImage contentImage = ArtistryUtil.load(ArtistryData.CLASSIC_CONTENT.get(0), canvasImage.getWidth(), canvasImage.getHeight());
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     StyleTransferBase.StyleSetup styleSetup;
     
