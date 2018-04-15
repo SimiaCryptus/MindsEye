@@ -54,7 +54,7 @@ public class TextureGeneration extends ArtistryAppBase_VGG19 {
     BufferedImage canvas = TextureGenerationBase.initCanvas(new AtomicInteger(256));
   
     Map<List<CharSequence>, TextureGenerationBase.StyleCoefficients> textureStyle = new HashMap<>();
-    textureStyle.put(ArtistryData.vangogh.subList(0, 1), new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+    textureStyle.put(ArtistryData.CLASSIC_STYLES.subList(0, 1), new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
       .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)

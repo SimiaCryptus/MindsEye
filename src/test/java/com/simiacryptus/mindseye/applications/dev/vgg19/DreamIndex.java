@@ -59,7 +59,7 @@ public class DreamIndex extends ArtistryAppBase_VGG19 {
     int iterations = 10;
     int trainingMinutes = 90;
   
-    for (CharSequence file : ArtistryData.picasso) {
+    for (CharSequence file : ArtistryData.CLASSIC_STYLES) {
       log.h2("Image: " + file);
       try {
         log.p(log.image(ImageIO.read(new File(file.toString())), "Input Image"));

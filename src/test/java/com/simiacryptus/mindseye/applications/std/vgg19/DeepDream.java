@@ -59,7 +59,7 @@ public class DeepDream extends ArtistryAppBase_VGG19 {
     int maxIterations = 10;
     
     log.h1("Phase 0");
-    CharSequence source = ArtistryData.owned.get(0);
+    CharSequence source = ArtistryData.CLASSIC_CONTENT.get(0);
     BufferedImage canvasImage = ArtistryUtil.load(source, imageSize.get());
     //canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);

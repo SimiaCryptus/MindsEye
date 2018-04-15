@@ -254,7 +254,7 @@ public class ArtistryUtil {
       image = newImage;
       
     }
-    return image;
+    return Tensor.fromRGB(TestUtil.resize(image.toImage(), width, true));
   }
   
   /**

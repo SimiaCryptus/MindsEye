@@ -56,7 +56,7 @@ public class StyleTransfer extends ArtistryAppBase_VGG19 {
     double growthFactor = Math.sqrt(4);
   
     Map<List<CharSequence>, StyleTransferBase.StyleCoefficients> styles = new HashMap<>();
-    List<CharSequence> styleSources = ArtistryData.vangogh;
+    List<CharSequence> styleSources = ArtistryData.CLASSIC_STYLES;
     styles.put(styleSources, new StyleTransferBase.StyleCoefficients(StyleTransferBase.CenteringMode.Origin)
         .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
         .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)

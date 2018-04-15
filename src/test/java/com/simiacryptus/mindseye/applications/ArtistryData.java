@@ -19,15 +19,15 @@
 
 package com.simiacryptus.mindseye.applications;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class ArtistryData {
   private static final String FAST_NEURAL_STYLE_GIT = "git://github.com/jcjohnson/fast-neural-style.git/master";
   public static final List<CharSequence> CLASSIC_STYLES = ArtistryUtil.getHadoopFiles(FAST_NEURAL_STYLE_GIT + "/images/styles/");
+  public static final List<CharSequence> PLANETS = Arrays.asList(
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/1024px-The_Earth_seen_from_Apollo_17.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Saturn_during_Equinox.jpg/1920px-Saturn_during_Equinox.jpg"
+  );
   public static final List<CharSequence> CLASSIC_CONTENT = ArtistryUtil.getHadoopFiles(FAST_NEURAL_STYLE_GIT + "/images/content/");
-  private static final String DEV_BASE = "file:///H:/SimiaCryptus/Artistry/";
-  public static final List<CharSequence> picasso = ArtistryUtil.getHadoopFiles(DEV_BASE + "/portraits/picasso/");
-  public static final List<CharSequence> vangogh = ArtistryUtil.getHadoopFiles(DEV_BASE + "/portraits/vangogh/");
-  public static final List<CharSequence> space = ArtistryUtil.getHadoopFiles(DEV_BASE + "/space/");
-  public static final List<CharSequence> owned = ArtistryUtil.getHadoopFiles(DEV_BASE + "/Owned/");
 }
