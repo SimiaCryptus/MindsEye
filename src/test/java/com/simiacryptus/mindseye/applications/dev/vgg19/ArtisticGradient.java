@@ -71,7 +71,10 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
   
     //ArtistryUtil.getHadoopFiles("file:///H:/SimiaCryptus/Artistry//space/");
   
-    ArtistryData.CLASSIC_CONTENT.stream().forEach(contentSource ->
+    Stream.concat(
+      ArtistryData.CLASSIC_CONTENT.stream(),
+      ArtistryData.PLANETS.stream()
+    ).forEach(contentSource ->
     {
       log.p(log.image(ArtistryUtil.load(contentSource), "Content Image"));
       writeGif(log, ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x)).collect(Collectors.toList()).stream().flatMap(styleSources ->

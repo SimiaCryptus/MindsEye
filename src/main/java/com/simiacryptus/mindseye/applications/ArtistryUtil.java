@@ -80,7 +80,7 @@ public class ArtistryUtil {
   public static void addLayersHandler(final DAGNetwork painterNetwork, final FileNanoHTTPD server) {
     if (null != server) server.addHandler("layers.json", MimeType.JSON, out -> {
       try {
-        JsonUtil.MAPPER.writer().writeValue(out, TestUtil.samplePerformance(painterNetwork));
+        JsonUtil.getMapper().writer().writeValue(out, TestUtil.samplePerformance(painterNetwork));
         out.close();
       } catch (IOException e) {
         throw new RuntimeException(e);

@@ -72,7 +72,7 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
   public void init(final NotebookOutput log) {
     log.getHttpd().addHandler("gpu.json", MimeType.JSON, out -> {
       try {
-        JsonUtil.MAPPER.writer().writeValue(out, CudaSystem.getExecutionStatistics());
+        JsonUtil.getMapper().writer().writeValue(out, CudaSystem.getExecutionStatistics());
         //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
         out.close();
       } catch (IOException e) {
