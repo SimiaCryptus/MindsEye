@@ -962,8 +962,23 @@ public class TestUtil {
   
   private static int gifNumber = 0;
   
+  /**
+   * Animated gif char sequence.
+   *
+   * @param log    the log
+   * @param images the images
+   * @return the char sequence
+   */
   public static CharSequence animatedGif(@Nonnull final NotebookOutput log, @Nonnull final BufferedImage... images) {return animatedGif(log, 15000, images);}
   
+  /**
+   * Animated gif char sequence.
+   *
+   * @param log        the log
+   * @param loopTimeMs the loop time ms
+   * @param images     the images
+   * @return the char sequence
+   */
   public static CharSequence animatedGif(@Nonnull final NotebookOutput log, final int loopTimeMs, @Nonnull final BufferedImage... images) {
     try {
       @Nonnull String filename = gifNumber++ + ".gif";

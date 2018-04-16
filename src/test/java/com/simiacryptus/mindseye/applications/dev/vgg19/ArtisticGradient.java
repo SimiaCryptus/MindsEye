@@ -103,6 +103,45 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Init buffered image.
+   *
+   * @param contentSource the content source
+   * @param width         the width
+   * @return the buffered image
+   */
+  @Nonnull
+  public static BufferedImage init(final CharSequence contentSource, final int width) {
+    BufferedImage canvasImage;
+    canvasImage = ArtistryUtil.load(contentSource, width);
+    canvasImage = TestUtil.resize(canvasImage, width, true);
+    canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(
+      TestUtil.resize(canvasImage, 16, true)),
+      width, 1000.0, 1.1).toImage();
+    return canvasImage;
+  }
+  
+  /**
+   * Create map.
+   *
+   * @param <K>       the type parameter
+   * @param <V>       the type parameter
+   * @param configure the configure
+   * @return the map
+   */
+  @Nonnull
+  public static <K, V> Map<K, V> create(Consumer<Map<K, V>> configure) {
+    Map<K, V> map = new HashMap<>();
+    configure.accept(map);
+    return map;
+  }
+  
+  /**
+   * Write gif.
+   *
+   * @param log         the log
+   * @param imageStream the image stream
+   */
   public void writeGif(@Nonnull final NotebookOutput log, final Stream<BufferedImage> imageStream) {
     BufferedImage[] imgs = imageStream.toArray(i -> new BufferedImage[i]);
     log.p(TestUtil.animatedGif(log,
@@ -111,6 +150,22 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
     ));
   }
   
+  /**
+   * Style transfer buffered image.
+   *
+   * @param log                 the log
+   * @param styleTransfer       the style transfer
+   * @param precision           the precision
+   * @param imageSize           the image size
+   * @param growthFactor        the growth factor
+   * @param contentSource       the content source
+   * @param styles              the styles
+   * @param contentCoefficients the content coefficients
+   * @param trainingMinutes     the training minutes
+   * @param maxIterations       the max iterations
+   * @param phases              the phases
+   * @return the buffered image
+   */
   public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final StyleTransferBase.VGG19 styleTransfer, final Precision precision, final AtomicInteger imageSize, final double growthFactor, final CharSequence contentSource, final Map<List<CharSequence>, StyleTransferBase.StyleCoefficients> styles, final StyleTransferBase.ContentCoefficients contentCoefficients, final int trainingMinutes, final int maxIterations, final int phases) {
     BufferedImage canvasImage = init(contentSource, imageSize.get());
     for (int i = 0; i < phases; i++) {
@@ -126,24 +181,6 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
         trainingMinutes, styleTransfer.measureStyle(styleSetup), maxIterations);
     }
     return canvasImage;
-  }
-  
-  @Nonnull
-  public static BufferedImage init(final CharSequence contentSource, final int width) {
-    BufferedImage canvasImage;
-    canvasImage = ArtistryUtil.load(contentSource, width);
-    canvasImage = TestUtil.resize(canvasImage, width, true);
-    canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(
-      TestUtil.resize(canvasImage, 16, true)),
-      width, 1000.0, 1.1).toImage();
-    return canvasImage;
-  }
-  
-  @Nonnull
-  public static <K, V> Map<K, V> create(Consumer<Map<K, V>> configure) {
-    Map<K, V> map = new HashMap<>();
-    configure.accept(map);
-    return map;
   }
   
 }

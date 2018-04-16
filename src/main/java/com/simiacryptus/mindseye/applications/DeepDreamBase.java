@@ -354,8 +354,8 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
      * The Content.
      */
     public final Map<T, ContentCoefficients> coefficients;
-    
-    
+  
+  
     /**
      * Instantiates a new Style setup.
      *
@@ -414,7 +414,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param <T> the type parameter
    */
   public class NeuralSetup<T extends LayerEnum<T>> {
-    
+  
     /**
      * The Style parameters.
      */
@@ -423,7 +423,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
      * The Content target.
      */
     public ContentTarget<T> contentTarget = new ContentTarget();
-    
+  
     /**
      * Instantiates a new Neural setup.
      *

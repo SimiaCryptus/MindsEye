@@ -527,7 +527,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      * The Params.
      */
     public final Map<T, Double> params = new HashMap<>();
-    
+  
     /**
      * Set content coefficients.
      *
@@ -558,7 +558,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      * The Enhance.
      */
     public final double enhance;
-    
+  
     /**
      * Instantiates a new Layer style params.
      *
@@ -591,8 +591,8 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      * The Styles.
      */
     public final Map<List<CharSequence>, StyleCoefficients> styles;
-    
-    
+  
+  
     /**
      * Instantiates a new Style setup.
      *
@@ -622,8 +622,8 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      * The Params.
      */
     public final Map<T, LayerStyleParams> params = new HashMap<>();
-    
-    
+  
+  
     /**
      * Instantiates a new Style coefficients.
      *
@@ -643,7 +643,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
     public StyleCoefficients set(final T layerType, final double coeff_style_mean) {
       return set(layerType, coeff_style_mean, 0);
     }
-    
+  
     /**
      * Set style coefficients.
      *
@@ -700,7 +700,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      * The Mean.
      */
     public Map<T, Tensor> mean = new HashMap<>();
-    
+  
     /**
      * Add style target.
      *
@@ -732,7 +732,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
       });
       return newStyle;
     }
-    
+  
     /**
      * Scale style target.
      *
@@ -761,7 +761,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    * @param <T> the type parameter
    */
   public static class NeuralSetup<T extends LayerEnum<T>> {
-    
+  
     /**
      * The Style parameters.
      */
@@ -774,8 +774,8 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      * The Style targets.
      */
     public Map<CharSequence, StyleTarget<T>> styleTargets = new HashMap<>();
-    
-    
+  
+  
     /**
      * Instantiates a new Neural setup.
      *

@@ -431,6 +431,13 @@ public class ArtistryUtil {
     return HadoopUtil.getImage(image);
   }
   
+  /**
+   * Load buffered image.
+   *
+   * @param image     the image
+   * @param imageSize the image size
+   * @return the buffered image
+   */
   @Nonnull
   public static BufferedImage load(final CharSequence image, final int imageSize) {
     BufferedImage bufferedImage = HadoopUtil.getImage(image);
@@ -438,6 +445,14 @@ public class ArtistryUtil {
     return bufferedImage;
   }
   
+  /**
+   * Load buffered image.
+   *
+   * @param image  the image
+   * @param width  the width
+   * @param height the height
+   * @return the buffered image
+   */
   @Nonnull
   public static BufferedImage load(final CharSequence image, final int width, final int height) {
     BufferedImage bufferedImage = HadoopUtil.getImage(image);
@@ -560,6 +575,12 @@ public class ArtistryUtil {
     return HadoopUtil.getFiles(file);
   }
   
+  /**
+   * Gets local files.
+   *
+   * @param file the file
+   * @return the local files
+   */
   public static List<CharSequence> getLocalFiles(CharSequence file) {
     File[] array = new File(file.toString()).listFiles();
     if (null == array) throw new IllegalArgumentException("Not Found: " + file);

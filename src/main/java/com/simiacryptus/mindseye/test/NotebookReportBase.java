@@ -68,6 +68,13 @@ public abstract class NotebookReportBase {
     return javadoc;
   }
   
+  /**
+   * Gets test report location.
+   *
+   * @param sourceClass the source class
+   * @param suffix      the suffix
+   * @return the test report location
+   */
   @Nonnull
   public static File getTestReportLocation(@Nonnull final Class<?> sourceClass, @Nonnull final CharSequence... suffix) {
     final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
@@ -90,6 +97,12 @@ public abstract class NotebookReportBase {
   @Nonnull
   public abstract ReportType getReportType();
   
+  /**
+   * Gets log.
+   *
+   * @param reportLocation the report location
+   * @return the log
+   */
   @Nonnull
   public static NotebookOutput getLog(final File reportLocation) {
     return MarkdownNotebookOutput.get(reportLocation, TestSettings.INSTANCE.codeUrl);

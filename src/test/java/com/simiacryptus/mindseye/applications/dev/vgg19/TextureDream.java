@@ -116,6 +116,14 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
     log.setFrontMatterProperty("status", "OK");
   }
   
+  /**
+   * Create map.
+   *
+   * @param <K>       the type parameter
+   * @param <V>       the type parameter
+   * @param configure the configure
+   * @return the map
+   */
   @Nonnull
   public <K,V> Map<K, V> create(Consumer<Map<K, V>> configure) {
     Map<K, V> map = new HashMap<>();

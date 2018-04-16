@@ -30,7 +30,13 @@ public class TestSettings implements Settings {
    * The constant INSTANCE.
    */
   public static final TestSettings INSTANCE = new TestSettings();
+  /**
+   * The Tag.
+   */
   public final String tag;
+  /**
+   * The Code url.
+   */
   public CharSequence codeUrl;
   
   private TestSettings() {

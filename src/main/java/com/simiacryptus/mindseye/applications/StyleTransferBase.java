@@ -432,10 +432,21 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
     return network;
   }
   
+  /**
+   * Is tiled boolean.
+   *
+   * @return the boolean
+   */
   public boolean isTiled() {
     return tiled;
   }
   
+  /**
+   * Sets tiled.
+   *
+   * @param tiled the tiled
+   * @return the tiled
+   */
   public StyleTransferBase<T, U> setTiled(boolean tiled) {
     this.tiled = tiled;
     return this;
@@ -501,7 +512,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
      * The Params.
      */
     public final Map<T, Double> params = new HashMap<>();
-    
+  
     /**
      * Set content coefficients.
      *
@@ -533,9 +544,9 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
     /**
      * Instantiates a new Layer style params.
      *
-     * @param mean the mean
-     * @param cov  the cov
-     * @param enhance
+     * @param mean    the mean
+     * @param cov     the cov
+     * @param enhance the enhance
      */
     public LayerStyleParams(final double mean, final double cov, final double enhance) {
       this.mean = mean;
@@ -570,8 +581,8 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
      * The Content image.
      */
     public transient BufferedImage contentImage;
-    
-    
+  
+  
     /**
      * Instantiates a new Style setup.
      *
@@ -605,8 +616,8 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
      * The Params.
      */
     public final Map<T, LayerStyleParams> params = new HashMap<>();
-    
-    
+  
+  
     /**
      * Instantiates a new Style coefficients.
      *
@@ -632,7 +643,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
      * @param layerType        the layer type
      * @param coeff_style_mean the coeff style mean
      * @param coeff_style_cov  the coeff style cov
-     * @param dream
+     * @param dream            the dream
      * @return the style coefficients
      */
     public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov, final double dream) {
@@ -768,7 +779,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
    * @param <T> the type parameter
    */
   public class NeuralSetup<T extends LayerEnum<T>> {
-    
+  
     /**
      * The Style parameters.
      */
@@ -781,8 +792,8 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
      * The Style targets.
      */
     public Map<CharSequence, StyleTarget<T>> styleTargets = new HashMap<>();
-    
-    
+  
+  
     /**
      * Instantiates a new Neural setup.
      *
