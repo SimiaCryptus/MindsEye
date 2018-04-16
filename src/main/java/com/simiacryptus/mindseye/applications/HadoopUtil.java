@@ -33,6 +33,7 @@ import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
@@ -113,6 +114,15 @@ public class HadoopUtil {
    * @return the image
    */
   public static BufferedImage getImage(final CharSequence file) {
+    if (file.toString().startsWith("http")) {
+      try {
+        BufferedImage read = ImageIO.read(new URL(file.toString()));
+        assert null != read;
+        return read;
+      } catch (Throwable e) {
+        throw new RuntimeException("Error reading " + file, e);
+      }
+    }
     FileSystem fileSystem = getFileSystem(file.toString());
     Path path = new Path(file.toString());
     try {

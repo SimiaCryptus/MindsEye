@@ -763,6 +763,8 @@ public class TestUtil {
    * @param normalize   the normalize
    */
   public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period, final boolean normalize) {
+    if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
+      return;
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {

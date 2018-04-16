@@ -63,8 +63,8 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
     int maxIterations = 10;
     int trainingMinutes = 90;
     int startImageSize = 400;
-    double coeff_style_mean = 1e1;
-    double coeff_style_cov = 1e0;
+    double coeff_style_mean = 1e0;
+    double coeff_style_cov = 0;
     Supplier<DoubleStream> contentCoeffStream = () -> DoubleStream.iterate(5e-1, x -> x * Math.pow(1e2, 1.0 / 4)).skip(2).limit(1);
     Supplier<DoubleStream> dreamCoeffStream = () -> DoubleStream.iterate(0, x -> 0).limit(1);
 //    Supplier<DoubleStream> dreamCoeffStream = () -> DoubleStream.iterate(1e-3, x -> x * Math.pow(1e1, 1.0 / 4)).skip(2).limit(1);
@@ -72,8 +72,8 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
     //ArtistryUtil.getHadoopFiles("file:///H:/SimiaCryptus/Artistry//space/");
   
     Stream.concat(
-      ArtistryData.CLASSIC_CONTENT.stream(),
-      ArtistryData.PLANETS.stream()
+      ArtistryData.PLANETS.stream(),
+      ArtistryData.CLASSIC_CONTENT.stream()
     ).forEach(contentSource ->
     {
       log.p(log.image(ArtistryUtil.load(contentSource), "Content Image"));
