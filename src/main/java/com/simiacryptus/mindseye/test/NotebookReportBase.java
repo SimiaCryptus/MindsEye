@@ -31,7 +31,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.function.Consumer;
 
@@ -84,7 +83,9 @@ public abstract class NotebookReportBase {
     @Nonnull File path = new File(Util.mkString(File.separator, "reports", classFilename));
     for (int i = 0; i < suffix.length - 1; i++) path = new File(path, suffix[i].toString());
     String testName = suffix.length == 0 ? String.valueOf(methodName) : suffix[suffix.length - 1].toString();
-    path = new File(new File(path, new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date())), testName + ".md");
+    File parent = path;
+    //parent = new File(path, new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date()));
+    path = new File(parent, testName + ".md");
     path.getParentFile().mkdirs();
     return path;
   }
