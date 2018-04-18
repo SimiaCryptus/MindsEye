@@ -56,7 +56,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -121,6 +123,14 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
       System.gc();
       Tensor canvas = Tensor.fromRGB(canvasImage);
       TestUtil.monitorImage(canvas, false, false);
+      log.p("<a href=\"/image.jpg\">Current Image</a>");
+      log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
+        try {
+          ImageIO.write(canvas.toImage(), "jpeg", r);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
       log.p("Input Parameters:");
       log.code(() -> {
         return ArtistryUtil.toJson(styleParameters);
