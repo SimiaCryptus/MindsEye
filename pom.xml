@@ -145,7 +145,7 @@
             <dependency>
                 <groupId>com.simiacryptus</groupId>
                 <artifactId>hadoop-jgit-fs</artifactId>
-                <version>1.4.8</version>
+                <version>1.4.17</version>
                 <scope>compile</scope>
             </dependency>
             <dependency>
@@ -304,7 +304,7 @@
         <dependency>
             <groupId>com.simiacryptus</groupId>
             <artifactId>hadoop-jgit-fs</artifactId>
-            <version>1.4.8</version>
+            <version>1.4.17</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
