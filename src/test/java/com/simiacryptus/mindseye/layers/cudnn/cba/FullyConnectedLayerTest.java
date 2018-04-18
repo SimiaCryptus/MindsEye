@@ -124,7 +124,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
    * Basic Test
    */
   public abstract static class BigTests extends FullyConnectedLayerTest {
-    
+  
     /**
      * Instantiates a new BigTests.
      *

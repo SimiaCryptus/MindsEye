@@ -17,8 +17,12 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.applications;
+package com.simiacryptus.mindseye.applications.std.vgg19;
 
+import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ArtistryData;
+import com.simiacryptus.mindseye.applications.ArtistryUtil;
+import com.simiacryptus.mindseye.applications.DeepDreamBase;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -33,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The type Deep dream vgg 19.
  */
-public class DeepDream_VGG19 extends ArtistryAppBase_VGG19 {
+public class DeepDream extends ArtistryAppBase_VGG19 {
   
   /**
    * Test.
@@ -41,24 +45,26 @@ public class DeepDream_VGG19 extends ArtistryAppBase_VGG19 {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    DeepDream<CVPipe_VGG19.Layer, CVPipe_VGG19> dreamBase = new DeepDream.VGG19();
+    DeepDreamBase<CVPipe_VGG19.Layer, CVPipe_VGG19> dreamBase = new DeepDreamBase.VGG19();
     init(log);
     Precision precision = Precision.Float;
-    final AtomicInteger imageSize = new AtomicInteger(800);
+    final AtomicInteger imageSize = new AtomicInteger(400);
   
-    Map<CVPipe_VGG19.Layer, DeepDream.ContentCoefficients> dreamCoeff = new HashMap<>();
-    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1d, new DeepDream.ContentCoefficients(0, 1e-1));
+    Map<CVPipe_VGG19.Layer, DeepDreamBase.ContentCoefficients> dreamCoeff = new HashMap<>();
+    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1d, new DeepDreamBase.ContentCoefficients(0, 1e-1));
 //    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1e, new ContentCoefficients(0, 1e0));
-    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_2b, new DeepDream.ContentCoefficients(0, 1e0));
-    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_3a, new DeepDream.ContentCoefficients(0, 1e1));
-    int trainingMinutes = 180;
+    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_2b, new DeepDreamBase.ContentCoefficients(0, 1e0));
+    //dreamCoeff.put(CVPipe_VGG19.Layer.Layer_3a, new DeepDreamBase.ContentCoefficients(0, 1e1));
+    int trainingMinutes = 90;
+    int maxIterations = 10;
     
     log.h1("Phase 0");
-    BufferedImage canvasImage = ArtistryUtil.load(lakeAndForest, imageSize.get());
+    CharSequence source = ArtistryData.CLASSIC_CONTENT.get(0);
+    BufferedImage canvasImage = ArtistryUtil.load(source, imageSize.get());
     //canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
-    BufferedImage contentImage = ArtistryUtil.load(lakeAndForest, canvasImage.getWidth(), canvasImage.getHeight());
-    dreamBase.deepDream(server, log, canvasImage, new DeepDream.StyleSetup(precision, contentImage, dreamCoeff), trainingMinutes, 50);
+    BufferedImage contentImage = ArtistryUtil.load(source, canvasImage.getWidth(), canvasImage.getHeight());
+    dreamBase.deepDream(log.getHttpd(), log, canvasImage, new DeepDreamBase.StyleSetup(precision, contentImage, dreamCoeff), trainingMinutes, maxIterations);
     
     log.setFrontMatterProperty("status", "OK");
   }

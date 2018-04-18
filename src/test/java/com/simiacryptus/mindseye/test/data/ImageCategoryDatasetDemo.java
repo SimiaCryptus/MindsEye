@@ -65,13 +65,13 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
     });
     
     log.h3("Sample Data");
-    log.p(log.code(() -> {
+    log.p(log.out(() -> {
       return testData.stream().map(labeledObj -> {
         @Nullable BufferedImage img = labeledObj.data.get();
         img = TestUtil.resize(img, 224, true);
         return log.image(img, labeledObj.label);
       }).limit(20).reduce((a, b) -> a + b).get();
-    }, 256 * 1024));
+    }));
   }
   
   /**

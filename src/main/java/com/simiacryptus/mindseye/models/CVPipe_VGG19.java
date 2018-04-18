@@ -39,7 +39,7 @@ public class CVPipe_VGG19 implements CVPipe<CVPipe_VGG19.Layer> {
   public static final CVPipe_VGG19 INSTANCE = build();
   private final Map<Layer, UUID> nodes = new HashMap<>();
   private final Map<Layer, PipelineNetwork> prototypes = new HashMap<>();
-  private PipelineNetwork network = new PipelineNetwork();
+  private PipelineNetwork network;
   
   private static CVPipe_VGG19 build() {
     CVPipe_VGG19 obj = new CVPipe_VGG19();

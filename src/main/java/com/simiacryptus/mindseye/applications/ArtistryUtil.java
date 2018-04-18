@@ -32,9 +32,9 @@ import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ImgTileCycleLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
-import com.simiacryptus.mindseye.layers.cudnn.TileCycleLayer;
 import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
@@ -44,7 +44,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.PCAUtil;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
-import com.simiacryptus.util.StreamNanoHTTPD;
+import com.simiacryptus.util.FileNanoHTTPD;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -53,12 +53,12 @@ import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.hadoop.yarn.webapp.MimeType;
 
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
@@ -77,15 +77,15 @@ public class ArtistryUtil {
    * @param painterNetwork the painter network
    * @param server         the server
    */
-  public static void addLayersHandler(final DAGNetwork painterNetwork, final StreamNanoHTTPD server) {
-    if (null != server) server.addSyncHandler("layers.json", MimeType.JSON, out -> {
+  public static void addLayersHandler(final DAGNetwork painterNetwork, final FileNanoHTTPD server) {
+    if (null != server) server.addHandler("layers.json", MimeType.JSON, out -> {
       try {
-        JsonUtil.MAPPER.writer().writeValue(out, TestUtil.samplePerformance(painterNetwork));
+        JsonUtil.getMapper().writer().writeValue(out, TestUtil.samplePerformance(painterNetwork));
         out.close();
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    }, false);
+    });
   }
   
   /**
@@ -249,9 +249,12 @@ public class ArtistryUtil {
   @Nonnull
   public static Tensor expandPlasma(Tensor image, final int width, final double noiseAmplitude, final double noisePower) {
     while (image.getDimensions()[0] < width) {
-      image = expandPlasma(image, Math.pow(noiseAmplitude / image.getDimensions()[0], noisePower));
+      Tensor newImage = expandPlasma(image, Math.pow(noiseAmplitude / image.getDimensions()[0], noisePower));
+      image.freeRef();
+      image = newImage;
+      
     }
-    return image;
+    return Tensor.fromRGB(TestUtil.resize(image.toImage(), width, true));
   }
   
   /**
@@ -425,13 +428,7 @@ public class ArtistryUtil {
    */
   @Nonnull
   public static BufferedImage load(final CharSequence image) {
-    BufferedImage bufferedImage;
-    try {
-      bufferedImage = ImageIO.read(new File(image.toString()));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return bufferedImage;
+    return HadoopUtil.getImage(image);
   }
   
   /**
@@ -443,36 +440,24 @@ public class ArtistryUtil {
    */
   @Nonnull
   public static BufferedImage load(final CharSequence image, final int imageSize) {
-    BufferedImage bufferedImage;
-    try {
-      File input = new File(image.toString());
-      if (!input.exists()) throw new IllegalArgumentException("Not Found: " + input);
-      bufferedImage = ImageIO.read(input);
-      bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    BufferedImage bufferedImage = HadoopUtil.getImage(image);
+    bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
     return bufferedImage;
   }
   
   /**
    * Load buffered image.
    *
-   * @param imageFile the style
-   * @param width     the width
-   * @param height    the height
+   * @param image  the image
+   * @param width  the width
+   * @param height the height
    * @return the buffered image
    */
   @Nonnull
-  public static BufferedImage load(final CharSequence imageFile, final int width, final int height) {
-    BufferedImage image;
-    try {
-      image = ImageIO.read(new File(imageFile.toString()));
-      image = TestUtil.resize(image, width, height);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return image;
+  public static BufferedImage load(final CharSequence image, final int width, final int height) {
+    BufferedImage bufferedImage = HadoopUtil.getImage(image);
+    bufferedImage = TestUtil.resize(bufferedImage, width, height);
+    return bufferedImage;
   }
   
   /**
@@ -539,7 +524,7 @@ public class ArtistryUtil {
    */
   protected static Layer wrapAvg(final Layer subnet) {
     PipelineNetwork network = new PipelineNetwork(1);
-    network.add(subnet);
+    network.wrap(subnet);
     network.wrap(new BandAvgReducerLayer());
     return network;
   }
@@ -586,11 +571,22 @@ public class ArtistryUtil {
    * @param file the file
    * @return the files
    */
-  public static List<CharSequence> getFiles(CharSequence file) {
+  public static List<CharSequence> getHadoopFiles(CharSequence file) {
+    return HadoopUtil.getFiles(file);
+  }
+  
+  /**
+   * Gets local files.
+   *
+   * @param file the file
+   * @return the local files
+   */
+  public static List<CharSequence> getLocalFiles(CharSequence file) {
     File[] array = new File(file.toString()).listFiles();
     if (null == array) throw new IllegalArgumentException("Not Found: " + file);
-    return Arrays.stream(array).map(File::getAbsolutePath).collect(Collectors.toList());
+    return Arrays.stream(array).map(File::getAbsolutePath).sorted(Comparator.naturalOrder()).collect(Collectors.toList());
   }
+  
   
   /**
    * Tile cycle pipeline network.
@@ -602,7 +598,7 @@ public class ArtistryUtil {
     PipelineNetwork netNet = new PipelineNetwork(1);
     netNet.wrap(new AvgReducerLayer(),
       netNet.wrap(network, netNet.getInput(0)),
-      netNet.wrap(network, netNet.wrap(new TileCycleLayer(), netNet.getInput(0))));
+      netNet.wrap(network, netNet.wrap(new ImgTileCycleLayer(), netNet.getInput(0))));
     return netNet;
   }
 }

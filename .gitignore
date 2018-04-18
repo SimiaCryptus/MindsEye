@@ -15,3 +15,4 @@ www/
 vgg16_weights.h5
 gpu.json
 index.html
+*.h5

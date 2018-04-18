@@ -9,46 +9,34 @@
   "com.simiacryptus.mindseye.applications.ArtistryUtil": {
     ":class": "The type Artistry util."
   },
-  "com.simiacryptus.mindseye.applications.DeepDream": {
+  "com.simiacryptus.mindseye.applications.DeepDreamBase": {
     ":class": "This notebook implements the Style Transfer protocol outlined in <a href=\"https://arxiv.org/abs/1508.06576\">A Neural Algorithm of Artistic Style</a>",
     "tiled": "Sets tiled."
   },
-  "com.simiacryptus.mindseye.applications.DeepDream.ContentCoefficients": {
+  "com.simiacryptus.mindseye.applications.DeepDreamBase.ContentCoefficients": {
     ":class": "The type Content coefficients."
   },
-  "com.simiacryptus.mindseye.applications.DeepDream.ContentTarget": {
+  "com.simiacryptus.mindseye.applications.DeepDreamBase.ContentTarget": {
     ":class": "The type Content target.",
     "content": "The Content."
   },
-  "com.simiacryptus.mindseye.applications.DeepDream.NeuralSetup": {
+  "com.simiacryptus.mindseye.applications.DeepDreamBase.NeuralSetup": {
     ":class": "The type Neural setup.",
     "contentTarget": "The Content target."
   },
-  "com.simiacryptus.mindseye.applications.DeepDream.StyleSetup": {
+  "com.simiacryptus.mindseye.applications.DeepDreamBase.StyleSetup": {
     ":class": "The type Style setup."
   },
-  "com.simiacryptus.mindseye.applications.DeepDream.VGG16": {
+  "com.simiacryptus.mindseye.applications.DeepDreamBase.VGG16": {
     ":class": "The type Vgg 16."
   },
-  "com.simiacryptus.mindseye.applications.DeepDream.VGG19": {
+  "com.simiacryptus.mindseye.applications.DeepDreamBase.VGG19": {
     ":class": "The type Vgg 19."
-  },
-  "com.simiacryptus.mindseye.applications.DeepDream_VGG19": {
-    ":class": "The type Deep dream vgg 19."
-  },
-  "com.simiacryptus.mindseye.applications.DreamIndex_VGG19": {
-    ":class": "The type Style transfer vgg 19."
   },
   "com.simiacryptus.mindseye.applications.ImageClassificationBase": {
     ":class": "The type Image classification base."
   },
-  "com.simiacryptus.mindseye.applications.ImageClassification_VGG19": {
-    ":class": "We load a pretrained convolutional neural network (VGG16) along apply the CalTech101 image dataset to perform a demonstration of Image Recognition."
-  },
-  "com.simiacryptus.mindseye.applications.ImageClassification_VGG19.HFD5": {
-    ":class": "The type HDF5_JBLAS."
-  },
-  "com.simiacryptus.mindseye.applications.ImageClassifier": {
+  "com.simiacryptus.mindseye.applications.ImageClassifierBase": {
     ":class": "The type Image classifier.",
     "batchSize": "Sets batch size.",
     "cachedLayer": "The Network.",
@@ -56,101 +44,116 @@
     "precision": "Sets precision.",
     "prototype": "The Prototype."
   },
-  "com.simiacryptus.mindseye.applications.ObjectLocation": {
+  "com.simiacryptus.mindseye.applications.ObjectLocationBase": {
     ":class": "The type Object location."
   },
-  "com.simiacryptus.mindseye.applications.ObjectLocation.VGG16": {
+  "com.simiacryptus.mindseye.applications.ObjectLocationBase.VGG16": {
     ":class": "The type Vgg 16."
   },
-  "com.simiacryptus.mindseye.applications.ObjectLocation.VGG19": {
+  "com.simiacryptus.mindseye.applications.ObjectLocationBase.VGG19": {
     ":class": "The type Vgg 19."
   },
-  "com.simiacryptus.mindseye.applications.ObjectLocation_VGG19": {
-    ":class": "The type Image classifier apply base."
-  },
-  "com.simiacryptus.mindseye.applications.StyleTransfer": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase": {
     ":class": "This notebook implements the Style Transfer protocol outlined in <a href=\"https://arxiv.org/abs/1508.06576\">A Neural Algorithm of Artistic Style</a>",
     "parallelLossFunctions": "The Parallel loss functions."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer.ContentCoefficients": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase.ContentCoefficients": {
     ":class": "The type Content coefficients."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer.ContentTarget": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase.ContentTarget": {
     ":class": "The type Content target.",
     "content": "The Content."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer.LayerStyleParams": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase.LayerStyleParams": {
     ":class": "The type Layer style params."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer.NeuralSetup": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase.NeuralSetup": {
     ":class": "The type Neural setup.",
     "contentTarget": "The Content target.",
     "styleTargets": "The Style targets."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer.StyleCoefficients": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase.StyleCoefficients": {
     ":class": "The type Style coefficients."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer.StyleSetup": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase.StyleSetup": {
     ":class": "The type Style setup.",
     "contentImage": "The Content image."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer.StyleTarget": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase.StyleTarget": {
     ":class": "The type Style target.",
     "cov0": "The Cov.",
     "cov1": "The Cov.",
     "mean": "The Mean."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer.VGG16": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase.VGG16": {
     ":class": "The type Vgg 16."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer.VGG19": {
+  "com.simiacryptus.mindseye.applications.StyleTransferBase.VGG19": {
     ":class": "The type Vgg 19."
   },
-  "com.simiacryptus.mindseye.applications.StyleTransfer_VGG19": {
-    ":class": "The type Style transfer vgg 19."
-  },
-  "com.simiacryptus.mindseye.applications.TextureDream_VGG19": {
-    ":class": "The type Style transfer vgg 19."
-  },
-  "com.simiacryptus.mindseye.applications.TextureGeneration": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase": {
     ":class": "This notebook implements the Style Transfer protocol outlined in <a href=\"https://arxiv.org/abs/1508.06576\">A Neural Algorithm of Artistic Style</a>",
     "parallelLossFunctions": "The Parallel loss functions.",
     "tiled": "Sets tiled."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration.ContentCoefficients": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase.ContentCoefficients": {
     ":class": "The type Content coefficients."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration.ContentTarget": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase.ContentTarget": {
     ":class": "The type Content target.",
     "content": "The Content."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration.LayerStyleParams": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase.LayerStyleParams": {
     ":class": "The type Layer style params."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration.NeuralSetup": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase.NeuralSetup": {
     ":class": "The type Neural setup.",
     "contentTarget": "The Content target.",
     "styleTargets": "The Style targets."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration.StyleCoefficients": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase.StyleCoefficients": {
     ":class": "The type Style coefficients."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration.StyleSetup": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase.StyleSetup": {
     ":class": "The type Style setup."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration.StyleTarget": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase.StyleTarget": {
     ":class": "The type Style target.",
     "cov0": "The Cov.",
     "cov1": "The Cov.",
     "mean": "The Mean."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration.VGG16": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase.VGG16": {
     ":class": "The type Vgg 16."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration.VGG19": {
+  "com.simiacryptus.mindseye.applications.TextureGenerationBase.VGG19": {
     ":class": "The type Vgg 19."
   },
-  "com.simiacryptus.mindseye.applications.TextureGeneration_VGG19": {
+  "com.simiacryptus.mindseye.applications.dev.vgg19.ArtisticGradient": {
+    ":class": "The type Style transfer vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.dev.vgg19.DreamIndex": {
+    ":class": "The type Style transfer vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.dev.vgg19.TextureDream": {
+    ":class": "The type Style transfer vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.std.vgg19.DeepDream": {
+    ":class": "The type Deep dream vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.std.vgg19.ImageClassification": {
+    ":class": "We load a pretrained convolutional neural network (VGG16) along apply the CalTech101 image dataset to perform a demonstration of Image Recognition."
+  },
+  "com.simiacryptus.mindseye.applications.std.vgg19.ImageClassification.HFD5": {
+    ":class": "The type HDF5_JBLAS."
+  },
+  "com.simiacryptus.mindseye.applications.std.vgg19.ObjectLocation": {
+    ":class": "The type Image classifier apply base."
+  },
+  "com.simiacryptus.mindseye.applications.std.vgg19.StyleTransfer": {
+    ":class": "The type Style transfer vgg 19."
+  },
+  "com.simiacryptus.mindseye.applications.std.vgg19.TextureGeneration": {
     ":class": "The type Style transfer vgg 19."
   },
   "com.simiacryptus.mindseye.eval.ArrayTrainable": {
@@ -394,7 +397,7 @@
   },
   "com.simiacryptus.mindseye.lang.RecycleBin.ObjectWrapper": {},
   "com.simiacryptus.mindseye.lang.ReferenceCounting": {
-    ":class": "Interface for objects apply reference counting. Reference counted objects will be freed when the last reference is freed, in a guaranteed-once-only manner. In general, valid reference counting behavior can be maintained by observing a few rules: 1) References should be freed as soon as they are finished being used 2) Only reference counting objects should be used to hold pointers to other reference counting objects, and those pointers should be freed & clears when the object is freed. 3) If returning a reference to an object from a method, increment its reference count. 4) Handle reference counted objects within the scope of a single method when possible. (i.e. prefer to keep them on the stack, not heap.)"
+    ":class": "Interface for objects apply reference counting. Reference counted objects will be freed when the last reference is freed, in a guaranteed-once-only manner. In general, valid reference counting behavior can be maintained by observing a few rules: 1) References should be freed as soon as they are finished being used 2) Only reference counting objects should be used to hold pointers to other reference counting objects, and those pointers should be freed and clears when the object is freed. 3) If returning a reference to an object from a method, increment its reference count. 4) Handle reference counted objects within the scope of a single method when possible. (i.e. prefer to keep them on the stack, not heap.)"
   },
   "com.simiacryptus.mindseye.lang.ReferenceCountingBase": {
     ":class": "The base implementation for ReferenceCounting objects. Provides state management and debugging facilities. If assertions are enabled, stack traces are recorded to provide detailed logs for debugging LifecycleExceptions."
@@ -825,6 +828,18 @@
   "com.simiacryptus.mindseye.layers.cudnn.ImgTileAssemblyLayerTest.Basic": {
     ":class": "Basic Test"
   },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileCycleLayer": {
+    ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileCycleLayerTest": {
+    ":class": "The type Img crop layer apply."
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileCycleLayerTest.Basic": {
+    ":class": "Basic Test"
+  },
+  "com.simiacryptus.mindseye.layers.cudnn.ImgTileCycleLayerTest.Chained": {
+    ":class": "The type Chained."
+  },
   "com.simiacryptus.mindseye.layers.cudnn.ImgTileSelectLayer": {
     ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands."
   },
@@ -1004,18 +1019,6 @@
   },
   "com.simiacryptus.mindseye.layers.cudnn.SumReducerLayerTest.Float": {
     ":class": "Basic apply using float (32-bit) precision."
-  },
-  "com.simiacryptus.mindseye.layers.cudnn.TileCycleLayer": {
-    ":class": "Reduces the resolution of the input by selecting a centered window. The output image will have the same number of color bands."
-  },
-  "com.simiacryptus.mindseye.layers.cudnn.TileCycleLayerTest": {
-    ":class": "The type Img crop layer apply."
-  },
-  "com.simiacryptus.mindseye.layers.cudnn.TileCycleLayerTest.Basic": {
-    ":class": "Basic Test"
-  },
-  "com.simiacryptus.mindseye.layers.cudnn.TileCycleLayerTest.Chained": {
-    ":class": "The type Chained."
   },
   "com.simiacryptus.mindseye.layers.cudnn.ValueLayer": {
     ":class": "This layer does not require any input, and produces a constant output. This constant can be tuned by optimization processes."
@@ -2496,13 +2499,7 @@
     ":class": "The type Simple stochastic gradient descent apply."
   },
   "com.simiacryptus.mindseye.test.NotebookReportBase": {
-    ":class": "The type Notebook output apply base.",
-    "absoluteUrl": "The Absolute url.",
-    "preferStatic": "The Prefer static.",
-    "useMarkdown": "The Use markdown."
-  },
-  "com.simiacryptus.mindseye.test.NotebookReportBase.SimpleNotebookReportBase": {
-    ":class": "The type Simple notebook report base."
+    ":class": "The type Notebook output apply base."
   },
   "com.simiacryptus.mindseye.test.PCAUtil": {
     ":class": "The type Pca util."
@@ -2525,6 +2522,9 @@
   },
   "com.simiacryptus.mindseye.test.StepRecord": {
     ":class": "The type Step record."
+  },
+  "com.simiacryptus.mindseye.test.TestSettings": {
+    ":class": "The type Cuda settings."
   },
   "com.simiacryptus.mindseye.test.TestUtil": {
     ":class": "The type Image apply util."

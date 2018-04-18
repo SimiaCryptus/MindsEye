@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.applications.ImageClassifier;
+import com.simiacryptus.mindseye.applications.ImageClassifierBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 
@@ -41,7 +41,7 @@ public abstract class VGG16 extends VGG {
    *
    * @return the vgg 16 hdf 5
    */
-  public static ImageClassifier fromHDF5() {
+  public static ImageClassifierBase fromHDF5() {
     try {
       return fromHDF5(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")));
     } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
@@ -55,7 +55,7 @@ public abstract class VGG16 extends VGG {
    * @param hdf the hdf
    * @return the vgg 16 hdf 5
    */
-  public static ImageClassifier fromHDF5(final File hdf) {
+  public static ImageClassifierBase fromHDF5(final File hdf) {
     try {
       return new VGG16_HDF5(new Hdf5Archive(hdf));
     } catch (@Nonnull final RuntimeException e) {

@@ -36,7 +36,6 @@ import com.simiacryptus.mindseye.models.VGG16_HDF5;
 import com.simiacryptus.mindseye.models.VGG19_HDF5;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.mindseye.test.data.Caltech101;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
@@ -46,7 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -54,9 +52,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -65,9 +62,9 @@ import java.util.stream.Stream;
 /**
  * The type Object location.
  */
-public abstract class ObjectLocation {
+public abstract class ObjectLocationBase {
   
-  private static final Logger logger = LoggerFactory.getLogger(ObjectLocation.class);
+  private static final Logger logger = LoggerFactory.getLogger(ObjectLocationBase.class);
   
   /**
    * Run.
@@ -78,11 +75,11 @@ public abstract class ObjectLocation {
     @Nonnull String logName = "cuda_" + log.getName() + ".log";
     log.p(log.file((String) null, logName, "GPU Log"));
     CudaSystem.addLog(new PrintStream(log.file(logName)));
-    
-    ImageClassifier classifier = getClassifierNetwork();
+  
+    ImageClassifierBase classifier = getClassifierNetwork();
     Layer classifyNetwork = classifier.getNetwork();
-    
-    ImageClassifier locator = getLocatorNetwork();
+  
+    ImageClassifierBase locator = getLocatorNetwork();
     Layer locatorNetwork = locator.getNetwork();
     ArtistryUtil.setPrecision((DAGNetwork) classifyNetwork, Precision.Float);
     ArtistryUtil.setPrecision((DAGNetwork) locatorNetwork, Precision.Float);
@@ -106,9 +103,9 @@ public abstract class ObjectLocation {
         .mapToObj(i -> String.format("%s: %s = %s%%", i, categories.get(i), classification.get(i) * 100))
         .reduce((a, b) -> a + "\n" + b)
         .orElse(""));
-      Map<CharSequence, Tensor> vectors = new HashMap<>();
+      LinkedHashMap<CharSequence, Tensor> vectors = new LinkedHashMap<>();
       List<CharSequence> predictionList = Arrays.stream(sortedIndices).mapToObj(categories::get).collect(Collectors.toList());
-      Arrays.stream(sortedIndices).limit(10).forEach(category -> {
+      Arrays.stream(sortedIndices).limit(6).forEach(category -> {
         CharSequence name = categories.get(category);
         log.h3(name);
         Tensor alphaTensor = renderAlpha(alphaPower, img, locationResult, classification, category);
@@ -120,9 +117,10 @@ public abstract class ObjectLocation {
       Array2DRowRealMatrix covarianceMatrix = new Array2DRowRealMatrix(predictionList.size(), predictionList.size());
       for (int x = 0; x < predictionList.size(); x++) {
         for (int y = 0; y < predictionList.size(); y++) {
-          Tensor l = vectors.get(predictionList.get(x)).minus(avgDetection);
-          Tensor r = vectors.get(predictionList.get(y)).minus(avgDetection);
-          covarianceMatrix.setEntry(x, y, l.dot(r));
+          Tensor l = vectors.get(predictionList.get(x));
+          Tensor r = vectors.get(predictionList.get(y));
+  
+          covarianceMatrix.setEntry(x, y, null == l || null == r ? 0 : (l.minus(avgDetection)).dot(r.minus(avgDetection)));
         }
       }
       @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covarianceMatrix);
@@ -132,7 +130,10 @@ public abstract class ObjectLocation {
         log.h3("Eigenobject " + objectVector);
         double eigenvalue = decomposition.getRealEigenvalue(objectVector);
         RealVector eigenvector = decomposition.getEigenvector(objectVector);
-        Tensor detectionRegion = IntStream.range(0, eigenvector.getDimension()).mapToObj(i -> vectors.get(predictionList.get(i)).scale(eigenvector.getEntry(i))).reduce((a, b) -> a.add(b)).get();
+        Tensor detectionRegion = IntStream.range(0, eigenvector.getDimension()).mapToObj(i -> {
+          Tensor tensor = vectors.get(predictionList.get(i));
+          return null == tensor ? null : tensor.scale(eigenvector.getEntry(i));
+        }).filter(x -> null != x).reduce((a, b) -> a.add(b)).get();
         detectionRegion = detectionRegion.scale(255.0 / detectionRegion.rms());
         CharSequence categorization = IntStream.range(0, eigenvector.getDimension()).mapToObj(i -> {
           CharSequence category = predictionList.get(i);
@@ -158,7 +159,9 @@ public abstract class ObjectLocation {
         Arrays.stream(sortedIndices).limit(10).mapToObj(col -> "<th>" + categories.get(col) + "</th>").reduce((a, b) -> a + b).get(),
         Arrays.stream(sortedIndices).limit(10).mapToObj(r -> {
           return String.format("<tr><td>%s</td>%s</tr>", categories.get(r), Arrays.stream(sortedIndices).limit(10).mapToObj(col -> {
-            return String.format("<td>%.4f</td>", Math.acos(vectors.get(categories.get(r)).dot(vectors.get(categories.get(col)))));
+            Tensor l = vectors.get(categories.get(r));
+            Tensor r2 = vectors.get(categories.get(col));
+            return String.format("<td>%.4f</td>", (null == l || null == r2) ? 0 : Math.acos(l.dot(r2)));
           }).reduce((a, b) -> a + b).get());
         }).reduce((a, b) -> a + b).orElse("")));
     });
@@ -171,14 +174,14 @@ public abstract class ObjectLocation {
    *
    * @return the locator network
    */
-  public abstract ImageClassifier getLocatorNetwork();
+  public abstract ImageClassifierBase getLocatorNetwork();
   
   /**
    * Gets classifier network.
    *
    * @return the classifier network
    */
-  public abstract ImageClassifier getClassifierNetwork();
+  public abstract ImageClassifierBase getClassifierNetwork();
   
   /**
    * Render alpha tensor.
@@ -237,39 +240,13 @@ public abstract class ObjectLocation {
   }
   
   /**
-   * Load image caltech 101 tensor [ ] [ ].
-   *
-   * @param log the log
-   * @return the tensor [ ] [ ]
-   */
-  public Tensor[][] loadImage_Caltech101(@Nonnull final NotebookOutput log) {
-    return log.code(() -> {
-      return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
-        @Nullable BufferedImage img = labeledObj.data.get();
-        img = TestUtil.resize(img, 224);
-        return new Tensor[]{Tensor.fromRGB(img)};
-      }).limit(10).toArray(i1 -> new Tensor[i1][]);
-    });
-  }
-  
-  /**
    * Load images 1 tensor [ ] [ ].
    *
    * @return the tensor [ ] [ ]
    */
   public Tensor[][] loadImages_library() {
     return Stream.of(
-      "H:\\SimiaCryptus\\Artistry\\cat-and-dog.jpg",
-      "H:\\SimiaCryptus\\Artistry\\pexels-photo-327011.jpg",
-      "H:\\SimiaCryptus\\Artistry\\Defense.gov_News_Photo_120318-M-MM918-006_-_U.S._Marine_Cpl._Kyle_Click_and_his_military_working_dog_Windy_an_improvised_explosive_device_detection_dog_search_the_perimeter_of_the_Safar.jpg",
-      "H:\\SimiaCryptus\\Artistry\\india_indian_family_happy_motorcycle_asian_together_family_father-1053028.jpg"
-//      "H:\\SimiaCryptus\\Artistry\\rodeo.jpg",
-//      "H:\\SimiaCryptus\\Artistry\\family.jpg",
-//      "H:\\SimiaCryptus\\Artistry\\monkeydog.jpg",
-//      "H:\\SimiaCryptus\\Artistry\\safari.jpg",
-//      "H:\\SimiaCryptus\\Artistry\\wild-animals-group.jpg",
-//      "H:\\SimiaCryptus\\Artistry\\girl_dog_family.jpg",
-//      "H:\\SimiaCryptus\\Artistry\\chimps\\chip.jpg"
+      "H:\\SimiaCryptus\\Artistry\\cat-and-dog.jpg"
     ).map(img -> {
       try {
         BufferedImage image = ImageIO.read(new File(img));
@@ -279,18 +256,6 @@ public abstract class ObjectLocation {
         throw new RuntimeException(e);
       }
     }).toArray(i -> new Tensor[i][]);
-  }
-  
-  /**
-   * Gets feature vector.
-   *
-   * @param log the log
-   * @return the feature vector
-   */
-  protected Tensor getFeatureVector(@Nonnull final NotebookOutput log) {
-    return log.code(() -> {
-      return new Tensor(1, 1, 4096).setAll(0.0).set(5, 1.0);
-    });
   }
   
   /**
@@ -307,15 +272,15 @@ public abstract class ObjectLocation {
   /**
    * The type Vgg 16.
    */
-  public static class VGG16 extends ObjectLocation {
+  public static class VGG16 extends ObjectLocationBase {
     
     /**
      * The Texture netork.
      */
     
     @Override
-    public ImageClassifier getLocatorNetwork() {
-      ImageClassifier locator;
+    public ImageClassifierBase getLocatorNetwork() {
+      ImageClassifierBase locator;
       try {
         locator = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
@@ -331,8 +296,8 @@ public abstract class ObjectLocation {
     }
     
     @Override
-    public ImageClassifier getClassifierNetwork() {
-      ImageClassifier classifier;
+    public ImageClassifierBase getClassifierNetwork() {
+      ImageClassifierBase classifier;
       try {
         classifier = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
@@ -355,15 +320,15 @@ public abstract class ObjectLocation {
   /**
    * The type Vgg 19.
    */
-  public static class VGG19 extends ObjectLocation {
+  public static class VGG19 extends ObjectLocationBase {
     
     /**
      * The Texture netork.
      */
     
     @Override
-    public ImageClassifier getLocatorNetwork() {
-      ImageClassifier locator;
+    public ImageClassifierBase getLocatorNetwork() {
+      ImageClassifierBase locator;
       try {
         locator = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
           @Override
@@ -379,8 +344,8 @@ public abstract class ObjectLocation {
     }
     
     @Override
-    public ImageClassifier getClassifierNetwork() {
-      ImageClassifier classifier;
+    public ImageClassifierBase getClassifierNetwork() {
+      ImageClassifierBase classifier;
       try {
         classifier = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
           @Override

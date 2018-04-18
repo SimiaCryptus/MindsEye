@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.applications.ImageClassifier;
+import com.simiacryptus.mindseye.applications.ImageClassifierBase;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -32,13 +32,13 @@ import java.io.PrintStream;
 public class VGG16_HDF5_Test extends ImageClassifierTestBase {
   
   @Override
-  public ImageClassifier getImageClassifier(@Nonnull NotebookOutput log) {
+  public ImageClassifierBase getImageClassifier(@Nonnull NotebookOutput log) {
     @Nonnull PrintStream apiLog = new PrintStream(log.file("cuda.log"));
     CudaSystem.addLog(apiLog);
     log.p(log.file((String) null, "cuda.log", "GPU Log"));
     
     return log.code(() -> {
-      @Nonnull ImageClassifier vgg16_hdf5 = VGG16.fromHDF5();
+      @Nonnull ImageClassifierBase vgg16_hdf5 = VGG16.fromHDF5();
       ((HasHDF5) vgg16_hdf5).getHDF5().print();
       return vgg16_hdf5;
     });

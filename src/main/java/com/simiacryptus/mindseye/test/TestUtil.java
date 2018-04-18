@@ -32,6 +32,7 @@ import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
+import com.simiacryptus.util.io.GifSequenceWriter;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.attribute.RankDir;
@@ -762,6 +763,8 @@ public class TestUtil {
    * @param normalize   the normalize
    */
   public static void monitorImage(final Tensor input, final boolean exitOnClose, final int period, final boolean normalize) {
+    if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
+      return;
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
@@ -957,5 +960,35 @@ public class TestUtil {
         .toArray(i -> new StackTraceElement[i]);
     }
     return elements;
+  }
+  
+  private static int gifNumber = 0;
+  
+  /**
+   * Animated gif char sequence.
+   *
+   * @param log    the log
+   * @param images the images
+   * @return the char sequence
+   */
+  public static CharSequence animatedGif(@Nonnull final NotebookOutput log, @Nonnull final BufferedImage... images) {return animatedGif(log, 15000, images);}
+  
+  /**
+   * Animated gif char sequence.
+   *
+   * @param log        the log
+   * @param loopTimeMs the loop time ms
+   * @param images     the images
+   * @return the char sequence
+   */
+  public static CharSequence animatedGif(@Nonnull final NotebookOutput log, final int loopTimeMs, @Nonnull final BufferedImage... images) {
+    try {
+      @Nonnull String filename = gifNumber++ + ".gif";
+      @Nonnull File file = new File(log.getResourceDir(), filename);
+      GifSequenceWriter.write(file, loopTimeMs / images.length, true, images);
+      return String.format("<img src=\"etc/%s\" />", filename);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

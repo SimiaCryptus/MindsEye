@@ -17,8 +17,12 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.applications;
+package com.simiacryptus.mindseye.applications.dev.vgg19;
 
+import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ArtistryData;
+import com.simiacryptus.mindseye.applications.DeepDreamBase;
+import com.simiacryptus.mindseye.applications.TextureGenerationBase;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -37,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The type Style transfer vgg 19.
  */
-public class DreamIndex_VGG19 extends ArtistryAppBase_VGG19 {
+public class DreamIndex extends ArtistryAppBase_VGG19 {
   
   /**
    * Test.
@@ -45,8 +49,8 @@ public class DreamIndex_VGG19 extends ArtistryAppBase_VGG19 {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    TextureGeneration.VGG19 styleTransfer = new TextureGeneration.VGG19();
-    DeepDream.VGG19 deepDream = new DeepDream.VGG19();
+    TextureGenerationBase.VGG19 styleTransfer = new TextureGenerationBase.VGG19();
+    DeepDreamBase.VGG19 deepDream = new DeepDreamBase.VGG19();
     deepDream.setTiled(true);
     init(log);
     Precision precision = Precision.Float;
@@ -54,8 +58,8 @@ public class DreamIndex_VGG19 extends ArtistryAppBase_VGG19 {
     double growthFactor = Math.sqrt(2);
     int iterations = 10;
     int trainingMinutes = 90;
-    
-    for (CharSequence file : picasso) {
+  
+    for (CharSequence file : ArtistryData.CLASSIC_STYLES) {
       log.h2("Image: " + file);
       try {
         log.p(log.image(ImageIO.read(new File(file.toString())), "Input Image"));
@@ -63,15 +67,15 @@ public class DreamIndex_VGG19 extends ArtistryAppBase_VGG19 {
         throw new RuntimeException(e);
       }
       for (final CVPipe_VGG19.Layer layer : CVPipe_VGG19.Layer.values()) {
-        BufferedImage canvas = TextureGeneration.initCanvas(new AtomicInteger(256));
+        BufferedImage canvas = TextureGenerationBase.initCanvas(new AtomicInteger(256));
         log.h2("Layer: " + layer);
-        Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
-        textureStyle.put(Arrays.asList(file), new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        Map<List<CharSequence>, TextureGenerationBase.StyleCoefficients> textureStyle = new HashMap<>();
+        textureStyle.put(Arrays.asList(file), new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
           .set(layer, 1e0, 1e0));
-        canvas = TextureGeneration.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, trainingMinutes, canvas, 1, iterations, server, 0);
-        Map<CVPipe_VGG19.Layer, DeepDream.ContentCoefficients> dreamCoeff = new HashMap<>();
-        dreamCoeff.put(layer, new DeepDream.ContentCoefficients(0, 1e0));
-        canvas = deepDream.deepDream(server, log, canvas, new DeepDream.StyleSetup(precision, canvas, dreamCoeff), trainingMinutes, iterations);
+        canvas = TextureGenerationBase.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, trainingMinutes, canvas, 1, iterations, log.getHttpd(), 0);
+        Map<CVPipe_VGG19.Layer, DeepDreamBase.ContentCoefficients> dreamCoeff = new HashMap<>();
+        dreamCoeff.put(layer, new DeepDreamBase.ContentCoefficients(0, 1e0));
+        canvas = deepDream.deepDream(log.getHttpd(), log, canvas, new DeepDreamBase.StyleSetup(precision, canvas, dreamCoeff), trainingMinutes, iterations);
       }
     }
     

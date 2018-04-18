@@ -17,8 +17,10 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.applications;
+package com.simiacryptus.mindseye.applications.std.vgg19;
 
+import com.simiacryptus.mindseye.applications.ImageClassificationBase;
+import com.simiacryptus.mindseye.applications.ImageClassifierBase;
 import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -28,7 +30,7 @@ import javax.annotation.Nonnull;
  * We load a pretrained convolutional neural network (VGG16) along apply the CalTech101 image dataset to perform a
  * demonstration of Image Recognition.
  */
-public abstract class ImageClassification_VGG19 extends ImageClassificationBase {
+public abstract class ImageClassification extends ImageClassificationBase {
   
   /**
    * Gets target class.
@@ -43,7 +45,7 @@ public abstract class ImageClassification_VGG19 extends ImageClassificationBase 
   /**
    * The type HDF5_JBLAS.
    */
-  public static class HFD5 extends ImageClassification_VGG19 {
+  public static class HFD5 extends ImageClassification {
     
     /**
      * Load model image classifier.
@@ -52,9 +54,9 @@ public abstract class ImageClassification_VGG19 extends ImageClassificationBase 
      * @return the image classifier
      */
     @Override
-    public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
+    public ImageClassifierBase loadModel(@Nonnull final NotebookOutput log) {
       return log.code(() -> {
-        ImageClassifier classifier = VGG19.fromHDF5();
+        ImageClassifierBase classifier = VGG19.fromHDF5();
         classifier.getNetwork();
         return classifier;
       });

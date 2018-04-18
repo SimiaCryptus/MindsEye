@@ -38,12 +38,12 @@ import java.util.Random;
 /**
  * The type Img crop layer apply.
  */
-public abstract class TileCycleLayerTest extends CudaLayerTestBase {
+public abstract class ImgTileCycleLayerTest extends CudaLayerTestBase {
   
   /**
    * Instantiates a new Img crop layer apply.
    */
-  public TileCycleLayerTest() {
+  public ImgTileCycleLayerTest() {
     validateBatchExecution = false;
   }
   
@@ -107,7 +107,7 @@ public abstract class TileCycleLayerTest extends CudaLayerTestBase {
   /**
    * The type Chained.
    */
-  public static class Chained extends TileCycleLayerTest {
+  public static class Chained extends ImgTileCycleLayerTest {
   
     /**
      * Instantiates a new Chained.
@@ -148,6 +148,6 @@ public abstract class TileCycleLayerTest extends CudaLayerTestBase {
   /**
    * Basic Test
    */
-  public static class Basic extends TileCycleLayerTest {
+  public static class Basic extends ImgTileCycleLayerTest {
   }
 }

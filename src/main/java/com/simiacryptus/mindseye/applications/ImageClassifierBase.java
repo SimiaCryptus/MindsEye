@@ -65,12 +65,12 @@ import java.util.stream.IntStream;
 /**
  * The type Image classifier.
  */
-public abstract class ImageClassifier implements NetworkFactory {
+public abstract class ImageClassifierBase implements NetworkFactory {
   
   /**
    * The constant log.
    */
-  protected static final Logger log = LoggerFactory.getLogger(ImageClassifier.class);
+  protected static final Logger log = LoggerFactory.getLogger(ImageClassifierBase.class);
   /**
    * The Network.
    */
@@ -358,7 +358,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @return the batch size
    */
   @Nonnull
-  public ImageClassifier setBatchSize(int batchSize) {
+  public ImageClassifierBase setBatchSize(int batchSize) {
     this.batchSize = batchSize;
     return this;
   }
@@ -424,7 +424,7 @@ public abstract class ImageClassifier implements NetworkFactory {
     });
     log.code(() -> {
       for (Tensor[] tensors : data) {
-        ImageClassifier.log.info(log.image(tensors[0].toImage(), "") + tensors[1]);
+        ImageClassifierBase.log.info(log.image(tensors[0].toImage(), "") + tensors[1]);
       }
     });
     log.code(() -> {

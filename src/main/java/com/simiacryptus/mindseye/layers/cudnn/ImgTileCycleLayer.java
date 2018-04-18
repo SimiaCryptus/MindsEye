@@ -49,15 +49,15 @@ import java.util.Map;
  * color bands.
  */
 @SuppressWarnings("serial")
-public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycleLayer> {
-  private static final Logger log = LoggerFactory.getLogger(TileCycleLayer.class);
+public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTileCycleLayer> {
+  private static final Logger log = LoggerFactory.getLogger(ImgTileCycleLayer.class);
   
   private Precision precision = Precision.Double;
   
   /**
    * Instantiates a new Img concat layer.
    */
-  public TileCycleLayer() {
+  public ImgTileCycleLayer() {
   }
   
   /**
@@ -66,7 +66,7 @@ public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycl
    * @param json the json
    * @param rs   the rs
    */
-  protected TileCycleLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
+  protected ImgTileCycleLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json);
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
@@ -78,8 +78,8 @@ public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycl
    * @param rs   the rs
    * @return the img concat layer
    */
-  public static TileCycleLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
-    return new TileCycleLayer(json, rs);
+  public static ImgTileCycleLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
+    return new ImgTileCycleLayer(json, rs);
   }
   
   /**
@@ -321,7 +321,7 @@ public class TileCycleLayer extends LayerBase implements MultiPrecision<TileCycl
   
   @Nonnull
   @Override
-  public TileCycleLayer setPrecision(final Precision precision) {
+  public ImgTileCycleLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }

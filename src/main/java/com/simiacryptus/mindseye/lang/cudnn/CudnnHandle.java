@@ -607,6 +607,11 @@ public class CudnnHandle extends CudaDevice {
    * @param workSpace            the work space
    * @param workSpaceSizeInBytes the work space size in bytes
    * @param beta                 the beta
+   * @param zDesc                the z desc
+   * @param z                    the z
+   * @param biasDesc             the bias desc
+   * @param bias                 the bias
+   * @param activationDesc       the activation desc
    * @param yDesc                the y desc
    * @param y                    the y
    * @return the int

@@ -418,7 +418,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     log.p("The overall agreement accuracy between the implemented derivative and the finite difference estimations:");
     ToleranceStatistics statistics = _statistics;
     log.code(() -> {
-      //log.info(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toString(inputPrototype), outputPrototype));
+      //log.info(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toStream(inputPrototype), outputPrototype));
       BatchDerivativeTester.log.info(String.format("Finite-Difference Derivative Accuracy:"));
       BatchDerivativeTester.log.info(String.format("absoluteTol: %s", statistics.absoluteTol));
       BatchDerivativeTester.log.info(String.format("relativeTol: %s", statistics.relativeTol));

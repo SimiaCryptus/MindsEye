@@ -61,7 +61,7 @@ public class CudaSettings implements Settings {
     maxIoElements = Settings.get("MAX_IO_ELEMENTS", 2 * CudaMemory.MiB);
     convolutionWorkspaceSizeLimit = Settings.get("CONVOLUTION_WORKSPACE_SIZE_LIMIT", 512 * CudaMemory.MiB);
     disable = Settings.get("DISABLE_CUDNN", false);
-    forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", true);
+    forceSingleGpu = Settings.get("FORCE_SINGLE_GPU", false);
     conv_para_1 = Settings.get("CONV_PARA_1", false);
     conv_para_2 = Settings.get("CONV_PARA_2", false);
     conv_para_3 = Settings.get("CONV_PARA_3", false);
@@ -69,7 +69,7 @@ public class CudaSettings implements Settings {
     logStack = Settings.get("CUDA_LOG_STACK", false);
     profileMemoryIO = Settings.get("CUDA_PROFILE_MEM_IO", false);
     enableManaged = true;
-    asyncFree = true;
+    asyncFree = false;
     syncBeforeFree = true;
     memoryCacheTTL = 5;
     convolutionCache = true;

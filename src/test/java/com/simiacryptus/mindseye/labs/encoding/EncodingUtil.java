@@ -147,38 +147,6 @@ public class EncodingUtil {
   }
   
   /**
-   * Animated gif string.
-   *
-   * @param log              the log
-   * @param baseline         the baseline
-   * @param signedComponents the signed components
-   * @return the string
-   */
-  public static CharSequence animatedGif(@Nonnull final NotebookOutput log, @Nonnull final Tensor baseline, @Nonnull final List<Tensor> signedComponents) {
-    int loopTimeMs = 15000;
-    int framerate = 12;
-    int frames = loopTimeMs * framerate / 1000;
-    try {
-      double step = 2 * Math.PI / frames;
-      @Nonnull String filename = EncodingUtil.gifNumber++ + ".gif";
-      @Nonnull File file = new File(log.getResourceDir(), filename);
-      GifSequenceWriter.write(file, loopTimeMs / frames, true,
-        DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
-          return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
-            return signedComponents.get(i).scale((1 + Math.sin((1 + i) * t)) / 2);
-          }).reduce((a, b) -> {
-            Tensor add = a.addAndFree(b);
-            b.freeRef();
-            return add;
-          }).get().add(baseline).toImage();
-        }).toArray(i -> new BufferedImage[i]));
-      return String.format("<img src=\"etc/%s\" />", filename);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  /**
    * To svg string.
    *
    * @param log              the log
@@ -432,7 +400,7 @@ public class EncodingUtil {
         .collect(Collectors.toList());
       
       row.put("SVG_" + col, log.file(EncodingUtil.decompositionSvg(log, baseline, signedComponents), "svg" + EncodingUtil.svgNumber++ + ".svg", "SVG Composite Image"));
-      row.put("GIF_" + col, EncodingUtil.animatedGif(log, baseline, signedComponents));
+      row.put("GIF_" + col, animatedGif(log, baseline, signedComponents));
   
       @Nonnull final CharSequence render = signedComponents.stream()
         .map(signedContribution -> TestUtil.render(log, signedContribution, true))
@@ -486,6 +454,38 @@ public class EncodingUtil {
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
       return table;
     });
+  }
+  
+  /**
+   * Animated gif string.
+   *
+   * @param log              the log
+   * @param baseline         the baseline
+   * @param signedComponents the signed components
+   * @return the string
+   */
+  public static CharSequence animatedGif(@Nonnull final NotebookOutput log, @Nonnull final Tensor baseline, @Nonnull final List<Tensor> signedComponents) {
+    int loopTimeMs = 15000;
+    int framerate = 12;
+    int frames = loopTimeMs * framerate / 1000;
+    try {
+      double step = 2 * Math.PI / frames;
+      @Nonnull String filename = gifNumber++ + ".gif";
+      @Nonnull File file = new File(log.getResourceDir(), filename);
+      GifSequenceWriter.write(file, loopTimeMs / frames, true,
+        DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
+          return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+            return signedComponents.get(i).scale((1 + Math.sin((1 + i) * t)) / 2);
+          }).reduce((a, b) -> {
+            Tensor add = a.addAndFree(b);
+            b.freeRef();
+            return add;
+          }).get().add(baseline).toImage();
+        }).toArray(i -> new BufferedImage[i]));
+      return String.format("<img src=\"etc/%s\" />", filename);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   private static class ConvolutionExtractor implements ToDoubleFunction<Coordinate> {
