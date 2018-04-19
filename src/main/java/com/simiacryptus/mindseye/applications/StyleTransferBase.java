@@ -95,7 +95,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
    * @return the buffered image
    */
   public BufferedImage styleTransfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
-    return styleTransfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50);
+    return styleTransfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
   }
   
   /**
@@ -108,9 +108,10 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
    * @param trainingMinutes the training minutes
    * @param measureStyle    the measure style
    * @param maxIterations   the max iterations
+   * @param verbose
    * @return the buffered image
    */
-  public BufferedImage styleTransfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations) {
+  public BufferedImage styleTransfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
     BufferedImage result = ArtistryUtil.logExceptionWithDefault(log, () -> {
 //      log.p("Input Content:");
 //      log.p(log.image(styleParameters.contentImage, "Content Image"));
@@ -131,11 +132,14 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
           throw new RuntimeException(e);
         }
       });
-      log.p("Input Parameters:");
-      log.code(() -> {
-        return ArtistryUtil.toJson(styleParameters);
-      });
-      Trainable trainable = log.code(() -> {
+      if (verbose) {
+        log.p("Input Parameters:");
+        log.code(() -> {
+          return ArtistryUtil.toJson(styleParameters);
+        });
+      }
+      NotebookOutput trainingLog = verbose ? log : new NullNotebookOutput();
+      Trainable trainable = trainingLog.code(() -> {
         PipelineNetwork network = fitnessNetwork(measureStyle);
         network.setFrozen(true);
         ArtistryUtil.setPrecision(network, styleParameters.precision);
@@ -147,7 +151,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
         return trainable1;
       });
       try {
-        log.code(() -> {
+        trainingLog.code(() -> {
           @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
           new IterativeTrainer(trainable)
             .setMonitor(TestUtil.getMonitor(history))
@@ -173,7 +177,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
       }
       return canvas.toImage();
     }, canvasImage);
-    log.p("Output Canvas:");
+    log.p("Result:");
     log.p(log.image(result, "Output Canvas"));
     return result;
   }

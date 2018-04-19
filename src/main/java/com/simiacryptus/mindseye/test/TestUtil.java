@@ -86,6 +86,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.LongToIntFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -990,5 +991,35 @@ public class TestUtil {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  public static void writeGif(@Nonnull final NotebookOutput log, final Stream<BufferedImage> imageStream) {
+    BufferedImage[] imgs = imageStream.toArray(i -> new BufferedImage[i]);
+    log.p("Animated Sequence:");
+    log.p(animatedGif(log, imgs));
+  }
+  
+  @Nonnull
+  public static <K, V> Map<K, V> map(Consumer<Map<K, V>> configure) {
+    Map<K, V> map = new HashMap<>();
+    configure.accept(map);
+    return map;
+  }
+  
+  @Nonnull
+  public static Supplier<DoubleStream> geometricStream(final double start, final double end, final int steps) {
+    double step = Math.pow(end / start, 1.0 / steps);
+    return () -> DoubleStream.iterate(start, x -> x * step).limit(steps);
+  }
+  
+  @Nonnull
+  public static Supplier<DoubleStream> arithmeticStream(final double start, final double end, final int steps) {
+    double step = Math.pow(end - start, 1.0 / steps);
+    return () -> DoubleStream.iterate(start, x -> x + step).limit(steps);
+  }
+  
+  @Nonnull
+  public static Supplier<DoubleStream> constantStream(final double... values) {
+    return () -> Arrays.stream(values);
   }
 }
