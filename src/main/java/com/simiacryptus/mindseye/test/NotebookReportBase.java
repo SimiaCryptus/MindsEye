@@ -106,7 +106,7 @@ public abstract class NotebookReportBase {
    */
   @Nonnull
   public static NotebookOutput getLog(final File reportLocation) {
-    return MarkdownNotebookOutput.get(reportLocation, TestSettings.INSTANCE.codeUrl);
+    return MarkdownNotebookOutput.get(reportLocation, TestSettings.INSTANCE.autobrowse);
   }
   
   /**

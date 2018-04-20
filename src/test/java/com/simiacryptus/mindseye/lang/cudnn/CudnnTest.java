@@ -63,10 +63,10 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void allocationOverflow(@Nonnull NotebookOutput log) {
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
-    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-    CudaSystem.addLog(apiLog);
-    log.p(log.file((String) null, logName, "GPU Log"));
+//    @Nonnull String logName = "cuda_" + log.getName() + ".log";
+//    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
+//    CudaSystem.addLog(apiLog);
+//    log.p(log.file((String) null, logName, "GPU Log"));
     CudnnHandle.forEach(gpu -> {
       log.h1("Device " + gpu.getDeviceId() + ": " + CudaDevice.getDeviceName(gpu.getDeviceId()));
       try {
@@ -90,7 +90,7 @@ public class CudnnTest extends NotebookReportBase {
         System.gc();
       }
     });
-    CudaSystem.removeLog(apiLog);
+//    CudaSystem.removeLog(apiLog);
   }
   
   /**
@@ -102,10 +102,10 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void memoryTransfer(@Nonnull NotebookOutput log) {
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
-    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-    CudaSystem.addLog(apiLog);
-    log.p(log.file((String) null, logName, "GPU Log"));
+//    @Nonnull String logName = "cuda_" + log.getName() + ".log";
+//    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
+//    CudaSystem.addLog(apiLog);
+//    log.p(log.file((String) null, logName, "GPU Log"));
     int _size = 8;
     for (int i = 0; i < 10; i++) {
       int size = _size;
@@ -114,7 +114,7 @@ public class CudnnTest extends NotebookReportBase {
       if (_size < 0) break;
       if (size > 512 * 1024 * 1204) break;
     }
-    CudaSystem.removeLog(apiLog);
+//    CudaSystem.removeLog(apiLog);
   }
   
   private void memoryTransfer(@Nonnull NotebookOutput log, int... size) {
@@ -168,10 +168,10 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void tensorLists(@Nonnull NotebookOutput log) {
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
-    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-    CudaSystem.addLog(apiLog);
-    log.p(log.file((String) null, logName, "GPU Log"));
+//    @Nonnull String logName = "cuda_" + log.getName() + ".log";
+//    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
+//    CudaSystem.addLog(apiLog);
+//    log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
     for (int i = 0; i < 18; i++) {
       log.out("Loop " + i);
@@ -183,7 +183,7 @@ public class CudnnTest extends NotebookReportBase {
       if (size < 0) break;
       if (size > memoryLoadCoeff * 256 * 1024 * 1204) break;
     }
-    CudaSystem.removeLog(apiLog);
+//    CudaSystem.removeLog(apiLog);
   }
   
   private void testTensorList(@Nonnull NotebookOutput log, @Nonnull int[] dimensions, int length, double tolerance, int accumulations) {
@@ -281,10 +281,10 @@ public class CudnnTest extends NotebookReportBase {
   }
   
   private void tensorLists_multithreaded(@Nonnull NotebookOutput log) {
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
-    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-    CudaSystem.addLog(apiLog);
-    log.p(log.file((String) null, logName, "GPU Log"));
+//    @Nonnull String logName = "cuda_" + log.getName() + ".log";
+//    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
+//    CudaSystem.addLog(apiLog);
+//    log.p(log.file((String) null, logName, "GPU Log"));
     int size = 8;
     for (int i = 0; i < 12; i++) {
       log.out("Loop " + i);
@@ -296,7 +296,7 @@ public class CudnnTest extends NotebookReportBase {
       if (size < 0) break;
       if (size > memoryLoadCoeff * 128 * 1024 * 1204) break;
     }
-    CudaSystem.removeLog(apiLog);
+//    CudaSystem.removeLog(apiLog);
   }
   
   private void testTensorListMT(@Nonnull NotebookOutput log, @Nonnull int[] dimensions, int length, double tolerance, int accumulations) {

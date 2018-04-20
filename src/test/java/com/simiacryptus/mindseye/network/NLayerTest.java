@@ -155,7 +155,7 @@ public abstract class NLayerTest {
    */
   @Test
   public void test() throws Throwable {
-    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(NotebookReportBase.getTestReportLocation(((Object) this).getClass()), null)) {
+    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(NotebookReportBase.getTestReportLocation(((Object) this).getClass()), false)) {
       test(log);
     }
   }

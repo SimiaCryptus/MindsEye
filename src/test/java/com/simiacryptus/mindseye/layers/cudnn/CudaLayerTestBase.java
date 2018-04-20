@@ -33,7 +33,6 @@ import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.PrintStream;
 import java.util.ArrayList;
 
 /**
@@ -57,17 +56,17 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
   
   @Override
   public void run(NotebookOutput log) {
-    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
-    log.p(log.file((String) null, logName, "GPU Log"));
-    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
-    CudaSystem.addLog(apiLog);
+//    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+//    log.p(log.file((String) null, logName, "GPU Log"));
+//    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
+//    CudaSystem.addLog(apiLog);
     super.run(log);
     log.p("CudaSystem Statistics:");
     log.code(() -> {
       return TestUtil.toFormattedJson(CudaSystem.getExecutionStatistics());
     });
-    apiLog.close();
-    CudaSystem.apiLog.remove(apiLog);
+//    apiLog.close();
+//    CudaSystem.apiLog.remove(apiLog);
   }
   
   @Nullable
@@ -83,18 +82,18 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
       
       @Override
       public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
-        @Nullable PrintStream apiLog = null;
+//        @Nullable PrintStream apiLog = null;
         try {
-          @Nonnull String logName = "cuda_" + log.getName() + "_io.log";
-          log.p(log.file((String) null, logName, "GPU Log"));
-          apiLog = new PrintStream(log.file(logName));
-          CudaSystem.addLog(apiLog);
+//          @Nonnull String logName = "cuda_" + log.getName() + "_io.log";
+//          log.p(log.file((String) null, logName, "GPU Log"));
+//          apiLog = new PrintStream(log.file(logName));
+//          CudaSystem.addLog(apiLog);
           return inner.test(log, component, inputPrototype);
         } finally {
-          if (null != apiLog) {
-            apiLog.close();
-            CudaSystem.apiLog.remove(apiLog);
-          }
+//          if (null != apiLog) {
+//            apiLog.close();
+//            CudaSystem.apiLog.remove(apiLog);
+//          }
         }
       }
     };
@@ -114,18 +113,18 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
       
       @Override
       public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
-        @Nullable PrintStream apiLog = null;
+//        @Nullable PrintStream apiLog = null;
         try {
-          @Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
-          log.p(log.file((String) null, logName, "GPU Log"));
-          apiLog = new PrintStream(log.file(logName));
-          CudaSystem.addLog(apiLog);
+//          @Nonnull String logName = "cuda_" + log.getName() + "_perf.log";
+//          log.p(log.file((String) null, logName, "GPU Log"));
+//          apiLog = new PrintStream(log.file(logName));
+//          CudaSystem.addLog(apiLog);
           return inner.test(log, component, inputPrototype);
         } finally {
-          if (null != apiLog) {
-            apiLog.close();
-            CudaSystem.apiLog.remove(apiLog);
-          }
+//          if (null != apiLog) {
+//            apiLog.close();
+//            CudaSystem.apiLog.remove(apiLog);
+//          }
         }
       }
     };

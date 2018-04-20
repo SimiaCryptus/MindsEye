@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
@@ -31,7 +30,6 @@ import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.PrintStream;
 import java.util.Random;
 
 
@@ -82,17 +80,17 @@ public abstract class ImgTileCycleLayerTest extends CudaLayerTestBase {
     return new ComponentTestBase<ToleranceStatistics>() {
       @Override
       public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
-        @Nullable PrintStream apiLog = null;
+//        @Nullable PrintStream apiLog = null;
         try {
-          apiLog = new PrintStream(log.file("cuda_perf.log"));
-          CudaSystem.addLog(apiLog);
+//          apiLog = new PrintStream(log.file("cuda_perf.log"));
+//          CudaSystem.addLog(apiLog);
           return inner.test(log, component, inputPrototype);
         } finally {
-          log.p(log.file((String) null, "cuda_perf.log", "GPU Log"));
-          if (null != apiLog) {
-            apiLog.close();
-            CudaSystem.apiLog.remove(apiLog);
-          }
+//          log.p(log.file((String) null, "cuda_perf.log", "GPU Log"));
+//          if (null != apiLog) {
+//            apiLog.close();
+//            CudaSystem.apiLog.remove(apiLog);
+//          }
         }
       }
       

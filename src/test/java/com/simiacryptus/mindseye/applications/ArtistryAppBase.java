@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -82,8 +81,8 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
     //server.dataReciever
     //server.init();
     //server.start();
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
-    log.p(log.file((String) null, logName, "GPU Log"));
-    CudaSystem.addLog(new PrintStream(log.file(logName)));
+//    @Nonnull String logName = "cuda_" + log.getName() + ".log";
+//    log.p(log.file((String) null, logName, "GPU Log"));
+//    CudaSystem.addLog(new PrintStream(log.file(logName)));
   }
 }

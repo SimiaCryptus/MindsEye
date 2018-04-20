@@ -1022,4 +1022,9 @@ public class TestUtil {
   public static Supplier<DoubleStream> constantStream(final double... values) {
     return () -> Arrays.stream(values);
   }
+  
+  public static void browse(final URI uri) throws IOException {
+    if (!GraphicsEnvironment.isHeadless() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
+      Desktop.getDesktop().browse(uri);
+  }
 }

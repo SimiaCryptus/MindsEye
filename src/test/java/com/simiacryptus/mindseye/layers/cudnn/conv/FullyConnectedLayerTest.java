@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers.cudnn.conv;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.cudnn.CudaLayerTestBase;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
@@ -30,7 +29,6 @@ import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.PrintStream;
 import java.util.Random;
 
 /**
@@ -102,9 +100,9 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
   
   @Override
   public void run(NotebookOutput log) {
-    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
-    log.p(log.file((String) null, logName, "GPU Log"));
-    CudaSystem.addLog(new PrintStream(log.file(logName)));
+//    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
+//    log.p(log.file((String) null, logName, "GPU Log"));
+//    CudaSystem.addLog(new PrintStream(log.file(logName)));
     super.run(log);
   }
   
