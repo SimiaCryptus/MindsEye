@@ -178,7 +178,7 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
         contentCoefficients, create(y -> y.putAll(styles.keySet().stream().flatMap(x -> x.stream())
         .collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))))), styles);
       canvasImage = styleTransfer.styleTransfer(log.getHttpd(), log, canvasImage, styleSetup,
-        trainingMinutes, styleTransfer.measureStyle(styleSetup), maxIterations);
+        trainingMinutes, styleTransfer.measureStyle(styleSetup), maxIterations, true);
     }
     return canvasImage;
   }

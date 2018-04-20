@@ -34,15 +34,13 @@ public class TestSettings implements Settings {
    * The Tag.
    */
   public final String tag;
-  /**
-   * The Code url.
-   */
-  public CharSequence codeUrl;
+  
+  public boolean autobrowse;
   
   private TestSettings() {
     if (CudaSettings.INSTANCE == null) throw new RuntimeException();
     tag = Settings.get("GIT_TAG", "master");
-    codeUrl = "https://github.com/SimiaCryptus/MindsEye/tree/" + tag + "/src/";
+    autobrowse = false;
   }
   
 }

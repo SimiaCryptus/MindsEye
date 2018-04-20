@@ -176,7 +176,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   /**
    * Assert alive.
    */
-  public final boolean assertAlive() {
+  public boolean assertAlive() {
     if (isFinalized) {
       throw new LifecycleException(this);
     }

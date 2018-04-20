@@ -25,7 +25,6 @@ import com.simiacryptus.mindseye.lang.MutableResult;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
@@ -49,7 +48,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -72,9 +70,9 @@ public abstract class ObjectLocationBase {
    * @param log the log
    */
   public void run(@Nonnull final NotebookOutput log) {
-    @Nonnull String logName = "cuda_" + log.getName() + ".log";
-    log.p(log.file((String) null, logName, "GPU Log"));
-    CudaSystem.addLog(new PrintStream(log.file(logName)));
+//    @Nonnull String logName = "cuda_" + log.getName() + ".log";
+//    log.p(log.file((String) null, logName, "GPU Log"));
+//    CudaSystem.addLog(new PrintStream(log.file(logName)));
   
     ImageClassifierBase classifier = getClassifierNetwork();
     Layer classifyNetwork = classifier.getNetwork();

@@ -20,11 +20,9 @@
 package com.simiacryptus.mindseye.models;
 
 import com.simiacryptus.mindseye.applications.ImageClassifierBase;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
-import java.io.PrintStream;
 
 /**
  * The Keras Zoo contains a deep CNN called VGG16 which is designed to classify images. Import it from an HDF5 file.
@@ -33,10 +31,9 @@ public class VGG19_HDF5_Test extends ImageClassifierTestBase {
   
   @Override
   public ImageClassifierBase getImageClassifier(@Nonnull NotebookOutput log) {
-    @Nonnull PrintStream apiLog = new PrintStream(log.file("cuda.log"));
-    CudaSystem.addLog(apiLog);
-    log.p(log.file((String) null, "cuda.log", "GPU Log"));
-    
+//    @Nonnull PrintStream apiLog = new PrintStream(log.file("cuda.log"));
+//    CudaSystem.addLog(apiLog);
+//    log.p(log.file((String) null, "cuda.log", "GPU Log"));
     return log.code(() -> {
       @Nonnull ImageClassifierBase vgg19_hdf5 = VGG19.fromHDF5();
       ((HasHDF5) vgg19_hdf5).getHDF5().print();

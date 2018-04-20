@@ -54,7 +54,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -122,7 +124,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
     measureStyle = styleTransfer.measureStyle(styleSetup);
     
     canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations);
+    canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     for (int i = 1; i < phases; i++) {
       imageSize *= growthFactor;
       styleSize *= growthFactor;
@@ -139,7 +141,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
       measureStyle = styleTransfer.measureStyle(styleSetup);
   
       canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-      canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations);
+      canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     }
     return canvasImage;
   }
@@ -165,7 +167,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    * @return the buffered image
    */
   public BufferedImage generate(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
-    return generate(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50);
+    return generate(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
   }
   
   /**
@@ -178,13 +180,22 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    * @param trainingMinutes the training minutes
    * @param measureStyle    the measure style
    * @param maxIterations   the max iterations
+   * @param verbose
    * @return the buffered image
    */
-  public BufferedImage generate(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations) {
+  public BufferedImage generate(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
     BufferedImage result = ArtistryUtil.logExceptionWithDefault(log, () -> {
       System.gc();
       Tensor canvas = Tensor.fromRGB(canvasImage);
       TestUtil.monitorImage(canvas, false, false);
+      log.p("<a href=\"/image.jpg\">Current Image</a>");
+      log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
+        try {
+          ImageIO.write(canvas.toImage(), "jpeg", r);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
       log.p("Input Parameters:");
       log.code(() -> {
         return ArtistryUtil.toJson(styleParameters);
@@ -195,7 +206,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
       TestUtil.instrumentPerformance(network);
       if (null != server) ArtistryUtil.addLayersHandler(network, server);
       if (tiled) network = ArtistryUtil.tileCycle(network);
-      train(log, canvas, network, trainingMinutes, maxIterations);
+      train(verbose ? log : new NullNotebookOutput(), canvas, network, trainingMinutes, maxIterations);
       return canvas.toImage();
     }, canvasImage);
     log.p("Result:");
@@ -213,8 +224,8 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    * @param maxIterations   the max iterations
    */
   public void train(@Nonnull final NotebookOutput log, final Tensor canvas, final PipelineNetwork network, final int trainingMinutes, final int maxIterations) {
-    Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
     log.code(() -> {
+      Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
         .setMonitor(TestUtil.getMonitor(history))
@@ -513,31 +524,6 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
     @Nonnull
     public CVPipe_VGG19.Layer[] getLayerTypes() {
       return CVPipe_VGG19.Layer.values();
-    }
-    
-  }
-  
-  /**
-   * The type Content coefficients.
-   *
-   * @param <T> the type parameter
-   */
-  public static class ContentCoefficients<T extends LayerEnum<T>> {
-    /**
-     * The Params.
-     */
-    public final Map<T, Double> params = new HashMap<>();
-  
-    /**
-     * Set content coefficients.
-     *
-     * @param l the l
-     * @param v the v
-     * @return the content coefficients
-     */
-    public ContentCoefficients set(final T l, final double v) {
-      params.put(l, v);
-      return this;
     }
     
   }

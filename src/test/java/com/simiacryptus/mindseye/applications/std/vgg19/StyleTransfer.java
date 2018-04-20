@@ -82,7 +82,7 @@ public class StyleTransfer extends ArtistryAppBase_VGG19 {
     styleSetup = new StyleTransferBase.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
   
     StyleTransferBase.NeuralSetup measureStyle = styleTransfer.measureStyle(styleSetup);
-    canvasImage = styleTransfer.styleTransfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations);
+    canvasImage = styleTransfer.styleTransfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     for (int i = 1; i < phases; i++) {
       log.h1("Phase " + i);
       imageSize.set((int) (imageSize.get() * growthFactor));
@@ -91,8 +91,8 @@ public class StyleTransfer extends ArtistryAppBase_VGG19 {
       styleImages.clear();
       styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))));
       styleSetup = new StyleTransferBase.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
-    
-      canvasImage = styleTransfer.styleTransfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations);
+  
+      canvasImage = styleTransfer.styleTransfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     }
     log.setFrontMatterProperty("status", "OK");
   }
