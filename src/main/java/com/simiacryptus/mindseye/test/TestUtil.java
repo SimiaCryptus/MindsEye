@@ -399,7 +399,7 @@ public class TestUtil {
    */
   public static PlotCanvas plot(@Nonnull final List<StepRecord> history) {
     try {
-      final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
+      final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).summaryStatistics();
       double min = valueStats.getMin();
       if (0 < min) {
         double[][] data = history.stream().map(step -> new double[]{
