@@ -106,6 +106,8 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   public Tensor(@Nullable final double[] data, @Nonnull final int... dims) {
     if (Tensor.length(dims) > Integer.MAX_VALUE) throw new IllegalArgumentException();
+    if (null != data && Tensor.length(dims) != data.length)
+      throw new IllegalArgumentException(Arrays.toString(dims) + " != " + data.length);
     dimensions = (null == dims || 0 == dims.length) ? new int[]{data.length} : Arrays.copyOf(dims, dims.length);
     strides = Tensor.getSkips(dims);
     //this.data = data;// Arrays.copyOf(data, data.length);

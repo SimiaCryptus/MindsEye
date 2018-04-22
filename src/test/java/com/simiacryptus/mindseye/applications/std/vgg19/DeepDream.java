@@ -52,9 +52,7 @@ public class DeepDream extends ArtistryAppBase_VGG19 {
   
     Map<CVPipe_VGG19.Layer, DeepDreamBase.ContentCoefficients> dreamCoeff = new HashMap<>();
     dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1d, new DeepDreamBase.ContentCoefficients(0, 1e-1));
-//    dreamCoeff.put(CVPipe_VGG19.Layer.Layer_1e, new ContentCoefficients(0, 1e0));
     dreamCoeff.put(CVPipe_VGG19.Layer.Layer_2b, new DeepDreamBase.ContentCoefficients(0, 1e0));
-    //dreamCoeff.put(CVPipe_VGG19.Layer.Layer_3a, new DeepDreamBase.ContentCoefficients(0, 1e1));
     int trainingMinutes = 90;
     int maxIterations = 10;
     
@@ -64,7 +62,7 @@ public class DeepDream extends ArtistryAppBase_VGG19 {
     //canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
     BufferedImage contentImage = ArtistryUtil.load(source, canvasImage.getWidth(), canvasImage.getHeight());
-    dreamBase.deepDream(log.getHttpd(), log, canvasImage, new DeepDreamBase.StyleSetup(precision, contentImage, dreamCoeff), trainingMinutes, maxIterations);
+    dreamBase.deepDream(log.getHttpd(), log, canvasImage, new DeepDreamBase.StyleSetup(precision, contentImage, dreamCoeff), trainingMinutes, maxIterations, true);
     
     log.setFrontMatterProperty("status", "OK");
   }

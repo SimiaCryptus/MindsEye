@@ -75,7 +75,7 @@ public class DreamIndex extends ArtistryAppBase_VGG19 {
         canvas = TextureGenerationBase.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, trainingMinutes, canvas, 1, iterations, log.getHttpd(), 0);
         Map<CVPipe_VGG19.Layer, DeepDreamBase.ContentCoefficients> dreamCoeff = new HashMap<>();
         dreamCoeff.put(layer, new DeepDreamBase.ContentCoefficients(0, 1e0));
-        canvas = deepDream.deepDream(log.getHttpd(), log, canvas, new DeepDreamBase.StyleSetup(precision, canvas, dreamCoeff), trainingMinutes, iterations);
+        canvas = deepDream.deepDream(log.getHttpd(), log, canvas, new DeepDreamBase.StyleSetup(precision, canvas, dreamCoeff), trainingMinutes, iterations, true);
       }
     }
     

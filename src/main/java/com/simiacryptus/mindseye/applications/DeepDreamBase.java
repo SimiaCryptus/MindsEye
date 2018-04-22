@@ -50,7 +50,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -79,7 +81,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
    */
   @Nonnull
   public BufferedImage deepDream(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
-    return deepDream(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, 50);
+    return deepDream(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, 50, true);
   }
   
   /**
@@ -91,33 +93,20 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
    * @param maxIterations   the max iterations
+   * @param verbose
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage deepDream(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final int maxIterations) {
+  public BufferedImage deepDream(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final int maxIterations, final boolean verbose) {
     PipelineNetwork network = fitnessNetwork(processStats(styleParameters));
     log.p("Input Parameters:");
     log.code(() -> {
       return ArtistryUtil.toJson(styleParameters);
     });
-    BufferedImage result = train(server, log, canvasImage, network, styleParameters.precision, trainingMinutes, maxIterations);
+    BufferedImage result = train(server, verbose ? log : new NullNotebookOutput(), canvasImage, network, styleParameters.precision, trainingMinutes, maxIterations);
     log.p("Result:");
     log.p(log.image(result, "Result"));
     return result;
-  }
-  
-  /**
-   * Train buffered image.
-   *
-   * @param canvasImage     the canvas image
-   * @param network         the network
-   * @param precision       the precision
-   * @param trainingMinutes the training minutes
-   * @return the buffered image
-   */
-  @Nonnull
-  public BufferedImage train(final BufferedImage canvasImage, final PipelineNetwork network, final Precision precision, final int trainingMinutes) {
-    return train(null, new NullNotebookOutput(), canvasImage, network, precision, trainingMinutes, 50);
   }
   
   /**
@@ -136,6 +125,14 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
   public BufferedImage train(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, PipelineNetwork network, final Precision precision, final int trainingMinutes, final int maxIterations) {
     System.gc();
     Tensor canvas = Tensor.fromRGB(canvasImage);
+    log.p("<a href=\"/image.jpg\">Current Image</a>");
+    log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
+      try {
+        ImageIO.write(canvas.toImage(), "jpeg", r);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
     TestUtil.monitorImage(canvas, false, false);
     network.setFrozen(true);
     ArtistryUtil.setPrecision(network, precision);
@@ -156,7 +153,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param maxIterations   the max iterations
    */
   public void train(@Nonnull final NotebookOutput log, final PipelineNetwork network, final Tensor canvas, final int trainingMinutes, final int maxIterations) {
-    @Nonnull Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+    @Nonnull Trainable trainable = getTrainable(network, canvas);
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
@@ -179,6 +176,11 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
     });
   }
   
+  @Nonnull
+  public Trainable getTrainable(final PipelineNetwork network, final Tensor canvas) {
+    return new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+  }
+  
   /**
    * Measure style neural setup.
    *
@@ -192,8 +194,11 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
     for (final T layerType : getLayerTypes()) {
       System.gc();
       final PipelineNetwork network = layerType.texture();
-      self.contentTarget.content.put(layerType, network.eval(contentInput).getDataAndFree().getAndFree(0));
-      logger.info(String.format("target_content_%s=%s", layerType.name(), self.contentTarget.content.get(layerType).prettyPrint()));
+      ContentCoefficients contentCoefficients = style.coefficients.get(layerType);
+      if (null != contentCoefficients && 0 != contentCoefficients.rms) {
+        self.contentTarget.content.put(layerType, network.eval(contentInput).getDataAndFree().getAndFree(0));
+        logger.info(String.format("target_content_%s=%s", layerType.name(), self.contentTarget.content.get(layerType).prettyPrint()));
+      }
     }
     return self;
   }
@@ -251,13 +256,23 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
     for (final T layerType : getLayerTypes()) {
       final DAGNode node = nodeMap.get(layerType);
       if (setup.style.coefficients.containsKey(layerType)) {
-        final double coeff_content = setup.style.coefficients.get(layerType).rms;
         DAGNetwork network = node.getNetwork();
-        contentComponents.add(new Tuple2<>(coeff_content, network.wrap(new MeanSqLossLayer(),
-          node, network.wrap(new ValueLayer(setup.contentTarget.content.get(layerType))))));
+        final double coeff_content = setup.style.coefficients.get(layerType).rms;
+        if (0 != coeff_content) {
+          Tensor contentSignal = setup.contentTarget.content.get(layerType);
+          if (contentSignal != null) {
+            contentComponents.add(new Tuple2<>(coeff_content, network.wrap(new MeanSqLossLayer(),
+              node, network.wrap(new ValueLayer(contentSignal)))));
+          }
+          else {
+            logger.info("No content signal for " + layerType);
+          }
+        }
         final double coeff_gain = setup.style.coefficients.get(layerType).gain;
-        contentComponents.add(new Tuple2<>(-coeff_gain, network.wrap(new AvgReducerLayer(),
-          network.wrap(new SquareActivationLayer(), node))));
+        if (0 != coeff_gain) {
+          contentComponents.add(new Tuple2<>(-coeff_gain, network.wrap(new AvgReducerLayer(),
+            network.wrap(new SquareActivationLayer(), node))));
+        }
       }
     }
     return contentComponents;

@@ -104,7 +104,8 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   public Result evalAndFree(@Nonnull final Result... inObj) {
     assert 1 == inObj.length;
     Result input = inObj[0];
-    @Nonnull final int[] inputDims = input.getData().getDimensions();
+    final TensorList inputData = input.getData();
+    @Nonnull final int[] inputDims = inputData.getDimensions();
     assert 3 == inputDims.length;
     int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
     int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
@@ -115,6 +116,8 @@ public class ImgTileSubnetLayer extends WrapperLayer {
     AtomicInteger passbacks = new AtomicInteger(0);
     for (int row = 0; row < rows; row++) {
       for (int col = 0; col < cols; col++) {
+        input.addRef();
+        inputData.addRef();
         int positionX = col * strideX;
         int positionY = row * strideY;
         assert positionX >= 0;
@@ -122,17 +125,17 @@ public class ImgTileSubnetLayer extends WrapperLayer {
         assert positionX < inputDims[0];
         assert positionY < inputDims[1];
         final int finalIndex = index;
-        Result selectedTile = new ImgTileSelectLayer(width, height, positionX, positionY).eval(new Result(input.getData(), (ctx, delta) -> {
+        Result selectedTile = new ImgTileSelectLayer(width, height, positionX, positionY).evalAndFree(new Result(inputData, (ctx, delta) -> {
           passback[finalIndex] = delta;
           if (passbacks.incrementAndGet() == rows * cols) {
             passbacks.set(0);
             TensorList reassembled = new ImgTileAssemblyLayer(cols, rows).evalAndFree(Arrays.stream(passback).map(t -> new Result(t, (c2, d2) -> {})).toArray(i -> new Result[i])).getDataAndFree();
-            inObj[0].accumulate(ctx, reassembled);
+            input.accumulate(ctx, reassembled);
           }
         }) {
           @Override
           protected void _free() {
-            inObj[0].freeRef();
+            input.freeRef();
             super._free();
           }
         });
@@ -140,7 +143,8 @@ public class ImgTileSubnetLayer extends WrapperLayer {
         index = index + 1;
       }
     }
-    inObj[0].getData().freeRef();
+    input.freeRef();
+    inputData.freeRef();
     return new ImgTileAssemblyLayer(cols, rows).eval(results);
   }
   

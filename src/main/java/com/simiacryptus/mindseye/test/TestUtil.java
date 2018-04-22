@@ -400,18 +400,33 @@ public class TestUtil {
   public static PlotCanvas plot(@Nonnull final List<StepRecord> history) {
     try {
       final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
-      double[][] data = history.stream().map(step -> new double[]{
-        step.iteration, Math.log10(Math.max(valueStats.getMin(), step.fitness))})
-        .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
-        .toArray(i -> new double[i][]);
-      if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0) return null;
-      @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
-      plot.setTitle("Convergence Plot");
-      plot.setAxisLabels("Iteration", "log10(Fitness)");
-      plot.setSize(600, 400);
-      return plot;
+      double min = valueStats.getMin();
+      if (0 < min) {
+        double[][] data = history.stream().map(step -> new double[]{
+          step.iteration, Math.log10(Math.max(min, step.fitness))})
+          .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+          .toArray(i -> new double[i][]);
+        if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0) return null;
+        @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
+        plot.setTitle("Convergence Plot");
+        plot.setAxisLabels("Iteration", "log10(Fitness)");
+        plot.setSize(600, 400);
+        return plot;
+      }
+      else {
+        double[][] data = history.stream().map(step -> new double[]{
+          step.iteration, step.fitness})
+          .filter(x -> Arrays.stream(x).allMatch(Double::isFinite))
+          .toArray(i -> new double[i][]);
+        if (Arrays.stream(data).mapToInt(x -> x.length).sum() == 0) return null;
+        @Nonnull final PlotCanvas plot = ScatterPlot.plot(data);
+        plot.setTitle("Convergence Plot");
+        plot.setAxisLabels("Iteration", "Fitness");
+        plot.setSize(600, 400);
+        return plot;
+      }
     } catch (@Nonnull final Exception e) {
-      e.printStackTrace(System.out);
+      log.warn("Error plotting", e);
       return null;
     }
   }
@@ -1008,7 +1023,7 @@ public class TestUtil {
   
   @Nonnull
   public static Supplier<DoubleStream> geometricStream(final double start, final double end, final int steps) {
-    double step = Math.pow(end / start, 1.0 / steps);
+    double step = Math.pow(end / start, 1.0 / (steps - 1));
     return () -> DoubleStream.iterate(start, x -> x * step).limit(steps);
   }
   

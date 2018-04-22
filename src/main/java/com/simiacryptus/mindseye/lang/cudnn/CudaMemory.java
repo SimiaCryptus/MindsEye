@@ -394,8 +394,8 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the cuda memory
    */
   public CudaMemory withByteOffset(final int byteOffset) {
-    if (size <= byteOffset) throw new IllegalArgumentException();
-    if (0 > byteOffset) throw new IllegalArgumentException();
+    if (size <= byteOffset) throw new IllegalArgumentException(size + " <= " + byteOffset);
+    if (0 > byteOffset) throw new IllegalArgumentException(Integer.toString(byteOffset));
     assertAlive();
     final CudaMemory baseMemorySegment = this;
     baseMemorySegment.addRef();

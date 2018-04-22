@@ -94,6 +94,7 @@ public class ValueLayer extends LayerBase {
    * @return the cuda tensor list
    */
   public CudaTensorList toDevice(final Tensor data, final Precision precision) {
+    if (null == data) return null;
     return CudaSystem.run(gpu -> {
       CudaMemory cudaMemory = gpu.allocate(data.length() * precision.size, MemoryType.Managed, true);
       cudaMemory.write(precision, data.getData());
