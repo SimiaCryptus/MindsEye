@@ -73,11 +73,11 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     Future<Tensor[][]> submit = Executors.newSingleThreadExecutor()
       .submit(() -> Arrays.stream(EncodingUtil.getImages(log, img -> {
         return img;
-//        return TestUtil.resize(img, 224, 224);
+//        return TestUtil.maximumSize(img, 224, 224);
 //        if(img.getWidth()>img.getHeight()) {
-//          return TestUtil.resize(img, 224, img.getHeight() * 224 / img.getWidth());
+//          return TestUtil.maximumSize(img, 224, img.getHeight() * 224 / img.getWidth());
 //        } else {
-//          return TestUtil.resize(img, img.getWidth() * 224 / img.getHeight(), 224);
+//          return TestUtil.maximumSize(img, img.getWidth() * 224 / img.getHeight(), 224);
 //        }
       }, 10, new CharSequence[]{}))
         .toArray(i -> new Tensor[i][]));

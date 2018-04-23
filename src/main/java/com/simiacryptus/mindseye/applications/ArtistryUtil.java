@@ -37,6 +37,7 @@ import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.AvgReducerLayer;
+import com.simiacryptus.mindseye.layers.java.ImgTileSubnetLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
@@ -440,9 +441,7 @@ public class ArtistryUtil {
    */
   @Nonnull
   public static BufferedImage load(final CharSequence image, final int imageSize) {
-    BufferedImage bufferedImage = HadoopUtil.getImage(image);
-    bufferedImage = TestUtil.resize(bufferedImage, imageSize, true);
-    return bufferedImage;
+    return TestUtil.resize(HadoopUtil.getImage(image), imageSize, true);
   }
   
   /**
@@ -468,10 +467,18 @@ public class ArtistryUtil {
    * @return the pipeline network
    */
   @Nonnull
-  public static PipelineNetwork gram(final PipelineNetwork network, Tensor mean) {
-    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
-    network.wrap(new GramianLayer());
-    return network;
+  public static PipelineNetwork gram(final Layer network, Tensor mean) {
+    if (!(network instanceof PipelineNetwork)) {
+      PipelineNetwork pipelineNetwork = new PipelineNetwork();
+      pipelineNetwork.wrap(network);
+      return gram(pipelineNetwork, mean);
+    }
+    else {
+      PipelineNetwork pipelineNetwork = (PipelineNetwork) network;
+      pipelineNetwork.wrap(new ImgBandBiasLayer(mean.scale(-1)));
+      pipelineNetwork.wrap(new GramianLayer());
+      return pipelineNetwork;
+    }
   }
   
   /**
@@ -481,9 +488,17 @@ public class ArtistryUtil {
    * @return the pipeline network
    */
   @Nonnull
-  public static PipelineNetwork gram(final PipelineNetwork network) {
-    network.wrap(new GramianLayer());
-    return network;
+  public static PipelineNetwork gram(final Layer network) {
+    if (!(network instanceof PipelineNetwork)) {
+      PipelineNetwork pipelineNetwork = new PipelineNetwork();
+      pipelineNetwork.wrap(pipelineNetwork);
+      return gram(pipelineNetwork);
+    }
+    else {
+      PipelineNetwork pipelineNetwork = (PipelineNetwork) network;
+      pipelineNetwork.wrap(new GramianLayer());
+      return pipelineNetwork;
+    }
   }
   
   /**
@@ -527,6 +542,10 @@ public class ArtistryUtil {
     network.wrap(subnet);
     network.wrap(new BandAvgReducerLayer());
     return network;
+  }
+  
+  protected static Layer wrapTiledAvg(final Layer subnet, final int size) {
+    return wrapAvg(new ImgTileSubnetLayer(subnet, size, size, size, size));
   }
   
   /**

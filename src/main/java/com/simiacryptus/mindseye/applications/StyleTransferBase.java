@@ -36,6 +36,7 @@ import com.simiacryptus.mindseye.models.CVPipe;
 import com.simiacryptus.mindseye.models.CVPipe_VGG16;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.models.LayerEnum;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -146,7 +147,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
         TestUtil.instrumentPerformance(network);
         if (null != server) ArtistryUtil.addLayersHandler(network, server);
         if (tiled) network = ArtistryUtil.tileCycle(network);
-        Trainable trainable1 = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+        Trainable trainable1 = getTrainable(canvas, network);
         network.freeRef();
         return trainable1;
       });
@@ -155,7 +156,6 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
           @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
           new IterativeTrainer(trainable)
             .setMonitor(TestUtil.getMonitor(history))
-            //        .setOrientation(new QQN())
             .setOrientation(new TrustRegionStrategy() {
               @Override
               public TrustRegion getRegionPolicy(final com.simiacryptus.mindseye.lang.Layer layer) {
@@ -164,9 +164,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
             })
             .setMaxIterations(maxIterations)
             .setIterationsPerSample(100)
-            //        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
             .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
-            //        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
             .setTimeout(trainingMinutes, TimeUnit.MINUTES)
             .setTerminateThreshold(Double.NEGATIVE_INFINITY)
             .runAndFree();
@@ -180,6 +178,11 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
     log.p("Result:");
     log.p(log.image(result, "Output Canvas"));
     return result;
+  }
+  
+  @Nonnull
+  public Trainable getTrainable(final Tensor canvas, final PipelineNetwork network) {
+    return new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
   }
   
   /**
@@ -261,9 +264,10 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
     self.contentTarget = new ContentTarget();
     for (final T layerType : getLayerTypes()) {
       System.gc();
-      final PipelineNetwork network = layerType.texture();
+      Layer network = layerType.texture();
       try {
-        ArtistryUtil.setPrecision(network, style.precision);
+        ArtistryUtil.setPrecision((DAGNetwork) network, style.precision);
+        //network = new ImgTileSubnetLayer(network, 400,400,400,400);
         Tensor content = network.eval(contentInput).getDataAndFree().getAndFree(0);
         self.contentTarget.content.put(layerType, content);
         logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
@@ -275,7 +279,7 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
           if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
             continue;
           System.gc();
-          Layer wrapAvg = ArtistryUtil.wrapAvg(network.copy());
+          Layer wrapAvg = ArtistryUtil.wrapTiledAvg(network.copy(), 400);
           Tensor mean = wrapAvg.eval(styleInput).getDataAndFree().getAndFree(0);
           wrapAvg.freeRef();
           styleTarget.mean.put(layerType, mean);
@@ -284,10 +288,10 @@ public abstract class StyleTransferBase<T extends LayerEnum<T>, U extends CVPipe
           if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
             continue;
           System.gc();
-          PipelineNetwork gram = ArtistryUtil.gram(network.copy());
+          Layer gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy()), 400);
           Tensor cov0 = gram.eval(styleInput).getDataAndFree().getAndFree(0);
           gram.freeRef();
-          gram = ArtistryUtil.gram(network.copy(), mean);
+          gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy(), mean), 400);
           Tensor cov1 = gram.eval(styleInput).getDataAndFree().getAndFree(0);
           gram.freeRef();
           styleTarget.cov0.put(layerType, cov0);

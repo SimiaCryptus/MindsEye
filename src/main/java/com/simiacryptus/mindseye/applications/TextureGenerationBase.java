@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer;
@@ -30,6 +31,7 @@ import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
+import com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer;
 import com.simiacryptus.mindseye.models.CVPipe;
 import com.simiacryptus.mindseye.models.CVPipe_VGG16;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
@@ -52,6 +54,7 @@ import com.simiacryptus.util.io.NullNotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import smile.plot.PlotCanvas;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -157,6 +160,29 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
     return ArtistryUtil.paint_Plasma(imageSize.get(), 3, 100.0, 1.4).toImage();
   }
   
+  @Nonnull
+  public static Tensor[] toTiles(final Tensor canvas, final int width, final int height, final int strideX, final int strideY) {
+    @Nonnull final int[] inputDims = canvas.getDimensions();
+    int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
+    int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
+    Tensor[] tiles = new Tensor[rows * cols];
+    int index = 0;
+    for (int row = 0; row < rows; row++) {
+      for (int col = 0; col < cols; col++) {
+        int positionX = col * strideX;
+        int positionY = row * strideY;
+        assert positionX >= 0;
+        assert positionY >= 0;
+        assert positionX < inputDims[0];
+        assert positionY < inputDims[1];
+        Tensor selectedTile = new ImgTileSelectLayer(width, height, positionX, positionY).eval(canvas).getData().get(0);
+        tiles[index] = selectedTile;
+        index = index + 1;
+      }
+    }
+    return tiles;
+  }
+  
   /**
    * Style transfer buffered image.
    *
@@ -189,9 +215,9 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
       Tensor canvas = Tensor.fromRGB(canvasImage);
       TestUtil.monitorImage(canvas, false, false);
       log.p("<a href=\"/image.jpg\">Current Image</a>");
-      log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
+      log.getHttpd().addHandler("image.jpg", "image/jpeg", outputStream -> {
         try {
-          ImageIO.write(canvas.toImage(), "jpeg", r);
+          ImageIO.write(canvas.toImage(), "jpeg", outputStream);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -224,28 +250,30 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    * @param maxIterations   the max iterations
    */
   public void train(@Nonnull final NotebookOutput log, final Tensor canvas, final PipelineNetwork network, final int trainingMinutes, final int maxIterations) {
-    log.code(() -> {
-      Trainable trainable = new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+    PlotCanvas plot = log.code(() -> {
+      Trainable trainable = getTrainable(network, canvas);
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
         .setMonitor(TestUtil.getMonitor(history))
-        //        .setOrientation(new QQN())
         .setOrientation(new TrustRegionStrategy() {
           @Override
-          public TrustRegion getRegionPolicy(final com.simiacryptus.mindseye.lang.Layer layer) {
-            return new RangeConstraint().setMin(1e-2).setMax(256);
+          public TrustRegion getRegionPolicy(final Layer layer) {
+            return new RangeConstraint().setMin(1e-4).setMax(256);
           }
         })
         .setMaxIterations(maxIterations)
         .setIterationsPerSample(100)
-        //        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1))
         .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
-        //        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
         .setTimeout(trainingMinutes, TimeUnit.MINUTES)
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       return TestUtil.plot(history);
     });
+  }
+  
+  @Nonnull
+  public Trainable getTrainable(final PipelineNetwork network, final Tensor canvas) {
+    return new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
   }
   
   /**
@@ -331,21 +359,24 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
         CharSequence key = keyList.get(i);
-        StyleTarget<T> styleTarget = self.styleTargets.get(key);
         if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
           continue;
         System.gc();
-        Tensor mean = ArtistryUtil.wrapAvg(network.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
-        styleTarget.mean.put(layerType, mean);
+  
+        Tensor mean = ArtistryUtil.wrapTiledAvg(network.copy(), 600).eval(styleInput).getDataAndFree().getAndFree(0);
+
         logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
         logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
+        StyleTarget<T> styleTarget = self.styleTargets.get(key);
+        styleTarget.mean.put(layerType, mean);
+        
         if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
           continue;
+  
         System.gc();
-        Tensor cov0 = ArtistryUtil.gram(network.copy()).eval(styleInput).getDataAndFree().getAndFree(0);
-        Tensor cov1 = ArtistryUtil.gram(network.copy(), mean).eval(styleInput).getDataAndFree().getAndFree(0);
-        styleTarget.cov0.put(layerType, cov0);
-        styleTarget.cov1.put(layerType, cov1);
+        Tensor cov0 = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy()), 600).eval(styleInput).getDataAndFree().getAndFree(0);
+        Tensor cov1 = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy(), mean), 600).eval(styleInput).getDataAndFree().getAndFree(0);
+        
         int featureBands = mean.getDimensions()[2];
         int covarianceElements = cov1.getDimensions()[2];
         int selectedBands = covarianceElements / featureBands;
@@ -353,6 +384,8 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
         logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
         logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
         logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
+        styleTarget.cov0.put(layerType, cov0);
+        styleTarget.cov1.put(layerType, cov1);
       }
     }
     return self;
