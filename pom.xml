@@ -29,7 +29,7 @@
     </parent>
 
     <artifactId>mindseye</artifactId>
-    <version>1.4.20</version>
+    <version>1.4.23</version>
     <description>Neural Networks with Java 8 and CuDNN</description>
     <scm>
         <url>https://github.com/SimiaCryptus/MindsEye/</url>
@@ -145,7 +145,7 @@
             <dependency>
                 <groupId>com.simiacryptus</groupId>
                 <artifactId>hadoop-jgit-fs</artifactId>
-                <version>1.4.20</version>
+                <version>1.4.23</version>
                 <scope>compile</scope>
             </dependency>
             <dependency>
@@ -222,12 +222,12 @@
         <dependency>
             <groupId>com.simiacryptus</groupId>
             <artifactId>java-util</artifactId>
-            <version>1.4.20</version>
+            <version>1.4.23</version>
         </dependency>
         <dependency>
             <groupId>com.simiacryptus</groupId>
             <artifactId>java-analysis</artifactId>
-            <version>1.4.20</version>
+            <version>1.4.23</version>
             <optional>true</optional>
         </dependency>
         <!-- Native Libraries: -->
@@ -304,7 +304,7 @@
         <dependency>
             <groupId>com.simiacryptus</groupId>
             <artifactId>hadoop-jgit-fs</artifactId>
-            <version>1.4.20</version>
+            <version>1.4.23</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
