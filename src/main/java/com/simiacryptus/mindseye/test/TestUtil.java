@@ -643,7 +643,7 @@ public class TestUtil {
   public static CharSequence toFormattedJson(final Object metrics) {
     try {
       @Nonnull final ByteArrayOutputStream out = new ByteArrayOutputStream();
-      JsonUtil.writeJson(out, metrics);
+      JsonUtil.getMapper().writeValue(out, metrics);
       return out.toString();
     } catch (@Nonnull final IOException e1) {
       throw new RuntimeException(e1);

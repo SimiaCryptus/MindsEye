@@ -113,11 +113,12 @@ public class HadoopUtil {
    * @param file the file
    * @return the image
    */
+  @Nonnull
   public static BufferedImage getImage(final CharSequence file) {
     if (file.toString().startsWith("http")) {
       try {
         BufferedImage read = ImageIO.read(new URL(file.toString()));
-        assert null != read;
+        if (null == read) throw new IllegalArgumentException("Error reading " + file);
         return read;
       } catch (Throwable e) {
         throw new RuntimeException("Error reading " + file, e);

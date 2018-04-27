@@ -212,7 +212,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
     log.code(() -> {
       try {
         @Nonnull final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JsonUtil.writeJson(out, monitoringRoot.getMetrics());
+        JsonUtil.getMapper().writeValue(out, monitoringRoot.getMetrics());
         return out.toString();
       } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);
