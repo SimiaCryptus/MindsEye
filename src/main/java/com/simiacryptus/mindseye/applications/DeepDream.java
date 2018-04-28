@@ -67,8 +67,8 @@ import java.util.concurrent.TimeUnit;
  * @param <T> the type parameter
  * @param <U> the type parameter
  */
-public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>> {
-  private static final Logger logger = LoggerFactory.getLogger(DeepDreamBase.class);
+public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
+  private static final Logger logger = LoggerFactory.getLogger(DeepDream.class);
   private boolean tiled = false;
   
   /**
@@ -314,7 +314,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param tiled the tiled
    * @return the tiled
    */
-  public DeepDreamBase<T, U> setTiled(boolean tiled) {
+  public DeepDream<T, U> setTiled(boolean tiled) {
     this.tiled = tiled;
     return this;
   }
@@ -322,7 +322,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
   /**
    * The type Vgg 16.
    */
-  public static class VGG16 extends DeepDreamBase<CVPipe_VGG16.Layer, CVPipe_VGG16> {
+  public static class VGG16 extends DeepDream<CVPipe_VGG16.Layer, CVPipe_VGG16> {
   
     public CVPipe_VGG16 getInstance() {
       return CVPipe_VGG16.INSTANCE;
@@ -338,7 +338,7 @@ public abstract class DeepDreamBase<T extends LayerEnum<T>, U extends CVPipe<T>>
   /**
    * The type Vgg 19.
    */
-  public static class VGG19 extends DeepDreamBase<CVPipe_VGG19.Layer, CVPipe_VGG19> {
+  public static class VGG19 extends DeepDream<CVPipe_VGG19.Layer, CVPipe_VGG19> {
   
     public CVPipe_VGG19 getInstance() {
       return CVPipe_VGG19.INSTANCE;

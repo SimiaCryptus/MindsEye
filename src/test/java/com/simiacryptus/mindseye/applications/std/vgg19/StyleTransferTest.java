@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.applications.std.vgg19;
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
 import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.ArtistryUtil;
-import com.simiacryptus.mindseye.applications.StyleTransferBase;
+import com.simiacryptus.mindseye.applications.StyleTransfer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 /**
  * The type Style transfer vgg 19.
  */
-public class StyleTransfer extends ArtistryAppBase_VGG19 {
+public class StyleTransferTest extends ArtistryAppBase_VGG19 {
   
   /**
    * Test.
@@ -48,21 +48,21 @@ public class StyleTransfer extends ArtistryAppBase_VGG19 {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    StyleTransferBase.VGG19 styleTransfer = new StyleTransferBase.VGG19();
+    StyleTransfer.VGG19 styleTransfer = new StyleTransfer.VGG19();
     init(log);
     Precision precision = Precision.Float;
     final AtomicInteger imageSize = new AtomicInteger(256);
     styleTransfer.parallelLossFunctions = true;
     double growthFactor = Math.sqrt(4);
   
-    Map<List<CharSequence>, StyleTransferBase.StyleCoefficients> styles = new HashMap<>();
+    Map<List<CharSequence>, StyleTransfer.StyleCoefficients> styles = new HashMap<>();
     List<CharSequence> styleSources = ArtistryData.CLASSIC_STYLES;
-    styles.put(styleSources, new StyleTransferBase.StyleCoefficients(StyleTransferBase.CenteringMode.Origin)
+    styles.put(styleSources, new StyleTransfer.StyleCoefficients(StyleTransfer.CenteringMode.Origin)
         .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
         .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
         .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
     );
-    StyleTransferBase.ContentCoefficients contentCoefficients = new StyleTransferBase.ContentCoefficients()
+    StyleTransfer.ContentCoefficients contentCoefficients = new StyleTransfer.ContentCoefficients()
       .set(CVPipe_VGG19.Layer.Layer_1b, 3e0)
       .set(CVPipe_VGG19.Layer.Layer_1c, 3e0);
     int trainingMinutes = 90;
@@ -75,14 +75,14 @@ public class StyleTransfer extends ArtistryAppBase_VGG19 {
     canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(TestUtil.resize(canvasImage, 16, true)), imageSize.get(), 1000.0, 1.1).toImage();
     BufferedImage contentImage = ArtistryUtil.load(ArtistryData.CLASSIC_CONTENT.get(0), canvasImage.getWidth(), canvasImage.getHeight());
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
-    StyleTransferBase.StyleSetup styleSetup;
+    StyleTransfer.StyleSetup styleSetup;
     
     styleImages.clear();
     styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))));
-    styleSetup = new StyleTransferBase.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
+    styleSetup = new StyleTransfer.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
   
-    StyleTransferBase.NeuralSetup measureStyle = styleTransfer.measureStyle(styleSetup);
-    canvasImage = styleTransfer.styleTransfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
+    StyleTransfer.NeuralSetup measureStyle = styleTransfer.measureStyle(styleSetup);
+    canvasImage = styleTransfer.transfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     for (int i = 1; i < phases; i++) {
       log.h1("Phase " + i);
       imageSize.set((int) (imageSize.get() * growthFactor));
@@ -90,9 +90,9 @@ public class StyleTransfer extends ArtistryAppBase_VGG19 {
   
       styleImages.clear();
       styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))));
-      styleSetup = new StyleTransferBase.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
+      styleSetup = new StyleTransfer.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
   
-      canvasImage = styleTransfer.styleTransfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
+      canvasImage = styleTransfer.transfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     }
     log.setFrontMatterProperty("status", "OK");
   }

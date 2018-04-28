@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.applications.std.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.PCAObjectLocation;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ public class ObjectLocation extends ArtistryAppBase_VGG19 {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    com.simiacryptus.mindseye.applications.ObjectLocationBase self = new com.simiacryptus.mindseye.applications.ObjectLocationBase.VGG19();
+    PCAObjectLocation self = new PCAObjectLocation.VGG19();
   
     self.run(log);
   }

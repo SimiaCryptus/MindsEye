@@ -18,7 +18,7 @@
  */
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.applications.ImageClassifierBase;
+import com.simiacryptus.mindseye.applications.ImageClassifier;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;
@@ -325,7 +325,7 @@ public class VGG19_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * @param large the large
    * @return the large
    */
-  public ImageClassifierBase setLarge(boolean large) {
+  public ImageClassifier setLarge(boolean large) {
     this.large = large;
     return this;
   }
@@ -345,7 +345,7 @@ public class VGG19_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * @param dense the dense
    * @return the dense
    */
-  public ImageClassifierBase setDense(boolean dense) {
+  public ImageClassifier setDense(boolean dense) {
     this.dense = dense;
     return this;
   }
@@ -365,7 +365,7 @@ public class VGG19_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * @param finalPoolingMode the final pooling mode
    * @return the final pooling mode
    */
-  public ImageClassifierBase setFinalPoolingMode(PoolingLayer.PoolingMode finalPoolingMode) {
+  public ImageClassifier setFinalPoolingMode(PoolingLayer.PoolingMode finalPoolingMode) {
     this.finalPoolingMode = finalPoolingMode;
     return this;
   }

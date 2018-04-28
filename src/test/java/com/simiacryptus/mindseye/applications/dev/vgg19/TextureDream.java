@@ -21,8 +21,8 @@ package com.simiacryptus.mindseye.applications.dev.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
 import com.simiacryptus.mindseye.applications.ArtistryData;
-import com.simiacryptus.mindseye.applications.DeepDreamBase;
-import com.simiacryptus.mindseye.applications.TextureGenerationBase;
+import com.simiacryptus.mindseye.applications.DeepDream;
+import com.simiacryptus.mindseye.applications.TextureGeneration;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.util.FileNanoHTTPD;
@@ -46,8 +46,8 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    TextureGenerationBase.VGG19 styleTransfer = new TextureGenerationBase.VGG19();
-    DeepDreamBase.VGG19 deepDream = new DeepDreamBase.VGG19();
+    TextureGeneration.VGG19 styleTransfer = new TextureGeneration.VGG19();
+    DeepDream.VGG19 deepDream = new DeepDream.VGG19();
     deepDream.setTiled(true);
     init(log);
     Precision precision = Precision.Float;
@@ -64,53 +64,53 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
     ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x)).forEach(styleSources -> {
   
       final FileNanoHTTPD server = log.getHttpd();
-      TextureGenerationBase.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
+        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
-        )), trainingMinutes, TextureGenerationBase.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
   
-      TextureGenerationBase.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
+        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
-        )), trainingMinutes, TextureGenerationBase.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
   
-      TextureGenerationBase.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
+        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
-        )), trainingMinutes, TextureGenerationBase.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
   
-      TextureGenerationBase.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
+        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 1e0)
-        )), trainingMinutes, TextureGenerationBase.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
   
-      TextureGenerationBase.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
+        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
-        )), trainingMinutes, TextureGenerationBase.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
   
-      TextureGenerationBase.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
+        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
-        )), trainingMinutes, TextureGenerationBase.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
   
-      TextureGenerationBase.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
+        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
-        )), trainingMinutes, TextureGenerationBase.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
   
-      TextureGenerationBase.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGenerationBase.StyleCoefficients(TextureGenerationBase.CenteringMode.Origin)
+      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
+        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 0)
-        )), trainingMinutes, TextureGenerationBase.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
     });
 
     log.setFrontMatterProperty("status", "OK");

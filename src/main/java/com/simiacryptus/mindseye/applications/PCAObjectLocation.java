@@ -60,9 +60,9 @@ import java.util.stream.Stream;
 /**
  * The type Object location.
  */
-public abstract class ObjectLocationBase {
+public abstract class PCAObjectLocation {
   
-  private static final Logger logger = LoggerFactory.getLogger(ObjectLocationBase.class);
+  private static final Logger logger = LoggerFactory.getLogger(PCAObjectLocation.class);
   
   /**
    * Run.
@@ -74,10 +74,10 @@ public abstract class ObjectLocationBase {
 //    log.p(log.file((String) null, logName, "GPU Log"));
 //    CudaSystem.addLog(new PrintStream(log.file(logName)));
   
-    ImageClassifierBase classifier = getClassifierNetwork();
+    ImageClassifier classifier = getClassifierNetwork();
     Layer classifyNetwork = classifier.getNetwork();
   
-    ImageClassifierBase locator = getLocatorNetwork();
+    ImageClassifier locator = getLocatorNetwork();
     Layer locatorNetwork = locator.getNetwork();
     ArtistryUtil.setPrecision((DAGNetwork) classifyNetwork, Precision.Float);
     ArtistryUtil.setPrecision((DAGNetwork) locatorNetwork, Precision.Float);
@@ -172,14 +172,14 @@ public abstract class ObjectLocationBase {
    *
    * @return the locator network
    */
-  public abstract ImageClassifierBase getLocatorNetwork();
+  public abstract ImageClassifier getLocatorNetwork();
   
   /**
    * Gets classifier network.
    *
    * @return the classifier network
    */
-  public abstract ImageClassifierBase getClassifierNetwork();
+  public abstract ImageClassifier getClassifierNetwork();
   
   /**
    * Render alpha tensor.
@@ -270,15 +270,15 @@ public abstract class ObjectLocationBase {
   /**
    * The type Vgg 16.
    */
-  public static class VGG16 extends ObjectLocationBase {
+  public static class VGG16 extends PCAObjectLocation {
     
     /**
      * The Texture netork.
      */
     
     @Override
-    public ImageClassifierBase getLocatorNetwork() {
-      ImageClassifierBase locator;
+    public ImageClassifier getLocatorNetwork() {
+      ImageClassifier locator;
       try {
         locator = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
@@ -294,8 +294,8 @@ public abstract class ObjectLocationBase {
     }
     
     @Override
-    public ImageClassifierBase getClassifierNetwork() {
-      ImageClassifierBase classifier;
+    public ImageClassifier getClassifierNetwork() {
+      ImageClassifier classifier;
       try {
         classifier = new VGG16_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg16_weights.h5")))) {
           @Override
@@ -318,15 +318,15 @@ public abstract class ObjectLocationBase {
   /**
    * The type Vgg 19.
    */
-  public static class VGG19 extends ObjectLocationBase {
+  public static class VGG19 extends PCAObjectLocation {
     
     /**
      * The Texture netork.
      */
     
     @Override
-    public ImageClassifierBase getLocatorNetwork() {
-      ImageClassifierBase locator;
+    public ImageClassifier getLocatorNetwork() {
+      ImageClassifier locator;
       try {
         locator = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
           @Override
@@ -342,8 +342,8 @@ public abstract class ObjectLocationBase {
     }
     
     @Override
-    public ImageClassifierBase getClassifierNetwork() {
-      ImageClassifierBase classifier;
+    public ImageClassifier getClassifierNetwork() {
+      ImageClassifier classifier;
       try {
         classifier = new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
           @Override

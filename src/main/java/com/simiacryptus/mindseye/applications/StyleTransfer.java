@@ -22,6 +22,7 @@ package com.simiacryptus.mindseye.applications;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.AvgReducerLayer;
@@ -31,11 +32,11 @@ import com.simiacryptus.mindseye.layers.cudnn.GramianLayer;
 import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
-import com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer;
 import com.simiacryptus.mindseye.models.CVPipe;
 import com.simiacryptus.mindseye.models.CVPipe_VGG16;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.models.LayerEnum;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -54,7 +55,6 @@ import com.simiacryptus.util.io.NullNotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import smile.plot.PlotCanvas;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -62,13 +62,11 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -79,109 +77,14 @@ import java.util.stream.Stream;
  * @param <T> the type parameter
  * @param <U> the type parameter
  */
-public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CVPipe<T>> {
+public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>> {
   
-  private static final Logger logger = LoggerFactory.getLogger(TextureGenerationBase.class);
+  private static final Logger logger = LoggerFactory.getLogger(StyleTransfer.class);
   /**
    * The Parallel loss functions.
    */
   public boolean parallelLossFunctions = true;
-  private boolean tiled;
-  
-  /**
-   * Instantiates a new Texture generation.
-   */
-  public TextureGenerationBase() {tiled = true;}
-  
-  /**
-   * Generate buffered image.
-   *
-   * @param log             the log
-   * @param styleTransfer   the style transfer
-   * @param precision       the precision
-   * @param imageSize       the image size
-   * @param growthFactor    the growth factor
-   * @param styles          the styles
-   * @param trainingMinutes the training minutes
-   * @param canvasImage     the canvas image
-   * @param phases          the phases
-   * @param maxIterations   the max iterations
-   * @param server          the server
-   * @param styleSize       the style size
-   * @return the buffered image
-   */
-  public static BufferedImage generate(@Nonnull final NotebookOutput log, final VGG19 styleTransfer, final Precision precision, int imageSize, final double growthFactor, final Map<List<CharSequence>, StyleCoefficients> styles, final int trainingMinutes, BufferedImage canvasImage, final int phases, final int maxIterations, final FileNanoHTTPD server, int styleSize) {
-    Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
-    StyleSetup styleSetup;
-    NeuralSetup measureStyle;
-    
-    styleImages.clear();
-    if (0 < styleSize) {
-      final int finalStyleSize1 = styleSize;
-      styleImages.putAll(styles.keySet().stream().flatMap(Collection::stream).collect(Collectors.toMap(x -> x, image -> ArtistryUtil.load(image, finalStyleSize1))));
-    }
-    else {
-      styleImages.putAll(styles.keySet().stream().flatMap(Collection::stream).collect(Collectors.toMap(x -> x, image -> ArtistryUtil.load(image))));
-    }
-    styleSetup = new StyleSetup(precision, styleImages, styles);
-    measureStyle = styleTransfer.measureStyle(styleSetup);
-    
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-    canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
-    for (int i = 1; i < phases; i++) {
-      imageSize *= growthFactor;
-      styleSize *= growthFactor;
-      
-      styleImages.clear();
-      if (0 < styleSize) {
-        final int finalStyleSize = styleSize;
-        styleImages.putAll(styles.keySet().stream().flatMap(Collection::stream).collect(Collectors.toMap(x -> x, image -> ArtistryUtil.load(image, finalStyleSize))));
-      }
-      else {
-        styleImages.putAll(styles.keySet().stream().flatMap(Collection::stream).collect(Collectors.toMap(x -> x, image -> ArtistryUtil.load(image))));
-      }
-      styleSetup = new StyleSetup(precision, styleImages, styles);
-      measureStyle = styleTransfer.measureStyle(styleSetup);
-  
-      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
-      canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
-    }
-    return canvasImage;
-  }
-  
-  /**
-   * Init canvas buffered image.
-   *
-   * @param imageSize the image size
-   * @return the buffered image
-   */
-  @Nonnull
-  public static BufferedImage initCanvas(final AtomicInteger imageSize) {
-    return ArtistryUtil.paint_Plasma(imageSize.get(), 3, 100.0, 1.4).toImage();
-  }
-  
-  @Nonnull
-  public static Tensor[] toTiles(final Tensor canvas, final int width, final int height, final int strideX, final int strideY) {
-    @Nonnull final int[] inputDims = canvas.getDimensions();
-    int cols = (int) (Math.ceil((inputDims[0] - width) * 1.0 / strideX) + 1);
-    int rows = (int) (Math.ceil((inputDims[1] - height) * 1.0 / strideY) + 1);
-    Tensor[] tiles = new Tensor[rows * cols];
-    int index = 0;
-    for (int row = 0; row < rows; row++) {
-      for (int col = 0; col < cols; col++) {
-        int positionX = col * strideX;
-        int positionY = row * strideY;
-        assert positionX >= 0;
-        assert positionY >= 0;
-        assert positionX < inputDims[0];
-        assert positionY < inputDims[1];
-        Tensor selectedTile = new ImgTileSelectLayer(width, height, positionX, positionY).eval(canvas).getData().get(0);
-        tiles[index] = selectedTile;
-        index = index + 1;
-      }
-    }
-    return tiles;
-  }
+  private boolean tiled = false;
   
   /**
    * Style transfer buffered image.
@@ -192,8 +95,12 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    * @param measureStyle    the measure style
    * @return the buffered image
    */
-  public BufferedImage generate(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
-    return generate(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
+  public BufferedImage transfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
+    return transfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
+  }
+  
+  public Tensor transfer(final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
+    return transfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
   }
   
   /**
@@ -209,70 +116,95 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    * @param verbose
    * @return the buffered image
    */
-  public BufferedImage generate(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
-    BufferedImage result = ArtistryUtil.logExceptionWithDefault(log, () -> {
-      System.gc();
-      Tensor canvas = Tensor.fromRGB(canvasImage);
-      TestUtil.monitorImage(canvas, false, false);
-      log.p("<a href=\"/image.jpg\">Current Image</a>");
-      log.getHttpd().addHandler("image.jpg", "image/jpeg", outputStream -> {
-        try {
-          ImageIO.write(canvas.toImage(), "jpeg", outputStream);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+  public BufferedImage transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
+    try {
+      BufferedImage result = log.code(() -> {
+        Tensor canvas = Tensor.fromRGB(canvasImage);
+        transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvas);
+        return canvas.toImage();
       });
+      log.p("Result:");
+      log.p(log.image(result, "Output Canvas"));
+      return result;
+    } catch (Throwable e) {
+      return canvasImage;
+    }
+  }
+  
+  public Tensor transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final Tensor canvasData, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
+    try {
+      transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasData);
+      log.p("Result:");
+      log.p(log.image(canvasData.toImage(), "Output Canvas"));
+      return canvasData;
+    } catch (Throwable e) {
+      return canvasData;
+    }
+  }
+  
+  public void transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
+//      log.p("Input Content:");
+//      log.p(log.image(styleParameters.contentImage, "Content Image"));
+//      log.p("Style Content:");
+//      styleParameters.styleImages.forEach((file, styleImage) -> {
+//        log.p(log.image(styleImage, file));
+//      });
+//      log.p("Input Canvas:");
+//      log.p(log.image(canvasImage, "Input Canvas"));
+    System.gc();
+    TestUtil.monitorImage(canvas, false, false);
+    log.p("<a href=\"/image.jpg\">Current Image</a>");
+    log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
+      try {
+        ImageIO.write(canvas.toImage(), "jpeg", r);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+    if (verbose) {
       log.p("Input Parameters:");
       log.code(() -> {
         return ArtistryUtil.toJson(styleParameters);
       });
+    }
+    NotebookOutput trainingLog = verbose ? log : new NullNotebookOutput();
+    Trainable trainable = trainingLog.code(() -> {
       PipelineNetwork network = fitnessNetwork(measureStyle);
       network.setFrozen(true);
       ArtistryUtil.setPrecision(network, styleParameters.precision);
       TestUtil.instrumentPerformance(network);
       if (null != server) ArtistryUtil.addLayersHandler(network, server);
       if (tiled) network = ArtistryUtil.tileCycle(network);
-      train(verbose ? log : new NullNotebookOutput(), canvas, network, trainingMinutes, maxIterations);
-      return canvas.toImage();
-    }, canvasImage);
-    log.p("Result:");
-    log.p(log.image(result, "Result"));
-    return result;
-  }
-  
-  /**
-   * Train.
-   *
-   * @param log             the log
-   * @param canvas          the canvas
-   * @param network         the network
-   * @param trainingMinutes the training minutes
-   * @param maxIterations   the max iterations
-   */
-  public void train(@Nonnull final NotebookOutput log, final Tensor canvas, final PipelineNetwork network, final int trainingMinutes, final int maxIterations) {
-    PlotCanvas plot = log.code(() -> {
-      Trainable trainable = getTrainable(network, canvas);
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      new IterativeTrainer(trainable)
-        .setMonitor(TestUtil.getMonitor(history))
-        .setOrientation(new TrustRegionStrategy() {
-          @Override
-          public TrustRegion getRegionPolicy(final Layer layer) {
-            return new RangeConstraint().setMin(1e-4).setMax(256);
-          }
-        })
-        .setMaxIterations(maxIterations)
-        .setIterationsPerSample(100)
-        .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
-        .setTimeout(trainingMinutes, TimeUnit.MINUTES)
-        .setTerminateThreshold(Double.NEGATIVE_INFINITY)
-        .runAndFree();
-      return TestUtil.plot(history);
+      Trainable trainable1 = getTrainable(canvas, network);
+      network.freeRef();
+      return trainable1;
     });
+    try {
+      trainingLog.code(() -> {
+        @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+        new IterativeTrainer(trainable)
+          .setMonitor(TestUtil.getMonitor(history))
+          .setOrientation(new TrustRegionStrategy() {
+            @Override
+            public TrustRegion getRegionPolicy(final Layer layer) {
+              return new RangeConstraint().setMin(1e-2).setMax(256);
+            }
+          })
+          .setMaxIterations(maxIterations)
+          .setIterationsPerSample(100)
+          .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
+          .setTimeout(trainingMinutes, TimeUnit.MINUTES)
+          .setTerminateThreshold(Double.NEGATIVE_INFINITY)
+          .runAndFree();
+        return TestUtil.plot(history);
+      });
+    } finally {
+      trainable.freeRef();
+    }
   }
   
   @Nonnull
-  public Trainable getTrainable(final PipelineNetwork network, final Tensor canvas) {
+  public Trainable getTrainable(final Tensor canvas, final PipelineNetwork network) {
     return new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
   }
   
@@ -347,6 +279,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
   public NeuralSetup measureStyle(final StyleSetup<T> style) {
     NeuralSetup<T> self = new NeuralSetup(style);
     List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
+    Tensor contentInput = Tensor.fromRGB(style.contentImage);
     List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
     IntStream.range(0, keyList.size()).forEach(i -> {
       self.styleTargets.put(keyList.get(i), new StyleTarget());
@@ -354,40 +287,51 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
     self.contentTarget = new ContentTarget();
     for (final T layerType : getLayerTypes()) {
       System.gc();
-      final PipelineNetwork network = layerType.texture();
-      ArtistryUtil.setPrecision(network, style.precision);
-      for (int i = 0; i < styleInputs.size(); i++) {
-        Tensor styleInput = styleInputs.get(i);
-        CharSequence key = keyList.get(i);
-        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
-          continue;
-        System.gc();
-  
-        Tensor mean = ArtistryUtil.wrapTiledAvg(network.copy(), 600).eval(styleInput).getDataAndFree().getAndFree(0);
-
-        logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
-        logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
-        StyleTarget<T> styleTarget = self.styleTargets.get(key);
-        styleTarget.mean.put(layerType, mean);
-        
-        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
-          continue;
-  
-        System.gc();
-        Tensor cov0 = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy()), 600).eval(styleInput).getDataAndFree().getAndFree(0);
-        Tensor cov1 = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy(), mean), 600).eval(styleInput).getDataAndFree().getAndFree(0);
-        
-        int featureBands = mean.getDimensions()[2];
-        int covarianceElements = cov1.getDimensions()[2];
-        int selectedBands = covarianceElements / featureBands;
-        logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
-        logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
-        logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
-        logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
-        styleTarget.cov0.put(layerType, cov0);
-        styleTarget.cov1.put(layerType, cov1);
+      Layer network = layerType.texture();
+      try {
+        ArtistryUtil.setPrecision((DAGNetwork) network, style.precision);
+        //network = new ImgTileSubnetLayer(network, 400,400,400,400);
+        Tensor content = network.eval(contentInput).getDataAndFree().getAndFree(0);
+        self.contentTarget.content.put(layerType, content);
+        logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
+        logger.info(String.format("%s : content statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(content.getData()).getMetrics())));
+        for (int i = 0; i < styleInputs.size(); i++) {
+          Tensor styleInput = styleInputs.get(i);
+          CharSequence key = keyList.get(i);
+          StyleTarget<T> styleTarget = self.styleTargets.get(key);
+          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
+            continue;
+          System.gc();
+          Layer wrapAvg = ArtistryUtil.wrapTiledAvg(network.copy(), 400);
+          Tensor mean = wrapAvg.eval(styleInput).getDataAndFree().getAndFree(0);
+          wrapAvg.freeRef();
+          styleTarget.mean.put(layerType, mean);
+          logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
+          logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
+          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
+            continue;
+          System.gc();
+          Layer gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy()), 400);
+          Tensor cov0 = gram.eval(styleInput).getDataAndFree().getAndFree(0);
+          gram.freeRef();
+          gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy(), mean), 400);
+          Tensor cov1 = gram.eval(styleInput).getDataAndFree().getAndFree(0);
+          gram.freeRef();
+          styleTarget.cov0.put(layerType, cov0);
+          styleTarget.cov1.put(layerType, cov1);
+          int featureBands = mean.getDimensions()[2];
+          int covarianceElements = cov1.getDimensions()[2];
+          int selectedBands = covarianceElements / featureBands;
+          logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
+          logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
+          logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
+          logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
+        }
+      } finally {
+        network.freeRef();
       }
     }
+    contentInput.freeRef();
     return self;
   }
   
@@ -401,7 +345,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
   @Nonnull
   public List<Tuple2<Double, DAGNode>> getFitnessComponents(NeuralSetup setup, final Map<T, DAGNode> nodeMap) {
     List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
-    functions.addAll(new ArrayList<>());
+    functions.addAll(getContentComponents(setup, nodeMap));
     functions.addAll(getStyleComponents(setup, nodeMap));
     return functions;
   }
@@ -416,9 +360,22 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
   @Nonnull
   public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
     ArrayList<Tuple2<Double, DAGNode>> styleComponents = new ArrayList<>();
-    for (final T layerType : getLayerTypes())
-      for (final List<CharSequence> keys : setup.style.styles.keySet()) {
-        StyleTarget<T> styleTarget = keys.stream().map(x -> setup.styleTargets.get(x)).reduce((a, b) -> a.add(b)).map(x -> x.scale(1.0 / keys.size())).get();
+    for (final List<CharSequence> keys : setup.style.styles.keySet()) {
+      StyleTarget<T> styleTarget = keys.stream().map(x -> {
+        StyleTarget<T> obj = setup.styleTargets.get(x);
+        obj.addRef();
+        return obj;
+      }).reduce((a, b) -> {
+        StyleTarget<T> r = a.add(b);
+        a.freeRef();
+        b.freeRef();
+        return r;
+      }).map(x -> {
+        StyleTarget<T> r = x.scale(1.0 / keys.size());
+        x.freeRef();
+        return r;
+      }).get();
+      for (final T layerType : getLayerTypes()) {
         StyleCoefficients<T> styleCoefficients = setup.style.styles.get(keys);
         assert null != styleCoefficients;
         assert null != styleTarget;
@@ -426,7 +383,6 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
         final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
         LayerStyleParams styleParams = styleCoefficients.params.get(layerType);
         Tensor mean = styleTarget.mean.get(layerType);
-        
         Tensor covariance;
         switch (styleCoefficients.centeringMode) {
           case Origin:
@@ -441,6 +397,9 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
         }
         styleComponents.addAll(getStyleComponents(node, network, styleParams, mean, covariance, styleCoefficients.centeringMode));
       }
+      styleTarget.freeRef();
+    
+    }
     return styleComponents;
   }
   
@@ -469,6 +428,29 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    */
   @Nonnull
   public abstract T[] getLayerTypes();
+  
+  /**
+   * Gets content components.
+   *
+   * @param setup   the setup
+   * @param nodeMap the node map
+   * @return the content components
+   */
+  @Nonnull
+  public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
+    ArrayList<Tuple2<Double, DAGNode>> contentComponents = new ArrayList<>();
+    for (final T layerType : getLayerTypes()) {
+      final DAGNode node = nodeMap.get(layerType);
+      final double coeff_content = !setup.style.content.params.containsKey(layerType) ? 0 : setup.style.content.params.get(layerType);
+      final PipelineNetwork network1 = (PipelineNetwork) node.getNetwork();
+      if (coeff_content != 0) {
+        Tensor content = setup.contentTarget.content.get(layerType);
+        contentComponents.add(new Tuple2<>(coeff_content, network1.wrap(new MeanSqLossLayer().setAlpha(1.0 / content.rms()),
+          node, network1.wrap(new ValueLayer(content), new DAGNode[]{}))));
+      }
+    }
+    return contentComponents;
+  }
   
   /**
    * Gets instance.
@@ -506,7 +488,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    * @param tiled the tiled
    * @return the tiled
    */
-  public TextureGenerationBase<T, U> setTiled(boolean tiled) {
+  public StyleTransfer<T, U> setTiled(boolean tiled) {
     this.tiled = tiled;
     return this;
   }
@@ -532,8 +514,8 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
   /**
    * The type Vgg 16.
    */
-  public static class VGG16 extends TextureGenerationBase<CVPipe_VGG16.Layer, CVPipe_VGG16> {
-    
+  public static class VGG16 extends StyleTransfer<CVPipe_VGG16.Layer, CVPipe_VGG16> {
+  
     public CVPipe_VGG16 getInstance() {
       return CVPipe_VGG16.INSTANCE;
     }
@@ -548,8 +530,8 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
   /**
    * The type Vgg 19.
    */
-  public static class VGG19 extends TextureGenerationBase<CVPipe_VGG19.Layer, CVPipe_VGG19> {
-    
+  public static class VGG19 extends StyleTransfer<CVPipe_VGG19.Layer, CVPipe_VGG19> {
+  
     public CVPipe_VGG19 getInstance() {
       return CVPipe_VGG19.INSTANCE;
     }
@@ -557,6 +539,31 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
     @Nonnull
     public CVPipe_VGG19.Layer[] getLayerTypes() {
       return CVPipe_VGG19.Layer.values();
+    }
+    
+  }
+  
+  /**
+   * The type Content coefficients.
+   *
+   * @param <T> the type parameter
+   */
+  public static class ContentCoefficients<T extends LayerEnum<T>> {
+    /**
+     * The Params.
+     */
+    public final Map<T, Double> params = new HashMap<>();
+  
+    /**
+     * Set content coefficients.
+     *
+     * @param l the l
+     * @param v the v
+     * @return the content coefficients
+     */
+    public ContentCoefficients set(final T l, final double v) {
+      params.put(l, v);
+      return this;
     }
     
   }
@@ -573,10 +580,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      * The Coeff style cov 0.
      */
     public final double cov;
-    /**
-     * The Enhance.
-     */
-    public final double enhance;
+    private final double enhance;
   
     /**
      * Instantiates a new Layer style params.
@@ -610,19 +614,31 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      * The Styles.
      */
     public final Map<List<CharSequence>, StyleCoefficients> styles;
+    /**
+     * The Content.
+     */
+    public final ContentCoefficients<T> content;
+    /**
+     * The Content image.
+     */
+    public transient BufferedImage contentImage;
   
   
     /**
      * Instantiates a new Style setup.
      *
-     * @param precision   the precision
-     * @param styleImages the style image
-     * @param styles      the styles
+     * @param precision           the precision
+     * @param contentImage        the content image
+     * @param contentCoefficients the content coefficients
+     * @param styleImages         the style image
+     * @param styles              the styles
      */
-    public StyleSetup(final Precision precision, final Map<CharSequence, BufferedImage> styleImages, final Map<List<CharSequence>, StyleCoefficients> styles) {
+    public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients, final Map<CharSequence, BufferedImage> styleImages, final Map<List<CharSequence>, StyleCoefficients> styles) {
       this.precision = precision;
+      this.contentImage = contentImage;
       this.styleImages = styleImages;
       this.styles = styles;
+      this.content = contentCoefficients;
     }
     
   }
@@ -657,11 +673,10 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      *
      * @param layerType        the layer type
      * @param coeff_style_mean the coeff style mean
+     * @param coeff_style_cov  the coeff style cov
      * @return the style coefficients
      */
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean) {
-      return set(layerType, coeff_style_mean, 0);
-    }
+    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {return set(layerType, coeff_style_mean, coeff_style_cov, 0.0);}
   
     /**
      * Set style coefficients.
@@ -669,21 +684,11 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      * @param layerType        the layer type
      * @param coeff_style_mean the coeff style mean
      * @param coeff_style_cov  the coeff style cov
+     * @param dream            the dream
      * @return the style coefficients
      */
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {return set(layerType, coeff_style_mean, coeff_style_cov, 0);}
-  
-    /**
-     * Set style coefficients.
-     *
-     * @param layerType        the layer type
-     * @param coeff_style_mean the coeff style mean
-     * @param coeff_style_cov  the coeff style cov
-     * @param enhance          the enhance
-     * @return the style coefficients
-     */
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov, final double enhance) {
-      params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov, enhance));
+    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov, final double dream) {
+      params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov, dream));
       return this;
     }
     
@@ -706,7 +711,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    *
    * @param <T> the type parameter
    */
-  public static class StyleTarget<T extends LayerEnum<T>> {
+  public class StyleTarget<T extends LayerEnum<T>> extends ReferenceCountingBase {
     /**
      * The Cov.
      */
@@ -720,6 +725,14 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
      */
     public Map<T, Tensor> mean = new HashMap<>();
   
+    @Override
+    protected void _free() {
+      super._free();
+      if (null != cov0) cov0.values().forEach(ReferenceCountingBase::freeRef);
+      if (null != cov1) cov1.values().forEach(ReferenceCountingBase::freeRef);
+      if (null != mean) mean.values().forEach(ReferenceCountingBase::freeRef);
+    }
+  
     /**
      * Add style target.
      *
@@ -731,23 +744,50 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
       Stream.concat(mean.keySet().stream(), right.mean.keySet().stream()).distinct().forEach(layer -> {
         Tensor l = mean.get(layer);
         Tensor r = right.mean.get(layer);
-        if (l != null && l != r) newStyle.mean.put(layer, l.add(r));
-        else if (l != null) newStyle.mean.put(layer, l);
-        else if (r != null) newStyle.mean.put(layer, r);
+        if (l != null && l != r) {
+          Tensor add = l.add(r);
+          newStyle.mean.put(layer, add);
+        }
+        else if (l != null) {
+          l.addRef();
+          newStyle.mean.put(layer, l);
+        }
+        else if (r != null) {
+          r.addRef();
+          newStyle.mean.put(layer, r);
+        }
       });
       Stream.concat(cov0.keySet().stream(), right.cov0.keySet().stream()).distinct().forEach(layer -> {
         Tensor l = cov0.get(layer);
         Tensor r = right.cov0.get(layer);
-        if (l != null && l != r) newStyle.cov0.put(layer, l.add(r));
-        else if (l != null) newStyle.cov0.put(layer, l);
-        else if (r != null) newStyle.cov0.put(layer, r);
+        if (l != null && l != r) {
+          Tensor add = l.add(r);
+          newStyle.cov0.put(layer, add);
+        }
+        else if (l != null) {
+          l.addRef();
+          newStyle.cov0.put(layer, l);
+        }
+        else if (r != null) {
+          r.addRef();
+          newStyle.cov0.put(layer, r);
+        }
       });
       Stream.concat(cov1.keySet().stream(), right.cov1.keySet().stream()).distinct().forEach(layer -> {
         Tensor l = cov1.get(layer);
         Tensor r = right.cov1.get(layer);
-        if (l != null && l != r) newStyle.cov1.put(layer, l.add(r));
-        else if (l != null) newStyle.cov1.put(layer, l);
-        else if (r != null) newStyle.cov1.put(layer, r);
+        if (l != null && l != r) {
+          Tensor add = l.add(r);
+          newStyle.cov1.put(layer, add);
+        }
+        else if (l != null) {
+          l.addRef();
+          newStyle.cov1.put(layer, l);
+        }
+        else if (r != null) {
+          r.addRef();
+          newStyle.cov1.put(layer, r);
+        }
       });
       return newStyle;
     }
@@ -771,7 +811,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
       });
       return newStyle;
     }
-    
+  
   }
   
   /**
@@ -779,7 +819,7 @@ public abstract class TextureGenerationBase<T extends LayerEnum<T>, U extends CV
    *
    * @param <T> the type parameter
    */
-  public static class NeuralSetup<T extends LayerEnum<T>> {
+  public class NeuralSetup<T extends LayerEnum<T>> {
   
     /**
      * The Style parameters.

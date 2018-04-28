@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.applications.std.vgg19;
 
 import com.simiacryptus.mindseye.applications.ImageClassificationBase;
-import com.simiacryptus.mindseye.applications.ImageClassifierBase;
+import com.simiacryptus.mindseye.applications.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.util.io.NotebookOutput;
 
@@ -54,9 +54,9 @@ public abstract class ImageClassification extends ImageClassificationBase {
      * @return the image classifier
      */
     @Override
-    public ImageClassifierBase loadModel(@Nonnull final NotebookOutput log) {
+    public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
       return log.code(() -> {
-        ImageClassifierBase classifier = VGG19.fromHDF5();
+        ImageClassifier classifier = VGG19.fromHDF5();
         classifier.getNetwork();
         return classifier;
       });

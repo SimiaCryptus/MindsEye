@@ -50,7 +50,7 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
     log.p("Next, we need an example image to analyze:");
     log.p("We pass this image to the categorization network, and get the following top-10 results. Note that multiple objects may be detected, and the total percentage may be greater than 100%.");
     log.p("Once we have categories identified, we can attempt to localize each object category within the image. We do this via a pipeline starting with the backpropagated input signal delta and applying several filters e.g. blurring and normalization to produce an alpha channel. When applied to the input image, we highlight the image areas related to the object type in question. Note that this produces a fuzzy blob, which does indicate object location but is a poor indicator of object boundaries. Below we perform this task for the top 5 object categories:");
-    ImageClassifierBase vgg16 = loadModel(log);
+    ImageClassifier vgg16 = loadModel(log);
     
     log.h1("Data");
     Tensor[] images = loadData(log);
@@ -98,7 +98,7 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
    * @param log the log
    * @return the image classifier
    */
-  public abstract ImageClassifierBase loadModel(@Nonnull NotebookOutput log);
+  public abstract ImageClassifier loadModel(@Nonnull NotebookOutput log);
   
   /**
    * Gets shuffle comparator.
