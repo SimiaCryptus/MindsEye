@@ -49,7 +49,7 @@ public class ImgPixelSumLayer extends LayerBase {
   /**
    * Instantiates a new Img band scale layer.
    */
-  protected ImgPixelSumLayer() {
+  public ImgPixelSumLayer() {
     super();
   }
   

@@ -105,6 +105,15 @@ public class PipelineNetwork extends DAGNetwork {
     return new PipelineNetwork(json, rs);
   }
   
+  public static PipelineNetwork build(final int inputs, final Layer... layers) {
+    PipelineNetwork pipelineNetwork = new PipelineNetwork(inputs);
+    pipelineNetwork.setHead(pipelineNetwork.getInput(0));
+    for (final Layer layer : layers) {
+      pipelineNetwork.add(layer);
+    }
+    return pipelineNetwork;
+  }
+  
   @Nonnull
   @Override
   public PipelineNetwork copy(final SerialPrecision precision) {

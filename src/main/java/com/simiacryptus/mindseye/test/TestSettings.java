@@ -40,7 +40,7 @@ public class TestSettings implements Settings {
   private TestSettings() {
     if (CudaSettings.INSTANCE == null) throw new RuntimeException();
     tag = Settings.get("GIT_TAG", "master");
-    autobrowse = false;
+    autobrowse = true;
   }
   
 }

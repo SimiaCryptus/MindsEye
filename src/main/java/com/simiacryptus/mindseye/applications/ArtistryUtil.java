@@ -366,7 +366,7 @@ public class ArtistryUtil {
   /**
    * Pca tensor.
    *
-   * @param cov   the cov
+   * @param cov   the bandCovariance
    * @param power the power
    * @return the tensor
    */

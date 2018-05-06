@@ -153,7 +153,7 @@ public class SparkTrainable extends TrainableBase {
   /**
    * Gets delta.
    *
-   * @param reduce the reduce
+   * @param reduce the sum3channels
    * @return the delta
    */
   @Nonnull

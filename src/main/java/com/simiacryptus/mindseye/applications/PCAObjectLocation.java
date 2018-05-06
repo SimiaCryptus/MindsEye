@@ -65,6 +65,80 @@ public abstract class PCAObjectLocation {
   private static final Logger logger = LoggerFactory.getLogger(PCAObjectLocation.class);
   
   /**
+   * Render alpha tensor.
+   *
+   * @param alphaPower     the alpha power
+   * @param img            the img
+   * @param locationResult the location result
+   * @param classification the classification
+   * @param category       the category
+   * @return the tensor
+   */
+  public static Tensor renderAlpha(final double alphaPower, final Tensor img, final Result locationResult, final Tensor classification, final int category) {
+    TensorArray tensorArray = TensorArray.wrap(new Tensor(classification.getDimensions()).set(category, 1));
+    DeltaSet<Layer> deltaSet = new DeltaSet<>();
+    locationResult.accumulate(deltaSet, tensorArray);
+    double[] rawDelta = deltaSet.getMap().entrySet().stream().filter(x -> x.getValue().target == img.getData()).findAny().get().getValue().getDelta();
+    Tensor deltaColor = new Tensor(rawDelta, img.getDimensions()).mapAndFree(x -> Math.abs(x));
+    Tensor delta1d = blur(sum3channels(deltaColor), 3);
+    return TestUtil.normalizeBands(TestUtil.normalizeBands(delta1d, 1).mapAndFree(x -> Math.pow(x, alphaPower)));
+  }
+  
+  /**
+   * Gets locator network.
+   *
+   * @return the locator network
+   */
+  public abstract ImageClassifier getLocatorNetwork();
+  
+  /**
+   * Gets classifier network.
+   *
+   * @return the classifier network
+   */
+  public abstract ImageClassifier getClassifierNetwork();
+  
+  /**
+   * Reduce tensor.
+   *
+   * @param deltaColor the delta color
+   * @return the tensor
+   */
+  @Nonnull
+  public static Tensor sum3channels(final Tensor deltaColor) {
+    return new Tensor(deltaColor.getDimensions()[0], deltaColor.getDimensions()[1], 1).setByCoord(c -> {
+      return deltaColor.get(c.getCoords()[0], c.getCoords()[1], 0) +
+        deltaColor.get(c.getCoords()[0], c.getCoords()[1], 1) +
+        deltaColor.get(c.getCoords()[0], c.getCoords()[1], 2);
+    });
+  }
+  
+  /**
+   * Blur tensor.
+   *
+   * @param img        the delta 1 d
+   * @param iterations the iterations
+   * @return the tensor
+   */
+  @Nonnull
+  public static Tensor blur(Tensor img, final int iterations) {
+    int[] dimensions = img.getDimensions();
+    int bands = dimensions[2];
+    ConvolutionLayer blur = new ConvolutionLayer(3, 3, bands, bands);
+    for (int i = 0; i < bands; i++) {
+      blur.getKernel().set(0, 1, i * (bands + 1), 1.0);
+      blur.getKernel().set(1, 1, i * (bands + 1), 1.0);
+      blur.getKernel().set(1, 0, i * (bands + 1), 1.0);
+      blur.getKernel().set(1, 2, i * (bands + 1), 1.0);
+      blur.getKernel().set(2, 1, i * (bands + 1), 1.0);
+    }
+    for (int i = 0; i < iterations; i++) {
+      img = blur.eval(img).getDataAndFree().getAndFree(0);
+    }
+    return img;
+  }
+  
+  /**
    * Run.
    *
    * @param log the log
@@ -117,7 +191,6 @@ public abstract class PCAObjectLocation {
         for (int y = 0; y < predictionList.size(); y++) {
           Tensor l = vectors.get(predictionList.get(x));
           Tensor r = vectors.get(predictionList.get(y));
-  
           covarianceMatrix.setEntry(x, y, null == l || null == r ? 0 : (l.minus(avgDetection)).dot(r.minus(avgDetection)));
         }
       }
@@ -165,76 +238,6 @@ public abstract class PCAObjectLocation {
     });
     
     log.setFrontMatterProperty("status", "OK");
-  }
-  
-  /**
-   * Gets locator network.
-   *
-   * @return the locator network
-   */
-  public abstract ImageClassifier getLocatorNetwork();
-  
-  /**
-   * Gets classifier network.
-   *
-   * @return the classifier network
-   */
-  public abstract ImageClassifier getClassifierNetwork();
-  
-  /**
-   * Render alpha tensor.
-   *
-   * @param alphaPower     the alpha power
-   * @param img            the img
-   * @param locationResult the location result
-   * @param classification the classification
-   * @param category       the category
-   * @return the tensor
-   */
-  public Tensor renderAlpha(final double alphaPower, final Tensor img, final Result locationResult, final Tensor classification, final int category) {
-    TensorArray tensorArray = TensorArray.wrap(new Tensor(classification.getDimensions()).set(category, 1));
-    DeltaSet<Layer> deltaSet = new DeltaSet<>();
-    locationResult.accumulate(deltaSet, tensorArray);
-    double[] rawDelta = deltaSet.getMap().entrySet().stream().filter(x -> x.getValue().target == img.getData()).findAny().get().getValue().getDelta();
-    Tensor deltaColor = new Tensor(rawDelta, img.getDimensions()).mapAndFree(x -> Math.abs(x));
-    Tensor delta1d = blur(reduce(deltaColor), 3);
-    return TestUtil.normalizeBands(TestUtil.normalizeBands(delta1d, 1).mapAndFree(x -> Math.pow(x, alphaPower)));
-  }
-  
-  /**
-   * Reduce tensor.
-   *
-   * @param deltaColor the delta color
-   * @return the tensor
-   */
-  @Nonnull
-  public Tensor reduce(final Tensor deltaColor) {
-    return new Tensor(deltaColor.getDimensions()[0], deltaColor.getDimensions()[1], 1).setByCoord(c -> {
-      return deltaColor.get(c.getCoords()[0], c.getCoords()[1], 0) +
-        deltaColor.get(c.getCoords()[0], c.getCoords()[1], 1) +
-        deltaColor.get(c.getCoords()[0], c.getCoords()[1], 2);
-    });
-  }
-  
-  /**
-   * Blur tensor.
-   *
-   * @param delta1d    the delta 1 d
-   * @param iterations the iterations
-   * @return the tensor
-   */
-  @Nonnull
-  public Tensor blur(Tensor delta1d, final int iterations) {
-    ConvolutionLayer blur = new ConvolutionLayer(3, 3, 1, 1);
-    blur.getKernel().set(0, 1, 1.0);
-    blur.getKernel().set(1, 1, 1.0);
-    blur.getKernel().set(1, 0, 1.0);
-    blur.getKernel().set(1, 2, 1.0);
-    blur.getKernel().set(2, 1, 1.0);
-    for (int i = 0; i < iterations; i++) {
-      delta1d = blur.eval(delta1d).getDataAndFree().getAndFree(0);
-    }
-    return delta1d;
   }
   
   /**

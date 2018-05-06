@@ -467,6 +467,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return prettyPrint;
   }
   
+  public Tensor normalizeDistribution() {
+    double[] sortedValues = Arrays.stream(getData()).sorted().toArray();
+    Tensor result = map(v -> (double) Arrays.binarySearch(sortedValues, v) / sortedValues.length);
+    return result;
+  }
+  
   /**
    * Reorder dimensions tensor.
    *
@@ -1737,6 +1743,17 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   public Tensor unit() {
     return scale(1.0 / Math.sqrt(sumSq()));
+  }
+  
+  public Tensor selectBand(final int band) {
+    assert band >= 0;
+    int[] dimensions = getDimensions();
+    assert 3 == dimensions.length;
+    assert band < dimensions[2];
+    return new Tensor(dimensions[0], dimensions[1], 1).setByCoord(c -> {
+      int[] coords = c.getCoords();
+      return get(coords[0], coords[1], band);
+    });
   }
   
   /**

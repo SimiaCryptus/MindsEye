@@ -570,7 +570,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
      */
     public final double mean;
     /**
-     * The Coeff style cov 0.
+     * The Coeff style bandCovariance 0.
      */
     public final double cov;
     /**
@@ -582,7 +582,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
      * Instantiates a new Layer style params.
      *
      * @param mean    the mean
-     * @param cov     the cov
+     * @param cov     the bandCovariance
      * @param enhance the enhance
      */
     public LayerStyleParams(final double mean, final double cov, final double enhance) {
@@ -668,7 +668,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
      *
      * @param layerType        the layer type
      * @param coeff_style_mean the coeff style mean
-     * @param coeff_style_cov  the coeff style cov
+     * @param coeff_style_cov  the coeff style bandCovariance
      * @return the style coefficients
      */
     public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {return set(layerType, coeff_style_mean, coeff_style_cov, 0);}
@@ -678,7 +678,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
      *
      * @param layerType        the layer type
      * @param coeff_style_mean the coeff style mean
-     * @param coeff_style_cov  the coeff style cov
+     * @param coeff_style_cov  the coeff style bandCovariance
      * @param enhance          the enhance
      * @return the style coefficients
      */
