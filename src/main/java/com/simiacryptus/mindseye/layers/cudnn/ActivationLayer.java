@@ -63,6 +63,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
    * The Mode.
    */
   final int mode;
+  private double alpha = 1.0;
   private Precision precision = Precision.Double;
   
   
@@ -83,6 +84,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   protected ActivationLayer(@Nonnull final JsonObject json) {
     super(json);
     mode = json.getAsJsonPrimitive("mode").getAsInt();
+    setAlpha(json.getAsJsonPrimitive("alpha").getAsDouble());
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
   
@@ -171,7 +173,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           CudaMemory memory = inputTensor.getMemory(gpu);
           CudaMemory tensorMemory = outputTensor.getMemory(gpu);
           CudaSystem.handle(gpu.cudnnActivationForward(activationDesc.getPtr(),
-            precision.getPointer(1.0), inputTensor.descriptor.getPtr(), memory.getPtr(),
+            precision.getPointer(getAlpha()), inputTensor.descriptor.getPtr(), memory.getPtr(),
             precision.getPointer(0.0), outputTensor.descriptor.getPtr(), tensorMemory.getPtr()));
           assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
           memory.dirty();
@@ -221,7 +223,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
                 CudaMemory inputTensorMemory = inputTensor.getMemory(gpu);
                 CudaMemory passbackTensorMemory = passbackTensor.getMemory(gpu);
                 CudaSystem.handle(gpu.cudnnActivationBackward(activationDesc.getPtr(),
-                  precision.getPointer(1.0),
+                  precision.getPointer(getAlpha()),
                   localOut.descriptor.getPtr(), localOutMemory.getPtr(),
                   deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
                   inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
@@ -280,6 +282,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
+    json.addProperty("alpha", getAlpha());
     json.addProperty("mode", mode);
     json.addProperty("precision", precision.name());
     return json;
@@ -301,6 +304,15 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   @Override
   public List<double[]> state() {
     return Arrays.asList();
+  }
+  
+  public double getAlpha() {
+    return alpha;
+  }
+  
+  public ActivationLayer setAlpha(double alpha) {
+    this.alpha = alpha;
+    return this;
   }
   
   

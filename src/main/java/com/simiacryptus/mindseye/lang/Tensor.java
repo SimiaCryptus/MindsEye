@@ -23,6 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.simiacryptus.mindseye.applications.MaxentImgClusterer;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
@@ -465,6 +466,23 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     String prettyPrint = t.prettyPrint();
     t.freeRef();
     return prettyPrint;
+  }
+  
+  @Nonnull
+  public Stream<double[]> getPixelStream() {
+    int[] dimensions = getDimensions();
+    int width = dimensions[0];
+    int height = dimensions[1];
+    int bands = dimensions[2];
+    return IntStream.range(0, width).mapToObj(x -> x).parallel().flatMap(x -> {
+      return IntStream.range(0, height).mapToObj(y -> y).map(y -> {
+        return MaxentImgClusterer.getPixel(this, x, y, bands);
+      });
+    });
+  }
+  
+  public Tensor rescaleRms(final double rms) {
+    return scale(rms / rms());
   }
   
   public Tensor normalizeDistribution() {

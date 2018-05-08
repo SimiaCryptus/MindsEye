@@ -30,8 +30,18 @@ import java.util.Arrays;
  */
 public class RangeConstraint implements TrustRegion {
   
-  private double min = 0;
-  private double max = 255;
+  private double min;
+  private double max;
+  
+  public RangeConstraint() {
+    min = 0;
+    max = 255;
+  }
+  
+  public RangeConstraint(final double min, final double max) {
+    this.min = min;
+    this.max = max;
+  }
   
   /**
    * Gets max.
