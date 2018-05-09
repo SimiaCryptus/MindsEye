@@ -50,6 +50,13 @@ public class Result extends ReferenceCountingBase {
     this.accumulator = accumulator;
   }
   
+  public double[] getSingleDelta() {
+    DeltaSet<Layer> deltaBuffer = new DeltaSet<>();
+    accumulate(deltaBuffer);
+    if (deltaBuffer.getMap().size() != 1) throw new AssertionError(deltaBuffer.getMap().size());
+    return deltaBuffer.getMap().values().iterator().next().getDelta();
+  }
+  
   /**
    * Accumulate.
    *
@@ -80,7 +87,7 @@ public class Result extends ReferenceCountingBase {
    * Accumulate.
    *
    * @param buffer the buffer
-   * @param delta  the delta
+   * @param delta  the evalInputDelta
    */
   public void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
     try {

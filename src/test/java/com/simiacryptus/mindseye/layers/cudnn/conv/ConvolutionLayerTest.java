@@ -126,7 +126,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
   
   private void print(final Stream<CharSequence> stream) {
     stream.forEach(x -> System.out.println("Zero: " + x));
-    //System.out.println("Zeros: " + stream.sum3channels((a,b)->a+","+b).get());
+    //System.out.println("Zeros: " + stream.sumChannels((a,b)->a+","+b).get());
   }
   
   @Nonnull

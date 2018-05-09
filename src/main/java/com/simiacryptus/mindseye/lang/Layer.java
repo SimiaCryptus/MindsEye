@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nonnull;
@@ -114,6 +115,13 @@ public interface Layer extends ReferenceCounting, Serializable {
     } catch (@Nonnull IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  default Layer andThen(Layer append) {
+    return PipelineNetwork.build(1,
+      this,
+      append
+    );
   }
   
   /**

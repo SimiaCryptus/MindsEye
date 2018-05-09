@@ -555,7 +555,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }).filter(x -> x != null).collect(Collectors.toList());
     buffer.freeRef();
     if (!deltas.isEmpty() && !component.state().isEmpty()) {
-      throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
+      throw new AssertionError("Frozen component listed in evalInputDelta. Deltas: " + deltas);
     }
     if (!reachedInputFeedback.get() && 0 < inElements) {
       throw new RuntimeException("Frozen component did not pass input backwards");
@@ -601,7 +601,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
     if (deltas.isEmpty() && !stateList.isEmpty()) {
-      throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
+      throw new AssertionError("Nonfrozen component not listed in evalInputDelta. Deltas: " + deltas);
     }
     frozen.freeRef();
     buffer.freeRef();

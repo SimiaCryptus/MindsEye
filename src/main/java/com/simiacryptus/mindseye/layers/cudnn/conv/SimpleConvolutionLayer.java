@@ -409,7 +409,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    * Gets backward filter algorithm.
    *
    * @param gpu                   the gpu
-   * @param deltaTensor           the delta tensor
+   * @param deltaTensor           the evalInputDelta tensor
    * @param inputTensor           the input tensor
    * @param filterDescriptor      the filter descriptor
    * @param convolutionDescriptor the convolution descriptor
@@ -427,7 +427,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    * @param inputDescriptor       the input descriptor
    * @param filterDescriptor      the filter descriptor
    * @param convolutionDescriptor the convolution descriptor
-   * @param deltaTensor           the delta tensor
+   * @param deltaTensor           the evalInputDelta tensor
    * @return the backward data algorithm
    */
   public int getBackwardDataAlgorithm(final CudnnHandle gpu, final CudaDevice.CudaTensorDescriptor inputDescriptor, final CudaResource<cudnnFilterDescriptor> filterDescriptor, final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, final CudaTensor deltaTensor) {

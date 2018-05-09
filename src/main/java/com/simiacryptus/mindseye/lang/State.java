@@ -48,7 +48,7 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
    *
    * @param layer  the layer
    * @param target the target
-   * @param delta  the delta
+   * @param delta  the evalInputDelta
    */
   public State(@Nonnull final K layer, final double[] target, final double[] delta) {
     super(layer, target, delta);

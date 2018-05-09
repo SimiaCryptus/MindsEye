@@ -63,7 +63,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   private boolean parallel;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private ImgTileAssemblyLayer() {
   }
@@ -80,7 +80,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -94,11 +94,11 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgTileAssemblyLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileAssemblyLayer(json, rs);

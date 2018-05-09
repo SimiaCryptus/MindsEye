@@ -42,7 +42,7 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
    */
   public final OrientationStrategy<SimpleLineSearchCursor> inner;
   /**
-   * The Prev delta.
+   * The Prev evalInputDelta.
    */
   @Nonnull
   DeltaSet<Layer> prevDelta = new DeltaSet<Layer>();

@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Result;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
 import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
@@ -57,13 +58,13 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   private boolean parallel = true;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   public ImgConcatLayer() {
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    */
@@ -75,14 +76,18 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgConcatLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgConcatLayer(json);
+  }
+  
+  public static Tensor eval(final List<Tensor> featureImage) {
+    return new ImgConcatLayer().eval(featureImage.toArray(new Tensor[]{})).getDataAndFree().get(0);
   }
   
   /**

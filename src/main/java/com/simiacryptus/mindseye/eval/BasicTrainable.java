@@ -136,7 +136,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
         final double sum = statistics.getSum();
         result.accumulate(deltaSet, 1.0);
         stateSet = new StateSet<>(deltaSet);
-        //log.info(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<LayerBase>.getMap().size(), DeltaSet<LayerBase>.getMagnitude()));
+        //log.info(String.format("Evaluated to %s evalInputDelta buffers, %s mag", DeltaSet<LayerBase>.getMap().size(), DeltaSet<LayerBase>.getMagnitude()));
         return new PointSample(deltaSet, stateSet, sum, 0.0, list.size());
       } finally {
         if (null != stateSet) stateSet.freeRef();
@@ -180,7 +180,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   public PointSample measure(@Nullable final TrainingMonitor monitor) {
     assert !data.isEmpty();
     @Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
-    //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<LayerBase>.apply.size()));
+    //          log.info(String.format("Evaluated to %s evalInputDelta arrays", DeltaSet<LayerBase>.apply.size()));
     if (null != monitor && verbosity() > 1) {
       monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", data.size(), timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
     }

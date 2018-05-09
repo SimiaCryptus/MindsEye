@@ -209,7 +209,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public ToleranceStatistics testNonstandardBoundsBackprop(final NotebookOutput log, @Nullable final Layer layer, @Nonnull final Tensor[] inputPrototype) {
     log.h2("Irregular Backprop");
-    log.p("This layer should accept non-dense tensors as delta input.");
+    log.p("This layer should accept non-dense tensors as evalInputDelta input.");
     return log.code(() -> {
       Tensor[] randomized = Arrays.stream(inputPrototype).map(x -> x.map(v -> getRandom())).toArray(i -> new Tensor[i]);
       logger.info("Input: " + Arrays.stream(randomized).map(Tensor::prettyPrint).collect(Collectors.toList()));

@@ -55,13 +55,13 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
   private Precision precision = Precision.Double;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   public ImgTileCycleLayer() {
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -72,11 +72,11 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgTileCycleLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileCycleLayer(json, rs);

@@ -166,8 +166,8 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
               }
               @Nonnull final double[] normal = ArrayUtil.subtract(projectedPosition, proposedPosition);
               final double normalMagSq = ArrayUtil.dot(normal, normal);
-//              monitor.log(String.format("%s: delta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
-//                ArrayUtil.dot(delta,delta),
+//              monitor.log(String.format("%s: evalInputDelta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
+//                ArrayUtil.dot(evalInputDelta,evalInputDelta),
 //                ArrayUtil.dot(projectedPosition,projectedPosition),
 //                ArrayUtil.dot(proposedPosition,proposedPosition),
 //                ArrayUtil.dot(currentPosition,currentPosition),

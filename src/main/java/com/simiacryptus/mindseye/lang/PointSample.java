@@ -52,7 +52,7 @@ public final class PointSample extends ReferenceCountingBase {
   /**
    * Instantiates a new Point sample.
    *
-   * @param delta   the delta
+   * @param delta   the evalInputDelta
    * @param weights the weights
    * @param sum     the sum
    * @param rate    the rate
@@ -114,7 +114,7 @@ public final class PointSample extends ReferenceCountingBase {
   }
   
   /**
-   * Copy delta point sample.
+   * Copy evalInputDelta point sample.
    *
    * @return the point sample
    */

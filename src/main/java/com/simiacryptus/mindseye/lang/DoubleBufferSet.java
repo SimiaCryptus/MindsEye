@@ -82,9 +82,9 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   }
   
   /**
-   * Copy delta setByCoord.
+   * Copy evalInputDelta setByCoord.
    *
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   @SuppressWarnings("unchecked")
@@ -102,11 +102,11 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   protected abstract T factory(final K layer, final double[] target);
   
   /**
-   * Get delta.
+   * Get evalInputDelta.
    *
    * @param layer the layer
    * @param ptr   the ptr
-   * @return the delta
+   * @return the evalInputDelta
    */
   public T get(final K layer, final double[] ptr) {
     final T delta = get(layer, () -> factory(layer, ptr));
@@ -140,11 +140,11 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   }
   
   /**
-   * Get delta.
+   * Get evalInputDelta.
    *
    * @param layer the layer
    * @param ptr   the ptr
-   * @return the delta
+   * @return the evalInputDelta
    */
   public T get(final K layer, @Nonnull final Tensor ptr) {
     return get(layer, ptr.getData());
@@ -161,10 +161,10 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   }
   
   /**
-   * Map delta setByCoord.
+   * Map evalInputDelta setByCoord.
    *
    * @param mapper the mapper
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DoubleBufferSet<K, T> map(@Nonnull final Function<T, T> mapper) {

@@ -37,10 +37,10 @@ public interface LineSearchCursor extends ReferenceCounting {
   CharSequence getDirectionType();
   
   /**
-   * Position delta setByCoord.
+   * Position evalInputDelta setByCoord.
    *
    * @param alpha the alpha
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   DeltaSet<Layer> position(double alpha);
   

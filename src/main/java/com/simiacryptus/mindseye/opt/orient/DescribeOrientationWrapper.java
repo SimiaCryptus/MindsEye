@@ -72,8 +72,8 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
   /**
    * Render string.
    *
-   * @param weightDelta the weight delta
-   * @param dirDelta    the dir delta
+   * @param weightDelta the weight evalInputDelta
+   * @param dirDelta    the dir evalInputDelta
    * @return the string
    */
   public static CharSequence render(@Nonnull final DoubleBuffer<Layer> weightDelta, @Nonnull final DoubleBuffer<Layer> dirDelta) {

@@ -23,7 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.applications.MaxentImgClusterer;
+import com.simiacryptus.mindseye.applications.PixelClusterer;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
@@ -468,6 +468,21 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return prettyPrint;
   }
   
+  /**
+   * Reduce tensor.
+   *
+   * @return the tensor
+   */
+  @Nonnull
+  public Tensor sumChannels() {
+    int[] dimensions = getDimensions();
+    Tensor self = this;
+    return new Tensor(dimensions[0], dimensions[1], 1).setByCoord(c -> {
+      int[] coords = c.getCoords();
+      return IntStream.range(0, dimensions[2]).mapToDouble(j -> self.get(coords[0], coords[1], j)).sum();
+    });
+  }
+  
   @Nonnull
   public Stream<double[]> getPixelStream() {
     int[] dimensions = getDimensions();
@@ -476,7 +491,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     int bands = dimensions[2];
     return IntStream.range(0, width).mapToObj(x -> x).parallel().flatMap(x -> {
       return IntStream.range(0, height).mapToObj(y -> y).map(y -> {
-        return MaxentImgClusterer.getPixel(this, x, y, bands);
+        return PixelClusterer.getPixel(this, x, y, bands);
       });
     });
   }
@@ -487,7 +502,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   
   public Tensor normalizeDistribution() {
     double[] sortedValues = Arrays.stream(getData()).sorted().toArray();
-    Tensor result = map(v -> (double) Arrays.binarySearch(sortedValues, v) / sortedValues.length);
+    Tensor result = map(v -> Math.abs(((double) Arrays.binarySearch(sortedValues, v)) / ((double) sortedValues.length)));
     return result;
   }
   
@@ -955,15 +970,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   @Nullable
   public Tensor map(@Nonnull final DoubleUnaryOperator f) {
     @Nullable final double[] data = getData();
-    @Nonnull final double[] cpy = new double[data.length];
-    for (int i = 0; i < data.length; i++) {
-      final double x = data[i];
-      // assert Double.isFinite(x);
-      final double v = f.applyAsDouble(x);
-      // assert Double.isFinite(v);
-      cpy[i] = v;
-    }
-    return new Tensor(cpy, dimensions);
+    Tensor tensor = new Tensor(dimensions);
+    @Nonnull final double[] cpy = tensor.getData();
+    IntStream.range(0, data.length).parallel().forEach(i -> cpy[i] = f.applyAsDouble(data[i]));
+    return tensor;
   }
   
   /**

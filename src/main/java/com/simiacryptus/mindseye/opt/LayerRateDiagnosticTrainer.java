@@ -416,7 +416,7 @@ public class LayerRateDiagnosticTrainer {
      * Instantiates a new LayerBase stats.
      *
      * @param rate  the rate
-     * @param delta the delta
+     * @param delta the evalInputDelta
      */
     public LayerStats(final double rate, final double delta) {
       this.rate = rate;
@@ -428,7 +428,7 @@ public class LayerRateDiagnosticTrainer {
     public String toString() {
       @Nonnull final StringBuffer sb = new StringBuffer("{");
       sb.append("rate=").append(rate);
-      sb.append(", delta=").append(delta);
+      sb.append(", evalInputDelta=").append(delta);
       sb.append('}');
       return sb.toString();
     }

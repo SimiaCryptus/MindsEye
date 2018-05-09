@@ -224,7 +224,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   /**
    * Read tensor.
    *
-   * @param deltaSet the delta set
+   * @param deltaSet the evalInputDelta set
    * @param remove   the remove
    * @return the tensor
    */

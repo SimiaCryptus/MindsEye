@@ -60,7 +60,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   private Precision precision = Precision.Double;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private ImgCropLayer() {
   }
@@ -79,7 +79,7 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -94,11 +94,11 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgCropLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgCropLayer(json, rs);

@@ -80,8 +80,12 @@ public abstract class PCAObjectLocation {
     locationResult.accumulate(deltaSet, tensorArray);
     double[] rawDelta = deltaSet.getMap().entrySet().stream().filter(x -> x.getValue().target == img.getData()).findAny().get().getValue().getDelta();
     Tensor deltaColor = new Tensor(rawDelta, img.getDimensions()).mapAndFree(x -> Math.abs(x));
-    Tensor delta1d = blur(sum3channels(deltaColor), 3);
+    Tensor delta1d = blur(deltaColor.sumChannels(), 3);
     return TestUtil.normalizeBands(TestUtil.normalizeBands(delta1d, 1).mapAndFree(x -> Math.pow(x, alphaPower)));
+  }
+  
+  public static List<Tensor> blur(final List<Tensor> featureMasks, final int iterations) {
+    return featureMasks.stream().map(x -> blur(x, iterations)).collect(Collectors.toList());
   }
   
   /**
@@ -99,24 +103,9 @@ public abstract class PCAObjectLocation {
   public abstract ImageClassifier getClassifierNetwork();
   
   /**
-   * Reduce tensor.
-   *
-   * @param deltaColor the delta color
-   * @return the tensor
-   */
-  @Nonnull
-  public static Tensor sum3channels(final Tensor deltaColor) {
-    return new Tensor(deltaColor.getDimensions()[0], deltaColor.getDimensions()[1], 1).setByCoord(c -> {
-      return deltaColor.get(c.getCoords()[0], c.getCoords()[1], 0) +
-        deltaColor.get(c.getCoords()[0], c.getCoords()[1], 1) +
-        deltaColor.get(c.getCoords()[0], c.getCoords()[1], 2);
-    });
-  }
-  
-  /**
    * Blur tensor.
    *
-   * @param img        the delta 1 d
+   * @param img        the evalInputDelta 1 d
    * @param iterations the iterations
    * @return the tensor
    */

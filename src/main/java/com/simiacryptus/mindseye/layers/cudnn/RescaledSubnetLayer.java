@@ -49,7 +49,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   private Precision precision = Precision.Double;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private RescaledSubnetLayer() {
   }
@@ -66,7 +66,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -79,11 +79,11 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);

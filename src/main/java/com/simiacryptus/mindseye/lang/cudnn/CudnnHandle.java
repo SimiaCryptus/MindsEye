@@ -114,7 +114,7 @@ public class CudnnHandle extends CudaDevice {
   }
   
   /**
-   * Cudnn destroy sum3channels tensor descriptor int.
+   * Cudnn destroy sumChannels tensor descriptor int.
    *
    * @param obj the obj
    * @return the int
@@ -679,9 +679,9 @@ public class CudnnHandle extends CudaDevice {
   }
   
   /**
-   * Cudnn sum3channels tensor int.
+   * Cudnn sumChannels tensor int.
    *
-   * @param reduceTensorDesc     the sum3channels tensor desc
+   * @param reduceTensorDesc     the sumChannels tensor desc
    * @param indices              the indices
    * @param indicesSizeInBytes   the indices size in bytes
    * @param workspace            the workspace
@@ -1065,9 +1065,9 @@ public class CudnnHandle extends CudaDevice {
   
   
   /**
-   * Cudnn create sum3channels tensor descriptor int.
+   * Cudnn create sumChannels tensor descriptor int.
    *
-   * @param reduceTensorDesc the sum3channels tensor desc
+   * @param reduceTensorDesc the sumChannels tensor desc
    * @return the int
    */
   public int cudnnCreateReduceTensorDescriptor(cudnnReduceTensorDescriptor reduceTensorDesc) {
@@ -1079,14 +1079,14 @@ public class CudnnHandle extends CudaDevice {
   }
   
   /**
-   * Cudnn set sum3channels tensor descriptor int.
+   * Cudnn set sumChannels tensor descriptor int.
    *
-   * @param reduceTensorDesc        the sum3channels tensor desc
-   * @param reduceTensorOp          the sum3channels tensor op
-   * @param reduceTensorCompType    the sum3channels tensor comp type
-   * @param reduceTensorNanOpt      the sum3channels tensor nan opt
-   * @param reduceTensorIndices     the sum3channels tensor indices
-   * @param reduceTensorIndicesType the sum3channels tensor indices type
+   * @param reduceTensorDesc        the sumChannels tensor desc
+   * @param reduceTensorOp          the sumChannels tensor op
+   * @param reduceTensorCompType    the sumChannels tensor comp type
+   * @param reduceTensorNanOpt      the sumChannels tensor nan opt
+   * @param reduceTensorIndices     the sumChannels tensor indices
+   * @param reduceTensorIndicesType the sumChannels tensor indices type
    * @return the int
    */
   public int cudnnSetReduceTensorDescriptor(cudnnReduceTensorDescriptor reduceTensorDesc,
@@ -1116,13 +1116,13 @@ public class CudnnHandle extends CudaDevice {
   }
   
   /**
-   * Cudnn create sum3channels tensor descriptor cuda resource.
+   * Cudnn create sumChannels tensor descriptor cuda resource.
    *
-   * @param reduceTensorOp          the sum3channels tensor op
-   * @param reduceTensorCompType    the sum3channels tensor comp type
-   * @param reduceTensorNanOpt      the sum3channels tensor nan opt
-   * @param reduceTensorIndices     the sum3channels tensor indices
-   * @param reduceTensorIndicesType the sum3channels tensor indices type
+   * @param reduceTensorOp          the sumChannels tensor op
+   * @param reduceTensorCompType    the sumChannels tensor comp type
+   * @param reduceTensorNanOpt      the sumChannels tensor nan opt
+   * @param reduceTensorIndices     the sumChannels tensor indices
+   * @param reduceTensorIndicesType the sumChannels tensor indices type
    * @return the cuda resource
    */
   public CudaResource<cudnnReduceTensorDescriptor> cudnnCreateReduceTensorDescriptor(int reduceTensorOp,

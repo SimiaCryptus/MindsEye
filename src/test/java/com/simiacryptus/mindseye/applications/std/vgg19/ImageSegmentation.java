@@ -20,7 +20,10 @@
 package com.simiacryptus.mindseye.applications.std.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ImageSegmenter;
+import com.simiacryptus.mindseye.applications.PCAObjectLocation;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
@@ -31,6 +34,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -46,11 +50,32 @@ public class ImageSegmentation extends ArtistryAppBase_VGG19 {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    com.simiacryptus.mindseye.applications.ImageSegmentation self = new com.simiacryptus.mindseye.applications.ImageSegmentation.VGG19();
+  
     for (final Tensor img : loadImages_library()) {
-      self.run(log, img);
+      log.p(log.image(img.toImage(), ""));
+      ImageSegmenter self = log.code(() -> {
+        return new ImageSegmenter.VGG19(7);
+      });
+      List<Tensor> featureMasks = self.featureClusters(log, img,
+        CVPipe_VGG19.Layer.Layer_0,
+        CVPipe_VGG19.Layer.Layer_1a,
+//        CVPipe_VGG19.Layer.Layer_1b,
+        CVPipe_VGG19.Layer.Layer_1c,
+//        CVPipe_VGG19.Layer.Layer_1d,
+        CVPipe_VGG19.Layer.Layer_1e
+      );
+      self.spatialClusters(log, img, featureMasks);
+      int blur = 7;
+      self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
+      self.setClusters(5);
+      self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
+      self.setClusters(3);
+      self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
+      self.setClusters(2);
+      self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
     }
   }
+  
   
   /**
    * Load images 1 tensor [ ] [ ].

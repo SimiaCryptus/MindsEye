@@ -142,7 +142,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
         return tensor;
       }).toArray(i -> new Tensor[i]));
 //      passback = CudaSystem.generate(gpu -> {
-//        CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
+//        CudaTensor deltaTensor = gpu.getTensor(evalInputDelta, precision, MemoryType.Device, true);
 //        @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
 //          length, inputSize[2], inputSize[1], inputSize[0]);
 //        @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
@@ -150,7 +150,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
 //        @Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(precision,
 //          1, 1, inputSize[1], inputSize[0]);
 //        for(int batch=0;batch<length;batch++){
-//          Tensor tensor = delta.get(batch);
+//          Tensor tensor = evalInputDelta.get(batch);
 //          for(int band=0;band<bands;band++){
 //            int i = batch * bands + band;
 //            CudaMemory img = outputPtr.withByteOffset(precision.size * i * outputDescriptor.cStride);

@@ -49,7 +49,7 @@ import java.util.stream.IntStream;
 
 /**
  * Selects the maximum value in each NxN cell, setting all other values to zero. This introduces sparsity into the
- * signal, but does not sum3channels resolution.
+ * signal, but does not sumChannels resolution.
  */
 @SuppressWarnings("serial")
 public class MaxDropoutNoiseLayer extends LayerBase {

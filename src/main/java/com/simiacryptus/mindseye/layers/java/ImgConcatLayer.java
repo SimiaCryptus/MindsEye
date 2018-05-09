@@ -50,14 +50,14 @@ public class ImgConcatLayer extends LayerBase {
   private int maxBands;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   public ImgConcatLayer() {
     setMaxBands(0);
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    */
@@ -68,11 +68,11 @@ public class ImgConcatLayer extends LayerBase {
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgConcatLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgConcatLayer(json);

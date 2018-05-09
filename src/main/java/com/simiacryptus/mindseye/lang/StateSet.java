@@ -98,10 +98,10 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   }
   
   /**
-   * Add delta setByCoord.
+   * Add evalInputDelta setByCoord.
    *
    * @param right the right
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public StateSet<K> add(@Nonnull final DeltaSet<K> right) {
@@ -118,9 +118,9 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   }
   
   /**
-   * As vector delta setByCoord.
+   * As vector evalInputDelta setByCoord.
    *
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DeltaSet<K> asVector() {
@@ -206,10 +206,10 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   }
   
   /**
-   * Subtract delta setByCoord.
+   * Subtract evalInputDelta setByCoord.
    *
    * @param right the right
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public StateSet<K> subtract(@Nonnull final DeltaSet<K> right) {
@@ -217,10 +217,10 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   }
   
   /**
-   * Subtract delta setByCoord.
+   * Subtract evalInputDelta setByCoord.
    *
    * @param right the right
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DeltaSet<K> subtract(@Nonnull final StateSet<K> right) {
@@ -236,10 +236,10 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   
   
   /**
-   * Union delta setByCoord.
+   * Union evalInputDelta setByCoord.
    *
    * @param right the right
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DoubleBufferSet<K, State<K>> union(@Nonnull final DoubleBufferSet<K, State<K>> right) {

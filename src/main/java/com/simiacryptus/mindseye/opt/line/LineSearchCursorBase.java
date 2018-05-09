@@ -37,10 +37,10 @@ public abstract class LineSearchCursorBase extends ReferenceCountingBase impleme
   public abstract CharSequence getDirectionType();
   
   /**
-   * Position delta setByCoord.
+   * Position evalInputDelta setByCoord.
    *
    * @param alpha the alpha
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   public abstract DeltaSet<Layer> position(double alpha);
   

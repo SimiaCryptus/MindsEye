@@ -69,7 +69,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   private int batchBands = 0;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private FullyConnectedLayer() {
     outputDims = null;
@@ -98,7 +98,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -113,11 +113,11 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static FullyConnectedLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new FullyConnectedLayer(json, rs);

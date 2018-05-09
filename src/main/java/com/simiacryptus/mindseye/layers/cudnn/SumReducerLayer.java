@@ -139,7 +139,7 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
       
       // Not supported by CuDNN?
 //      CudaTensorList passback = CudaSystem.generate(gpu -> {
-//        CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+//        CudaTensor deltaTensor = gpu.getTensor(evalInputDelta, precision, MemoryType.Device, false);
 //        CudaMemory deltaMemory = deltaTensor.getMemory(gpu);
 //
 //        @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor1 = gpu.newTensorDescriptor(

@@ -460,7 +460,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
     if (!deltas.isEmpty() && !component.state().isEmpty()) {
-      throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
+      throw new AssertionError("Frozen component listed in evalInputDelta. Deltas: " + deltas);
     }
     final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.length()).sum();
     if (!reachedInputFeedback.get() && 0 < inElements) {
@@ -495,7 +495,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
     if (deltas.isEmpty() && !stateList.isEmpty()) {
-      throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
+      throw new AssertionError("Nonfrozen component not listed in evalInputDelta. Deltas: " + deltas);
     }
     if (!reachedInputFeedback.get()) {
       throw new RuntimeException("Nonfrozen component did not pass input backwards");

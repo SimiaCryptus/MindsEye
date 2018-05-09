@@ -51,7 +51,7 @@ public class ReshapeLayer extends LayerBase {
   public final int[] outputDims;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private ReshapeLayer() {
     outputDims = null;
@@ -67,7 +67,7 @@ public class ReshapeLayer extends LayerBase {
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -78,11 +78,11 @@ public class ReshapeLayer extends LayerBase {
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ReshapeLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ReshapeLayer(json, rs);

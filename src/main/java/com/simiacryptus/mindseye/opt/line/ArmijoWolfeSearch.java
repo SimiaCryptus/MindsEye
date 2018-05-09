@@ -309,24 +309,24 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
         }
         if (lastValue > startValue + alpha * c1 * startLineDeriv) {
           // Value did not decrease (enough) - It is gauranteed to decrease given an infitefimal rate; the rate must be less than this; this is a new ceiling
-          monitor.log(String.format("Armijo: th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
+          monitor.log(String.format("Armijo: th(%s)=%s; dx=%s evalInputDelta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
           nu = alpha;
           stepBias = Math.min(-1, stepBias - 1);
         }
         else if (isStrongWolfe() && lastStep.derivative > 0) {
           // If the slope is increasing, then we can go lower by choosing a lower rate; this is a new ceiling
-          monitor.log(String.format("WOLF (strong): th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
+          monitor.log(String.format("WOLF (strong): th(%s)=%s; dx=%s evalInputDelta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
           nu = alpha;
           stepBias = Math.min(-1, stepBias - 1);
         }
         else if (lastStep.derivative < c2 * startLineDeriv) {
           // Current slope decreases at no more than X - If it is still decreasing that fast, we know we want a rate of least this value; this is a new floor
-          monitor.log(String.format("WOLFE (weak): th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
+          monitor.log(String.format("WOLFE (weak): th(%s)=%s; dx=%s evalInputDelta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
           mu = alpha;
           stepBias = Math.max(1, stepBias + 1);
         }
         else {
-          monitor.log(String.format("END: th(%s)=%s; dx=%s delta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
+          monitor.log(String.format("END: th(%s)=%s; dx=%s evalInputDelta=%s", alpha, lastValue, lastStep.derivative, startValue - lastValue));
           PointSample point = lastStep.point;
           point.addRef();
           return point;
