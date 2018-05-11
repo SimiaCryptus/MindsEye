@@ -29,16 +29,20 @@ import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ImgBandBiasLayer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
+import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ScaleLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.AutoEntropyLayer;
+import com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
 import com.simiacryptus.mindseye.opt.region.RangeConstraint;
+import com.simiacryptus.mindseye.opt.region.StaticConstraint;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -60,6 +64,9 @@ import java.util.stream.Stream;
 
 public class PixelClusterer {
   private static final Logger logger = LoggerFactory.getLogger(PixelClusterer.class);
+  private final boolean recenter;
+  private final double globalBias;
+  private final double globalGain;
   private int clusters;
   private double seedPcaPower;
   private int orientation;
@@ -68,8 +75,10 @@ public class PixelClusterer {
   private int maxIterations;
   private int timeoutMinutes;
   private double seedMagnitude;
+  private final double entropyBias;
+  private boolean rescale;
   
-  public PixelClusterer(final int clusters, final int orientation, final double globalDistributionEmphasis, final double selectionEntropyAdj, final int maxIterations, final int timeoutMinutes, final double seedPcaPower, final double seedMagnitude) {
+  public PixelClusterer(final int clusters, final int orientation, final double globalDistributionEmphasis, final double selectionEntropyAdj, final int maxIterations, final int timeoutMinutes, final double seedPcaPower, final double seedMagnitude, final boolean rescale, final boolean recenter, final double globalBias, final double globalGain, final double entropyBias) {
     this.setClusters(clusters);
     this.setOrientation(orientation);
     this.setGlobalDistributionEmphasis(globalDistributionEmphasis);
@@ -78,28 +87,38 @@ public class PixelClusterer {
     this.setTimeoutMinutes(timeoutMinutes);
     this.setSeedPcaPower(seedPcaPower);
     this.setSeedMagnitude(seedMagnitude);
+    this.rescale = rescale;
+    this.recenter = recenter;
+    this.globalBias = globalBias;
+    this.globalGain = globalGain;
+    this.entropyBias = entropyBias;
   }
   
   public PixelClusterer(final int clusters) {
     this(
       clusters,
       -1,
-      0,
-      0,
+      2,
+      5,
       10,
       10,
-      0.5,
+      -0,
+      1e5,
+      true,
+      true,
+      0,
+      1e1,
       1e-2
     );
   }
   
-  public static double[] bandCovariance(final Stream<double[]> pixelStream, final int pixels, final double[] mean) {
+  public static double[] bandCovariance(final Stream<double[]> pixelStream, final int pixels, final double[] mean, final double[] rms) {
     return Arrays.stream(pixelStream.map(pixel -> {
       double[] crossproduct = RecycleBin.DOUBLES.obtain(pixel.length * pixel.length);
       int k = 0;
       for (int j = 0; j < pixel.length; j++) {
         for (int i = 0; i < pixel.length; i++) {
-          crossproduct[k++] = (pixel[i] - mean[i]) * (pixel[j] - mean[j]);
+          crossproduct[k++] = ((pixel[i] - mean[i]) * rms[i]) * ((pixel[j] - mean[j]) * rms[j]);
         }
       }
       RecycleBin.DOUBLES.recycle(pixel, pixel.length);
@@ -165,22 +184,40 @@ public class PixelClusterer {
     int[] dimensions = metrics.getDimensions();
     int bands = dimensions[2];
     double[] mean = new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg).eval(metrics).getDataAndFree().getAndFree(0).getData();
-    double[] bandCovariance = bandCovariance(metrics.getPixelStream(), countPixels(metrics), mean);
+    if (!isRecenter()) Arrays.fill(mean, 0);
+    logger.info("Mean=" + Arrays.toString(mean));
+    Tensor bias = new Tensor(mean).map(v1 -> v1 * -1);
+    Tensor _globalBias = new Tensor(mean).map(v1 -> globalBias);
+    double[] scale = Arrays.stream(PipelineNetwork.build(1,
+      new ImgBandBiasLayer(bands).set(bias),
+      new SquareActivationLayer(),
+      new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg),
+      new NthPowerActivationLayer().setPower(-0.5)
+    ).eval(metrics).getDataAndFree().getAndFree(0).getData()).map(x -> x == 0.0 ? 1.0 : x).toArray();
+    if (!isRescale()) Arrays.fill(scale, 1);
+    logger.info("Scaling=" + Arrays.toString(scale));
+    double[] bandCovariance = bandCovariance(metrics.getPixelStream(), countPixels(metrics), mean, scale);
     List<Tensor> seedVectors = pca(bandCovariance, getSeedPcaPower()).stream().collect(Collectors.toList());
     String convolutionLayerName = "mix";
     ConvolutionLayer convolutionLayer = new ConvolutionLayer(1, 1, bands, getClusters());
     convolutionLayer.getKernel().setByCoord(c -> {
       int band = c.getCoords()[2];
-//        int index1 = band / getClusters();
-//        int index2 = band % getClusters();
-      int index1 = band % bands;
-      int index2 = band / bands;
-      return getSeedMagnitude() * seedVectors.get(index2 % seedVectors.size()).get(index1) * ((index2 < seedVectors.size()) ? 1 : -1);
+      int index1 = band / getClusters();
+      int index2 = band % getClusters();
+//      int index1 = band % bands;
+//      int index2 = band / bands;
+      double v = getSeedMagnitude() * seedVectors.get(index2 % seedVectors.size()).get(index1) * ((index2 < seedVectors.size()) ? 1 : -1);
+      return Math.min(Math.max(-1, v), 1);
     });
-    return PipelineNetwork.build(1,
-      new ImgBandBiasLayer(bands).set(new Tensor(mean).scale(-1)),
-      convolutionLayer.explode().setName(convolutionLayerName)
-    );
+    PipelineNetwork pipelineNetwork = new PipelineNetwork(1);
+    pipelineNetwork.setHead(pipelineNetwork.getInput(0));
+    pipelineNetwork.add(new ImgBandBiasLayer(bands).set(bias));
+    pipelineNetwork.add(new ProductLayer(), pipelineNetwork.getHead(), pipelineNetwork.constValue(new Tensor(scale, 1, 1, scale.length)));
+    pipelineNetwork.add(new ImgBandBiasLayer(bands).set(_globalBias).freeze());
+    pipelineNetwork.add(convolutionLayer.explode().setName(convolutionLayerName));
+    pipelineNetwork.add(new ProductLayer(), pipelineNetwork.getHead(), pipelineNetwork.constValue(new Tensor(new double[]{globalGain}, 1, 1, 1)));
+  
+    return pipelineNetwork;
   }
   
   @Nonnull
@@ -194,12 +231,14 @@ public class PixelClusterer {
     netEntropy.wrap(new BinarySumLayer(getOrientation(), getOrientation() * -Math.pow(2, getGlobalDistributionEmphasis())),
       netEntropy.wrap(PipelineNetwork.build(1,
         new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL).setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE),
+        new ImgBandBiasLayer(getClusters()).setWeights(i -> entropyBias),
         new AutoEntropyLayer()
       ), netEntropy.getInput(0)),
       netEntropy.wrap(PipelineNetwork.build(1,
         new ScaleLayer(new Tensor(Math.pow(2, getSelectionEntropyAdj()))),
         new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL).setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE),
         new BandAvgReducerLayer().setAlpha(pixels),
+        new ImgBandBiasLayer(getClusters()).setWeights(i -> entropyBias),
         new AutoEntropyLayer()
       ), netEntropy.getInput(0)));
     return netEntropy;
@@ -214,6 +253,8 @@ public class PixelClusterer {
           @Override
           public TrustRegion getRegionPolicy(final Layer layer) {
             if (layer instanceof SimpleConvolutionLayer) return new RangeConstraint(-1, 1);
+            if (layer instanceof ProductLayer) return new StaticConstraint();
+            //return new StaticConstraint();
             return null;
           }
         })
@@ -313,5 +354,17 @@ public class PixelClusterer {
   public PixelClusterer setTimeoutMinutes(int timeoutMinutes) {
     this.timeoutMinutes = timeoutMinutes;
     return this;
+  }
+  
+  public boolean isRecenter() {
+    return recenter;
+  }
+  
+  public boolean isRescale() {
+    return rescale;
+  }
+  
+  public void setRescale(boolean rescale) {
+    this.rescale = rescale;
   }
 }

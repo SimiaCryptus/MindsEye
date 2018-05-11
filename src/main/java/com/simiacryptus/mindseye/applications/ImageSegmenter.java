@@ -50,7 +50,7 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
   private static final Logger logger = LoggerFactory.getLogger(ImageSegmenter.class);
   
   public ImageSegmenter(final int clusters, final int orientation, final double globalDistributionEmphasis, final double selectionEntropyAdj, final int maxIterations, final int timeoutMinutes, final double seedPcaPower, final double seedMagnitude) {
-    super(clusters, orientation, globalDistributionEmphasis, selectionEntropyAdj, maxIterations, timeoutMinutes, seedPcaPower, seedMagnitude);
+    super(clusters, orientation, globalDistributionEmphasis, selectionEntropyAdj, maxIterations, timeoutMinutes, seedPcaPower, seedMagnitude, false, true, 0.0, 1.0, 1e-1);
   }
   
   public ImageSegmenter(final int clusters) {

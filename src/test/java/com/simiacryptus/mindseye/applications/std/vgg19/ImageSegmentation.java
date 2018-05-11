@@ -54,7 +54,7 @@ public class ImageSegmentation extends ArtistryAppBase_VGG19 {
     for (final Tensor img : loadImages_library()) {
       log.p(log.image(img.toImage(), ""));
       ImageSegmenter self = log.code(() -> {
-        return new ImageSegmenter.VGG19(7);
+        return new ImageSegmenter.VGG19(5);
       });
       List<Tensor> featureMasks = self.featureClusters(log, img,
         CVPipe_VGG19.Layer.Layer_0,
