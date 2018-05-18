@@ -85,6 +85,7 @@ public abstract class PCAObjectLocation {
   }
   
   public static List<Tensor> blur(final List<Tensor> featureMasks, final int iterations) {
+    if (0 >= iterations) return featureMasks;
     return featureMasks.stream().map(x -> blur(x, iterations)).collect(Collectors.toList());
   }
   

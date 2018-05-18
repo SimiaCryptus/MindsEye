@@ -98,17 +98,17 @@ public class PixelClusterer {
     this(
       clusters,
       -1,
-      2,
       5,
-      10,
-      10,
-      -0,
+      0,
+      50,
+      20,
+      -1,
       1e5,
       true,
       true,
       0,
-      1e1,
-      1e-2
+      1e0,
+      1e0
     );
   }
   
@@ -206,7 +206,7 @@ public class PixelClusterer {
       int index2 = band % getClusters();
 //      int index1 = band % bands;
 //      int index2 = band / bands;
-      double v = getSeedMagnitude() * seedVectors.get(index2 % seedVectors.size()).get(index1) * ((index2 < seedVectors.size()) ? 1 : -1);
+      double v = getSeedMagnitude() * seedVectors.get(index2 % seedVectors.size()).get(index1) * ((index2 < seedVectors.size()) ? 1 : 2 * (Math.random() - 0.5));
       return Math.min(Math.max(-1, v), 1);
     });
     PipelineNetwork pipelineNetwork = new PipelineNetwork(1);

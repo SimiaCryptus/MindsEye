@@ -34,6 +34,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -54,25 +55,24 @@ public class ImageSegmentation extends ArtistryAppBase_VGG19 {
     for (final Tensor img : loadImages_library()) {
       log.p(log.image(img.toImage(), ""));
       ImageSegmenter self = log.code(() -> {
-        return new ImageSegmenter.VGG19(5);
+        return new ImageSegmenter.VGG19(8);
       });
       List<Tensor> featureMasks = self.featureClusters(log, img,
         CVPipe_VGG19.Layer.Layer_0,
         CVPipe_VGG19.Layer.Layer_1a,
-//        CVPipe_VGG19.Layer.Layer_1b,
-        CVPipe_VGG19.Layer.Layer_1c,
+        CVPipe_VGG19.Layer.Layer_1b
+//        CVPipe_VGG19.Layer.Layer_1c,
 //        CVPipe_VGG19.Layer.Layer_1d,
-        CVPipe_VGG19.Layer.Layer_1e
+//        CVPipe_VGG19.Layer.Layer_1e
       );
       self.spatialClusters(log, img, featureMasks);
-      int blur = 7;
-      self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
-      self.setClusters(5);
-      self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
-      self.setClusters(3);
-      self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
-      self.setClusters(2);
-      self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
+      for (int blur : Arrays.asList(7, 5, 3)) {
+        for (int clusters : Arrays.asList(5, 3, 2)) {
+          log.h3(String.format("Blur=%s, Clusters=%s", blur, clusters));
+          self.setClusters(clusters);
+          self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
+        }
+      }
     }
   }
   
