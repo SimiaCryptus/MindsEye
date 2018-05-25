@@ -72,13 +72,13 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       network.add(newNormalizationLayer());
-
+  
       network.add(new ConvolutionLayer(3, 3, 5, 5).set(init));
       network.add(new ImgBandBiasLayer(5));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       network.add(newNormalizationLayer());
-
+  
       network.add(new BiasLayer(7, 7, 5));
       network.add(new FullyConnectedLayer(new int[]{7, 7, 5}, new int[]{10}).set(init));
       network.add(new SoftmaxActivationLayer());
@@ -131,7 +131,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
     public OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
-
+  
   }
   
   /**

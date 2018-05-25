@@ -268,7 +268,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     private final Layer inner;
     private final int fromBand;
     private final int toBand;
-
+  
     /**
      * Instantiates a new Subnet leg.
      *

@@ -62,19 +62,19 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   }
   
   /**
-   * Gets alpha.
+   * Gets alphaList.
    *
-   * @return the alpha
+   * @return the alphaList
    */
   public double getAlpha() {
     return alpha;
   }
   
   /**
-   * Sets alpha.
+   * Sets alphaList.
    *
-   * @param alpha the alpha
-   * @return the alpha
+   * @param alpha the alphaList
+   * @return the alphaList
    */
   @Nonnull
   public ArmijoWolfeSearch setAlpha(final double alpha) {
@@ -83,19 +83,19 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   }
   
   /**
-   * Gets alpha growth.
+   * Gets alphaList growth.
    *
-   * @return the alpha growth
+   * @return the alphaList growth
    */
   public double getAlphaGrowth() {
     return alphaGrowth;
   }
   
   /**
-   * Sets alpha growth.
+   * Sets alphaList growth.
    *
-   * @param alphaGrowth the alpha growth
-   * @return the alpha growth
+   * @param alphaGrowth the alphaList growth
+   * @return the alphaList growth
    */
   @Nonnull
   public ArmijoWolfeSearch setAlphaGrowth(final double alphaGrowth) {
@@ -146,19 +146,19 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   }
   
   /**
-   * Gets max alpha.
+   * Gets max alphaList.
    *
-   * @return the max alpha
+   * @return the max alphaList
    */
   public double getMaxAlpha() {
     return maxAlpha;
   }
   
   /**
-   * Sets max alpha.
+   * Sets max alphaList.
    *
-   * @param maxAlpha the max alpha
-   * @return the max alpha
+   * @param maxAlpha the max alphaList
+   * @return the max alphaList
    */
   @Nonnull
   public ArmijoWolfeSearch setMaxAlpha(final double maxAlpha) {
@@ -167,19 +167,19 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   }
   
   /**
-   * Gets min alpha.
+   * Gets min alphaList.
    *
-   * @return the min alpha
+   * @return the min alphaList
    */
   public double getMinAlpha() {
     return minAlpha;
   }
   
   /**
-   * Sets min alpha.
+   * Sets min alphaList.
    *
-   * @param minAlpha the min alpha
-   * @return the min alpha
+   * @param minAlpha the min alphaList
+   * @return the min alphaList
    */
   @Nonnull
   public ArmijoWolfeSearch setMinAlpha(final double minAlpha) {
@@ -244,7 +244,7 @@ public class ArmijoWolfeSearch implements LineSearchStrategy {
   
   @Override
   public PointSample step(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor) {
-    alpha = Math.min(maxAlpha, alpha * alphaGrowth); // Keep memory of alpha from one iteration to next, but have a bias for growing the value
+    alpha = Math.min(maxAlpha, alpha * alphaGrowth); // Keep memory of alphaList from one iteration to next, but have a bias for growing the value
     double mu = 0;
     double nu = Double.POSITIVE_INFINITY;
     final LineSearchPoint startPoint = cursor.step(0, monitor);

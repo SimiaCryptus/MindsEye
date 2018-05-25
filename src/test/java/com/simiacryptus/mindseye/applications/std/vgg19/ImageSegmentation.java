@@ -20,8 +20,10 @@
 package com.simiacryptus.mindseye.applications.std.vgg19;
 
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
+import com.simiacryptus.mindseye.applications.ArtistryUtil;
 import com.simiacryptus.mindseye.applications.ImageSegmenter;
 import com.simiacryptus.mindseye.applications.PCAObjectLocation;
+import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -33,10 +35,9 @@ import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * The type Image classifier apply base.
@@ -51,31 +52,35 @@ public class ImageSegmentation extends ArtistryAppBase_VGG19 {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-  
     for (final Tensor img : loadImages_library()) {
       log.p(log.image(img.toImage(), ""));
-      ImageSegmenter self = log.code(() -> {
-        return new ImageSegmenter.VGG19(8);
+      ImageSegmenter segmenter = log.code(() -> {
+        return new ImageSegmenter.VGG19(9) {
+          @Override
+          public Layer modelingNetwork(final CVPipe_VGG19.Layer layer, final Tensor metrics) {
+            if (layer == CVPipe_VGG19.Layer.Layer_0) {
+              return modelingNetwork(getGlobalBias(), getGlobalGain(), metrics, true, isRescale(), getClusters(), getSeedMagnitude(), 0);
+            }
+            else {
+              return modelingNetwork(getGlobalBias(), getGlobalGain(), metrics, isRecenter(), isRescale(), getClusters(), getSeedMagnitude(), getSeedPcaPower());
+            }
+          }
+        };
       });
-      List<Tensor> featureMasks = self.featureClusters(log, img,
+      List<Tensor> featureMasks = segmenter.featureClusters(log, img,
         CVPipe_VGG19.Layer.Layer_0,
         CVPipe_VGG19.Layer.Layer_1a,
-        CVPipe_VGG19.Layer.Layer_1b
-//        CVPipe_VGG19.Layer.Layer_1c,
-//        CVPipe_VGG19.Layer.Layer_1d,
-//        CVPipe_VGG19.Layer.Layer_1e
+        CVPipe_VGG19.Layer.Layer_1e
       );
-      self.spatialClusters(log, img, featureMasks);
-      for (int blur : Arrays.asList(7, 5, 3)) {
-        for (int clusters : Arrays.asList(5, 3, 2)) {
-          log.h3(String.format("Blur=%s, Clusters=%s", blur, clusters));
-          self.setClusters(clusters);
-          self.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
+      for (int blur : Arrays.asList(9)) {
+        for (int clusters : Arrays.asList(3)) {
+          log.h2(String.format("Blur=%s, Clusters=%s", blur, clusters));
+          segmenter.setClusters(clusters);
+          segmenter.spatialClusters(log, img, PCAObjectLocation.blur(featureMasks, blur));
         }
       }
     }
   }
-  
   
   /**
    * Load images 1 tensor [ ] [ ].
@@ -83,17 +88,18 @@ public class ImageSegmentation extends ArtistryAppBase_VGG19 {
    * @return the tensor [ ] [ ]
    */
   public Tensor[] loadImages_library() {
-    return Stream.of(
-      "H:\\SimiaCryptus\\Artistry\\cat-and-dog.jpg"
-    ).map(img -> {
+    List<CharSequence> localFiles = ArtistryUtil.getLocalFiles("H:\\SimiaCryptus\\Artistry\\Owned\\");
+    Collections.shuffle(localFiles);
+    //Stream<String> files = Stream.of("H:\\SimiaCryptus\\Artistry\\cat-and-dog.jpg");
+    return localFiles.stream().map((CharSequence x1) -> x1.toString()).map(img -> {
       try {
         BufferedImage image = ImageIO.read(new File(img));
-        image = TestUtil.resize(image, 400, true);
+        image = TestUtil.resizePx(image, (long) 700 * 500);
         return Tensor.fromRGB(image);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+      } catch (Throwable e) {
+        return null;
       }
-    }).toArray(i -> new Tensor[i]);
+    }).filter(x -> x != null).toArray(i -> new Tensor[i]);
   }
   
   

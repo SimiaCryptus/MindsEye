@@ -176,7 +176,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
         delta.freeRef();
       }
     }) {
-  
+
       @Override
       public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);

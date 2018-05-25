@@ -63,11 +63,12 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The constant seed.
    */
   public static final long seed = 51389; //System.nanoTime();
+  private static final HashMap<String, TreeMap<String, String>> javadocs = loadJavadoc();
   
   static {
     SysOutInterceptor.INSTANCE.init();
   }
-  
+
   private final Random random = getRandom();
   /**
    * The Testing batch size.
@@ -100,6 +101,18 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public StandardLayerTests() {
     logger.info("Seed: " + seed);
     tolerance = 1e-3;
+  }
+  
+  @Nonnull
+  private static HashMap<String, TreeMap<String, String>> loadJavadoc() {
+    try {
+      HashMap<String, TreeMap<String, String>> javadocData = Javadoc.loadModelSummary();
+      IOUtil.writeJson(new TreeMap<>(javadocData), new File("./javadoc.json"));
+      return javadocData;
+    } catch (Throwable e) {
+      logger.warn("Error loading javadocs", e);
+      return new HashMap<>();
+    }
   }
   
   /**
@@ -350,21 +363,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    */
   public Tensor[] randomize(@Nonnull final int[][] inputDims) {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(() -> random())).toArray(i -> new Tensor[i]);
-  }
-  
-  
-  private static final HashMap<String, TreeMap<String, String>> javadocs = loadJavadoc();
-  
-  @Nonnull
-  private static HashMap<String, TreeMap<String, String>> loadJavadoc() {
-    try {
-      HashMap<String, TreeMap<String, String>> javadocData = Javadoc.loadModelSummary();
-      IOUtil.writeJson(new TreeMap<>(javadocData), new File("./javadoc.json"));
-      return javadocData;
-    } catch (Throwable e) {
-      logger.warn("Error loading javadocs", e);
-      return new HashMap<>();
-    }
   }
   
   /**

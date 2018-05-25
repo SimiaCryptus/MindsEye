@@ -93,7 +93,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
    * @param maxIterations   the max iterations
-   * @param verbose
+   * @param verbose         the verbose
    * @return the buffered image
    */
   @Nonnull
@@ -125,7 +125,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   public BufferedImage train(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, PipelineNetwork network, final Precision precision, final int trainingMinutes, final int maxIterations) {
     System.gc();
     Tensor canvas = Tensor.fromRGB(canvasImage);
-    log.p("<a href=\"/image.jpg\">Current Image</a>");
+    log.p("<a href=\"/image.jpg\"><img src=\"/image.jpg\"></a>");
     log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
       try {
         ImageIO.write(canvas.toImage(), "jpeg", r);
@@ -176,6 +176,13 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
     });
   }
   
+  /**
+   * Gets trainable.
+   *
+   * @param network the network
+   * @param canvas  the canvas
+   * @return the trainable
+   */
   @Nonnull
   public Trainable getTrainable(final PipelineNetwork network, final Tensor canvas) {
     return new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
@@ -225,7 +232,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * Gets fitness components.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @return the fitness components
    */
   @Nonnull
@@ -247,7 +254,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * Gets content components.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @return the content components
    */
   @Nonnull
@@ -282,7 +289,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * Measure style pipeline network.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @param network the network
    * @return the pipeline network
    */

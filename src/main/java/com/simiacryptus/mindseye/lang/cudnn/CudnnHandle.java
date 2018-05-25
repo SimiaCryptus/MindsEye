@@ -403,7 +403,7 @@ public class CudnnHandle extends CudaDevice {
    * Cudnn activation forward int.
    *
    * @param activationDesc the activation desc
-   * @param alpha          the alpha
+   * @param alpha          the alphaList
    * @param xDesc          the x desc
    * @param x              the x
    * @param beta           the beta
@@ -430,7 +430,7 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Cudnn add tensor int.
    *
-   * @param alpha the alpha
+   * @param alpha the alphaList
    * @param aDesc the a desc
    * @param A     the a
    * @param beta  the beta
@@ -457,7 +457,7 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Cudnn convolution backward bias int.
    *
-   * @param alpha  the alpha
+   * @param alpha  the alphaList
    * @param dyDesc the dy desc
    * @param dy     the dy
    * @param beta   the beta
@@ -483,7 +483,7 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Cudnn convolution backward data int.
    *
-   * @param alpha                the alpha
+   * @param alpha                the alphaList
    * @param wDesc                the w desc
    * @param w                    the w
    * @param dyDesc               the dy desc
@@ -521,7 +521,7 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Cudnn convolution backward filter int.
    *
-   * @param alpha                the alpha
+   * @param alpha                the alphaList
    * @param xDesc                the x desc
    * @param x                    the x
    * @param dyDesc               the dy desc
@@ -559,7 +559,7 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Cudnn convolution forward int.
    *
-   * @param alpha                the alpha
+   * @param alpha                the alphaList
    * @param xDesc                the x desc
    * @param x                    the x
    * @param wDesc                the w desc
@@ -597,7 +597,7 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Cudnn convolution forward int.
    *
-   * @param alpha                the alpha
+   * @param alpha                the alphaList
    * @param xDesc                the x desc
    * @param x                    the x
    * @param wDesc                the w desc
@@ -648,10 +648,10 @@ public class CudnnHandle extends CudaDevice {
    * Cudnn op tensor int.
    *
    * @param opTensorDesc the op tensor desc
-   * @param alpha1       the alpha 1
+   * @param alpha1       the alphaList 1
    * @param aDesc        the a desc
    * @param A            the a
-   * @param alpha2       the alpha 2
+   * @param alpha2       the alphaList 2
    * @param bDesc        the b desc
    * @param B            the b
    * @param beta         the beta
@@ -686,7 +686,7 @@ public class CudnnHandle extends CudaDevice {
    * @param indicesSizeInBytes   the indices size in bytes
    * @param workspace            the workspace
    * @param workspaceSizeInBytes the workspace size in bytes
-   * @param alpha                the alpha
+   * @param alpha                the alphaList
    * @param aDesc                the a desc
    * @param A                    the a
    * @param beta                 the beta
@@ -718,7 +718,7 @@ public class CudnnHandle extends CudaDevice {
    * Cudnn pooling backward int.
    *
    * @param poolingDesc the pooling desc
-   * @param alpha       the alpha
+   * @param alpha       the alphaList
    * @param yDesc       the y desc
    * @param y           the y
    * @param dyDesc      the dy desc
@@ -754,7 +754,7 @@ public class CudnnHandle extends CudaDevice {
    * Cudnn pooling forward int.
    *
    * @param poolingDesc the pooling desc
-   * @param alpha       the alpha
+   * @param alpha       the alphaList
    * @param xDesc       the x desc
    * @param x           the x
    * @param beta        the beta
@@ -896,7 +896,7 @@ public class CudnnHandle extends CudaDevice {
    * Cudnn activation backward int.
    *
    * @param activationDesc the activation desc
-   * @param alpha          the alpha
+   * @param alpha          the alphaList
    * @param yDesc          the y desc
    * @param y              the y
    * @param dyDesc         the dy desc
@@ -928,13 +928,13 @@ public class CudnnHandle extends CudaDevice {
   }
   
   
-  /** Softmax functions: All of the form "output = alpha * Op(inputs) + beta * output" */
+  /** Softmax functions: All of the form "output = alphaList * Op(inputs) + beta * output" */
   /**
    * Function to perform forward softmax  @param algo the algo
    *
    * @param algo  the algo
    * @param mode  the mode
-   * @param alpha the alpha
+   * @param alpha the alphaList
    * @param xDesc the x desc
    * @param x     the x
    * @param beta  the beta
@@ -964,7 +964,7 @@ public class CudnnHandle extends CudaDevice {
    *
    * @param algo   the algo
    * @param mode   the mode
-   * @param alpha  the alpha
+   * @param alpha  the alphaList
    * @param yDesc  the y desc
    * @param y      the y
    * @param dyDesc the dy desc
@@ -995,7 +995,7 @@ public class CudnnHandle extends CudaDevice {
   /**
    * Cudnn transform tensor int.
    *
-   * @param alpha the alpha
+   * @param alpha the alphaList
    * @param xDesc the x desc
    * @param x     the x
    * @param beta  the beta

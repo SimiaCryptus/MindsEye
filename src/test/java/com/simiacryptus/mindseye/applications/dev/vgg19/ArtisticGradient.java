@@ -48,6 +48,39 @@ import java.util.stream.Stream;
 public class ArtisticGradient extends ArtistryAppBase_VGG19 {
   
   /**
+   * Init buffered image.
+   *
+   * @param contentSource the content source
+   * @param width         the width
+   * @return the buffered image
+   */
+  @Nonnull
+  public static BufferedImage init(final CharSequence contentSource, final int width) {
+    BufferedImage canvasImage;
+    canvasImage = ArtistryUtil.load(contentSource, width);
+    canvasImage = TestUtil.resize(canvasImage, width, true);
+    canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(
+      TestUtil.resize(canvasImage, 16, true)),
+      width, 1000.0, 1.1).toImage();
+    return canvasImage;
+  }
+  
+  /**
+   * Create buildMap.
+   *
+   * @param <K>       the type parameter
+   * @param <V>       the type parameter
+   * @param configure the configure
+   * @return the buildMap
+   */
+  @Nonnull
+  public static <K, V> Map<K, V> create(Consumer<Map<K, V>> configure) {
+    Map<K, V> map = new HashMap<>();
+    configure.accept(map);
+    return map;
+  }
+  
+  /**
    * Test.
    *
    * @param log the log
@@ -104,39 +137,6 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
   }
   
   /**
-   * Init buffered image.
-   *
-   * @param contentSource the content source
-   * @param width         the width
-   * @return the buffered image
-   */
-  @Nonnull
-  public static BufferedImage init(final CharSequence contentSource, final int width) {
-    BufferedImage canvasImage;
-    canvasImage = ArtistryUtil.load(contentSource, width);
-    canvasImage = TestUtil.resize(canvasImage, width, true);
-    canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(
-      TestUtil.resize(canvasImage, 16, true)),
-      width, 1000.0, 1.1).toImage();
-    return canvasImage;
-  }
-  
-  /**
-   * Create map.
-   *
-   * @param <K>       the type parameter
-   * @param <V>       the type parameter
-   * @param configure the configure
-   * @return the map
-   */
-  @Nonnull
-  public static <K, V> Map<K, V> create(Consumer<Map<K, V>> configure) {
-    Map<K, V> map = new HashMap<>();
-    configure.accept(map);
-    return map;
-  }
-  
-  /**
    * Write gif.
    *
    * @param log         the log
@@ -145,7 +145,7 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
   public void writeGif(@Nonnull final NotebookOutput log, final Stream<BufferedImage> imageStream) {
     BufferedImage[] imgs = imageStream.toArray(i -> new BufferedImage[i]);
     log.p(TestUtil.animatedGif(log,
-      //IntStream.range(1-imgs.length,imgs.length).map(x->Math.abs(x)).mapToObj(i->imgs[i]).toArray(i->new BufferedImage[i])
+      //IntStream.range(1-imgs.length,imgs.length).buildMap(x->Math.abs(x)).mapToObj(i->imgs[i]).toArray(i->new BufferedImage[i])
       imgs
     ));
   }

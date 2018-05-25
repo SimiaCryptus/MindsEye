@@ -406,10 +406,10 @@ public class CudaSystem {
   }
   
   /**
-   * To map map.
+   * To buildMap buildMap.
    *
    * @param obj the obj
-   * @return the map
+   * @return the buildMap
    */
   @Nonnull
   protected static Map<CharSequence, CharSequence> toMap(@Nonnull DoubleStatistics obj) {

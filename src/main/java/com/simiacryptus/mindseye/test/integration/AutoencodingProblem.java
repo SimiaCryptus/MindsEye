@@ -243,12 +243,12 @@ public class AutoencodingProblem implements Problem {
   }
   
   /**
-   * To row linked hash map.
+   * To row linked hash buildMap.
    *
    * @param log              the log
    * @param labeledObject    the labeled object
    * @param predictionSignal the prediction signal
-   * @return the linked hash map
+   * @return the linked hash buildMap
    */
   @Nonnull
   public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {

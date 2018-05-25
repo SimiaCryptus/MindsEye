@@ -483,6 +483,11 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     });
   }
   
+  /**
+   * Gets pixel stream.
+   *
+   * @return the pixel stream
+   */
   @Nonnull
   public Stream<double[]> getPixelStream() {
     int[] dimensions = getDimensions();
@@ -496,10 +501,21 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     });
   }
   
+  /**
+   * Rescale rms tensor.
+   *
+   * @param rms the rms
+   * @return the tensor
+   */
   public Tensor rescaleRms(final double rms) {
     return scale(rms / rms());
   }
   
+  /**
+   * Normalize distribution tensor.
+   *
+   * @return the tensor
+   */
   public Tensor normalizeDistribution() {
     double[] sortedValues = Arrays.stream(getData()).sorted().toArray();
     Tensor result = map(v -> Math.abs(((double) Arrays.binarySearch(sortedValues, v)) / ((double) sortedValues.length)));
@@ -1314,6 +1330,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * Set.
    *
    * @param right the right
+   * @return the tensor
    */
   public Tensor set(@Nonnull final Tensor right) {
     assert length() == right.length();
@@ -1611,7 +1628,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @param redBand   the red band
    * @param greenBand the green band
    * @param blueBand  the blue band
-   * @param alphaMask the alpha mask
+   * @param alphaMask the alphaList mask
    * @return the buffered image
    */
   @Nonnull
@@ -1773,6 +1790,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return scale(1.0 / Math.sqrt(sumSq()));
   }
   
+  /**
+   * Select band tensor.
+   *
+   * @param band the band
+   * @return the tensor
+   */
   public Tensor selectBand(final int band) {
     assert band >= 0;
     int[] dimensions = getDimensions();

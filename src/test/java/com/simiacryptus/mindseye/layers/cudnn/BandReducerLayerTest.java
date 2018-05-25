@@ -41,7 +41,7 @@ public abstract class BandReducerLayerTest extends CudaLayerTestBase {
    * Instantiates a new Img band bias layer apply.
    *
    * @param precision the precision
-   * @param alpha     the alpha
+   * @param alpha     the alphaList
    */
   public BandReducerLayerTest(final Precision precision, final double alpha) {
     this.precision = precision;

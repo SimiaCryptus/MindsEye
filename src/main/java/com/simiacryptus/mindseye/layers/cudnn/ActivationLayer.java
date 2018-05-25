@@ -306,10 +306,21 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     return Arrays.asList();
   }
   
+  /**
+   * Gets alpha.
+   *
+   * @return the alpha
+   */
   public double getAlpha() {
     return alpha;
   }
   
+  /**
+   * Sets alpha.
+   *
+   * @param alpha the alpha
+   * @return the alpha
+   */
   public ActivationLayer setAlpha(double alpha) {
     this.alpha = alpha;
     return this;

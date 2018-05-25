@@ -544,6 +544,13 @@ public class ArtistryUtil {
     return network;
   }
   
+  /**
+   * Wrap tiled avg layer.
+   *
+   * @param subnet the subnet
+   * @param size   the size
+   * @return the layer
+   */
   protected static Layer wrapTiledAvg(final Layer subnet, final int size) {
     return wrapAvg(new ImgTileSubnetLayer(subnet, size, size, size, size));
   }
@@ -578,7 +585,7 @@ public class ArtistryUtil {
    * @param functions             the functions
    * @param parallelLossFunctions the parallel loss functions
    */
-  public static void reduce(final PipelineNetwork network, final List<Tuple2<Double, DAGNode>> functions, final boolean parallelLossFunctions) {
+  public static void reduce(final DAGNetwork network, final List<Tuple2<Double, DAGNode>> functions, final boolean parallelLossFunctions) {
     functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> {
       return new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2).setParallel(parallelLossFunctions));
     }).get();

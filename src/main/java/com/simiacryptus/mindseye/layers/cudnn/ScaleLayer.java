@@ -45,7 +45,7 @@ public class ScaleLayer extends PipelineNetwork {
   /**
    * Instantiates a new Std dev meta layer.
    *
-   * @param weights
+   * @param weights the weights
    */
   public ScaleLayer(final Tensor weights) {
     super(1);

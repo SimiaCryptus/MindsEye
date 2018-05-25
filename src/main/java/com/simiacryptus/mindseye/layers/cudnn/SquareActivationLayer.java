@@ -225,19 +225,19 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
   }
   
   /**
-   * Gets alpha.
+   * Gets alphaList.
    *
-   * @return the alpha
+   * @return the alphaList
    */
   public double getAlpha() {
     return alpha;
   }
   
   /**
-   * Sets alpha.
+   * Sets alphaList.
    *
-   * @param alpha the alpha
-   * @return the alpha
+   * @param alpha the alphaList
+   * @return the alphaList
    */
   public SquareActivationLayer setAlpha(double alpha) {
     this.alpha = alpha;

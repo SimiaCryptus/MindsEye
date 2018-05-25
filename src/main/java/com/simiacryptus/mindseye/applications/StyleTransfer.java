@@ -99,6 +99,15 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     return transfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
   }
   
+  /**
+   * Transfer tensor.
+   *
+   * @param canvasImage     the canvas image
+   * @param styleParameters the style parameters
+   * @param trainingMinutes the training minutes
+   * @param measureStyle    the measure style
+   * @return the tensor
+   */
   public Tensor transfer(final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
     return transfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
   }
@@ -113,7 +122,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param trainingMinutes the training minutes
    * @param measureStyle    the measure style
    * @param maxIterations   the max iterations
-   * @param verbose
+   * @param verbose         the verbose
    * @return the buffered image
    */
   public BufferedImage transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
@@ -131,6 +140,19 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     }
   }
   
+  /**
+   * Transfer tensor.
+   *
+   * @param server          the server
+   * @param log             the log
+   * @param canvasData      the canvas data
+   * @param styleParameters the style parameters
+   * @param trainingMinutes the training minutes
+   * @param measureStyle    the measure style
+   * @param maxIterations   the max iterations
+   * @param verbose         the verbose
+   * @return the tensor
+   */
   public Tensor transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final Tensor canvasData, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
     try {
       transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasData);
@@ -142,6 +164,18 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     }
   }
   
+  /**
+   * Transfer.
+   *
+   * @param server          the server
+   * @param log             the log
+   * @param styleParameters the style parameters
+   * @param trainingMinutes the training minutes
+   * @param measureStyle    the measure style
+   * @param maxIterations   the max iterations
+   * @param verbose         the verbose
+   * @param canvas          the canvas
+   */
   public void transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
 //      log.p("Input Content:");
 //      log.p(log.image(styleParameters.contentImage, "Content Image"));
@@ -153,7 +187,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
 //      log.p(log.image(canvasImage, "Input Canvas"));
     System.gc();
     TestUtil.monitorImage(canvas, false, false);
-    log.p("<a href=\"/image.jpg\">Current Image</a>");
+    log.p("<a href=\"/image.jpg\"><img src=\"/image.jpg\"></a>");
     log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
       try {
         ImageIO.write(canvas.toImage(), "jpeg", r);
@@ -203,6 +237,13 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     }
   }
   
+  /**
+   * Gets trainable.
+   *
+   * @param canvas  the canvas
+   * @param network the network
+   * @return the trainable
+   */
   @Nonnull
   public Trainable getTrainable(final Tensor canvas, final PipelineNetwork network) {
     return new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
@@ -339,7 +380,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * Gets fitness components.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @return the fitness components
    */
   @Nonnull
@@ -354,7 +395,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * Gets style components.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @return the style components
    */
   @Nonnull
@@ -398,7 +439,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         styleComponents.addAll(getStyleComponents(node, network, styleParams, mean, covariance, styleCoefficients.centeringMode));
       }
       styleTarget.freeRef();
-    
+  
     }
     return styleComponents;
   }
@@ -433,7 +474,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * Gets content components.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @return the content components
    */
   @Nonnull
@@ -463,7 +504,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * Measure style pipeline network.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @param network the network
    * @return the pipeline network
    */

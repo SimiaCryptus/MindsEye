@@ -160,6 +160,16 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     return ArtistryUtil.paint_Plasma(imageSize.get(), 3, 100.0, 1.4).toImage();
   }
   
+  /**
+   * To tiles tensor [ ].
+   *
+   * @param canvas  the canvas
+   * @param width   the width
+   * @param height  the height
+   * @param strideX the stride x
+   * @param strideY the stride y
+   * @return the tensor [ ]
+   */
   @Nonnull
   public static Tensor[] toTiles(final Tensor canvas, final int width, final int height, final int strideX, final int strideY) {
     @Nonnull final int[] inputDims = canvas.getDimensions();
@@ -206,7 +216,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param trainingMinutes the training minutes
    * @param measureStyle    the measure style
    * @param maxIterations   the max iterations
-   * @param verbose
+   * @param verbose         the verbose
    * @return the buffered image
    */
   public BufferedImage generate(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
@@ -214,7 +224,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       System.gc();
       Tensor canvas = Tensor.fromRGB(canvasImage);
       TestUtil.monitorImage(canvas, false, false);
-      log.p("<a href=\"/image.jpg\">Current Image</a>");
+      log.p("<a href=\"/image.jpg\"><img src=\"/image.jpg\"></a>");
       log.getHttpd().addHandler("image.jpg", "image/jpeg", outputStream -> {
         try {
           ImageIO.write(canvas.toImage(), "jpeg", outputStream);
@@ -271,6 +281,13 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     });
   }
   
+  /**
+   * Gets trainable.
+   *
+   * @param network the network
+   * @param canvas  the canvas
+   * @return the trainable
+   */
   @Nonnull
   public Trainable getTrainable(final PipelineNetwork network, final Tensor canvas) {
     return new ArrayTrainable(network, 1).setVerbose(true).setMask(true).setData(Arrays.asList(new Tensor[][]{{canvas}}));
@@ -364,7 +381,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
         System.gc();
   
         Tensor mean = ArtistryUtil.wrapTiledAvg(network.copy(), 600).eval(styleInput).getDataAndFree().getAndFree(0);
-
+  
         logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
         logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
         StyleTarget<T> styleTarget = self.styleTargets.get(key);
@@ -395,7 +412,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * Gets fitness components.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @return the fitness components
    */
   @Nonnull
@@ -410,7 +427,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * Gets style components.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @return the style components
    */
   @Nonnull
@@ -481,7 +498,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * Measure style pipeline network.
    *
    * @param setup   the setup
-   * @param nodeMap the node map
+   * @param nodeMap the node buildMap
    * @param network the network
    * @return the pipeline network
    */

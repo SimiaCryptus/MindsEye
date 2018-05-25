@@ -50,6 +50,11 @@ public class Result extends ReferenceCountingBase {
     this.accumulator = accumulator;
   }
   
+  /**
+   * Get single delta double [ ].
+   *
+   * @return the double [ ]
+   */
   public double[] getSingleDelta() {
     DeltaSet<Layer> deltaBuffer = new DeltaSet<>();
     accumulate(deltaBuffer);

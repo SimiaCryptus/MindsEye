@@ -34,6 +34,7 @@ import com.simiacryptus.util.FastRandom;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -78,6 +79,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   protected SigmoidTreeNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
+    LinkedHashMap<Object, Layer> layersById = getLayersById();
     if (json.get("alpha") != null) {
       alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
     }
@@ -104,8 +106,8 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   /**
    * Instantiates a new Sigmoid tree network.
    *
-   * @param alpha     the alpha
-   * @param alphaBias the alpha bias
+   * @param alpha     the alphaList
+   * @param alphaBias the alphaList bias
    */
   public SigmoidTreeNetwork(final Layer alpha, final Layer alphaBias) {
     super(1);
@@ -264,7 +266,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
       case Linear: {
         head = null;
         @Nonnull final FullyConnectedLayer alpha = (FullyConnectedLayer) this.alpha;
-        //alpha.weights.scale(2);
+        //alphaList.weights.scale(2);
         gate = new FullyConnectedLayer(alpha.inputDims, multigate ? alpha.outputDims : new int[]{1});
         gateBias = new BiasLayer(alpha.inputDims);
         mode = NodeMode.Fuzzy;

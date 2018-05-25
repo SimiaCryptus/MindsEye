@@ -65,9 +65,9 @@ public abstract class PCAObjectLocation {
   private static final Logger logger = LoggerFactory.getLogger(PCAObjectLocation.class);
   
   /**
-   * Render alpha tensor.
+   * Render alphaList tensor.
    *
-   * @param alphaPower     the alpha power
+   * @param alphaPower     the alphaList power
    * @param img            the img
    * @param locationResult the location result
    * @param classification the classification
@@ -84,24 +84,17 @@ public abstract class PCAObjectLocation {
     return TestUtil.normalizeBands(TestUtil.normalizeBands(delta1d, 1).mapAndFree(x -> Math.pow(x, alphaPower)));
   }
   
+  /**
+   * Blur list.
+   *
+   * @param featureMasks the feature masks
+   * @param iterations   the iterations
+   * @return the list
+   */
   public static List<Tensor> blur(final List<Tensor> featureMasks, final int iterations) {
     if (0 >= iterations) return featureMasks;
     return featureMasks.stream().map(x -> blur(x, iterations)).collect(Collectors.toList());
   }
-  
-  /**
-   * Gets locator network.
-   *
-   * @return the locator network
-   */
-  public abstract ImageClassifier getLocatorNetwork();
-  
-  /**
-   * Gets classifier network.
-   *
-   * @return the classifier network
-   */
-  public abstract ImageClassifier getClassifierNetwork();
   
   /**
    * Blur tensor.
@@ -127,6 +120,20 @@ public abstract class PCAObjectLocation {
     }
     return img;
   }
+  
+  /**
+   * Gets locator network.
+   *
+   * @return the locator network
+   */
+  public abstract ImageClassifier getLocatorNetwork();
+  
+  /**
+   * Gets classifier network.
+   *
+   * @return the classifier network
+   */
+  public abstract ImageClassifier getClassifierNetwork();
   
   /**
    * Run.

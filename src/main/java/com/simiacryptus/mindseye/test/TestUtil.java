@@ -67,7 +67,9 @@ import java.io.PrintStream;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
@@ -103,6 +105,7 @@ public class TestUtil {
    * The constant scheduledThreadPool.
    */
   public static ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
+  private static int gifNumber = 0;
   
   /**
    * Add logging.
@@ -302,10 +305,10 @@ public class TestUtil {
   }
   
   /**
-   * Sample performance map.
+   * Sample performance buildMap.
    *
    * @param network the network
-   * @return the map
+   * @return the buildMap
    */
   public static Map<CharSequence, Object> samplePerformance(@Nonnull final DAGNetwork network) {
     @Nonnull final Map<CharSequence, Object> metrics = new HashMap<>();
@@ -615,6 +618,21 @@ public class TestUtil {
   public static BufferedImage resize(@Nonnull final BufferedImage source, final int size, boolean preserveAspect) {
     if (size < 0) return source;
     return resize(source, size, preserveAspect ? ((int) (size * (source.getHeight() * 1.0 / source.getWidth()))) : size);
+  }
+  
+  /**
+   * Resize px buffered image.
+   *
+   * @param source the source
+   * @param size   the size
+   * @return the buffered image
+   */
+  public static BufferedImage resizePx(@Nonnull final BufferedImage source, final long size) {
+    if (size < 0) return source;
+    double scale = Math.sqrt(size / ((double) source.getHeight() * source.getWidth()));
+    int width = (int) (scale * source.getWidth());
+    int height = (int) (scale * source.getHeight());
+    return resize(source, width, height);
   }
   
   /**
@@ -978,8 +996,6 @@ public class TestUtil {
     return elements;
   }
   
-  private static int gifNumber = 0;
-  
   /**
    * Animated gif char sequence.
    *
@@ -1008,38 +1024,86 @@ public class TestUtil {
     }
   }
   
+  /**
+   * Write gif.
+   *
+   * @param log         the log
+   * @param imageStream the image stream
+   */
   public static void writeGif(@Nonnull final NotebookOutput log, final Stream<BufferedImage> imageStream) {
     BufferedImage[] imgs = imageStream.toArray(i -> new BufferedImage[i]);
     log.p("Animated Sequence:");
     log.p(animatedGif(log, imgs));
   }
   
+  /**
+   * Build map map.
+   *
+   * @param <K>       the type parameter
+   * @param <V>       the type parameter
+   * @param configure the configure
+   * @return the map
+   */
   @Nonnull
-  public static <K, V> Map<K, V> map(Consumer<Map<K, V>> configure) {
+  public static <K, V> Map<K, V> buildMap(Consumer<Map<K, V>> configure) {
     Map<K, V> map = new HashMap<>();
     configure.accept(map);
     return map;
   }
   
+  /**
+   * Geometric stream supplier.
+   *
+   * @param start the start
+   * @param end   the end
+   * @param steps the steps
+   * @return the supplier
+   */
   @Nonnull
   public static Supplier<DoubleStream> geometricStream(final double start, final double end, final int steps) {
     double step = Math.pow(end / start, 1.0 / (steps - 1));
     return () -> DoubleStream.iterate(start, x -> x * step).limit(steps);
   }
   
+  /**
+   * Arithmetic stream supplier.
+   *
+   * @param start the start
+   * @param end   the end
+   * @param steps the steps
+   * @return the supplier
+   */
   @Nonnull
   public static Supplier<DoubleStream> arithmeticStream(final double start, final double end, final int steps) {
     double step = Math.pow(end - start, 1.0 / steps);
     return () -> DoubleStream.iterate(start, x -> x + step).limit(steps);
   }
   
+  /**
+   * Constant stream supplier.
+   *
+   * @param values the values
+   * @return the supplier
+   */
   @Nonnull
   public static Supplier<DoubleStream> constantStream(final double... values) {
     return () -> Arrays.stream(values);
   }
   
+  /**
+   * Browse.
+   *
+   * @param uri the uri
+   * @throws IOException the io exception
+   */
   public static void browse(final URI uri) throws IOException {
     if (!GraphicsEnvironment.isHeadless() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
       Desktop.getDesktop().browse(uri);
+  }
+  
+  public static <T> List<T> shuffle(final List<T> list) {
+    ArrayList<T> copy = new ArrayList<>(list);
+    Collections.shuffle(copy);
+    return copy;
   }
 }

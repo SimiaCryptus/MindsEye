@@ -133,8 +133,8 @@ public class RoundRobinTrainer {
    * @return the line search factory
    */
   @Nonnull
-  public RoundRobinTrainer setLineSearchFactory(final Function<CharSequence, ? extends LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = lineSearchFactory;
+  public RoundRobinTrainer setLineSearchFactory(@Nonnull final Supplier<LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = s -> lineSearchFactory.get();
     return this;
   }
   
@@ -145,8 +145,8 @@ public class RoundRobinTrainer {
    * @return the line search factory
    */
   @Nonnull
-  public RoundRobinTrainer setLineSearchFactory(@Nonnull final Supplier<LineSearchStrategy> lineSearchFactory) {
-    this.lineSearchFactory = s -> lineSearchFactory.get();
+  public RoundRobinTrainer setLineSearchFactory(final Function<CharSequence, ? extends LineSearchStrategy> lineSearchFactory) {
+    this.lineSearchFactory = lineSearchFactory;
     return this;
   }
   

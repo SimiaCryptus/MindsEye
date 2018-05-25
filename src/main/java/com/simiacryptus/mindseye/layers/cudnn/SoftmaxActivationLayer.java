@@ -220,7 +220,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
                 localOutMemory.dirty();
                 deltaTensorMemory.dirty();
                 passbackMemory.dirty();
-  
+    
                 localOutMemory.freeRef();
                 deltaTensorMemory.freeRef();
                 inputMemory.freeRef();

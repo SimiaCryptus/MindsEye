@@ -63,7 +63,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   /**
    * Accumulate evalInputDelta setByCoord.
    *
-   * @param alpha the alpha
+   * @param alpha the alphaList
    * @return the evalInputDelta setByCoord
    */
   @Nonnull

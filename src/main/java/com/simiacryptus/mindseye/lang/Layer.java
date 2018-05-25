@@ -117,6 +117,12 @@ public interface Layer extends ReferenceCounting, Serializable {
     }
   }
   
+  /**
+   * And then layer.
+   *
+   * @param append the append
+   * @return the layer
+   */
   default Layer andThen(Layer append) {
     return PipelineNetwork.build(1,
       this,

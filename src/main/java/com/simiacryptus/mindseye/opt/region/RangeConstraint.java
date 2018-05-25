@@ -33,11 +33,20 @@ public class RangeConstraint implements TrustRegion {
   private double min;
   private double max;
   
+  /**
+   * Instantiates a new Range constraint.
+   */
   public RangeConstraint() {
     min = 0;
     max = 255;
   }
   
+  /**
+   * Instantiates a new Range constraint.
+   *
+   * @param min the min
+   * @param max the max
+   */
   public RangeConstraint(final double min, final double max) {
     this.min = min;
     this.max = max;

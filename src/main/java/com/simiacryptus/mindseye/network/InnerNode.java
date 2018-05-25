@@ -27,6 +27,7 @@ import com.simiacryptus.util.Util;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -120,9 +121,10 @@ public final class InnerNode extends LazyResult {
   public synchronized void setLayer(@Nonnull final Layer newLayer) {
     assertAlive();
     dagNetwork.assertAlive();
-    synchronized (dagNetwork.layersById) {
-      if (!dagNetwork.layersById.containsKey(newLayer.getId())) {
-        Layer put = dagNetwork.layersById.put(newLayer.getId(), newLayer);
+    LinkedHashMap<Object, Layer> layersById = dagNetwork.getLayersById();
+    synchronized (layersById) {
+      if (!layersById.containsKey(newLayer.getId())) {
+        Layer put = layersById.put(newLayer.getId(), newLayer);
         newLayer.addRef();
         if (null != put) put.freeRef();
       }

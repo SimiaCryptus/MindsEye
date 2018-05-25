@@ -35,6 +35,9 @@ public class TestSettings implements Settings {
    */
   public final String tag;
   
+  /**
+   * The Autobrowse.
+   */
   public boolean autobrowse;
   
   private TestSettings() {

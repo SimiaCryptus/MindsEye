@@ -105,6 +105,13 @@ public class PipelineNetwork extends DAGNetwork {
     return new PipelineNetwork(json, rs);
   }
   
+  /**
+   * Build pipeline network.
+   *
+   * @param inputs the inputs
+   * @param layers the layers
+   * @return the pipeline network
+   */
   public static PipelineNetwork build(final int inputs, final Layer... layers) {
     PipelineNetwork pipelineNetwork = new PipelineNetwork(inputs);
     pipelineNetwork.setHead(pipelineNetwork.getInput(0));

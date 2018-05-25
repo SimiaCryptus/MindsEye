@@ -132,8 +132,8 @@ public abstract class ImageClassifier implements NetworkFactory {
         TensorList resultData = result.getData();
         //Arrays.stream(input).flatMap(Arrays::stream).forEach(ReferenceCounting::freeRef);
         //Arrays.stream(inputs).forEach(ReferenceCounting::freeRef);
-        //Arrays.stream(inputs).map(Result::getData).forEach(ReferenceCounting::freeRef);
-  
+        //Arrays.stream(inputs).buildMap(Result::getData).forEach(ReferenceCounting::freeRef);
+        
         List<LinkedHashMap<CharSequence, Double>> maps = resultData.stream().map(tensor -> {
           @Nullable double[] predictionSignal = tensor.getData();
           int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
@@ -440,7 +440,7 @@ public abstract class ImageClassifier implements NetworkFactory {
         supervised.add(network.freeze(),
           supervised.wrap(clamp, supervised.getInput(0))),
         supervised.getInput(1));
-//      TensorList[] gpuInput = data.stream().map(data1 -> {
+//      TensorList[] gpuInput = data.stream().buildMap(data1 -> {
 //        return CudnnHandle.apply(gpu -> {
 //          Precision precision = Precision.Float;
 //          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, image.getDimensions(), precision);

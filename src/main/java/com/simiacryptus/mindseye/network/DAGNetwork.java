@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -72,10 +73,6 @@ public abstract class DAGNetwork extends LayerBase {
    * The Labels.
    */
   protected final LinkedHashMap<CharSequence, UUID> labels = new LinkedHashMap<>();
-  /**
-   * The Layers by id.
-   */
-  protected final LinkedHashMap<Object, Layer> layersById = new LinkedHashMap<>();
   /**
    * The Nodes by id.
    */
@@ -185,6 +182,7 @@ public abstract class DAGNetwork extends LayerBase {
     assertConsistent();
     assert null != getInput();
     @Nonnull final InnerNode node = new InnerNode(this, layer, head);
+    LinkedHashMap<Object, Layer> layersById = getLayersById();
     synchronized (layersById) {
       if (!layersById.containsKey(layer.getId())) {
         Layer replaced = layersById.put(layer.getId(), layer);
@@ -204,7 +202,6 @@ public abstract class DAGNetwork extends LayerBase {
   @Override
   protected void _free() {
     super._free();
-    this.layersById.values().forEach(ReferenceCounting::freeRef);
     this.nodesById.values().forEach(ReferenceCounting::freeRef);
     this.inputNodes.values().forEach(ReferenceCounting::freeRef);
   }
@@ -232,11 +229,6 @@ public abstract class DAGNetwork extends LayerBase {
     assert null != getInput();
     for (@Nonnull final Entry<CharSequence, UUID> e : labels.entrySet()) {
       assert nodesById.containsKey(e.getValue());
-    }
-    for (@Nonnull final Entry<UUID, DAGNode> e : nodesById.entrySet()) {
-      @Nullable final Layer layer = e.getValue().getLayer();
-      assert layersById.containsKey(layer.getId());
-      assert layersById.get(layer.getId()) == layer;
     }
     return true;
   }
@@ -340,12 +332,13 @@ public abstract class DAGNetwork extends LayerBase {
     }
     return nodesById.values().stream().map(x -> x.getLayer())
       .filter(x -> x instanceof DAGNetwork)
-      .map(x -> ((DAGNetwork) x).getChildNode(id)).findAny().orElse(null);
+      .map(x -> ((DAGNetwork) x).getChildNode(id))
+      .filter(x -> x != null).findAny().orElse(null);
   }
   
   @Override
   public List<Layer> getChildren() {
-    return layersById.values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId().toString())).collect(Collectors.toList());
+    return getLayersById().values().stream().flatMap(l -> l.getChildren().stream()).distinct().sorted(Comparator.comparing(l -> l.getId().toString())).collect(Collectors.toList());
   }
   
   private DAGNode[] getDependencies(@Nonnull final Map<UUID, List<UUID>> deserializedLinks, final UUID e) {
@@ -450,6 +443,7 @@ public abstract class DAGNetwork extends LayerBase {
   }
   
   private synchronized void initLinks(@Nonnull final Map<UUID, List<UUID>> nodeLinks, @Nonnull final Map<UUID, Layer> layersByNodeId, final UUID newNodeId) {
+    LinkedHashMap<Object, Layer> layersById = getLayersById();
     if (layersById.containsKey(newNodeId)) return;
     if (inputNodes.containsKey(newNodeId)) return;
     final Layer layer = layersByNodeId.get(newNodeId);
@@ -493,8 +487,7 @@ public abstract class DAGNetwork extends LayerBase {
    * Reset.
    */
   public synchronized void reset() {
-    layersById.values().forEach(x -> x.freeRef());
-    layersById.clear();
+    getLayersById().values().forEach(x -> x.freeRef());
     nodesById.values().forEach(x -> x.freeRef());
     nodesById.clear();
     labels.clear();
@@ -504,7 +497,6 @@ public abstract class DAGNetwork extends LayerBase {
   @Override
   public DAGNetwork setFrozen(final boolean frozen) {
     super.setFrozen(frozen);
-    if (null == layersById) throw new IllegalStateException();
     visitLayers(layer -> layer.setFrozen(frozen));
     return this;
   }
@@ -520,7 +512,8 @@ public abstract class DAGNetwork extends LayerBase {
    * @param visitor the visitor
    */
   public void visitLayers(@Nonnull final Consumer<Layer> visitor) {
-    layersById.values().forEach(layer -> {
+    visitNodes(node -> {
+      Layer layer = node.getLayer();
       Layer unwrapped = layer;
       while (unwrapped instanceof WrapperLayer) {
         unwrapped = ((WrapperLayer) unwrapped).getInner();
@@ -555,4 +548,42 @@ public abstract class DAGNetwork extends LayerBase {
     });
   }
   
+  public DAGNetwork scrambleCopy() {
+    return scrambleCopy(new HashMap<>());
+  }
+  
+  @Nonnull
+  public DAGNetwork scrambleCopy(final Map<String, String> replacements) {
+    assertAlive();
+    @Nonnull HashMap<CharSequence, byte[]> resources = new HashMap<>();
+    final JsonObject json = getJson(resources, SerialPrecision.Double);
+    replacements.putAll(Stream.concat(
+      Stream.of(getId()),
+      Stream.concat(
+        getLayersById().keySet().stream(),
+        nodesById.keySet().stream()
+      )
+    ).map(x -> x.toString()).distinct().collect(Collectors.toMap(x -> x, x -> UUID.randomUUID().toString())));
+    String[] jsonString = {json.toString()};
+    replacements.forEach((k, v) -> {
+      String regex = k.replaceAll("\\-", "\\\\-?");
+      log.info(String.format("%s (%s) => %s", k, regex, v));
+      jsonString[0] = jsonString[0].replaceAll(regex, v);
+    });
+    return (DAGNetwork) Layer.fromJson(new GsonBuilder().create().fromJson(jsonString[0], JsonObject.class).getAsJsonObject(), resources);
+  }
+  
+  /**
+   * The Layers by id.
+   */
+  public LinkedHashMap<Object, Layer> getLayersById() {
+    LinkedHashMap<Object, Layer> map = new LinkedHashMap<>();
+    visitLayers(layer -> {
+      Object id = layer.getId();
+      Layer previous = map.put(id, layer);
+      if (null != previous && previous != layer)
+        throw new RuntimeException(String.format("Duplicated layer found: %s (%s)", previous, id));
+    });
+    return map;
+  }
 }

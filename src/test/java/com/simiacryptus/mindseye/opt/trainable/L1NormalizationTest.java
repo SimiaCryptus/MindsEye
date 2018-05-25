@@ -48,7 +48,7 @@ public class L1NormalizationTest extends MnistTestBase {
         public Layer getLayer() {
           return inner.getLayer();
         }
-
+  
         @Override
         protected double getL1(final Layer layer) {
           return 1.0;

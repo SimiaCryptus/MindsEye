@@ -39,7 +39,7 @@ public abstract class LineSearchCursorBase extends ReferenceCountingBase impleme
   /**
    * Position evalInputDelta setByCoord.
    *
-   * @param alpha the alpha
+   * @param alpha the alphaList
    * @return the evalInputDelta setByCoord
    */
   public abstract DeltaSet<Layer> position(double alpha);
@@ -52,7 +52,7 @@ public abstract class LineSearchCursorBase extends ReferenceCountingBase impleme
   /**
    * Step line search point.
    *
-   * @param alpha   the alpha
+   * @param alpha   the alphaList
    * @param monitor the monitor
    * @return the line search point
    */

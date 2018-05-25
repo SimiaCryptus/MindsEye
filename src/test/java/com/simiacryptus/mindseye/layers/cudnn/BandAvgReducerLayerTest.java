@@ -44,7 +44,7 @@ public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
    * Instantiates a new Img band bias layer apply.
    *
    * @param precision the precision
-   * @param alpha     the alpha
+   * @param alpha     the alphaList
    * @param smallSize the small size
    * @param largeSize the large size
    */

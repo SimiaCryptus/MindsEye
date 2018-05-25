@@ -62,70 +62,70 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
   
   
     ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x)).forEach(styleSources -> {
-  
+    
       final FileNanoHTTPD server = log.getHttpd();
       TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
         map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
         )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
-  
+    
       TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
         map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
         )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
-  
+    
       TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
         map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
         )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
-  
+    
       TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
         map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 1e0)
         )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
-  
+    
       TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
         map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
         )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
-  
+    
       TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
         map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
         )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
-  
+    
       TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
         map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 0)
           .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
         )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
-  
+    
       TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
         map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
           .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 0)
         )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
     });
-
+  
     log.setFrontMatterProperty("status", "OK");
   }
   
   /**
-   * Create map.
+   * Create buildMap.
    *
    * @param <K>       the type parameter
    * @param <V>       the type parameter
    * @param configure the configure
-   * @return the map
+   * @return the buildMap
    */
   @Nonnull
-  public <K,V> Map<K, V> create(Consumer<Map<K, V>> configure) {
+  public <K, V> Map<K, V> create(Consumer<Map<K, V>> configure) {
     Map<K, V> map = new HashMap<>();
     configure.accept(map);
     return map;

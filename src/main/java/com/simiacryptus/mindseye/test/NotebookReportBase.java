@@ -91,14 +91,6 @@ public abstract class NotebookReportBase {
   }
   
   /**
-   * Gets report type.
-   *
-   * @return the report type
-   */
-  @Nonnull
-  public abstract ReportType getReportType();
-  
-  /**
    * Gets log.
    *
    * @param reportLocation the report location
@@ -108,6 +100,14 @@ public abstract class NotebookReportBase {
   public static NotebookOutput getLog(final File reportLocation) {
     return MarkdownNotebookOutput.get(reportLocation, TestSettings.INSTANCE.autobrowse);
   }
+  
+  /**
+   * Gets report type.
+   *
+   * @return the report type
+   */
+  @Nonnull
+  public abstract ReportType getReportType();
   
   /**
    * Print header.

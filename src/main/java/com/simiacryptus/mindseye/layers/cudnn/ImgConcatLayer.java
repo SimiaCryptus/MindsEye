@@ -86,6 +86,12 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     return new ImgConcatLayer(json);
   }
   
+  /**
+   * Eval tensor.
+   *
+   * @param featureImage the feature image
+   * @return the tensor
+   */
   public static Tensor eval(final List<Tensor> featureImage) {
     return new ImgConcatLayer().eval(featureImage.toArray(new Tensor[]{})).getDataAndFree().get(0);
   }

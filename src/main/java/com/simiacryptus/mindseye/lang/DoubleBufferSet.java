@@ -151,9 +151,9 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   }
   
   /**
-   * Gets map.
+   * Gets buildMap.
    *
-   * @return the map
+   * @return the buildMap
    */
   @Nonnull
   public ConcurrentHashMap<K, T> getMap() {
@@ -216,7 +216,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
      * Instantiates a new Delegate.
      *
      * @param parent the parent
-     * @param newMap the new map
+     * @param newMap the new buildMap
      */
     public Delegate(final DoubleBufferSet<K, T> parent, @Nonnull final Map<K, T> newMap) {
       super(newMap);
