@@ -105,9 +105,9 @@ public class ArtistryUtil {
     int outputBands = pcaBands / inputBands;
     int width = dimensions[0];
     int height = dimensions[1];
-    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
-    network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform));
-    network.wrap(new GramianLayer());
+    network.wrap(new ImgBandBiasLayer(mean.scale(-1))).freeRef();
+    network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform)).freeRef();
+    network.wrap(new GramianLayer()).freeRef();
     return network;
   }
   
@@ -127,10 +127,10 @@ public class ArtistryUtil {
     int outputBands = pcaBands / inputBands;
     int width = dimensions[0];
     int height = dimensions[1];
-    network.wrap(new ImgBandBiasLayer(mean.scale(-1)));
-    network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform));
-    network.wrap(new SquareActivationLayer());
-    network.wrap(new BandAvgReducerLayer());
+    network.wrap(new ImgBandBiasLayer(mean.scale(-1))).freeRef();
+    network.wrap(new ConvolutionLayer(width, height, inputBands, outputBands).set(pcaTransform)).freeRef();
+    network.wrap(new SquareActivationLayer()).freeRef();
+    network.wrap(new BandAvgReducerLayer()).freeRef();
     return network;
   }
   
@@ -249,13 +249,15 @@ public class ArtistryUtil {
    */
   @Nonnull
   public static Tensor expandPlasma(Tensor image, final int width, final double noiseAmplitude, final double noisePower) {
+    image.addRef();
     while (image.getDimensions()[0] < width) {
       Tensor newImage = expandPlasma(image, Math.pow(noiseAmplitude / image.getDimensions()[0], noisePower));
       image.freeRef();
       image = newImage;
-      
     }
-    return Tensor.fromRGB(TestUtil.resize(image.toImage(), width, true));
+    Tensor tensor = Tensor.fromRGB(TestUtil.resize(image.toImage(), width, true));
+    image.freeRef();
+    return tensor;
   }
   
   /**
@@ -331,7 +333,7 @@ public class ArtistryUtil {
    */
   @Nonnull
   public static PipelineNetwork avg(final PipelineNetwork network) {
-    network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg));
+    network.wrap(new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg)).freeRef();
     return network;
   }
   
@@ -344,8 +346,8 @@ public class ArtistryUtil {
   @Nonnull
   public static PipelineNetwork withClamp(final PipelineNetwork network1) {
     PipelineNetwork network = new PipelineNetwork(1);
-    network.wrap(getClamp(255));
-    network.wrap(network1);
+    network.wrap(getClamp(255)).freeRef();
+    network.wrap(network1).freeRef();
     return network;
   }
   
@@ -396,10 +398,10 @@ public class ArtistryUtil {
   @Nonnull
   public static PipelineNetwork getClamp(final int max) {
     @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    clamp.add(new LinearActivationLayer().setBias(max).setScale(-1).freeze());
-    clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-    clamp.add(new LinearActivationLayer().setBias(max).setScale(-1).freeze());
+    clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
+    clamp.wrap(new LinearActivationLayer().setBias(max).setScale(-1).freeze()).freeRef();
+    clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
+    clamp.wrap(new LinearActivationLayer().setBias(max).setScale(-1).freeze()).freeRef();
     return clamp;
   }
   
@@ -470,13 +472,13 @@ public class ArtistryUtil {
   public static PipelineNetwork gram(final Layer network, Tensor mean) {
     if (!(network instanceof PipelineNetwork)) {
       PipelineNetwork pipelineNetwork = new PipelineNetwork();
-      pipelineNetwork.wrap(network);
+      pipelineNetwork.wrap(network).freeRef();
       return gram(pipelineNetwork, mean);
     }
     else {
       PipelineNetwork pipelineNetwork = (PipelineNetwork) network;
-      pipelineNetwork.wrap(new ImgBandBiasLayer(mean.scale(-1)));
-      pipelineNetwork.wrap(new GramianLayer());
+      pipelineNetwork.wrap(new ImgBandBiasLayer(mean.scale(-1))).freeRef();
+      pipelineNetwork.wrap(new GramianLayer()).freeRef();
       return pipelineNetwork;
     }
   }
@@ -491,12 +493,12 @@ public class ArtistryUtil {
   public static PipelineNetwork gram(final Layer network) {
     if (!(network instanceof PipelineNetwork)) {
       PipelineNetwork pipelineNetwork = new PipelineNetwork();
-      pipelineNetwork.wrap(pipelineNetwork);
+      pipelineNetwork.wrap(pipelineNetwork).freeRef();
       return gram(pipelineNetwork);
     }
     else {
       PipelineNetwork pipelineNetwork = (PipelineNetwork) network;
-      pipelineNetwork.wrap(new GramianLayer());
+      pipelineNetwork.wrap(new GramianLayer()).freeRef();
       return pipelineNetwork;
     }
   }
@@ -539,8 +541,8 @@ public class ArtistryUtil {
    */
   protected static Layer wrapAvg(final Layer subnet) {
     PipelineNetwork network = new PipelineNetwork(1);
-    network.wrap(subnet);
-    network.wrap(new BandAvgReducerLayer());
+    network.wrap(subnet).freeRef();
+    network.wrap(new BandAvgReducerLayer()).freeRef();
     return network;
   }
   
@@ -552,7 +554,9 @@ public class ArtistryUtil {
    * @return the layer
    */
   protected static Layer wrapTiledAvg(final Layer subnet, final int size) {
-    return wrapAvg(new ImgTileSubnetLayer(subnet, size, size, size, size));
+    ImgTileSubnetLayer tileSubnetLayer = new ImgTileSubnetLayer(subnet, size, size, size, size);
+    subnet.freeRef();
+    return wrapAvg(tileSubnetLayer);
   }
   
   /**
@@ -624,7 +628,7 @@ public class ArtistryUtil {
     PipelineNetwork netNet = new PipelineNetwork(1);
     netNet.wrap(new AvgReducerLayer(),
       netNet.wrap(network, netNet.getInput(0)),
-      netNet.wrap(network, netNet.wrap(new ImgTileCycleLayer(), netNet.getInput(0))));
+      netNet.wrap(network, netNet.wrap(new ImgTileCycleLayer(), netNet.getInput(0)))).freeRef();
     return netNet;
   }
 }

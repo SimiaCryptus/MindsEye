@@ -328,7 +328,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     self.contentTarget = new ContentTarget();
     for (final T layerType : getLayerTypes()) {
       System.gc();
-      Layer network = layerType.texture();
+      Layer network = layerType.network();
       try {
         ArtistryUtil.setPrecision((DAGNetwork) network, style.precision);
         //network = new ImgTileSubnetLayer(network, 400,400,400,400);

@@ -41,7 +41,7 @@ public class AutoEntropyLayer extends PipelineNetwork {
    */
   public AutoEntropyLayer() {
     super(1);
-    wrap(new EntropyLossLayer(), getInput(0), getInput(0));
+    wrap(new EntropyLossLayer(), getInput(0), getInput(0)).freeRef();
   }
   
   /**

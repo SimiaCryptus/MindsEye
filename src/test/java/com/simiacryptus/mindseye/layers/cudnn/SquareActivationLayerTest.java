@@ -78,7 +78,7 @@ public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
   public Layer getReferenceLayer() {
     PipelineNetwork network = new PipelineNetwork();
     network.wrap(new LinearActivationLayer().setScale(alpha),
-      network.wrap(new NthPowerActivationLayer().setPower(2), network.getInput(0)));
+      network.wrap(new NthPowerActivationLayer().setPower(2), network.getInput(0))).freeRef();
     return network;
     //return new NthPowerActivationLayer().setPower(2);
   }

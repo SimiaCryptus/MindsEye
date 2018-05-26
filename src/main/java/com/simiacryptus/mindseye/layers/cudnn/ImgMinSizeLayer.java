@@ -91,7 +91,8 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
     assert inObj.length == 1;
-    @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
+    Result in0 = inObj[0];
+    @Nonnull int[] dimensions = in0.getData().getDimensions();
     int inputWidth = dimensions[0];
     int inputHeight = dimensions[1];
     
@@ -101,9 +102,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
     assert outputHeight > 0;
     if (ouputWidth == inputWidth) {
       if (outputHeight == inputHeight) {
-        inObj[0].getData().addRef();
-        inObj[0].addRef();
-        return inObj[0];
+        return in0;
       }
     }
     

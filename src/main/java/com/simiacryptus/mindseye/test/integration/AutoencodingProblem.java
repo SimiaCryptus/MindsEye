@@ -144,17 +144,17 @@ public class AutoencodingProblem implements Problem {
     @Nonnull final DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
     
     @Nonnull final PipelineNetwork echoNetwork = new PipelineNetwork(1);
-    echoNetwork.add(fwdNetwork);
-    echoNetwork.add(revNetwork);
+    echoNetwork.add(fwdNetwork).freeRef();
+    echoNetwork.add(revNetwork).freeRef();
     
     @Nonnull final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
-    supervisedNetwork.add(fwdNetwork);
+    supervisedNetwork.add(fwdNetwork).freeRef();
     @Nonnull final DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(dropout);
-    supervisedNetwork.add(dropoutNoiseLayer);
-    supervisedNetwork.add(revNetwork);
-    supervisedNetwork.add(new MeanSqLossLayer(),
+    supervisedNetwork.add(dropoutNoiseLayer).freeRef();
+    supervisedNetwork.add(revNetwork).freeRef();
+    supervisedNetwork.wrap(new MeanSqLossLayer(),
       supervisedNetwork.getHead(),
-      supervisedNetwork.getInput(0));
+      supervisedNetwork.getInput(0)).freeRef();
     
     log.h3("Network Diagrams");
     log.code(() -> {

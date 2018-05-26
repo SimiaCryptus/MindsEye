@@ -107,8 +107,8 @@ public class RescaledSubnetLayer extends LayerBase {
         select[i] = subband * inputDims[2] + i;
       }
       return network.add(subnetwork, network.wrap(new ImgBandSelectLayer(select), condensed));
-    }).toArray(i -> new DAGNode[i]));
-    network.wrap(new ImgReshapeLayer(scale, scale, true));
+    }).toArray(i -> new DAGNode[i])).freeRef();
+    network.wrap(new ImgReshapeLayer(scale, scale, true)).freeRef();
     
     Result eval = network.eval(inObj);
     network.freeRef();

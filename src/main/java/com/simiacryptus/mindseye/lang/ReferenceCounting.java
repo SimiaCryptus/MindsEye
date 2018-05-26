@@ -42,7 +42,7 @@ public interface ReferenceCounting {
   /**
    * Add ref.
    */
-  void addRef();
+  ReferenceCountingBase addRef();
   
   /**
    * Free ref.

@@ -116,7 +116,7 @@ public class EncodingUtil {
     // network.add(new NthPowerActivationLayer().setPower(0.5), );
     network.wrap(new MeanSqLossLayer(),
       network.add("image", innerModel, network.getInput(learnedColumn)),
-      network.getInput(reproducedColumn));
+      network.getInput(reproducedColumn)).freeRef();
     //addLogging(network);
     return network;
   }
@@ -221,8 +221,8 @@ public class EncodingUtil {
         select[i] = offset + i;
       }
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
-      network.add(new ImgReshapeLayer(factor, factor, false));
-      network.add(new ImgBandSelectLayer(select));
+      network.wrap(new ImgReshapeLayer(factor, factor, false)).freeRef();
+      network.wrap(new ImgBandSelectLayer(select)).freeRef();
       @Nullable final Tensor result = network.eval(tensor[1]).getData().get(0);
       return new Tensor[]{tensor[0], result};
     }));
@@ -277,8 +277,8 @@ public class EncodingUtil {
     @Nonnull final PipelineNetwork decoderBand = new PipelineNetwork();
     @Nonnull final double[] gate = new double[tensor.getDimensions()[2]];
     gate[band] = 1;
-    decoderBand.add(new ImgBandScaleLayer(gate));
-    decoderBand.add(decoder);
+    decoderBand.wrap(new ImgBandScaleLayer(gate)).freeRef();
+    decoderBand.add(decoder).freeRef();
     try {
       return decoderBand.eval(tensor).getData().get(0);
       //return log.image(t.toImage(), "");

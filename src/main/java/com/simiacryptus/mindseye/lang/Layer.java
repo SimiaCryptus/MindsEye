@@ -130,6 +130,25 @@ public interface Layer extends ReferenceCounting, Serializable {
     );
   }
   
+  default Layer freeAndThen(Layer append) {
+    Layer build = andThen(append);
+    this.freeRef();
+    return build;
+  }
+  
+  default Layer andThenWrap(Layer append) {
+    return PipelineNetwork.wrap(1,
+      this,
+      append
+    );
+  }
+  
+  default Layer freeAndThenWrap(Layer append) {
+    Layer build = andThenWrap(append);
+    this.freeRef();
+    return build;
+  }
+  
   /**
    * As t.
    *
@@ -396,4 +415,9 @@ public interface Layer extends ReferenceCounting, Serializable {
   @Nullable
   List<double[]> state();
   
+  default Layer copyAndFree() {
+    Layer copy = copy();
+    freeRef();
+    return copy;
+  }
 }

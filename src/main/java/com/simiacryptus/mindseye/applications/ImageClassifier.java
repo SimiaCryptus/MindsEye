@@ -193,7 +193,7 @@ public abstract class ImageClassifier implements NetworkFactory {
       }
     }
     else {
-      model.wrap(layer);
+      model.wrap(layer).freeRef();
       return layer;
     }
   }
@@ -210,10 +210,7 @@ public abstract class ImageClassifier implements NetworkFactory {
   protected static Tensor evaluatePrototype(@Nonnull final Layer layer, final Tensor prevPrototype, int cnt) {
     int numberOfParameters = layer.state().stream().mapToInt(x -> x.length).sum();
     @Nonnull int[] prev_dimensions = prevPrototype.getDimensions();
-    Result eval = layer.eval(prevPrototype);
-    TensorList newPrototype = eval.getData();
-    if (null != prevPrototype) prevPrototype.freeRef();
-    eval.freeRef();
+    TensorList newPrototype = layer.eval(prevPrototype).getDataAndFree();
     try {
       @Nonnull int[] new_dimensions = newPrototype.getDimensions();
       log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
@@ -278,12 +275,12 @@ public abstract class ImageClassifier implements NetworkFactory {
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
+      clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
+      clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
+      clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
       @Nonnull PipelineNetwork supervised = new PipelineNetwork(1);
-      supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0)));
+      supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0))).freeRef();
 //      CudaTensorList gpuInput = CudnnHandle.apply(gpu -> {
 //        Precision precision = Precision.Float;
 //        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(image), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
@@ -431,15 +428,15 @@ public abstract class ImageClassifier implements NetworkFactory {
     log.code(() -> {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
-      clamp.add(new ActivationLayer(ActivationLayer.Mode.RELU));
-      clamp.add(new LinearActivationLayer().setBias(255).setScale(-1).freeze());
+      clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
+      clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
+      clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
+      clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
       @Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
       supervised.wrap(lossLayer,
         supervised.add(network.freeze(),
           supervised.wrap(clamp, supervised.getInput(0))),
-        supervised.getInput(1));
+        supervised.getInput(1)).freeRef();
 //      TensorList[] gpuInput = data.stream().buildMap(data1 -> {
 //        return CudnnHandle.apply(gpu -> {
 //          Precision precision = Precision.Float;

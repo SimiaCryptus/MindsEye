@@ -33,6 +33,10 @@ import java.util.UUID;
  * The type Multi layer vgg 16.
  */
 public class CVPipe_VGG19 implements CVPipe<CVPipe_VGG19.Layer> {
+  
+  private CVPipe_VGG19() {
+  }
+  
   /**
    * The constant INSTANCE.
    */
@@ -43,81 +47,85 @@ public class CVPipe_VGG19 implements CVPipe<CVPipe_VGG19.Layer> {
   
   private static CVPipe_VGG19 build() {
     CVPipe_VGG19 obj = new CVPipe_VGG19();
+    final String abortMsg = "Abort Network Construction";
     try {
       new VGG19_HDF5(new Hdf5Archive(Util.cacheFile(TestUtil.S3_ROOT.resolve("vgg19_weights.h5")))) {
         @Override
         protected void phase0() {
           super.phase0();
-          obj.nodes.put(Layer.Layer_0, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_0, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_0, pipeline.copy());
         }
         
         @Override
         protected void phase1a() {
           super.phase1a();
-          obj.nodes.put(Layer.Layer_1a, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1a, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1a, pipeline.copy());
         }
         
         @Override
         protected void phase1b() {
           super.phase1b();
-          obj.nodes.put(Layer.Layer_1b, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1b, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1b, pipeline.copy());
         }
         
         @Override
         protected void phase1c() {
           super.phase1c();
-          obj.nodes.put(Layer.Layer_1c, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1c, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1c, pipeline.copy());
         }
         
         @Override
         protected void phase1d() {
           super.phase1d();
-          obj.nodes.put(Layer.Layer_1d, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1d, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1d, pipeline.copy());
         }
         
         @Override
         protected void phase1e() {
           super.phase1e();
-          obj.nodes.put(Layer.Layer_1e, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1e, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1e, pipeline.copy());
         }
         
         @Override
         protected void phase2a() {
           super.phase2a();
-          obj.nodes.put(Layer.Layer_2a, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_2a, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_2a, pipeline.copy());
         }
         
         @Override
         protected void phase2b() {
           super.phase2b();
-          obj.nodes.put(Layer.Layer_2b, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_2b, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_2b, pipeline.copy());
         }
         
         @Override
         protected void phase3a() {
           super.phase3a();
-          obj.nodes.put(Layer.Layer_3a, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_3a, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_3a, pipeline.copy());
         }
         
         @Override
         protected void phase3b() {
           super.phase3b();
-          obj.nodes.put(Layer.Layer_3b, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_3b, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_3b, pipeline.copy());
           obj.network = (PipelineNetwork) pipeline.freeze();
-          throw new RuntimeException("Abort Network Construction");
+          throw new RuntimeException(abortMsg);
         }
       }.getNetwork();
+      assert null != obj.prototypes;
+      assert !obj.prototypes.isEmpty();
     } catch (@Nonnull final RuntimeException e1) {
+      if (!e1.getMessage().equals(abortMsg)) throw new RuntimeException(e1);
     } catch (Throwable e11) {
       throw new RuntimeException(e11);
     }
@@ -131,6 +139,8 @@ public class CVPipe_VGG19 implements CVPipe<CVPipe_VGG19.Layer> {
   
   @Override
   public Map<Layer, PipelineNetwork> getPrototypes() {
+    assert null != prototypes;
+    assert !prototypes.isEmpty();
     return Collections.unmodifiableMap(prototypes);
   }
   
@@ -185,7 +195,7 @@ public class CVPipe_VGG19 implements CVPipe<CVPipe_VGG19.Layer> {
      *
      * @return the pipeline network
      */
-    public final PipelineNetwork texture() {
+    public final PipelineNetwork network() {
       PipelineNetwork pipelineNetwork = INSTANCE.getPrototypes().get(this);
       if (null == pipelineNetwork) throw new IllegalStateException(this.toString());
       return null == pipelineNetwork ? null : pipelineNetwork.copy();

@@ -46,7 +46,7 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public PipelineNetwork() {
     this(1);
-    head = getInput().get(0);
+    setHead(getInput(0));
   }
   
   /**
@@ -57,9 +57,9 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public PipelineNetwork(final int inputs, @Nonnull final Layer... layers) {
     super(inputs);
-    head = 0 == inputs ? null : getInput().get(0);
+    setHead(0 == inputs ? null : getInput(0));
     for (final Layer layer : layers) {
-      add(layer);
+      add(layer).freeRef();
     }
   }
   
@@ -73,15 +73,7 @@ public class PipelineNetwork extends DAGNetwork {
     super(json, rs);
     @Nonnull final UUID headId = UUID.fromString(json.get("head").getAsString());
     assert null != headId;
-    head = nodesById.get(headId);
-    if (null == head) {
-      head = getInput().get(0);
-    }
-    final int inputIndex = inputHandles.indexOf(headId);
-    if (null == head && 0 <= inputIndex) {
-      head = getInput(inputIndex);
-    }
-    if (null == head) throw new IllegalArgumentException();
+    setHead(getNodeById(headId));
   }
   
   /**
@@ -114,9 +106,16 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public static PipelineNetwork build(final int inputs, final Layer... layers) {
     PipelineNetwork pipelineNetwork = new PipelineNetwork(inputs);
-    pipelineNetwork.setHead(pipelineNetwork.getInput(0));
     for (final Layer layer : layers) {
-      pipelineNetwork.add(layer);
+      pipelineNetwork.add(layer).freeRef();
+    }
+    return pipelineNetwork;
+  }
+  
+  public static PipelineNetwork wrap(final int inputs, final Layer... layers) {
+    PipelineNetwork pipelineNetwork = new PipelineNetwork(inputs);
+    for (final Layer layer : layers) {
+      pipelineNetwork.wrap(layer).freeRef();
     }
     return pipelineNetwork;
   }
@@ -142,7 +141,9 @@ public class PipelineNetwork extends DAGNetwork {
   @Nullable
   public InnerNode add(@Nullable final Layer nextHead) {
     if (null == nextHead) return null;
-    return add(nextHead, getHead());
+    DAGNode head = getHead();
+    head.addRef();
+    return add(nextHead, head);
   }
   
   /**
@@ -187,7 +188,7 @@ public class PipelineNetwork extends DAGNetwork {
     if (null == nextHead) return null;
     assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
     @Nullable final InnerNode node = super.add(nextHead, head);
-    assert null != getInput();
+    assert null != inputHandles;
     setHead(node);
     return node;
   }
@@ -198,7 +199,7 @@ public class PipelineNetwork extends DAGNetwork {
     if (null == layer) throw new IllegalArgumentException();
     final InnerNode node = super.add(label, layer, head);
     //assert Arrays.stream(head).allMatch(x -> x != null);
-    assert null != getInput();
+    assert null != inputHandles;
     setHead(node);
     return node;
   }
@@ -235,15 +236,23 @@ public class PipelineNetwork extends DAGNetwork {
    */
   @Nullable
   public DAGNode constValue(final Tensor tensor) {
-    return super.add(new ValueLayer(tensor));
+    return super.wrap(new ValueLayer(tensor));
+  }
+  
+  @Nullable
+  public DAGNode constValueWrap(final Tensor tensor) {
+    DAGNode node = constValue(tensor);
+    tensor.freeRef();
+    return node;
   }
   
   @Nullable
   @Override
   public DAGNode getHead() {
     if (null == head) {
-      head = getInput().get(0);
+      return getInput(0);
     }
+    head.addRef();
     return head;
   }
   
@@ -255,7 +264,11 @@ public class PipelineNetwork extends DAGNetwork {
    */
   @Nonnull
   public PipelineNetwork setHead(final DAGNode obj) {
-    head = obj;
+    if (obj != head) {
+      if (null != head) head.freeRef();
+      head = obj;
+      if (null != head) head.addRef();
+    }
     return this;
   }
   
@@ -263,7 +276,7 @@ public class PipelineNetwork extends DAGNetwork {
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
     final JsonObject json = super.getJson(resources, dataSerializer);
-    json.addProperty("head", head.getId().toString());
+    json.addProperty("head", getHeadId().toString());
     return json;
   }
   

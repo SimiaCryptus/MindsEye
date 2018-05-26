@@ -210,7 +210,7 @@ public class EncodingProblem implements Problem {
       trainingNetwork.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
         trainingNetwork.add(new MeanSqLossLayer(), image, trainingNetwork.getInput(1))
       )
-    );
+    ).freeRef();
     log.h3("Training");
     log.p("We start by training apply a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(trainingNetwork);

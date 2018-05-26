@@ -48,70 +48,70 @@ public class CVPipe_VGG16 implements CVPipe<CVPipe_VGG16.Layer> {
         @Override
         protected void phase0() {
           super.phase0();
-          obj.nodes.put(Layer.Layer_0, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_0, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_0, pipeline.copy());
         }
         
         @Override
         protected void phase1a() {
           super.phase1a();
-          obj.nodes.put(Layer.Layer_1a, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1a, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1a, pipeline.copy());
         }
         
         @Override
         protected void phase1b() {
           super.phase1b();
-          obj.nodes.put(Layer.Layer_1b, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1b, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1b, pipeline.copy());
         }
         
         @Override
         protected void phase1c() {
           super.phase1c();
-          obj.nodes.put(Layer.Layer_1c, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1c, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1c, pipeline.copy());
         }
         
         @Override
         protected void phase1d() {
           super.phase1d();
-          obj.nodes.put(Layer.Layer_1d, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1d, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1d, pipeline.copy());
         }
         
         @Override
         protected void phase1e() {
           super.phase1e();
-          obj.nodes.put(Layer.Layer_1e, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_1e, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1e, pipeline.copy());
         }
   
         @Override
         protected void phase2a() {
           super.phase2a();
-          obj.nodes.put(Layer.Layer_2a, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_2a, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_2a, pipeline.copy());
         }
   
         @Override
         protected void phase2b() {
           super.phase2b();
-          obj.nodes.put(Layer.Layer_2b, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_2b, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_2b, pipeline.copy());
         }
   
         @Override
         protected void phase3a() {
           super.phase3a();
-          obj.nodes.put(Layer.Layer_3a, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_3a, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_3a, pipeline.copy());
         }
   
         @Override
         protected void phase3b() {
           super.phase3b();
-          obj.nodes.put(Layer.Layer_3b, pipeline.getHead().getId());
+          obj.nodes.put(Layer.Layer_3b, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_3b, pipeline.copy());
           obj.network = (PipelineNetwork) pipeline.freeze();
           throw new RuntimeException("Abort Network Construction");
@@ -185,7 +185,7 @@ public class CVPipe_VGG16 implements CVPipe<CVPipe_VGG16.Layer> {
      *
      * @return the pipeline network
      */
-    public final PipelineNetwork texture() {
+    public final PipelineNetwork network() {
       PipelineNetwork pipelineNetwork = INSTANCE.getPrototypes().get(this);
       if (null == pipelineNetwork) throw new IllegalStateException(this.toString());
       return null == pipelineNetwork ? null : pipelineNetwork.copy();

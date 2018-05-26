@@ -249,12 +249,14 @@ public class ImgCropLayer extends LayerBase implements MultiPrecision<ImgCropLay
       Stream.<ReferenceCounting>of(inputTensor).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, dimOut, precision);
     }, inputData);
+    int[] output_dimensions = outputData.getDimensions();
+    int output_length = outputData.length();
     return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
-      if (!Arrays.equals(delta.getDimensions(), outputData.getDimensions())) {
-        throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
+      if (!Arrays.equals(delta.getDimensions(), output_dimensions)) {
+        throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(output_dimensions));
       }
-      if (delta.length() != outputData.length()) {
-        throw new AssertionError(delta.length() + " != " + outputData.length());
+      if (delta.length() != output_length) {
+        throw new AssertionError(delta.length() + " != " + output_length);
       }
       assert delta.length() == length;
   

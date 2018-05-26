@@ -200,7 +200,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
     self.contentTarget = new ContentTarget();
     for (final T layerType : getLayerTypes()) {
       System.gc();
-      final PipelineNetwork network = layerType.texture();
+      final PipelineNetwork network = layerType.network();
       ContentCoefficients contentCoefficients = style.coefficients.get(layerType);
       if (null != contentCoefficients && 0 != contentCoefficients.rms) {
         self.contentTarget.content.put(layerType, network.eval(contentInput).getDataAndFree().getAndFree(0));

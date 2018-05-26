@@ -93,10 +93,13 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
    * @param layer the layer
    */
   protected void add(@Nonnull Layer layer) {
-    this.prototype = evaluatePrototype(add(layer, pipeline), this.prototype, cnt++);
+    Tensor newValue = evaluatePrototype(add(layer, pipeline), this.prototype, cnt++);
+    if (null != this.prototype) this.prototype.freeRef();
+    this.prototype = newValue;
   }
   
   public Layer buildNetwork() {
+    if (null != this.prototype) this.prototype.freeRef();
     prototype = new Tensor(224, 224, 3);
     phase0();
     phase1();
@@ -394,6 +397,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
     
     @Override
     public Layer buildNetwork() {
+      if (null != this.prototype) this.prototype.freeRef();
       prototype = new Tensor(224, 224, 3);
       //  model.add(ZeroPadding2D((1,1),input_shape=(3,224,224)))
       add(new AssertDimensionsLayer(224, 224, 3));
@@ -540,7 +544,7 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
       
       DAGNode prev = stochasticNet.getHead();
       stochasticNet.wrap(new ProductLayer(), prev,
-        stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{}));
+        stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{})).freeRef();
       
       stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 4096)
         .setPaddingXY(0, 0)
@@ -548,24 +552,24 @@ public class VGG16_HDF5 extends VGG16 implements NetworkFactory, HasHDF5 {
           .permuteDimensionsAndFree(fullyconnectedOrder))
         .setPrecision(precision)
         .explode()
-      );
+      ).freeRef();
       stochasticNet.wrap(new ImgBandBiasLayer(4096)
-        .setAndFree((hdf5.readDataSet("param_1", "layer_34"))));
+        .setAndFree((hdf5.readDataSet("param_1", "layer_34")))).freeRef();
       
       prev = stochasticNet.getHead();
       stochasticNet.wrap(new ProductLayer(), prev,
-        stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{}));
-      
-      stochasticNet.wrap(new ActivationLayer(ActivationLayer.Mode.RELU));
+        stochasticNet.add(new StochasticBinaryNoiseLayer(density, 1.0 / density, 1, 1, 4096), new DAGNode[]{})).freeRef();
+  
+      stochasticNet.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
       stochasticNet.wrap(new ConvolutionLayer(1, 1, 4096, 1000)
         .setPaddingXY(0, 0)
         .setAndFree(hdf5.readDataSet("param_0", "layer_36")
           .permuteDimensionsAndFree(fullyconnectedOrder))
         .setPrecision(precision)
         .explode()
-      );
+      ).freeRef();
       stochasticNet.wrap(new ImgBandBiasLayer(1000)
-        .setAndFree((hdf5.readDataSet("param_1", "layer_36"))));
+        .setAndFree((hdf5.readDataSet("param_1", "layer_36")))).freeRef();
       
       add(new StochasticSamplingSubnetLayer(stochasticNet, samples));
     }

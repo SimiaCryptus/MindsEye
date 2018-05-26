@@ -351,8 +351,8 @@ public class ImageDecompositionLab {
       innerModel = buildNetwork();
       integrationModel = log.code(() -> {
         @Nonnull final PipelineNetwork network = new PipelineNetwork(1);
-        network.add(innerModel);
-        network.add(priorModel);
+        network.add(innerModel).freeRef();
+        network.add(priorModel).freeRef();
         return network;
       });
     }
@@ -565,10 +565,10 @@ public class ImageDecompositionLab {
     public PipelineNetwork buildModel() {
       return log.code(() -> {
         @Nonnull final PipelineNetwork network = new PipelineNetwork(1);
-        network.add(convolutionLayer);
-        network.add(biasLayer);
-        network.add(new ImgCropLayer(fromSize, fromSize));
-        network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
+        network.add(convolutionLayer).freeRef();
+        network.add(biasLayer).freeRef();
+        network.wrap(new ImgCropLayer(fromSize, fromSize)).freeRef();
+        network.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
         //addLogging(network);
         return network;
       });

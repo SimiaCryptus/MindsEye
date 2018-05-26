@@ -1117,6 +1117,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return toString(true);
   }
   
+  public String prettyPrintAndFree() {
+    String prettyPrint = prettyPrint();
+    freeRef();
+    return prettyPrint;
+  }
+  
   /**
    * Multiply tensor.
    *
@@ -1747,10 +1753,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @Nullable
   public Tensor reshapeCastAndFree(@Nonnull int... dims) {
-    if (0 == dims.length) throw new IllegalArgumentException();
-    if (length(dims) != length()) throw new IllegalArgumentException();
-    double[] data = getData();
-    return new Tensor(dims, data);
+    Tensor tensor = reshapeCast(dims);
+    freeRef();
+    return tensor;
   }
   
   /**
@@ -1805,6 +1810,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       int[] coords = c.getCoords();
       return get(coords[0], coords[1], band);
     });
+  }
+  
+  public BufferedImage toImageAndFree() {
+    BufferedImage image = toImage();
+    freeRef();
+    return image;
   }
   
   /**

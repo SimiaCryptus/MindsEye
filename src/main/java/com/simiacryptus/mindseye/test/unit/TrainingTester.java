@@ -589,7 +589,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       @Nonnull final PipelineNetwork network = new PipelineNetwork(inputs);
       network.wrap(new MeanSqLossLayer(),
         network.add(layer, IntStream.range(0, inputs - 1).mapToObj(i -> network.getInput(i)).toArray(i -> new DAGNode[i])),
-        network.getInput(inputs - 1));
+        network.getInput(inputs - 1)).freeRef();
       @Nonnull ArrayTrainable trainable = new ArrayTrainable(data, network);
       if (0 < mask.length) trainable.setMask(mask);
       List<StepRecord> history;

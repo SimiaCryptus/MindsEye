@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.RecycleBin;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
@@ -175,7 +176,7 @@ public class PixelClusterer<T extends LayerEnum<T>, U extends CVPipe<T>> {
     @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(toMatrix(bandCovariance));
     return IntStream.range(0, (int) Math.sqrt(bandCovariance.length)).mapToObj(vectorIndex -> {
       double[] data = decomposition.getEigenvector(vectorIndex).toArray();
-      return new Tensor(data, 1, 1, data.length).scale(Math.pow(decomposition.getRealEigenvalue(vectorIndex), eigenPower));
+      return new Tensor(data, 1, 1, data.length).scaleInPlace(Math.pow(decomposition.getRealEigenvalue(vectorIndex), eigenPower));
     }).collect(Collectors.toList());
   }
   
@@ -225,10 +226,19 @@ public class PixelClusterer<T extends LayerEnum<T>, U extends CVPipe<T>> {
     for (final double entropyBias : entropyBias) {
       log.code(() -> {
         int[] dimensions = metrics.getDimensions();
-        return train(getTrainable(metrics, model.andThen(entropyNetwork(dimensions[0] * dimensions[1], entropyBias))));
+        Layer netEntropy = model.andThenWrap(entropyNetwork(dimensions[0] * dimensions[1], entropyBias));
+        Trainable trainable = null;
+        try {
+          trainable = getTrainable(metrics, netEntropy);
+          PlotCanvas train = train(trainable);
+          return train;
+        } finally {
+          netEntropy.freeRef();
+          if (null != trainable) trainable.freeRef();
+        }
       });
     }
-    return model.andThen(new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
+    return model.freeAndThenWrap(new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL));
   }
   
   /**
@@ -259,20 +269,29 @@ public class PixelClusterer<T extends LayerEnum<T>, U extends CVPipe<T>> {
   public Layer modelingNetwork(final double globalBias, final double globalGain, final Tensor metrics, final boolean recenter, final boolean rescale, final int clusters, final double seedMagnitude, final double seedPcaPower) {
     int[] dimensions = metrics.getDimensions();
     int bands = dimensions[2];
-    double[] mean = new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg).eval(metrics).getDataAndFree().getAndFree(0).getData();
-    if (!recenter) Arrays.fill(mean, 0);
-    logger.info("Mean=" + Arrays.toString(mean));
-    Tensor bias = new Tensor(mean).map(v1 -> v1 * -1);
-    Tensor _globalBias = new Tensor(mean).map(v1 -> globalBias);
-    double[] scale = Arrays.stream(PipelineNetwork.build(1,
+    BandReducerLayer bandReducerLayer = new BandReducerLayer();
+    Tensor meanTensor = bandReducerLayer.setMode(PoolingLayer.PoolingMode.Avg).eval(metrics).getDataAndFree().getAndFree(0);
+    bandReducerLayer.freeRef();
+    if (!recenter) Arrays.fill(meanTensor.getData(), 0);
+    logger.info("Mean=" + Arrays.toString(meanTensor.getData()));
+    Tensor bias = new Tensor(meanTensor.getData()).mapAndFree(v1 -> v1 * -1);
+    Tensor _globalBias = new Tensor(meanTensor.getData()).mapAndFree(v1 -> globalBias);
+    PipelineNetwork network = PipelineNetwork.wrap(1,
       new ImgBandBiasLayer(bands).set(bias),
       new SquareActivationLayer(),
       new BandReducerLayer().setMode(PoolingLayer.PoolingMode.Avg),
       new NthPowerActivationLayer().setPower(-0.5)
-    ).eval(metrics).getDataAndFree().getAndFree(0).getData()).map(x -> x == 0.0 ? 1.0 : x).toArray();
-    if (!rescale) Arrays.fill(scale, 1);
-    logger.info("Scaling=" + Arrays.toString(scale));
-    double[] bandCovariance = bandCovariance(metrics.getPixelStream(), countPixels(metrics), mean, scale);
+    );
+    Tensor scaled;
+    try {
+      scaled = network.eval(metrics).getDataAndFree().getAndFree(0).mapAndFree(x -> x == 0.0 ? 1.0 : x);
+    } finally {
+      network.freeRef();
+    }
+    if (!rescale) Arrays.fill(scaled.getData(), 1);
+    logger.info("Scaling=" + Arrays.toString(scaled.getData()));
+    double[] bandCovariance = bandCovariance(metrics.getPixelStream(), countPixels(metrics), meanTensor.getData(), scaled.getData());
+    meanTensor.freeRef();
     List<Tensor> seedVectors = pca(bandCovariance, seedPcaPower).stream().collect(Collectors.toList());
     String convolutionLayerName = "mix";
     ConvolutionLayer convolutionLayer = new ConvolutionLayer(1, 1, bands, clusters);
@@ -285,14 +304,18 @@ public class PixelClusterer<T extends LayerEnum<T>, U extends CVPipe<T>> {
       double v = seedMagnitude * seedVectors.get(index2 % seedVectors.size()).get(index1) * ((index2 < seedVectors.size()) ? 1 : 2 * (Math.random() - 0.5));
       return Math.min(Math.max(-1, v), 1);
     });
+    seedVectors.forEach(ReferenceCountingBase::freeRef);
     PipelineNetwork pipelineNetwork = new PipelineNetwork(1);
     pipelineNetwork.setHead(pipelineNetwork.getInput(0));
-    pipelineNetwork.add(new ImgBandBiasLayer(bands).set(bias));
-    pipelineNetwork.add(new ProductLayer(), pipelineNetwork.getHead(), pipelineNetwork.constValue(new Tensor(scale, 1, 1, scale.length)));
-    pipelineNetwork.add(new ImgBandBiasLayer(bands).set(_globalBias).freeze());
-    pipelineNetwork.add(convolutionLayer.explode().setName(convolutionLayerName));
-    pipelineNetwork.add(new ProductLayer(), pipelineNetwork.getHead(), pipelineNetwork.constValue(new Tensor(new double[]{globalGain}, 1, 1, 1)));
-    
+    pipelineNetwork.wrap(new ImgBandBiasLayer(bands).set(bias)).freeRef();
+    pipelineNetwork.wrap(new ProductLayer(), pipelineNetwork.getHead(), pipelineNetwork.constValueWrap(new Tensor(scaled.getData(), 1, 1, scaled.getData().length))).freeRef();
+    pipelineNetwork.wrap(new ImgBandBiasLayer(bands).set(_globalBias).freeze()).freeRef();
+    pipelineNetwork.wrap(convolutionLayer.explode().setName(convolutionLayerName)).freeRef();
+    convolutionLayer.freeRef();
+    pipelineNetwork.add(new ProductLayer(), pipelineNetwork.getHead(), pipelineNetwork.constValueWrap(new Tensor(new double[]{globalGain}, 1, 1, 1))).freeRef();
+    scaled.freeRef();
+    bias.freeRef();
+    _globalBias.freeRef();
     return pipelineNetwork;
   }
   
@@ -318,19 +341,21 @@ public class PixelClusterer<T extends LayerEnum<T>, U extends CVPipe<T>> {
   @Nonnull
   public Layer entropyNetwork(final int pixels, final double entropyBias) {
     PipelineNetwork netEntropy = new PipelineNetwork(1);
+    Tensor weights = new Tensor(Math.pow(2, getSelectionEntropyAdj()));
     netEntropy.wrap(new BinarySumLayer(getOrientation(), getOrientation() * -Math.pow(2, getGlobalDistributionEmphasis())),
-      netEntropy.wrap(PipelineNetwork.build(1,
+      netEntropy.wrap(PipelineNetwork.wrap(1,
         new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL).setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE),
         new ImgBandBiasLayer(getClusters()).setWeights(i -> entropyBias),
         new AutoEntropyLayer()
       ), netEntropy.getInput(0)),
-      netEntropy.wrap(PipelineNetwork.build(1,
-        new ScaleLayer(new Tensor(Math.pow(2, getSelectionEntropyAdj()))),
+      netEntropy.wrap(PipelineNetwork.wrap(1,
+        new ScaleLayer(weights),
         new SoftmaxActivationLayer().setMode(SoftmaxActivationLayer.SoftmaxMode.CHANNEL).setAlgorithm(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE),
         new BandAvgReducerLayer().setAlpha(pixels),
         new ImgBandBiasLayer(getClusters()).setWeights(i -> entropyBias),
         new AutoEntropyLayer()
-      ), netEntropy.getInput(0)));
+      ), netEntropy.getInput(0))).freeRef();
+    weights.freeRef();
     return netEntropy;
   }
   

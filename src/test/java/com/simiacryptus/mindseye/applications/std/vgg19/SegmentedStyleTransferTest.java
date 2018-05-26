@@ -34,6 +34,8 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -48,6 +50,7 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
+    Executors.newScheduledThreadPool(1).scheduleAtFixedRate(System::gc, 1, 1, TimeUnit.MINUTES);
     SegmentedStyleTransfer.VGG19 styleTransfer = new SegmentedStyleTransfer.VGG19();
     init(log);
     Precision precision = Precision.Float;
@@ -72,7 +75,9 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
     log.h1("Phase 0");
     BufferedImage canvasImage = ArtistryUtil.load(ArtistryData.CLASSIC_STYLES.get(0), imageSize.get());
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
-    canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(TestUtil.resize(canvasImage, 16, true)), imageSize.get(), 1000.0, 1.1).toImage();
+    Tensor image = Tensor.fromRGB(TestUtil.resize(canvasImage, 16, true));
+    canvasImage = ArtistryUtil.expandPlasma(image, imageSize.get(), 1000.0, 1.1).toImageAndFree();
+    image.freeRef();
     BufferedImage contentImage = ArtistryUtil.load(ArtistryData.CLASSIC_CONTENT.get(0), canvasImage.getWidth(), canvasImage.getHeight());
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     SegmentedStyleTransfer.StyleSetup styleSetup;

@@ -91,8 +91,9 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   }
   
   @Override
-  public void addRef() {
+  public ReferenceCountingBase addRef() {
     addRef(this);
+    return this;
   }
   
   @Override

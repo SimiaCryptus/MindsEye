@@ -100,7 +100,8 @@ public class StochasticSamplingSubnetLayer extends WrapperLayer implements Stoch
     PipelineNetwork gateNetwork = new PipelineNetwork(1);
     gateNetwork.wrap(new ProductLayer().setPrecision(precision),
       gateNetwork.getInput(0),
-      gateNetwork.wrap(new ValueLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{}));
+      gateNetwork.wrap(new ValueLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{}))
+      .freeRef();
     SumInputsLayer sumInputsLayer = new SumInputsLayer().setPrecision(precision);
     try {
       return gateNetwork.evalAndFree(sumInputsLayer.evalAndFree(samples));

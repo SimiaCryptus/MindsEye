@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.MutableResult;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -42,6 +43,7 @@ import javax.annotation.Nonnull;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -86,46 +88,50 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
    * @param img the img
    * @return the list
    */
-  public static List<Tensor> quickMasks(final Tensor img) {
-    return quickMasks(new NullNotebookOutput(), img);
-  }
+  public static List<Tensor> quickMasks(final Tensor img) {return quickMasks(img, 3);}
   
   /**
    * Quick masks list.
    *
-   * @param log the log
    * @param img the img
+   * @param clusters
    * @return the list
    */
-  public static List<Tensor> quickMasks(@Nonnull final NotebookOutput log, final Tensor img) {
-    return quickMasks(log, img, 9, 3, CVPipe_VGG19.Layer.Layer_0,
-      CVPipe_VGG19.Layer.Layer_1a,
-      CVPipe_VGG19.Layer.Layer_1e);
+  public static List<Tensor> quickMasks(final Tensor img, final int clusters) {
+    return quickMasks(img, clusters, clusters, clusters);
   }
   
-  /**
-   * Quick masks list.
-   *
-   * @param log      the log
-   * @param img      the img
-   * @param blur     the blur
-   * @param clusters the clusters
-   * @param layers   the layers
-   * @return the list
-   */
-  public static List<Tensor> quickMasks(@Nonnull final NotebookOutput log, final Tensor img, final int blur, final int clusters, final LayerEnum... layers) {
-    ImageSegmenter segmenter = new ImageSegmenter.VGG19(clusters) {
+  public static List<Tensor> quickMasks(final Tensor img, final int masks, final int colorClusters, final int textureClusters) {
+    return quickMasks(new NullNotebookOutput(), img, masks, colorClusters, textureClusters);
+  }
+  
+  public static List<Tensor> quickMasks(@Nonnull final NotebookOutput log, final Tensor img, final int masks, final int colorClusters, final int textureClusters) {
+    return quickmasks(log, img, masks, colorClusters, textureClusters);
+  }
+  
+  public static List<Tensor> quickmasks(@Nonnull final NotebookOutput log, final Tensor img, final int masks, final int colorClusters, final int textureClusters) {
+    if (1 >= masks) return Arrays.asList(img.sumChannels().map(x -> 1.0));
+    return quickmasks(log, img, 9, masks, colorClusters, textureClusters, CVPipe_VGG19.Layer.Layer_0, CVPipe_VGG19.Layer.Layer_1a, CVPipe_VGG19.Layer.Layer_1e);
+  }
+  
+  public static List<Tensor> quickmasks(@Nonnull final NotebookOutput log, final Tensor img, final int blur, final int masks, final int colorClusters, final int textureClusters, final LayerEnum... layers) {
+    ImageSegmenter segmenter = new VGG19(masks) {
       @Override
       public Layer modelingNetwork(final CVPipe_VGG19.Layer layer, final Tensor metrics) {
         if (layer == CVPipe_VGG19.Layer.Layer_0) {
-          return modelingNetwork(getGlobalBias(), getGlobalGain(), metrics, true, isRescale(), getClusters(), getSeedMagnitude(), 0);
+          return modelingNetwork(getGlobalBias(), getGlobalGain(), metrics, true, isRescale(), colorClusters, getSeedMagnitude(), 0);
         }
         else {
-          return modelingNetwork(getGlobalBias(), getGlobalGain(), metrics, isRecenter(), isRescale(), getClusters(), getSeedMagnitude(), getSeedPcaPower());
+          return modelingNetwork(getGlobalBias(), getGlobalGain(), metrics, isRecenter(), isRescale(), textureClusters, getSeedMagnitude(), getSeedPcaPower());
         }
       }
     };
-    return segmenter.spatialClusters(log, img, PCAObjectLocation.blur(segmenter.featureClusters(log, img, layers), blur));
+    List<Tensor> featureMasks = segmenter.featureClusters(log, img, layers);
+    List<Tensor> blur1 = PCAObjectLocation.blur(featureMasks, blur);
+    featureMasks.forEach(ReferenceCountingBase::freeRef);
+    List<Tensor> spatialClusters = segmenter.spatialClusters(log, img, blur1);
+    blur1.forEach(ReferenceCountingBase::freeRef);
+    return spatialClusters;
   }
   
   /**
@@ -150,7 +156,10 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
    * @return the buffered image
    */
   public static BufferedImage alphaImageMask(final Tensor img, Tensor mask) {
-    return img.mapCoords(c -> img.get(c) * mask.get(c.getCoords()[0], c.getCoords()[1], Math.min(c.getCoords()[2], mask.getDimensions()[2] - 1))).toImage();
+    Tensor tensor = img.mapCoords(c -> img.get(c) * mask.get(c.getCoords()[0], c.getCoords()[1], Math.min(c.getCoords()[2], mask.getDimensions()[2] - 1)));
+    BufferedImage image = tensor.toImage();
+    tensor.freeRef();
+    return image;
   }
   
   /**
@@ -161,8 +170,12 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
    * @param mask the mask
    */
   public static void displayImageMask(@Nonnull final NotebookOutput log, final Tensor img, Tensor mask) {
-    log.p(log.image(img.toRgbImageAlphaMask(0, 1, 2, mask.scale(255.0)), "") +
-      log.image(img.toRgbImageAlphaMask(0, 1, 2, mask.normalizeDistribution().scale(255.0)), ""));
+    Tensor scale = mask.scale(255.0);
+    Tensor alphaMask = mask.normalizeDistribution().scaleInPlace(255.0);
+    log.p(log.image(img.toRgbImageAlphaMask(0, 1, 2, scale), "") +
+      log.image(img.toRgbImageAlphaMask(0, 1, 2, alphaMask), ""));
+    alphaMask.freeRef();
+    scale.freeRef();
   }
   
   /**
@@ -174,9 +187,11 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
    * @return the list
    */
   public List<Tensor> featureClusters(@Nonnull final NotebookOutput log, final Tensor img, final T... layers) {
-    return Arrays.stream(getLayerTypes()).filter(x -> Arrays.asList(layers).contains(x)).flatMap(layer -> {
+    List<Tensor> error = Arrays.stream(getLayerTypes()).filter(x -> Arrays.asList(layers).contains(x)).flatMap(layer -> {
       log.h2(layer.name());
-      Layer network = getInstance().getPrototypes().get(layer);
+      Map<T, PipelineNetwork> prototypes = getInstance().getPrototypes();
+      Layer network = prototypes.get(layer);
+      assert null != network : prototypes.toString();
       ArtistryUtil.setPrecision((DAGNetwork) network, Precision.Float);
       network.setFrozen(true);
       Result imageFeatures = network.eval(new MutableResult(img));
@@ -185,20 +200,41 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
       Layer analyze1 = analyze(layer, log, featureImage);
       List<Tensor> layerMasks = IntStream.range(0, getClusters()).mapToObj(i -> {
         try {
-          Tensor maskData = new Tensor(((Layer) PipelineNetwork.build(1,
-            analyze1,
-            new ImgBandSelectLayer(i, i + 1)
-          )).copy().freeze().andThen(new SumReducerLayer()).eval(imageFeatures).getSingleDelta(), img.getDimensions()).map(v -> Math.abs(v));
-          displayImageMask(log, img, maskData.sumChannels().rescaleRms(1.0));
+          Layer net = PipelineNetwork.wrap(1,
+            analyze1.copy().freeze(),
+            new ImgBandSelectLayer(i, i + 1),
+            new SumReducerLayer()
+          );
+          double[] singleDelta;
+          try {
+            Result eval = net.eval(imageFeatures);
+            singleDelta = eval.getSingleDelta();
+            eval.freeRef();
+          } finally {
+            net.freeRef();
+          }
+          Tensor maskData = new Tensor(singleDelta, img.getDimensions()).mapAndFree(v -> Math.abs(v));
+          Tensor sumChannels = maskData.sumChannels();
+          double rms = sumChannels.rms();
+          displayImageMask(log, img, sumChannels.scaleInPlace(1.0 / rms));
+          sumChannels.freeRef();
           return maskData;
         } catch (Throwable e) {
           logger.warn("Error", e);
           return null;
         }
       }).filter(x -> x != null).collect(Collectors.toList());
-      log.p(TestUtil.animatedGif(log, layerMasks.stream().map(selectedBand -> alphaImageMask(img, selectedBand.rescaleRms(1.0))).toArray(i -> new BufferedImage[i])));
+      imageFeatures.freeRef();
+      analyze1.freeRef();
+      log.p(TestUtil.animatedGif(log, layerMasks.stream().map(selectedBand -> {
+        Tensor mask = selectedBand.rescaleRms(1.0);
+        BufferedImage image = alphaImageMask(img, mask);
+        mask.freeRef();
+        return image;
+      }).toArray(i -> new BufferedImage[i])));
       return layerMasks.stream();
     }).collect(Collectors.toList());
+    return error;
   }
   
   /**
@@ -210,9 +246,13 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
    * @return the list
    */
   public List<Tensor> spatialClusters(@Nonnull final NotebookOutput log, final Tensor img, final List<Tensor> featureMasks) {
-    Tensor concat = ImgConcatLayer.eval(featureMasks.stream().map(Tensor::sumChannels).collect(Collectors.toList()));
+    List<Tensor> tensors = featureMasks.stream().map(Tensor::sumChannels).collect(Collectors.toList());
+    Tensor concat = ImgConcatLayer.eval(tensors);
+    tensors.forEach(ReferenceCountingBase::freeRef);
     Tensor reclustered = analyze(null, log, concat).eval(concat).getDataAndFree().getAndFree(0);
+    concat.freeRef();
     List<Tensor> tensorList = IntStream.range(0, reclustered.getDimensions()[2]).mapToObj(i -> reclustered.selectBand(i)).collect(Collectors.toList());
+    reclustered.freeRef();
     log.p(TestUtil.animatedGif(log, tensorList.stream().map(selectedBand -> alphaImageMask(img, selectedBand)).toArray(i -> new BufferedImage[i])));
     for (Tensor selectBand : tensorList) {
       displayImageMask(log, img, selectBand);

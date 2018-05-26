@@ -371,7 +371,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     self.contentTarget = new ContentTarget();
     for (final T layerType : getLayerTypes()) {
       System.gc();
-      final PipelineNetwork network = layerType.texture();
+      final PipelineNetwork network = layerType.network();
       ArtistryUtil.setPrecision(network, style.precision);
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);

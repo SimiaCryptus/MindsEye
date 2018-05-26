@@ -351,7 +351,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     if (null == colorForwardTransform) return unitTransformer();
     network.wrap(ArtistryUtil.getClamp(255),
       network.add(colorForwardTransform,
-        network.getInput(0)));
+        network.getInput(0))).freeRef();
     return network;
   }
   
@@ -367,7 +367,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     if (null == colorForwardTransform) return unitTransformer();
     network.wrap(ArtistryUtil.getClamp(255),
       network.add(invert(colorForwardTransform),
-        network.getInput(0)));
+        network.getInput(0))).freeRef();
     return network;
   }
   
@@ -397,7 +397,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       trainingAssembly.wrap(network,
         trainingAssembly.wrap(ArtistryUtil.getClamp(255),
           trainingAssembly.add(colorForwardTransform,
-            trainingAssembly.getInput(0))));
+            trainingAssembly.getInput(0)))).freeRef();
       ArtistryUtil.setPrecision(trainingAssembly, styleParameters.precision);
       Trainable trainable1 = new ArrayTrainable(trainingAssembly, 1).setVerbose(true).setMask(false).setData(Arrays.asList(new Tensor[][]{{canvas}}));
       trainingAssembly.freeRef();
@@ -504,7 +504,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     self.contentTarget = new ContentTarget();
     for (final T layerType : getLayerTypes()) {
       System.gc();
-      Layer network = layerType.texture();
+      Layer network = layerType.network();
       try {
         ArtistryUtil.setPrecision((DAGNetwork) network, style.precision);
         //network = new ImgTileSubnetLayer(network, 400,400,400,400);

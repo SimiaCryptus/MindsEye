@@ -42,11 +42,11 @@ public class NormalizationMetaLayer extends PipelineNetwork {
   public NormalizationMetaLayer() {
     super(1);
     getInput(0);
-    wrap(new SqActivationLayer());
-    wrap(new AvgReducerLayer());
-    wrap(new AvgMetaLayer());
-    wrap(new NthPowerActivationLayer().setPower(-0.5));
-    wrap(new ProductInputsLayer(), getHead(), getInput(0));
+    wrap(new SqActivationLayer()).freeRef();
+    wrap(new AvgReducerLayer()).freeRef();
+    wrap(new AvgMetaLayer()).freeRef();
+    wrap(new NthPowerActivationLayer().setPower(-0.5)).freeRef();
+    wrap(new ProductInputsLayer(), getHead(), getInput(0)).freeRef();
   }
   
   /**

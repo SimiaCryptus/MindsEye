@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.function.BiConsumer;
 
 /**
@@ -59,7 +60,10 @@ public class Result extends ReferenceCountingBase {
     DeltaSet<Layer> deltaBuffer = new DeltaSet<>();
     accumulate(deltaBuffer);
     if (deltaBuffer.getMap().size() != 1) throw new AssertionError(deltaBuffer.getMap().size());
-    return deltaBuffer.getMap().values().iterator().next().getDelta();
+    double[] delta = deltaBuffer.getMap().values().iterator().next().getDelta();
+    delta = Arrays.copyOf(delta, delta.length);
+    deltaBuffer.freeRef();
+    return delta;
   }
   
   /**

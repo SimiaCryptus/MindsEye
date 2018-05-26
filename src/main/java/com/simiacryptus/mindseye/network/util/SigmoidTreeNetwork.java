@@ -78,7 +78,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
    */
   protected SigmoidTreeNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
-    head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
+    head = getNodeById(UUID.fromString(json.get("head").getAsString()));
     LinkedHashMap<Object, Layer> layersById = getLayersById();
     if (json.get("alpha") != null) {
       alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
@@ -201,9 +201,9 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
-    @Nullable final DAGNode head = getHead();
+    UUID headId = getHeadId();
     final JsonObject json = super.getJson(resources, dataSerializer);
-    json.addProperty("head", head.getId().toString());
+    json.addProperty("head", headId.toString());
     if (null != alpha) {
       json.addProperty("alpha", alpha.getId().toString());
     }

@@ -119,6 +119,7 @@ public final class InnerNode extends LazyResult {
   
   @Override
   public synchronized void setLayer(@Nonnull final Layer newLayer) {
+    if (newLayer == this.layer) return;
     assertAlive();
     dagNetwork.assertAlive();
     LinkedHashMap<Object, Layer> layersById = dagNetwork.getLayersById();

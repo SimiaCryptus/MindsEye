@@ -101,9 +101,9 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
         .setPrecision(this.convolutionParams.precision);
   
       PipelineNetwork stackableConv = new PipelineNetwork(1);
-      if (paddingY != 0 || paddingX != 0) stackableConv.add(new ImgZeroPaddingLayer(paddingX, paddingY));
+      if (paddingY != 0 || paddingX != 0) stackableConv.wrap(new ImgZeroPaddingLayer(paddingX, paddingY)).freeRef();
       stackableConv.add(simpleConvolutionLayer);
-      if (paddingY != 0 || paddingX != 0) stackableConv.add(new ImgZeroPaddingLayer(-paddingX, -paddingY));
+      if (paddingY != 0 || paddingX != 0) stackableConv.wrap(new ImgZeroPaddingLayer(-paddingX, -paddingY)).freeRef();
       subKernels.add(simpleConvolutionLayer);
       this.subLayers.add(getTileSubnet(stackableConv, Math.max(filterDimensions[0], filterDimensions[1]), simpleConvolutionLayer.getKernelDimensions(), simpleConvolutionLayer.getPrecision()));
       simpleConvolutionLayer.freeRef();

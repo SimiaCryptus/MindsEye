@@ -118,6 +118,7 @@ public abstract class PCAObjectLocation {
     for (int i = 0; i < iterations; i++) {
       img = blur.eval(img).getDataAndFree().getAndFree(0);
     }
+    blur.freeRef();
     return img;
   }
   

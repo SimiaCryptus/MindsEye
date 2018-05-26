@@ -21,6 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.java.ValueLayer;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +52,7 @@ public class ScaleLayer extends PipelineNetwork {
   public ScaleLayer(final Tensor weights) {
     super(1);
     //this.weights = weights;
-    wrap(new ProductLayer(), getInput(0), constValue(weights));
+    wrap(new ProductLayer(), getInput(0), wrap(new ValueLayer(weights), new DAGNode[]{})).freeRef();
   }
   
   /**

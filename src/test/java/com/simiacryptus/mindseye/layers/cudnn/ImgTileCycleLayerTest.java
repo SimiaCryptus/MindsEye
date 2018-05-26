@@ -131,7 +131,7 @@ public abstract class ImgTileCycleLayerTest extends CudaLayerTestBase {
     @Nonnull
     public Layer wrap(ImgCropLayer imgCropLayer) {
       @Nonnull PipelineNetwork network = new PipelineNetwork();
-      network.add(imgCropLayer);
+      network.wrap(imgCropLayer).freeRef();
       return network;
     }
     
