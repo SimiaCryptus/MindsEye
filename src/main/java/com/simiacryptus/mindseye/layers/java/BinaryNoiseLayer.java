@@ -126,7 +126,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
       data.addRef();
       input.accumulate(buffer, data);
     }) {
-
+  
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());

@@ -46,7 +46,6 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public PipelineNetwork() {
     this(1);
-    setHead(getInput(0));
   }
   
   /**
@@ -57,7 +56,6 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public PipelineNetwork(final int inputs, @Nonnull final Layer... layers) {
     super(inputs);
-    setHead(0 == inputs ? null : getInput(0));
     for (final Layer layer : layers) {
       add(layer).freeRef();
     }
@@ -72,8 +70,10 @@ public class PipelineNetwork extends DAGNetwork {
   protected PipelineNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     @Nonnull final UUID headId = UUID.fromString(json.get("head").getAsString());
-    assert null != headId;
-    setHead(getNodeById(headId));
+    if (!inputHandles.contains(headId)) {
+      assert null != headId;
+      setHead(getNodeById(headId));
+    }
   }
   
   /**
@@ -140,10 +140,9 @@ public class PipelineNetwork extends DAGNetwork {
    */
   @Nullable
   public InnerNode add(@Nullable final Layer nextHead) {
+    assert nextHead.assertAlive();
     if (null == nextHead) return null;
-    DAGNode head = getHead();
-    head.addRef();
-    return add(nextHead, head);
+    return add(nextHead, getHead());
   }
   
   /**
@@ -184,7 +183,7 @@ public class PipelineNetwork extends DAGNetwork {
   @Nullable
   @Override
   public InnerNode add(@Nullable final Layer nextHead, @Nonnull final DAGNode... head) {
-    if (null == nextHead && head.length == 1) throw new IllegalArgumentException();
+    if (null == nextHead && head.length > 0) throw new IllegalArgumentException();
     if (null == nextHead) return null;
     assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
     @Nullable final InnerNode node = super.add(nextHead, head);
@@ -246,14 +245,25 @@ public class PipelineNetwork extends DAGNetwork {
     return node;
   }
   
+  @Override
+  protected void _free() {
+    super._free();
+    if (null != head) {
+      head.freeRef();
+      head = null;
+    }
+  }
+  
   @Nullable
   @Override
   public DAGNode getHead() {
     if (null == head) {
       return getInput(0);
     }
-    head.addRef();
-    return head;
+    else {
+      head.addRef();
+      return head;
+    }
   }
   
   /**

@@ -60,7 +60,7 @@ public class CaltechTests {
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new ImgCropLayer(126, 126)).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(3, 3, 10, 20).set(weights)).freeRef();
       network.wrap(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max)).freeRef();
       network.wrap(new ReLuActivationLayer()).freeRef();

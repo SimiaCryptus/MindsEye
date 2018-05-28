@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.LayerBase;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
@@ -93,11 +95,13 @@ public class SumReducerLayer extends LayerBase {
       for (@Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
           @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {
-            final double delta = data.get(dataIndex).get(0);
+            Tensor tensor = data.get(dataIndex);
+            assert 1 == tensor.length() : Arrays.toString(tensor.getDimensions());
             @Nonnull final Tensor passback = new Tensor(in_l.getData().getDimensions());
             for (int i = 0; i < Tensor.length(in_l.getData().getDimensions()); i++) {
-              passback.set(i, delta);
+              passback.set(i, tensor.get(0));
             }
+            tensor.freeRef();
             return passback;
           }).toArray(i -> new Tensor[i]));
           in_l.accumulate(buffer, tensorArray);
@@ -107,8 +111,8 @@ public class SumReducerLayer extends LayerBase {
       
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        Arrays.stream(inObj).map(Result::getData).forEach(ReferenceCounting::freeRef);
+        Arrays.stream(inObj).forEach(ReferenceCountingBase::freeRef);
       }
       
       @Override

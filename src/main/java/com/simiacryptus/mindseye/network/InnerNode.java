@@ -21,13 +21,13 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.CoreSettings;
 import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.util.Util;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -122,17 +122,9 @@ public final class InnerNode extends LazyResult {
     if (newLayer == this.layer) return;
     assertAlive();
     dagNetwork.assertAlive();
-    LinkedHashMap<Object, Layer> layersById = dagNetwork.getLayersById();
-    synchronized (layersById) {
-      if (!layersById.containsKey(newLayer.getId())) {
-        Layer put = layersById.put(newLayer.getId(), newLayer);
-        newLayer.addRef();
-        if (null != put) put.freeRef();
-      }
-    }
-    newLayer.addRef();
     if (null != this.layer) this.layer.freeRef();
     this.layer = newLayer;
+    if (null != this.layer) this.layer.addRef();
     dagNetwork.assertConsistent();
   }
   
@@ -144,9 +136,7 @@ public final class InnerNode extends LazyResult {
   @Override
   protected void _free() {
     super._free();
-    for (@Nonnull DAGNode node : this.inputNodes) {
-      node.freeRef();
-    }
+    Arrays.stream(this.inputNodes).forEach(ReferenceCounting::freeRef);
     this.layer.freeRef();
   }
   

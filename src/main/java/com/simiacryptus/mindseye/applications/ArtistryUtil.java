@@ -477,7 +477,9 @@ public class ArtistryUtil {
     }
     else {
       PipelineNetwork pipelineNetwork = (PipelineNetwork) network;
-      pipelineNetwork.wrap(new ImgBandBiasLayer(mean.scale(-1))).freeRef();
+      Tensor scale = mean.scale(-1);
+      pipelineNetwork.wrap(new ImgBandBiasLayer(scale)).freeRef();
+      scale.freeRef();
       pipelineNetwork.wrap(new GramianLayer()).freeRef();
       return pipelineNetwork;
     }

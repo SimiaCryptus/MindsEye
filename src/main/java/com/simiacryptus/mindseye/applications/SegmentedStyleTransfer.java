@@ -137,7 +137,14 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     Tensor r = styleMask.sumChannels();
     int[] dimensions = r.getDimensions();
     Tensor resize = Tensor.fromRGB(TestUtil.resize(l.toImage(), dimensions[0], dimensions[1])).sumChannels();
-    return resize.unit().dot(r.unit());
+    Tensor a = resize.unit();
+    Tensor b = r.unit();
+    double dot = a.dot(b);
+    a.freeRef();
+    b.freeRef();
+    r.freeRef();
+    l.freeRef();
+    return dot;
   }
   
   /**
@@ -529,13 +536,12 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   
   @Nonnull
   public PipelineNetwork fitnessNetwork(final NeuralSetup setup, final List<Tensor> masks) {
-    PipelineNetwork mainNetwork = getNetworkModel().getNetwork().copy();
+    PipelineNetwork mainNetwork = getNetworkModel().getNetwork();
     List<Tuple2<Double, DAGNode>> mainFunctions = new ArrayList<>();
     mainFunctions.addAll(getContentComponents(setup, getNodes(mainNetwork)));
-    
     masks.forEach((contentMask) -> {
       HashMap<String, String> idMap = new HashMap<>();
-      DAGNetwork branchNetwork = getNetworkModel().getNetwork().scrambleCopy(idMap);
+      DAGNetwork branchNetwork = mainNetwork.scrambleCopy(idMap);
       List<Tuple2<Double, DAGNode>> branchFunctions = new ArrayList<>();
       branchFunctions.addAll(getStyleComponents(setup, getNodes(branchNetwork, idMap),
         x -> x.segments.entrySet().stream().max(Comparator.comparingDouble(e -> alphaMaskSimilarity(contentMask, e.getKey()))).get().getValue()));

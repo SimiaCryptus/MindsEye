@@ -93,7 +93,7 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
   /**
    * Quick masks list.
    *
-   * @param img the img
+   * @param img      the img
    * @param clusters
    * @return the list
    */
@@ -128,7 +128,6 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
     };
     List<Tensor> featureMasks = segmenter.featureClusters(log, img, layers);
     List<Tensor> blur1 = PCAObjectLocation.blur(featureMasks, blur);
-    featureMasks.forEach(ReferenceCountingBase::freeRef);
     List<Tensor> spatialClusters = segmenter.spatialClusters(log, img, blur1);
     blur1.forEach(ReferenceCountingBase::freeRef);
     return spatialClusters;
@@ -194,10 +193,11 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
       assert null != network : prototypes.toString();
       ArtistryUtil.setPrecision((DAGNetwork) network, Precision.Float);
       network.setFrozen(true);
-      Result imageFeatures = network.eval(new MutableResult(img));
+      Result imageFeatures = network.evalAndFree(new MutableResult(img));
       Tensor featureImage = imageFeatures.getData().get(0);
       log.p("Feature Image Dimension: " + Arrays.toString(featureImage.getDimensions()));
       Layer analyze1 = analyze(layer, log, featureImage);
+      featureImage.freeRef();
       List<Tensor> layerMasks = IntStream.range(0, getClusters()).mapToObj(i -> {
         try {
           Layer net = PipelineNetwork.wrap(1,
@@ -208,8 +208,12 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
           double[] singleDelta;
           try {
             Result eval = net.eval(imageFeatures);
-            singleDelta = eval.getSingleDelta();
-            eval.freeRef();
+            try {
+              singleDelta = eval.getSingleDelta();
+            } finally {
+              eval.getData().freeRef();
+              eval.freeRef();
+            }
           } finally {
             net.freeRef();
           }
@@ -225,6 +229,7 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
         }
       }).filter(x -> x != null).collect(Collectors.toList());
       imageFeatures.freeRef();
+      imageFeatures.getData().freeRef();
       analyze1.freeRef();
       log.p(TestUtil.animatedGif(log, layerMasks.stream().map(selectedBand -> {
         Tensor mask = selectedBand.rescaleRms(1.0);
@@ -249,7 +254,9 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
     List<Tensor> tensors = featureMasks.stream().map(Tensor::sumChannels).collect(Collectors.toList());
     Tensor concat = ImgConcatLayer.eval(tensors);
     tensors.forEach(ReferenceCountingBase::freeRef);
-    Tensor reclustered = analyze(null, log, concat).eval(concat).getDataAndFree().getAndFree(0);
+    Layer analyze = analyze(null, log, concat);
+    Tensor reclustered = analyze.eval(concat).getDataAndFree().getAndFree(0);
+    analyze.freeRef();
     concat.freeRef();
     List<Tensor> tensorList = IntStream.range(0, reclustered.getDimensions()[2]).mapToObj(i -> reclustered.selectBand(i)).collect(Collectors.toList());
     reclustered.freeRef();

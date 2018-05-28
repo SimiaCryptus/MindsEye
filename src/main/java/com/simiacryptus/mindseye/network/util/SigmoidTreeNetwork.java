@@ -34,7 +34,6 @@ import com.simiacryptus.util.FastRandom;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -79,7 +78,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   protected SigmoidTreeNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     head = getNodeById(UUID.fromString(json.get("head").getAsString()));
-    LinkedHashMap<Object, Layer> layersById = getLayersById();
+    Map<Object, Layer> layersById = getLayersById();
     if (json.get("alpha") != null) {
       alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
     }

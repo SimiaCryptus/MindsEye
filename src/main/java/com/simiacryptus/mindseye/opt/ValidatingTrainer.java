@@ -108,7 +108,7 @@ public class ValidatingTrainer {
       protected void _free() {
         validationSubject.freeRef();
       }
-
+  
       @Override
       public PointSample measure(final TrainingMonitor monitor) {
         @Nonnull final TimedResult<PointSample> time = TimedResult.time(() ->
@@ -117,12 +117,12 @@ public class ValidatingTrainer {
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
-
+  
       @Override
       public boolean reseed(final long seed) {
         return validationSubject.reseed(seed);
       }
-
+  
       @Override
       public Layer getLayer() {
         return validationSubject.getLayer();
@@ -852,14 +852,14 @@ public class ValidatingTrainer {
      * The Validation.
      */
     PointSample validation;
-
+  
     private EpochParams(final long timeoutMs, final int iterations, final int trainingSize, final PointSample validation) {
       this.timeoutMs = timeoutMs;
       this.iterations = iterations;
       this.trainingSize = trainingSize;
       this.validation = validation;
     }
-
+  
   }
   
   private static class EpochResult {

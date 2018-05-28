@@ -239,11 +239,15 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     @Nonnull ExplodedConvolutionGrid grid = getExplodedNetwork();
     @Nonnull PipelineNetwork network = grid.getNetwork();
-    if (isFrozen()) {
-      network.freeze();
+    final Result result;
+    try {
+      if (isFrozen()) {
+        network.freeze();
+      }
+      result = network.evalAndFree(inObj);
+    } finally {
+      network.freeRef();
     }
-    final Result result = network.evalAndFree(inObj);
-    network.freeRef();
     final TensorList resultData = result.getData();
     assert inObj[0].getData().length() == resultData.length();
     assert 3 == resultData.getDimensions().length;

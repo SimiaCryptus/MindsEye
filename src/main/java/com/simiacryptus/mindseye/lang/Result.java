@@ -19,8 +19,6 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 
@@ -60,9 +58,13 @@ public class Result extends ReferenceCountingBase {
     DeltaSet<Layer> deltaBuffer = new DeltaSet<>();
     accumulate(deltaBuffer);
     if (deltaBuffer.getMap().size() != 1) throw new AssertionError(deltaBuffer.getMap().size());
-    double[] delta = deltaBuffer.getMap().values().iterator().next().getDelta();
-    delta = Arrays.copyOf(delta, delta.length);
+    double[] delta = copy(deltaBuffer.getMap().values().iterator().next().getDelta());
     deltaBuffer.freeRef();
+    return delta;
+  }
+  
+  public double[] copy(double[] delta) {
+    delta = Arrays.copyOf(delta, delta.length);
     return delta;
   }
   
@@ -82,13 +84,7 @@ public class Result extends ReferenceCountingBase {
    * @param value  the value
    */
   public final void accumulate(final DeltaSet<Layer> buffer, final double value) {
-    @Nonnull TensorArray tensorArray = TensorArray.wrap(getData().stream().map(t -> {
-      @Nullable Tensor map = t.map(v -> value);
-      t.freeRef();
-      return map;
-    })
-      .toArray(i -> new Tensor[i]));
-    accumulate(buffer, tensorArray);
+    accumulate(buffer, TensorArray.wrap(getData().stream().map(t -> t.mapAndFree(v -> value)).toArray(i -> new Tensor[i])));
   }
   
   

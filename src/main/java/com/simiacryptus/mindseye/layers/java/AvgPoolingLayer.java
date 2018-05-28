@@ -192,7 +192,7 @@ public class AvgPoolingLayer extends LayerBase {
      * The Output.
      */
     int[] output;
-
+  
     /**
      * Instantiates a new Index buildMap key.
      *

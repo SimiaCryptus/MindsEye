@@ -125,11 +125,14 @@ public class ImgTileSubnetLayer extends WrapperLayer {
         assert positionX < inputDims[0];
         assert positionY < inputDims[1];
         final int finalIndex = index;
-        Result selectedTile = new ImgTileSelectLayer(width, height, positionX, positionY).evalAndFree(new Result(inputData, (ctx, delta) -> {
+        ImgTileSelectLayer tileSelectLayer = new ImgTileSelectLayer(width, height, positionX, positionY);
+        Result selectedTile = tileSelectLayer.evalAndFree(new Result(inputData, (ctx, delta) -> {
           passback[finalIndex] = delta;
           if (passbacks.incrementAndGet() == rows * cols) {
             passbacks.set(0);
-            TensorList reassembled = new ImgTileAssemblyLayer(cols, rows).evalAndFree(Arrays.stream(passback).map(t -> new Result(t, (c2, d2) -> {})).toArray(i -> new Result[i])).getDataAndFree();
+            ImgTileAssemblyLayer imgTileAssemblyLayer = new ImgTileAssemblyLayer(cols, rows);
+            TensorList reassembled = imgTileAssemblyLayer.evalAndFree(Arrays.stream(passback).map(t -> new Result(t, (c2, d2) -> {})).toArray(i -> new Result[i])).getDataAndFree();
+            imgTileAssemblyLayer.freeRef();
             input.accumulate(ctx, reassembled);
           }
         }) {
@@ -139,13 +142,17 @@ public class ImgTileSubnetLayer extends WrapperLayer {
             super._free();
           }
         });
+        tileSelectLayer.freeRef();
         results[index] = getInner().evalAndFree(selectedTile);
         index = index + 1;
       }
     }
     input.freeRef();
     inputData.freeRef();
-    return new ImgTileAssemblyLayer(cols, rows).eval(results);
+    ImgTileAssemblyLayer imgTileAssemblyLayer = new ImgTileAssemblyLayer(cols, rows);
+    Result result = imgTileAssemblyLayer.evalAndFree(results);
+    imgTileAssemblyLayer.freeRef();
+    return result;
   }
   
   @Nonnull

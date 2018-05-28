@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,8 @@ public class AutoEntropyLayer extends PipelineNetwork {
    */
   public AutoEntropyLayer() {
     super(1);
-    wrap(new EntropyLossLayer(), getInput(0), getInput(0)).freeRef();
+    DAGNode input = getInput(0);
+    wrap(new EntropyLossLayer(), input, input).freeRef();
   }
   
   /**

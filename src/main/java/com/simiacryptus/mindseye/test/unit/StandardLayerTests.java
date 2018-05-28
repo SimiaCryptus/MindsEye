@@ -68,7 +68,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   static {
     SysOutInterceptor.INSTANCE.init();
   }
-
+  
   private final Random random = getRandom();
   /**
    * The Testing batch size.

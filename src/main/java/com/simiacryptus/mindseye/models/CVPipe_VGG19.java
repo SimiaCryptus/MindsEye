@@ -34,9 +34,6 @@ import java.util.UUID;
  */
 public class CVPipe_VGG19 implements CVPipe<CVPipe_VGG19.Layer> {
   
-  private CVPipe_VGG19() {
-  }
-  
   /**
    * The constant INSTANCE.
    */
@@ -44,6 +41,9 @@ public class CVPipe_VGG19 implements CVPipe<CVPipe_VGG19.Layer> {
   private final Map<Layer, UUID> nodes = new HashMap<>();
   private final Map<Layer, PipelineNetwork> prototypes = new HashMap<>();
   private PipelineNetwork network;
+  
+  private CVPipe_VGG19() {
+  }
   
   private static CVPipe_VGG19 build() {
     CVPipe_VGG19 obj = new CVPipe_VGG19();

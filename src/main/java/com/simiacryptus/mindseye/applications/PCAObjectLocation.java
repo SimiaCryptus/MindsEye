@@ -115,10 +115,14 @@ public abstract class PCAObjectLocation {
       blur.getKernel().set(1, 2, i * (bands + 1), 1.0);
       blur.getKernel().set(2, 1, i * (bands + 1), 1.0);
     }
+    final Layer blurExp = blur.explode();
     for (int i = 0; i < iterations; i++) {
-      img = blur.eval(img).getDataAndFree().getAndFree(0);
+      Tensor newImg = blurExp.eval(img).getDataAndFree().getAndFree(0);
+      img.freeRef();
+      img = newImg;
     }
     blur.freeRef();
+    blurExp.freeRef();
     return img;
   }
   

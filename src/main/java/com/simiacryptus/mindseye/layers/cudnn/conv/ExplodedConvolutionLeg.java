@@ -102,11 +102,11 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   
       PipelineNetwork stackableConv = new PipelineNetwork(1);
       if (paddingY != 0 || paddingX != 0) stackableConv.wrap(new ImgZeroPaddingLayer(paddingX, paddingY)).freeRef();
-      stackableConv.add(simpleConvolutionLayer);
+      stackableConv.add(simpleConvolutionLayer).freeRef();
       if (paddingY != 0 || paddingX != 0) stackableConv.wrap(new ImgZeroPaddingLayer(-paddingX, -paddingY)).freeRef();
       subKernels.add(simpleConvolutionLayer);
       this.subLayers.add(getTileSubnet(stackableConv, Math.max(filterDimensions[0], filterDimensions[1]), simpleConvolutionLayer.getKernelDimensions(), simpleConvolutionLayer.getPrecision()));
-      simpleConvolutionLayer.freeRef();
+      stackableConv.freeRef();
       //this.subLayers.add(simpleConvolutionLayer);
     }
   }
@@ -122,6 +122,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   @Override
   protected void _free() {
     this.subLayers.forEach(x -> x.freeRef());
+    this.subKernels.forEach(x -> x.freeRef());
     super._free();
   }
   

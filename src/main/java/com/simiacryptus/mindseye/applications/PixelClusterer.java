@@ -230,8 +230,7 @@ public class PixelClusterer<T extends LayerEnum<T>, U extends CVPipe<T>> {
         Trainable trainable = null;
         try {
           trainable = getTrainable(metrics, netEntropy);
-          PlotCanvas train = train(trainable);
-          return train;
+          return train(trainable);
         } finally {
           netEntropy.freeRef();
           if (null != trainable) trainable.freeRef();
@@ -306,13 +305,12 @@ public class PixelClusterer<T extends LayerEnum<T>, U extends CVPipe<T>> {
     });
     seedVectors.forEach(ReferenceCountingBase::freeRef);
     PipelineNetwork pipelineNetwork = new PipelineNetwork(1);
-    pipelineNetwork.setHead(pipelineNetwork.getInput(0));
     pipelineNetwork.wrap(new ImgBandBiasLayer(bands).set(bias)).freeRef();
     pipelineNetwork.wrap(new ProductLayer(), pipelineNetwork.getHead(), pipelineNetwork.constValueWrap(new Tensor(scaled.getData(), 1, 1, scaled.getData().length))).freeRef();
     pipelineNetwork.wrap(new ImgBandBiasLayer(bands).set(_globalBias).freeze()).freeRef();
     pipelineNetwork.wrap(convolutionLayer.explode().setName(convolutionLayerName)).freeRef();
     convolutionLayer.freeRef();
-    pipelineNetwork.add(new ProductLayer(), pipelineNetwork.getHead(), pipelineNetwork.constValueWrap(new Tensor(new double[]{globalGain}, 1, 1, 1))).freeRef();
+    pipelineNetwork.wrap(new ProductLayer(), pipelineNetwork.getHead(), pipelineNetwork.constValueWrap(new Tensor(new double[]{globalGain}, 1, 1, 1))).freeRef();
     scaled.freeRef();
     bias.freeRef();
     _globalBias.freeRef();

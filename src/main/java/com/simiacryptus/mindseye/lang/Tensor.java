@@ -1818,6 +1818,13 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return image;
   }
   
+  public Tensor copyAndFree() {
+    if (currentRefCount() == 1) return this;
+    Tensor copy = copy();
+    freeRef();
+    return copy;
+  }
+  
   /**
    * The interface Coord operator.
    */
