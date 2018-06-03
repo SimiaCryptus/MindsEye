@@ -48,6 +48,7 @@ import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -214,8 +215,16 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       return trainable1;
     });
     try {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
+      log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+        try {
+          ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
       trainingLog.code(() -> {
-        @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
         new IterativeTrainer(trainable)
           .setMonitor(TestUtil.getMonitor(history))
           .setOrientation(new TrustRegionStrategy() {

@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.Settings;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
+import com.simiacryptus.util.Util;
 
 /**
  * The type Cuda settings.
@@ -43,7 +44,7 @@ public class TestSettings implements Settings {
   private TestSettings() {
     if (CudaSettings.INSTANCE == null) throw new RuntimeException();
     tag = Settings.get("GIT_TAG", "master");
-    autobrowse = true;
+    autobrowse = Util.AUTO_BROWSE;
   }
   
 }

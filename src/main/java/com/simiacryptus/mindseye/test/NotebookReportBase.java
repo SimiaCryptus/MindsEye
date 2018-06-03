@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 import java.util.function.Consumer;
@@ -87,18 +88,26 @@ public abstract class NotebookReportBase {
     //parent = new File(path, new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date()));
     path = new File(parent, testName + ".md");
     path.getParentFile().mkdirs();
+    logger.info(String.format("Output Location: %s", path.getAbsoluteFile()));
     return path;
   }
   
   /**
    * Gets log.
    *
-   * @param reportLocation the report location
+   * @param path the report location
    * @return the log
    */
   @Nonnull
-  public static NotebookOutput getLog(final File reportLocation) {
-    return MarkdownNotebookOutput.get(reportLocation, TestSettings.INSTANCE.autobrowse);
+  public static NotebookOutput getLog(final File path) {
+    try {
+      StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
+      String methodName = callingFrame.getMethodName();
+      path.getParentFile().mkdirs();
+      return new MarkdownNotebookOutput(path, methodName, TestSettings.INSTANCE.autobrowse);
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
   }
   
   /**

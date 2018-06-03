@@ -43,6 +43,7 @@ import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.io.NullNotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
@@ -154,8 +155,16 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    */
   public void train(@Nonnull final NotebookOutput log, final PipelineNetwork network, final Tensor canvas, final int trainingMinutes, final int maxIterations) {
     @Nonnull Trainable trainable = getTrainable(network, canvas);
+    @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+    log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
+    log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+      try {
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
     log.code(() -> {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       new IterativeTrainer(trainable)
         .setMonitor(TestUtil.getMonitor(history))
         .setIterationsPerSample(100)

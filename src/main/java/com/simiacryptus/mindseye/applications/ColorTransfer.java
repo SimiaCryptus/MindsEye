@@ -47,6 +47,7 @@ import com.simiacryptus.mindseye.opt.orient.OwlQn;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -98,6 +99,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   @Nonnull
   public static SimpleConvolutionLayer invert(final SimpleConvolutionLayer colorForwardTransform) {
     try {
+      colorForwardTransform.assertAlive();
       SimpleConvolutionLayer invConv = new SimpleConvolutionLayer(1, 1, 9);
       RealMatrix matrix = getMatrix(colorForwardTransform.kernel);
       RealMatrix inverse = inverse(matrix);
@@ -213,10 +215,11 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    */
   public BufferedImage transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
     try {
-      BufferedImage result = log.code(() -> {
-        final Tensor canvasTensor = Tensor.fromRGB(canvasImage);
-        return transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasTensor).toImage();
+      final Tensor canvasTensor = log.code(() -> {
+        return Tensor.fromRGB(canvasImage);
       });
+      Tensor transfer = transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasTensor);
+      BufferedImage result = transfer.toImage();
       log.p("Result:");
       log.p(log.image(result, "Output Canvas"));
       return result;
@@ -301,7 +304,12 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    */
   @Nonnull
   public BufferedImage forwardTransform(final BufferedImage canvas) {
-    return forwardTransform(Tensor.fromRGB(canvas)).toImage();
+    Tensor canvas1 = Tensor.fromRGB(canvas);
+    Tensor tensor = forwardTransform(canvas1);
+    canvas1.freeRef();
+    BufferedImage image = tensor.toImage();
+    tensor.freeRef();
+    return image;
   }
   
   /**
@@ -325,7 +333,9 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   public Tensor forwardTransform(final Tensor canvas) {
     Layer fwdTransform = getFwdTransform();
     if (null == fwdTransform) fwdTransform = unitTransformer();
-    return fwdTransform.eval(canvas).getDataAndFree().getAndFree(0);
+    Tensor andFree = fwdTransform.eval(canvas).getDataAndFree().getAndFree(0);
+    fwdTransform.freeRef();
+    return andFree;
   }
   
   /**
@@ -336,7 +346,10 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    */
   @Nonnull
   public Tensor inverseTransform(final Tensor canvas) {
-    return getInvTransform().eval(canvas).getDataAndFree().getAndFree(0);
+    Layer invTransform = getInvTransform();
+    Tensor andFree = invTransform.eval(canvas).getDataAndFree().getAndFree(0);
+    invTransform.freeRef();
+    return andFree;
   }
   
   /**
@@ -346,13 +359,12 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    */
   @Nonnull
   public Layer getFwdTransform() {
-    PipelineNetwork network = new PipelineNetwork(1);
     SimpleConvolutionLayer colorForwardTransform = getColorForwardTransform();
     if (null == colorForwardTransform) return unitTransformer();
-    network.wrap(ArtistryUtil.getClamp(255),
-      network.add(colorForwardTransform,
-        network.getInput(0))).freeRef();
-    return network;
+    return PipelineNetwork.wrap(1,
+      colorForwardTransform,
+      ArtistryUtil.getClamp(255)
+    );
   }
   
   /**
@@ -366,7 +378,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     SimpleConvolutionLayer colorForwardTransform = getColorForwardTransform();
     if (null == colorForwardTransform) return unitTransformer();
     network.wrap(ArtistryUtil.getClamp(255),
-      network.add(invert(colorForwardTransform),
+      network.wrap(invert(colorForwardTransform),
         network.getInput(0))).freeRef();
     return network;
   }
@@ -404,8 +416,17 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       return trainable1;
     });
     try {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
+      log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+        try {
+          BufferedImage im = Util.toImage(TestUtil.plot(history));
+          if (null != im) ImageIO.write(im, "jpeg", r);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
       trainingLog.code(() -> {
-        @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
         new IterativeTrainer(trainable)
           .setMonitor(TestUtil.getMonitor(history))
           .setOrientation(new OwlQn())
@@ -439,6 +460,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     ArrayList<Tuple2<Double, DAGNode>> styleComponents = new ArrayList<>();
     if (null != styleParams && (styleParams.cov != 0 || styleParams.mean != 0 || styleParams.enhance != 0)) {
       InnerNode negTarget = null == mean ? null : network.wrap(new ValueLayer(mean.scale(-1)), new DAGNode[]{});
+      node.addRef();
       InnerNode negAvg = network.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
       if (styleParams.enhance != 0 || styleParams.cov != 0) {
         DAGNode recentered;
@@ -447,9 +469,11 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
             recentered = node;
             break;
           case Dynamic:
+            negAvg.addRef();
             recentered = network.wrap(new GateBiasLayer(), node, negAvg);
             break;
           case Static:
+            negTarget.addRef();
             recentered = network.wrap(new GateBiasLayer(), node, negTarget);
             break;
           default:
@@ -457,6 +481,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         }
         double covRms = null == covariance ? 1.0 : covariance.rms();
         if (styleParams.enhance != 0) {
+          recentered.addRef();
           styleComponents.add(new Tuple2<>(-(0 == covRms ? styleParams.enhance : styleParams.enhance / covRms),
             network.wrap(new AvgReducerLayer(),
               network.wrap(new SquareActivationLayer(),
@@ -470,11 +495,16 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           int outputBands = covDim[2] / inputBands;
           assert 0 < outputBands : Arrays.toString(covDim) + " / " + inputBands;
           double covScale = 0 == covRms ? 1 : 1.0 / covRms;
+          recentered.addRef();
           styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
             network.wrap(new ValueLayer(covariance), new DAGNode[]{}),
             network.wrap(new GramianLayer(), recentered))
           ));
         }
+        recentered.freeRef();
+      }
+      else {
+        node.freeRef();
       }
       if (styleParams.mean != 0) {
         double meanRms = mean.rms();
@@ -483,6 +513,13 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           network.wrap(new MeanSqLossLayer().setAlpha(meanScale), negAvg, negTarget)
         ));
       }
+      else {
+        negTarget.freeRef();
+        negAvg.freeRef();
+      }
+    }
+    else {
+      node.freeRef();
     }
     return styleComponents;
   }
@@ -541,15 +578,16 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           int featureBands = mean.getDimensions()[2];
           int covarianceElements = cov1.getDimensions()[2];
           int selectedBands = covarianceElements / featureBands;
-          logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
+          logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
           logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
-          logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrint()));
+          logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
           logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
         }
       } finally {
         network.freeRef();
       }
     }
+    styleInputs.forEach(ReferenceCountingBase::freeRef);
     if (null != contentInput) contentInput.freeRef();
     return self;
   }
@@ -613,6 +651,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           default:
             throw new RuntimeException();
         }
+        node.addRef();
         styleComponents.addAll(getStyleComponents(node, network, styleParams, mean, covariance, styleCoefficients.centeringMode));
       }
       if (null != styleTarget) styleTarget.freeRef();
@@ -698,6 +737,8 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the color forward transform
    */
   public SimpleConvolutionLayer getColorForwardTransform() {
+    SimpleConvolutionLayer colorForwardTransform = this.colorForwardTransform;
+    if (null != colorForwardTransform) colorForwardTransform = (SimpleConvolutionLayer) colorForwardTransform.copy();
     return colorForwardTransform;
   }
   
@@ -706,8 +747,11 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    *
    * @param colorForwardTransform the color forward transform
    */
-  public void setColorForwardTransform(SimpleConvolutionLayer colorForwardTransform) {
+  public synchronized void setColorForwardTransform(SimpleConvolutionLayer colorForwardTransform) {
+    colorForwardTransform.assertAlive();
+    if (null != this.colorForwardTransform) this.colorForwardTransform.freeRef();
     this.colorForwardTransform = colorForwardTransform;
+    if (null != this.colorForwardTransform) this.colorForwardTransform.addRef();
   }
   
   /**

@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.ConstantResult;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.ReferenceCounting;
+import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorList;
@@ -493,6 +494,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     });
     Result[] array = ConstantResult.batchResultArray(input_target);
     Result eval = network_target.eval(array);
+    network_target.freeRef();
     Arrays.stream(array).forEach(ReferenceCounting::freeRef);
     TensorList result = eval.getData();
     eval.freeRef();
@@ -761,24 +763,23 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
           .setOrientation(new RecursiveSubspace() {
             @Override
             public void train(@Nonnull TrainingMonitor monitor, Layer macroLayer) {
-              @Nonnull Tensor[][] nullData = {{new Tensor()}};
+              @Nonnull Tensor[][] nullData = {new Tensor[]{new Tensor()}};
               @Nonnull BasicTrainable inner = new BasicTrainable(macroLayer);
               @Nonnull ArrayTrainable trainable1 = new ArrayTrainable(inner, nullData);
-              inner.freeRef();
-              new IterativeTrainer(trainable1)
-                .setOrientation(new QQN())
-                .setLineSearchFactory(n -> new QuadraticSearch().setCurrentRate(n.equals(QQN.CURSOR_NAME) ? 1.0 : 1e-4))
-                .setMonitor(new TrainingMonitor() {
-                  @Override
-                  public void log(String msg) {
-                    monitor.log("\t" + msg);
-                  }
-                }).setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).runAndFree();
-              trainable1.freeRef();
-              for (@Nonnull Tensor[] tensors : nullData) {
-                for (@Nonnull Tensor tensor : tensors) {
-                  tensor.freeRef();
-                }
+              try {
+                new IterativeTrainer(trainable1)
+                  .setOrientation(new QQN())
+                  .setLineSearchFactory(n -> new QuadraticSearch().setCurrentRate(n.equals(QQN.CURSOR_NAME) ? 1.0 : 1e-4))
+                  .setMonitor(new TrainingMonitor() {
+                    @Override
+                    public void log(String msg) {
+                      monitor.log("\t" + msg);
+                    }
+                  }).setMaxIterations(getIterations()).setIterationsPerSample(getIterations()).runAndFree();
+              } finally {
+                trainable1.freeRef();
+                inner.freeRef();
+                Arrays.stream(nullData).flatMap(Arrays::stream).forEach(ReferenceCountingBase::freeRef);
               }
             }
           })

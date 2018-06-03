@@ -301,13 +301,13 @@ public class LayerRateDiagnosticTrainer {
         break;
       }
       final PointSample initialPhasePoint = measure();
-
+  
       measure = initialPhasePoint;
       for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
         if (currentIteration.incrementAndGet() > maxIterations) {
           break;
         }
-
+  
         {
           @Nonnull final SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           final double stepSize = 1e-12 * orient.origin.sum;

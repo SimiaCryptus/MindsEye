@@ -185,7 +185,7 @@ public class PipelineNetwork extends DAGNetwork {
   public InnerNode add(@Nullable final Layer nextHead, @Nonnull final DAGNode... head) {
     if (null == nextHead && head.length > 0) throw new IllegalArgumentException();
     if (null == nextHead) return null;
-    assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
+    assert Arrays.stream(head).allMatch(x -> x == null || internalNodes.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
     @Nullable final InnerNode node = super.add(nextHead, head);
     assert null != inputHandles;
     setHead(node);

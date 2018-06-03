@@ -44,7 +44,7 @@ public final class InnerNode extends LazyResult {
   private final DAGNetwork dagNetwork;
   @Nonnull
   private final DAGNode[] inputNodes;
-  private Layer layer;
+  private volatile Layer layer;
   private boolean parallel = true;
   
   /**
@@ -119,13 +119,16 @@ public final class InnerNode extends LazyResult {
   
   @Override
   public synchronized void setLayer(@Nonnull final Layer newLayer) {
-    if (newLayer == this.layer) return;
     assertAlive();
     dagNetwork.assertAlive();
-    if (null != this.layer) this.layer.freeRef();
-    this.layer = newLayer;
-    if (null != this.layer) this.layer.addRef();
-    dagNetwork.assertConsistent();
+    newLayer.assertAlive();
+    Layer prevLayer = this.layer;
+    if (newLayer != prevLayer) {
+      if (null != prevLayer) prevLayer.freeRef();
+      this.layer = newLayer;
+      if (null != newLayer) newLayer.addRef();
+      dagNetwork.assertConsistent();
+    }
   }
   
   @Override
@@ -138,6 +141,7 @@ public final class InnerNode extends LazyResult {
     super._free();
     Arrays.stream(this.inputNodes).forEach(ReferenceCounting::freeRef);
     this.layer.freeRef();
+    this.layer = null;
   }
   
   /**

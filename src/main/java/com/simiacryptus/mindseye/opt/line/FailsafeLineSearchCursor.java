@@ -53,7 +53,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
    *
    * @param step the runStep
    */
-  public void accumulate(@Nonnull final PointSample step) {
+  public synchronized void accumulate(@Nonnull final PointSample step) {
     if (null == best || best.getMean() > step.getMean()) {
       @Nonnull PointSample newValue = step.copyFull();
       if (null != this.best) {
@@ -103,7 +103,10 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
   
   @Override
   public void _free() {
-    if (null != this.best) this.best.freeRef();
+    if (null != this.best) {
+      this.best.freeRef();
+      this.best = null;
+    }
     this.direction.freeRef();
   }
   

@@ -270,7 +270,7 @@ public class PolynomialNetwork extends DAGNetwork {
      * The Power.
      */
     public final double power;
-
+  
     /**
      * Instantiates a new Correcton.
      *

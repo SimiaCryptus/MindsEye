@@ -35,7 +35,7 @@ public class SumInputsLayerTest {
    * The type N 1 apply.
    */
   public static class N1Test extends LayerTestBase {
-
+  
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {

@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.StochasticComponent;
 import com.simiacryptus.mindseye.layers.java.LoggingWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
@@ -28,7 +29,9 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.util.FileNanoHTTPD;
 import com.simiacryptus.util.MonitoredObject;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
@@ -42,6 +45,7 @@ import guru.nidi.graphviz.model.Link;
 import guru.nidi.graphviz.model.LinkSource;
 import guru.nidi.graphviz.model.LinkTarget;
 import guru.nidi.graphviz.model.MutableNode;
+import org.apache.hadoop.yarn.webapp.MimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
@@ -972,7 +976,7 @@ public class TestUtil {
    *
    * @return the stack trace element [ ]
    */
-  public static StackTraceElement[] getStackTrace() {return getStackTrace(5);}
+  public static StackTraceElement[] getStackTrace() {return getStackTrace(6);}
   
   /**
    * Get stack trace stack trace element [ ].
@@ -981,19 +985,28 @@ public class TestUtil {
    * @return the stack trace element [ ]
    */
   public static StackTraceElement[] getStackTrace(final int skip) {
-    StackTraceElement[] elements = Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
+    int maxSize = 1;
+    StackTraceElement[] elements = getStackTrace0(skip, maxSize);
+    if (0 == elements.length) {
+      elements = getStackTrace1(skip, maxSize);
+    }
+    return elements;
+  }
+  
+  public static StackTraceElement[] getStackTrace0(final int skip, final int maxSize) {
+    return Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
       .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.")
         && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang.")
         && !x.getClassName().startsWith("com.simiacryptus.mindseye.test."))
-      .limit(1)
+      .limit(maxSize)
       .toArray(i -> new StackTraceElement[i]);
-    if (0 == elements.length) {
-      elements = Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
-        .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye."))
-        .limit(1)
-        .toArray(i -> new StackTraceElement[i]);
-    }
-    return elements;
+  }
+  
+  public static StackTraceElement[] getStackTrace1(final int skip, final int maxSize) {
+    return Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
+      .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye."))
+      .limit(maxSize)
+      .toArray(i -> new StackTraceElement[i]);
   }
   
   /**
@@ -1097,7 +1110,7 @@ public class TestUtil {
    * @throws IOException the io exception
    */
   public static void browse(final URI uri) throws IOException {
-    if (!GraphicsEnvironment.isHeadless() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
+    if (Util.AUTO_BROWSE && !GraphicsEnvironment.isHeadless() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
       Desktop.getDesktop().browse(uri);
   }
   
@@ -1105,5 +1118,34 @@ public class TestUtil {
     ArrayList<T> copy = new ArrayList<>(list);
     Collections.shuffle(copy);
     return copy;
+  }
+  
+  public static void addGlobalHandlers(final FileNanoHTTPD httpd) {
+    httpd.addHandler("gpu.json", MimeType.JSON, out -> {
+      try {
+        JsonUtil.getMapper().writer().writeValue(out, CudaSystem.getExecutionStatistics());
+        //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
+        out.close();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+    httpd.addHandler("threads.json", MimeType.JSON, out -> {
+      try {
+        JsonUtil.getMapper().writer().writeValue(out, getStackInfo());
+        //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
+        out.close();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+  
+  public static Map<String, List<String>> getStackInfo() {
+    return Thread.getAllStackTraces().entrySet().stream().collect(Collectors.toMap(entry -> {
+      return entry.getKey().getName();
+    }, entry -> {
+      return Arrays.stream(entry.getValue()).map(StackTraceElement::toString).collect(Collectors.toList());
+    }));
   }
 }

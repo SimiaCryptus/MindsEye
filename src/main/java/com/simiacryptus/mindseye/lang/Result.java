@@ -136,7 +136,9 @@ public class Result extends ReferenceCountingBase {
    * @return the data and free
    */
   public TensorList getDataAndFree() {
+    assertAlive();
     TensorList data = getData();
+    data.assertAlive();
     freeRef();
     return data;
   }

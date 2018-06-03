@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.BandAvgReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BandReducerLayer;
 import com.simiacryptus.mindseye.layers.cudnn.BinarySumLayer;
@@ -40,6 +41,7 @@ import com.simiacryptus.mindseye.layers.java.AutoEntropyLayer;
 import com.simiacryptus.mindseye.layers.java.NthPowerActivationLayer;
 import com.simiacryptus.mindseye.models.CVPipe;
 import com.simiacryptus.mindseye.models.LayerEnum;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
@@ -221,12 +223,13 @@ public class PixelClusterer<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @param metrics the metrics
    * @return the layer
    */
-  public Layer analyze(final T layer, final NotebookOutput log, final Tensor metrics) {
+  public PipelineNetwork analyze(final T layer, final NotebookOutput log, final Tensor metrics) {
     Layer model = modelingNetwork(layer, metrics);
     for (final double entropyBias : entropyBias) {
       log.code(() -> {
         int[] dimensions = metrics.getDimensions();
-        Layer netEntropy = model.andThenWrap(entropyNetwork(dimensions[0] * dimensions[1], entropyBias));
+        PipelineNetwork netEntropy = model.andThenWrap(entropyNetwork(dimensions[0] * dimensions[1], entropyBias));
+        ArtistryUtil.setPrecision(netEntropy, Precision.Float);
         Trainable trainable = null;
         try {
           trainable = getTrainable(metrics, netEntropy);
@@ -325,7 +328,8 @@ public class PixelClusterer<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the trainable
    */
   @Nonnull
-  public Trainable getTrainable(final Tensor metrics, final Layer netEntropy) {
+  public Trainable getTrainable(final Tensor metrics, final DAGNetwork netEntropy) {
+    ArtistryUtil.setPrecision(netEntropy, Precision.Float);
     return new ArrayTrainable(netEntropy, 1).setVerbose(true).setMask(false).setData(Arrays.asList(new Tensor[][]{{metrics}}));
   }
   

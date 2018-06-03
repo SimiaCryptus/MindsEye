@@ -123,20 +123,20 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @param append the append
    * @return the layer
    */
-  default Layer andThen(Layer append) {
+  default PipelineNetwork andThen(Layer append) {
     return PipelineNetwork.build(1,
       this,
       append
     );
   }
   
-  default Layer freeAndThen(Layer append) {
-    Layer build = andThen(append);
+  default PipelineNetwork freeAndThen(Layer append) {
+    PipelineNetwork build = andThen(append);
     this.freeRef();
     return build;
   }
   
-  default Layer andThenWrap(Layer append) {
+  default PipelineNetwork andThenWrap(Layer append) {
     assert append.assertAlive();
     assert assertAlive();
     PipelineNetwork wrap = PipelineNetwork.build(1,
@@ -147,9 +147,9 @@ public interface Layer extends ReferenceCounting, Serializable {
     return wrap;
   }
   
-  default Layer freeAndThenWrap(Layer append) {
+  default PipelineNetwork freeAndThenWrap(Layer append) {
     assert append.assertAlive();
-    Layer build = PipelineNetwork.wrap(1,
+    PipelineNetwork build = PipelineNetwork.wrap(1,
       this,
       append
     );

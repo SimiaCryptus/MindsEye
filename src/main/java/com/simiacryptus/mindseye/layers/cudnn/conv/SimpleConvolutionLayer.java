@@ -375,6 +375,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   
       @Override
       protected void _free() {
+        kernel.assertAlive();
         kernel.freeRef();
         inputData.freeRef();
         Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
@@ -785,5 +786,16 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     return kernel.getDimensions();
   }
   
-  
+  @Override
+  public boolean assertAlive() {
+    if (!super.assertAlive()) {
+      assert false;
+      return false;
+    }
+    if (!kernel.assertAlive()) {
+      assert false;
+      return false;
+    }
+    return true;
+  }
 }

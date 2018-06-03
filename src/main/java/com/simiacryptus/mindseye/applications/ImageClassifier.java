@@ -46,12 +46,15 @@ import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.imageio.ImageIO;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -272,8 +275,16 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param image the image
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image) {
+    @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+    log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
+    log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+      try {
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
     log.code(() -> {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
       clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
       clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
@@ -425,8 +436,16 @@ public abstract class ImageClassifier implements NetworkFactory {
         ImageClassifier.log.info(log.image(tensors[0].toImage(), "") + tensors[1]);
       }
     });
+    @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+    log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
+    log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+      try {
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
     log.code(() -> {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
       clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
       clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
@@ -444,7 +463,7 @@ public abstract class ImageClassifier implements NetworkFactory {
 //        });
 //      }).toArray(i -> new TensorList[i]);
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
-  
+    
       @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
       config.apply(new IterativeTrainer(trainable)
         .setMonitor(getTrainingMonitor(history, supervised))

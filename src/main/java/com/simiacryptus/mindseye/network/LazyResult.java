@@ -96,9 +96,12 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
         }
       }
     }
-    Supplier<CountingResult> resultSupplier = context.calculated.get(id);
+    Supplier resultSupplier = context.calculated.get(id);
     if (null == resultSupplier) throw new IllegalStateException();
-    @Nullable CountingResult nnResult = null == resultSupplier ? null : resultSupplier.get();
+    Object obj = null == resultSupplier ? null : resultSupplier.get();
+    if (obj != null && obj instanceof Throwable) throw new RuntimeException((Throwable) obj);
+    if (obj != null && obj instanceof RuntimeException) throw ((RuntimeException) obj);
+    @Nullable CountingResult nnResult = (CountingResult) obj;
     if (null == nnResult) throw new IllegalStateException();
     int references = nnResult.getAccumulator().increment();
     if (references <= 0) throw new IllegalStateException();

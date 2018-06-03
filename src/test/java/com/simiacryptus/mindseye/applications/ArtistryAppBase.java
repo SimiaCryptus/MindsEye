@@ -19,17 +19,14 @@
 
 package com.simiacryptus.mindseye.applications;
 
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
-import com.simiacryptus.util.io.JsonUtil;
+import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
-import org.apache.hadoop.yarn.webapp.MimeType;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -69,15 +66,7 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
    * @param log the log
    */
   public void init(final NotebookOutput log) {
-    log.getHttpd().addHandler("gpu.json", MimeType.JSON, out -> {
-      try {
-        JsonUtil.getMapper().writer().writeValue(out, CudaSystem.getExecutionStatistics());
-        //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
-        out.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    TestUtil.addGlobalHandlers(log.getHttpd());
     //server.dataReciever
     //server.init();
     //server.start();
@@ -85,4 +74,5 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
 //    log.p(log.file((String) null, logName, "GPU Log"));
 //    CudaSystem.addLog(new PrintStream(log.file(logName)));
   }
+  
 }

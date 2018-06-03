@@ -49,6 +49,7 @@ import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -270,18 +271,26 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     Trainable trainable = trainingLog.code(() -> {
       PipelineNetwork network = fitnessNetwork(measureStyle, masks);
       network.setFrozen(true);
-      ArtistryUtil.setPrecision(network, styleParameters.precision);
-      TestUtil.instrumentPerformance(network);
       if (null != server) ArtistryUtil.addLayersHandler(network, server);
       if (tiled) network = ArtistryUtil.tileCycle(network);
+      ArtistryUtil.setPrecision(network, styleParameters.precision);
+      TestUtil.instrumentPerformance(network);
       Trainable trainable1 = getTrainable(canvas, network);
       network.freeRef();
       return trainable1;
     });
     masks.forEach(ReferenceCountingBase::freeRef);
     try {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
+      log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+        try {
+          ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
       trainingLog.code(() -> {
-        @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
         new IterativeTrainer(trainable)
           .setMonitor(TestUtil.getMonitor(history))
           .setOrientation(new TrustRegionStrategy() {
@@ -333,17 +342,23 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
       double meanRms = mean.rms();
       double meanScale = 0 == meanRms ? 1 : (1.0 / meanRms);
       InnerNode negTarget = network.wrap(new ValueLayer(mean.scale(-1)), new DAGNode[]{});
+      node.addRef();
       InnerNode negAvg = network.wrap(new BandAvgReducerLayer().setAlpha(-1), node);
       if (styleParams.enhance != 0 || styleParams.cov != 0) {
         DAGNode recentered;
         switch (centeringMode) {
           case Origin:
+            node.addRef();
             recentered = node;
             break;
           case Dynamic:
+            negAvg.addRef();
+            node.addRef();
             recentered = network.wrap(new GateBiasLayer(), node, negAvg);
             break;
           case Static:
+            node.addRef();
+            negTarget.addRef();
             recentered = network.wrap(new GateBiasLayer(), node, negTarget);
             break;
           default:
@@ -352,6 +367,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
         int[] covDim = covariance.getDimensions();
         double covRms = covariance.rms();
         if (styleParams.enhance != 0) {
+          recentered.addRef();
           styleComponents.add(new Tuple2<>(-(0 == covRms ? styleParams.enhance : (styleParams.enhance / covRms)), network.wrap(new AvgReducerLayer(),
             network.wrap(new SquareActivationLayer(), recentered))));
         }
@@ -362,11 +378,13 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
           int outputBands = covDim[2] / inputBands;
           assert 0 < outputBands : Arrays.toString(covDim) + " / " + inputBands;
           double covScale = 0 == covRms ? 1 : (1.0 / covRms);
+          recentered.addRef();
           styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
             network.wrap(new ValueLayer(covariance), new DAGNode[]{}),
             network.wrap(new GramianLayer(), recentered))
           ));
         }
+        recentered.freeRef();
       }
       if (styleParams.mean != 0) {
         styleComponents.add(new Tuple2<>(styleParams.mean,
@@ -420,39 +438,45 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
           alphaMap(styleInput, masks.get(styleInput)).forEach((mask, styleMask) -> {
             StyleTarget<T> styleTarget = segmentedStyleTarget.getSegment(mask);
             Layer wrapAvg = ArtistryUtil.wrapTiledAvg(network.copy(), 400);
-            Tensor mean = wrapAvg.eval(styleMask).getDataAndFree().getAndFree(0);
-            wrapAvg.freeRef();
-            if (styleTarget.mean.put(layerType, mean) != null) throw new AssertionError();
-            logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
-            logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
-            if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
-              return;
-            System.gc();
-            Layer gram = null;
-            Tensor cov0;
+            Tensor mean = null;
             try {
-              gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy()), 400);
-              cov0 = gram.eval(styleMask).getDataAndFree().getAndFree(0);
+              mean = wrapAvg.eval(styleMask).getDataAndFree().getAndFree(0);
+              if (styleTarget.mean.put(layerType, mean) != null) throw new AssertionError();
+              logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
+              logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
+              if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
+                return;
+              System.gc();
+              Layer gram = null;
+              Tensor cov0;
+              try {
+                gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy()), 400);
+                cov0 = gram.eval(styleMask).getDataAndFree().getAndFree(0);
+              } finally {
+                gram.freeRef();
+              }
+              Tensor cov1;
+              try {
+                gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy(), mean), 400);
+                cov1 = gram.eval(styleMask).getDataAndFree().getAndFree(0);
+              } finally {
+                gram.freeRef();
+              }
+              styleMask.freeRef();
+              if (styleTarget.cov0.put(layerType, cov0) != null) throw new AssertionError();
+              if (styleTarget.cov1.put(layerType, cov1) != null) throw new AssertionError();
+              int featureBands = mean.getDimensions()[2];
+              int covarianceElements = cov1.getDimensions()[2];
+              int selectedBands = covarianceElements / featureBands;
+              logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
+              logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
+              logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
+              logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
             } finally {
-              gram.freeRef();
+              styleTarget.freeRef();
+              wrapAvg.freeRef();
+              if (mean != null) mean.freeRef();
             }
-            Tensor cov1;
-            try {
-              gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy(), mean), 400);
-              cov1 = gram.eval(styleMask).getDataAndFree().getAndFree(0);
-            } finally {
-              gram.freeRef();
-            }
-            styleMask.freeRef();
-            if (styleTarget.cov0.put(layerType, cov0) != null) throw new AssertionError();
-            if (styleTarget.cov1.put(layerType, cov1) != null) throw new AssertionError();
-            int featureBands = mean.getDimensions()[2];
-            int covarianceElements = cov1.getDimensions()[2];
-            int selectedBands = covarianceElements / featureBands;
-            logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
-            logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
-            logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
-            logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
           });
         }
       } finally {
@@ -516,6 +540,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   @Nonnull
   public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final Map<T, DAGNode> nodeMap, final T layerType, final StyleCoefficients<T> styleCoefficients, final StyleTarget<T> chooseStyleSegment) {
     final DAGNode node = nodeMap.get(layerType);
+    if (null == node) throw new RuntimeException("Not Found: " + layerType);
     final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
     LayerStyleParams styleParams = styleCoefficients.params.get(layerType);
     Tensor mean = chooseStyleSegment.mean.get(layerType);
@@ -536,14 +561,20 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   
   @Nonnull
   public PipelineNetwork fitnessNetwork(final NeuralSetup setup, final List<Tensor> masks) {
-    PipelineNetwork mainNetwork = getNetworkModel().getNetwork();
+    U networkModel = getNetworkModel();
+    PipelineNetwork mainNetwork = networkModel.getNetwork();
+    Map<T, UUID> modelNodes = networkModel.getNodes();
     List<Tuple2<Double, DAGNode>> mainFunctions = new ArrayList<>();
-    mainFunctions.addAll(getContentComponents(setup, getNodes(mainNetwork)));
+    Map<T, DAGNode> mainNodes = getNodes(modelNodes, mainNetwork, null);
+    mainFunctions.addAll(getContentComponents(setup, mainNodes));
     masks.forEach((contentMask) -> {
       HashMap<String, String> idMap = new HashMap<>();
       DAGNetwork branchNetwork = mainNetwork.scrambleCopy(idMap);
+      //logger.info("Branch Keys");
+      //branchNetwork.logKeys();
+      Map<T, DAGNode> nodeMap = getNodes(modelNodes, branchNetwork, idMap);
       List<Tuple2<Double, DAGNode>> branchFunctions = new ArrayList<>();
-      branchFunctions.addAll(getStyleComponents(setup, getNodes(branchNetwork, idMap),
+      branchFunctions.addAll(getStyleComponents(setup, nodeMap,
         x -> x.segments.entrySet().stream().max(Comparator.comparingDouble(e -> alphaMaskSimilarity(contentMask, e.getKey()))).get().getValue()));
       ArtistryUtil.reduce(branchNetwork, branchFunctions, parallelLossFunctions);
       InnerNode importNode = mainNetwork.wrap(branchNetwork,
@@ -551,32 +582,23 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
       );
       mainFunctions.add(new Tuple2<>(1.0, importNode));
     });
-    
     ArtistryUtil.reduce(mainNetwork, mainFunctions, parallelLossFunctions);
     ArtistryUtil.setPrecision(mainNetwork, setup.style.precision);
     return mainNetwork;
   }
   
-  /**
-   * Gets nodes.
-   *
-   * @param branchNetwork the branch network
-   * @return the nodes
-   */
   @Nonnull
-  public Map<T, DAGNode> getNodes(final DAGNetwork branchNetwork) {
+  public Map<T, DAGNode> getNodes(final Map<T, UUID> modelNodes, final DAGNetwork network, final HashMap<String, String> replacements) {
     Map<T, DAGNode> nodes = new HashMap<>();
-    getNetworkModel().getNodes().forEach((l, id) -> nodes.put(l, branchNetwork.getChildNode(id)));
-    return nodes;
-  }
-  
-  public Map<T, DAGNode> getNodes(final DAGNetwork branchNetwork, final HashMap<String, String> replacements) {
-    Map<T, DAGNode> nodes = new HashMap<>();
-    getNetworkModel().getNodes().forEach((l, id) -> {
-      UUID uuid = replace(replacements, id);
-      DAGNode childNode = branchNetwork.getChildNode(uuid);
-      assert null != childNode : "Not Found: " + uuid;
-      nodes.put(l, childNode);
+    modelNodes.forEach((l, id) -> {
+      UUID replaced = null == replacements ? id : replace(replacements, id);
+      DAGNode childNode = network.getChildNode(replaced);
+      if (null == childNode) {
+        logger.warn(String.format("Could not find Node ID %s (replaced from %s) to represent %s", replaced, id, l));
+      }
+      else {
+        nodes.put(l, childNode);
+      }
     });
     return nodes;
   }
