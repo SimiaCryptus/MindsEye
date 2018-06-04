@@ -68,7 +68,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -96,6 +99,8 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   private int stlye_colorClusters = 3;
   private int style_textureClusters = 3;
   
+  private final Map<MaskJob, Set<Tensor>> maskCache = new ConcurrentHashMap<>();
+  
   /**
    * Alpha list list.
    *
@@ -103,19 +108,8 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    * @param tensors    the tensors
    * @return the list
    */
-  public static List<Tensor> alphaList(final Tensor styleInput, final List<Tensor> tensors) {
+  public static List<Tensor> alphaList(final Tensor styleInput, final Set<Tensor> tensors) {
     return tensors.stream().map(x -> alpha(styleInput, x)).collect(Collectors.toList());
-  }
-  
-  /**
-   * Alpha map map.
-   *
-   * @param styleInput the style input
-   * @param tensors    the tensors
-   * @return the map
-   */
-  public static Map<Tensor, Tensor> alphaMap(final Tensor styleInput, final List<Tensor> tensors) {
-    return tensors.stream().collect(Collectors.toMap(x -> x, x -> alpha(styleInput, x)));
   }
   
   /**
@@ -227,89 +221,17 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   }
   
   /**
-   * Transfer.
+   * Alpha map map.
    *
-   * @param server          the server
-   * @param log             the log
-   * @param styleParameters the style parameters
-   * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
-   * @param maxIterations   the max iterations
-   * @param verbose         the verbose
-   * @param canvas          the canvas
+   * @param styleInput the style input
+   * @param tensors    the tensors
+   * @return the map
    */
-  public void transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
-//      log.p("Input Content:");
-//      log.p(log.image(styleParameters.contentImage, "Content Image"));
-//      log.p("Style Content:");
-//      styleParameters.styleImages.forEach((file, styleImage) -> {
-//        log.p(log.image(styleImage, file));
-//      });
-//      log.p("Input Canvas:");
-//      log.p(log.image(canvasImage, "Input Canvas"));
-    System.gc();
-    NotebookOutput trainingLog = verbose ? log : new NullNotebookOutput();
-    log.h2("Content Partitioning");
-    List<Tensor> masks = ImageSegmenter.quickMasks(log, measureStyle.contentSource, getContent_masks(), getContent_colorClusters(), getContent_textureClusters());
-    System.gc();
-    log.h2("Content Painting");
-    TestUtil.monitorImage(canvas, false, false);
-    log.p("<a href=\"/image.jpg\"><img src=\"/image.jpg\"></a>");
-    log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
-      try {
-        ImageIO.write(canvas.toImage(), "jpeg", r);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
-    if (verbose) {
-      log.p("Input Parameters:");
-      log.code(() -> {
-        return ArtistryUtil.toJson(styleParameters);
-      });
-    }
-    Trainable trainable = trainingLog.code(() -> {
-      PipelineNetwork network = fitnessNetwork(measureStyle, masks);
-      network.setFrozen(true);
-      if (null != server) ArtistryUtil.addLayersHandler(network, server);
-      if (tiled) network = ArtistryUtil.tileCycle(network);
-      ArtistryUtil.setPrecision(network, styleParameters.precision);
-      TestUtil.instrumentPerformance(network);
-      Trainable trainable1 = getTrainable(canvas, network);
-      network.freeRef();
-      return trainable1;
-    });
-    masks.forEach(ReferenceCountingBase::freeRef);
-    try {
-      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
-      log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
-        try {
-          ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
-      trainingLog.code(() -> {
-        new IterativeTrainer(trainable)
-          .setMonitor(TestUtil.getMonitor(history))
-          .setOrientation(new TrustRegionStrategy() {
-            @Override
-            public TrustRegion getRegionPolicy(final Layer layer) {
-              return new RangeConstraint().setMin(1e-2).setMax(256);
-            }
-          })
-          .setMaxIterations(maxIterations)
-          .setIterationsPerSample(100)
-          .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
-          .setTimeout(trainingMinutes, TimeUnit.MINUTES)
-          .setTerminateThreshold(Double.NEGATIVE_INFINITY)
-          .runAndFree();
-        return TestUtil.plot(history);
-      });
-    } finally {
-      trainable.freeRef();
-    }
+  public static Map<Tensor, Tensor> alphaMap(final Tensor styleInput, final Set<Tensor> tensors) {
+    assert null != styleInput;
+    assert null != tensors;
+    assert tensors.stream().allMatch(x -> x != null);
+    return tensors.stream().distinct().collect(Collectors.toMap(x -> x, x -> alpha(styleInput, x)));
   }
   
   /**
@@ -396,6 +318,92 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   }
   
   /**
+   * Transfer.
+   *
+   * @param server          the server
+   * @param log             the log
+   * @param styleParameters the style parameters
+   * @param trainingMinutes the training minutes
+   * @param measureStyle    the measure style
+   * @param maxIterations   the max iterations
+   * @param verbose         the verbose
+   * @param canvas          the canvas
+   */
+  public void transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
+//      log.p("Input Content:");
+//      log.p(log.image(styleParameters.contentImage, "Content Image"));
+//      log.p("Style Content:");
+//      styleParameters.styleImages.forEach((file, styleImage) -> {
+//        log.p(log.image(styleImage, file));
+//      });
+//      log.p("Input Canvas:");
+//      log.p(log.image(canvasImage, "Input Canvas"));
+    System.gc();
+    NotebookOutput trainingLog = verbose ? log : new NullNotebookOutput();
+    log.h2("Content Partitioning");
+    Set<Tensor> masks = getMasks(log, measureStyle.contentSource, new MaskJob(getContent_masks(), getContent_colorClusters(), getContent_textureClusters(), "content"));
+    System.gc();
+    log.h2("Content Painting");
+    TestUtil.monitorImage(canvas, false, false);
+    log.p("<a href=\"/image.jpg\"><img src=\"/image.jpg\"></a>");
+    log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
+      try {
+        ImageIO.write(canvas.toImage(), "jpeg", r);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+    if (verbose) {
+      log.p("Input Parameters:");
+      log.code(() -> {
+        return ArtistryUtil.toJson(styleParameters);
+      });
+    }
+    Trainable trainable = trainingLog.code(() -> {
+      PipelineNetwork network = fitnessNetwork(measureStyle, masks);
+      network.setFrozen(true);
+      if (null != server) ArtistryUtil.addLayersHandler(network, server);
+      if (tiled) network = ArtistryUtil.tileCycle(network);
+      ArtistryUtil.setPrecision(network, styleParameters.precision);
+      TestUtil.instrumentPerformance(network);
+      Trainable trainable1 = getTrainable(canvas, network);
+      network.freeRef();
+      return trainable1;
+    });
+    masks.forEach(ReferenceCountingBase::freeRef);
+    try {
+      @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
+      log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
+      log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+        try {
+          ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+      trainingLog.code(() -> {
+        new IterativeTrainer(trainable)
+          .setMonitor(TestUtil.getMonitor(history))
+          .setOrientation(new TrustRegionStrategy() {
+            @Override
+            public TrustRegion getRegionPolicy(final Layer layer) {
+              return new RangeConstraint().setMin(1e-2).setMax(256);
+            }
+          })
+          .setMaxIterations(maxIterations)
+          .setIterationsPerSample(100)
+          .setLineSearchFactory(name -> new BisectionSearch().setSpanTol(1e-1).setCurrentRate(1e6))
+          .setTimeout(trainingMinutes, TimeUnit.MINUTES)
+          .setTerminateThreshold(Double.NEGATIVE_INFINITY)
+          .runAndFree();
+        return TestUtil.plot(history);
+      });
+    } finally {
+      trainable.freeRef();
+    }
+  }
+  
+  /**
    * Measure style neural setup.
    *
    * @param log   the log
@@ -406,10 +414,15 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     NeuralSetup<T> self = new NeuralSetup(style);
     List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
     Tensor contentInput = Tensor.fromRGB(style.contentImage);
-    List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
+    Map<CharSequence, Tensor> styleInputs = keyList.stream().collect(Collectors.toMap(x -> x, x -> Tensor.fromRGB(style.styleImages.get(x))));
     log.h2("Style Partitioning");
-    Map<Tensor, List<Tensor>> masks = styleInputs.stream().collect(Collectors.toMap(x -> x, (Tensor styleInput) -> {
-      return ImageSegmenter.quickMasks(log, styleInput, getStyle_masks(), getStlye_colorClusters(), getStyle_textureClusters());
+    Map<Tensor, Set<Tensor>> masks = styleInputs.entrySet().stream().collect(Collectors.toMap(x -> x.getValue(), (styleInput) -> {
+      Set<Tensor> masks1 = getMasks(log, styleInput.getValue(), new MaskJob(getStyle_masks(), getStlye_colorClusters(), getStyle_textureClusters(), styleInput.getKey()));
+      assert null != masks1;
+      assert 0 != masks1.size();
+      assert masks1.stream().allMatch(x -> x != null);
+      assert masks1.stream().count() == masks1.stream().distinct().count();
+      return masks1;
     }));
     log.h2("Style Measurement");
     IntStream.range(0, keyList.size()).forEach(i -> {
@@ -427,14 +440,13 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
         self.contentTarget.content.put(layerType, content);
         logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
         logger.info(String.format("%s : content statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(content.getData()).getMetrics())));
-        for (int i = 0; i < styleInputs.size(); i++) {
-          CharSequence key = keyList.get(i);
+        for (Map.Entry<CharSequence, Tensor> styleEntry : styleInputs.entrySet()) {
+          CharSequence key = styleEntry.getKey();
           SegmentedStyleTarget<T> segmentedStyleTarget = self.styleTargets.get(key);
           if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
             continue;
           System.gc();
-          
-          Tensor styleInput = styleInputs.get(i);
+          Tensor styleInput = styleEntry.getValue();
           alphaMap(styleInput, masks.get(styleInput)).forEach((mask, styleMask) -> {
             StyleTarget<T> styleTarget = segmentedStyleTarget.getSegment(mask);
             Layer wrapAvg = ArtistryUtil.wrapTiledAvg(network.copy(), 400);
@@ -475,7 +487,6 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
             } finally {
               styleTarget.freeRef();
               wrapAvg.freeRef();
-              if (mean != null) mean.freeRef();
             }
           });
         }
@@ -488,6 +499,21 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
       v.forEach(ReferenceCountingBase::freeRef);
     });
     return self;
+  }
+  
+  public Set<Tensor> getMasks(final NotebookOutput log, final Tensor value, final MaskJob maskJob1) {
+    int width = value.getDimensions()[0];
+    int height = value.getDimensions()[1];
+    return maskCache.computeIfAbsent(maskJob1, maskJob -> {
+      Set<Tensor> tensors = ImageSegmenter.quickMasks(log, value, maskJob.getStyle_masks(), maskJob.getStlye_colorClusters(), maskJob.getStyle_textureClusters())
+        .stream().distinct().collect(Collectors.toSet());
+      assert null != tensors;
+      return tensors;
+    }).stream().map(img -> {
+      Tensor tensor = img.resizeAsImg(width, height);
+      assert null != tensor;
+      return tensor;
+    }).collect(Collectors.toSet());
   }
   
   /**
@@ -560,7 +586,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   }
   
   @Nonnull
-  public PipelineNetwork fitnessNetwork(final NeuralSetup setup, final List<Tensor> masks) {
+  public PipelineNetwork fitnessNetwork(final NeuralSetup setup, final Set<Tensor> masks) {
     U networkModel = getNetworkModel();
     PipelineNetwork mainNetwork = networkModel.getNetwork();
     Map<T, UUID> modelNodes = networkModel.getNodes();
@@ -758,7 +784,9 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    * The type Vgg 19.
    */
   public static class VGG19 extends SegmentedStyleTransfer<CVPipe_VGG19.Layer, CVPipe_VGG19> {
-    
+    public VGG19() {
+    }
+  
     public CVPipe_VGG19 getNetworkModel() {
       return CVPipe_VGG19.INSTANCE;
     }
@@ -1104,4 +1132,49 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     public NeuralSetup(final StyleSetup style) {this.style = style;}
   }
   
+  private static class MaskJob {
+    private final int style_masks;
+    private final int stlye_colorClusters;
+    private final int style_textureClusters;
+    private final CharSequence key;
+    
+    private MaskJob(final int style_masks, final int stlye_colorClusters, final int style_textureClusters, final CharSequence key) {
+      this.style_masks = style_masks;
+      this.stlye_colorClusters = stlye_colorClusters;
+      this.style_textureClusters = style_textureClusters;
+      this.key = key;
+    }
+    
+    public int getStyle_masks() {
+      return style_masks;
+    }
+    
+    public int getStlye_colorClusters() {
+      return stlye_colorClusters;
+    }
+    
+    public int getStyle_textureClusters() {
+      return style_textureClusters;
+    }
+    
+    public CharSequence getKey() {
+      return key;
+    }
+    
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) return true;
+      if (!(o instanceof MaskJob)) return false;
+      final MaskJob maskJob = (MaskJob) o;
+      return style_masks == maskJob.style_masks &&
+        stlye_colorClusters == maskJob.stlye_colorClusters &&
+        style_textureClusters == maskJob.style_textureClusters &&
+        Objects.equals(key, maskJob.key);
+    }
+    
+    @Override
+    public int hashCode() {
+      return Objects.hash(style_masks, stlye_colorClusters, style_textureClusters, key);
+    }
+  }
 }

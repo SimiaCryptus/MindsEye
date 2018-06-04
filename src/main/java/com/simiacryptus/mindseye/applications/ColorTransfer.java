@@ -281,7 +281,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     log.p("<a href=\"/image.jpg\"><img src=\"/image.jpg\"></a>");
     log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
       try {
-        ImageIO.write(canvas.toImage(), "jpeg", r);
+        if (canvas.isValid()) ImageIO.write(canvas.toImage(), "jpeg", r);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -701,10 +701,13 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       final double coeff_content = setup.style.content.params.get(layerType);
       if (coeff_content != 0) {
         Tensor content = setup.contentTarget.content.get(layerType);
-        final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
-        InnerNode innerNode = network.wrap(new MeanSqLossLayer().setAlpha(1.0 / content.rms()),
-          node, network.wrap(new ValueLayer(content), new DAGNode[]{}));
-        contentComponents.add(new Tuple2<>(coeff_content, innerNode));
+        if (content != null) {
+          final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
+          assert network != null;
+          InnerNode innerNode = network.wrap(new MeanSqLossLayer().setAlpha(1.0 / content.rms()),
+            node, network.wrap(new ValueLayer(content), new DAGNode[]{}));
+          contentComponents.add(new Tuple2<>(coeff_content, innerNode));
+        }
       }
     }
     return contentComponents;

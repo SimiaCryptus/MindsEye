@@ -85,6 +85,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.IntToLongFunction;
@@ -804,32 +805,36 @@ public class TestUtil {
     if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
       return;
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
+    final AtomicReference<JDialog> dialog = new AtomicReference<JDialog>();
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
       try {
         JLabel jLabel = labelWeakReference.get();
-        if (null != jLabel) {
+        if (null != jLabel && !input.isFinalized()) {
           BufferedImage image = (normalize ? normalizeBands(input) : input).toImage();
           int width = jLabel.getWidth();
           if (width > 0) TestUtil.resize(image, width, jLabel.getHeight());
           jLabel.setIcon(new ImageIcon(image));
+          return;
         }
       } catch (Throwable e) {
         log.warn("Error updating image", e);
       }
+      JDialog jDialog = dialog.get();
+      jDialog.hide();
+      jDialog.dispose();
     }, 0, period, TimeUnit.SECONDS);
     new Thread(() -> {
-      final JDialog dialog;
       Window window = JOptionPane.getRootFrame();
       String title = "Image: " + Arrays.toString(input.getDimensions());
       if (window instanceof Frame) {
-        dialog = new JDialog((Frame) window, title, true);
+        dialog.set(new JDialog((Frame) window, title, true));
       }
       else {
-        dialog = new JDialog((Dialog) window, title, true);
+        dialog.set(new JDialog((Dialog) window, title, true));
       }
-      dialog.setResizable(false);
-      dialog.setSize(input.getDimensions()[0], input.getDimensions()[1]);
+      dialog.get().setResizable(false);
+      dialog.get().setSize(input.getDimensions()[0], input.getDimensions()[1]);
       JMenuBar menu = new JMenuBar();
       JMenu fileMenu = new JMenu("File");
       JMenuItem saveAction = new JMenuItem("Save");
@@ -851,7 +856,7 @@ public class TestUtil {
             }
           });
   
-          int result = fileChooser.showSaveDialog(dialog);
+          int result = fileChooser.showSaveDialog(dialog.get());
           if (JFileChooser.APPROVE_OPTION == result) {
             try {
               File selectedFile = fileChooser.getSelectedFile();
@@ -866,22 +871,22 @@ public class TestUtil {
         }
       });
       menu.add(fileMenu);
-      dialog.setJMenuBar(menu);
-      
-      Container contentPane = dialog.getContentPane();
+      dialog.get().setJMenuBar(menu);
+  
+      Container contentPane = dialog.get().getContentPane();
       contentPane.setLayout(new BorderLayout());
       contentPane.add(label, BorderLayout.CENTER);
       //contentPane.add(dialog, BorderLayout.CENTER);
       if (JDialog.isDefaultLookAndFeelDecorated()) {
         boolean supportsWindowDecorations = UIManager.getLookAndFeel().getSupportsWindowDecorations();
         if (supportsWindowDecorations) {
-          dialog.setUndecorated(true);
-          SwingUtilities.getRootPane(dialog).setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
+          dialog.get().setUndecorated(true);
+          SwingUtilities.getRootPane(dialog.get()).setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
         }
       }
-      dialog.pack();
-      dialog.setLocationRelativeTo(null);
-      dialog.addComponentListener(new ComponentAdapter() {
+      dialog.get().pack();
+      dialog.get().setLocationRelativeTo(null);
+      dialog.get().addComponentListener(new ComponentAdapter() {
         @Override
         public void componentResized(final ComponentEvent e) {
           //dialog.pack();
@@ -890,14 +895,14 @@ public class TestUtil {
           int width = e.getComponent().getWidth();
           if (width > 0) TestUtil.resize(image, width, e.getComponent().getHeight());
           label.setIcon(new ImageIcon(image));
-          dialog.pack();
+          dialog.get().pack();
         }
       });
-      dialog.addWindowListener(new WindowAdapter() {
+      dialog.get().addWindowListener(new WindowAdapter() {
         private boolean gotFocus = false;
         
         public void windowClosed(WindowEvent e) {
-          dialog.getContentPane().removeAll();
+          dialog.get().getContentPane().removeAll();
           updater.cancel(false);
           if (exitOnClose) System.exit(0);
         }
@@ -910,8 +915,8 @@ public class TestUtil {
         }
         
       });
-      dialog.show();
-      dialog.dispose();
+      dialog.get().show();
+      dialog.get().dispose();
     }).start();
   }
   

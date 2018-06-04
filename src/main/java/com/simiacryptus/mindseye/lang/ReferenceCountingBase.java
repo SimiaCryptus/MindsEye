@@ -95,6 +95,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   }
   
   public static List<StackTraceElement> findCommonPrefix(final List<List<StackTraceElement>> reversedStacks) {
+    if (0 == reversedStacks.size()) return null;
     List<StackTraceElement> protoprefix = reversedStacks.get(0);
     for (int i = 0; i < protoprefix.size(); i++) {
       final int finalI = i;
@@ -106,6 +107,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   }
   
   public static <T> List<T> reverseCopy(final List<T> x) {
+    if (null == x) return Arrays.asList();
     return IntStream.range(0, x.size()).map(i -> (x.size() - 1) - i).mapToObj(i -> x.get(i)).collect(Collectors.toList());
   }
   
@@ -202,7 +204,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
         out.println(String.format("reference removed by %s\n\t%s", linkStr,
           getString(stack).replaceAll("\n", "\n\t")));
       }
-      if (isFinalized) {
+      if (isFinalized && 0 < freeRefs.size()) {
         UUID linkObj = freeRefObjs.isEmpty() ? objectId : freeRefObjs.get(freeRefObjs.size() - 1);
         CharSequence linkStr = objectId.equals(linkObj) ? "" : linkObj.toString();
         StackTraceElement[] stack = freeRefs.get(freeRefs.size() - 1);

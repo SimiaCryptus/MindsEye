@@ -24,6 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.simiacryptus.mindseye.applications.PixelClusterer;
+import com.simiacryptus.mindseye.test.TestUtil;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
@@ -1823,6 +1824,14 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     Tensor copy = copy();
     freeRef();
     return copy;
+  }
+  
+  public Tensor resizeAsImg(final int width, final int height) {
+    if (getDimensions()[0] == width && getDimensions()[1] == height) {
+      addRef();
+      return this;
+    }
+    return Tensor.fromRGB(TestUtil.resize(toImage(), width, height));
   }
   
   /**
