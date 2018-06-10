@@ -69,7 +69,7 @@ public abstract class RecycleBin<T> {
    */
   protected static final Logger logger = LoggerFactory.getLogger(RecycleBin.class);
   private static volatile ScheduledExecutorService garbageTruck;
-  private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<ObjectWrapper>> recycling = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<ObjectWrapper>> buckets = new ConcurrentHashMap<>();
   private final StackCounter allocations = new StackCounter();
   private final StackCounter frees = new StackCounter();
   private final StackCounter recycle_put = new StackCounter();
@@ -88,24 +88,22 @@ public abstract class RecycleBin<T> {
     super();
     purgeFreq = 10;
     RecycleBin.getGarbageTruck().scheduleAtFixedRate(() -> {
-      synchronized (recycling) {
-        recycling.forEach((k, v) -> {
-          ObjectWrapper poll;
-          ArrayList<ObjectWrapper> young = new ArrayList<>();
-          while (null != (poll = v.poll())) {
-            if (poll.age() > purgeFreq) {
-              T obj = poll.obj.get();
-              if (obj != null) {
-                freeItem(obj, k);
-              }
-            }
-            else {
-              young.add(poll);
+      buckets.forEach((k, v) -> {
+        ObjectWrapper poll;
+        ArrayList<ObjectWrapper> young = new ArrayList<>();
+        while (null != (poll = v.poll())) {
+          if (poll.age() > purgeFreq) {
+            T obj = poll.obj.get();
+            if (obj != null) {
+              freeItem(obj, k);
             }
           }
-          v.addAll(young);
-        });
-      }
+          else {
+            young.add(poll);
+          }
+        }
+        v.addAll(young);
+      });
     }, purgeFreq, purgeFreq, TimeUnit.SECONDS);
   }
   
@@ -144,14 +142,9 @@ public abstract class RecycleBin<T> {
    * @return the long
    */
   public long clear() {
-    synchronized (recycling) {
-      long sum = recycling.entrySet().stream().mapToLong(e -> e.getValue().stream().mapToLong(ref -> {
-        Long length = e.getKey();
-        return freeItem(ref.obj.get(), length);
-      }).sum()).sum();
-      recycling.clear();
-      return sum;
-    }
+    return buckets.keySet().stream().mapToLong(length -> buckets.remove(length).stream().mapToLong(ref -> {
+      return freeItem(ref.obj.get(), length);
+    }).sum()).sum();
   }
   
   /**
@@ -184,10 +177,7 @@ public abstract class RecycleBin<T> {
    * @return the double [ ]
    */
   public T obtain(final long length) {
-    final ConcurrentLinkedDeque<ObjectWrapper> bin;
-    synchronized (recycling) {
-      bin = recycling.get(length);
-    }
+    final ConcurrentLinkedDeque<ObjectWrapper> bin = buckets.get(length);
     @Nullable StackCounter stackCounter = getRecycle_get(length);
     if (null != stackCounter) {
       stackCounter.increment(length);
@@ -395,7 +385,7 @@ public abstract class RecycleBin<T> {
    * @return the size
    */
   public long getSize() {
-    return this.recycling.entrySet().stream().mapToLong(e -> e.getKey() * e.getValue().size()).sum();
+    return this.buckets.entrySet().stream().mapToLong(e -> e.getKey() * e.getValue().size()).sum();
   }
   
   /**
@@ -422,15 +412,7 @@ public abstract class RecycleBin<T> {
    * @return the bin
    */
   protected ConcurrentLinkedDeque<ObjectWrapper> getBin(long size) {
-    ConcurrentLinkedDeque<ObjectWrapper> bin;
-    synchronized (recycling) {
-      bin = recycling.get(size);
-    }
-    if (null == bin) {
-      bin = new ConcurrentLinkedDeque<>();
-      recycling.put(size, bin);
-    }
-    return bin;
+    return buckets.computeIfAbsent(size, x -> new ConcurrentLinkedDeque<>());
   }
   
   /**

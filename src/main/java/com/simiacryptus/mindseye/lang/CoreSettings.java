@@ -39,9 +39,9 @@ public class CoreSettings implements Settings {
   private final PersistanceMode doubleCacheMode;
   
   private CoreSettings() {
-    System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", Integer.toString(Settings.get("THREADS", 16)));
-    this.singleThreaded = Settings.get("SINGLE_THREADED", true);
-    this.lifecycleDebug = Settings.get("DEBUG_LIFECYCLE", true);
+    System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", Integer.toString(Settings.get("THREADS", 64)));
+    this.singleThreaded = Settings.get("SINGLE_THREADED", false);
+    this.lifecycleDebug = Settings.get("DEBUG_LIFECYCLE", false);
     this.doubleCacheMode = Settings.get("DOUBLE_CACHE_MODE", PersistanceMode.WEAK);
     this.backpropAggregationSize = Settings.get("BACKPROP_AGG_SIZE", 2);
     MarkdownNotebookOutput.MAX_OUTPUT = Settings.get("MAX_OUTPUT", 2 * 1024);

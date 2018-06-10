@@ -93,7 +93,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @return the buffered image
    */
   public BufferedImage transfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
@@ -106,7 +106,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @return the tensor
    */
   public Tensor transfer(final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
@@ -121,7 +121,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @return the buffered image
@@ -149,7 +149,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param canvasData      the canvas data
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @return the tensor
@@ -172,7 +172,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param log             the log
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @param canvas          the canvas

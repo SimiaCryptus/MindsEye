@@ -47,6 +47,8 @@ public class ImgTileAssemblyLayer extends LayerBase {
   
   private final int columns;
   private final int rows;
+  private int paddingX = 0;
+  private int paddingY = 0;
   
   /**
    * Instantiates a new Img crop layer.
@@ -69,6 +71,8 @@ public class ImgTileAssemblyLayer extends LayerBase {
     super(json);
     columns = json.getAsJsonPrimitive("columns").getAsInt();
     rows = json.getAsJsonPrimitive("rows").getAsInt();
+    setPaddingX(json.getAsJsonPrimitive("paddingX").getAsInt());
+    setPaddingY(json.getAsJsonPrimitive("paddingY").getAsInt());
   }
   
   /**
@@ -78,10 +82,12 @@ public class ImgTileAssemblyLayer extends LayerBase {
    * @param outputData the output data
    * @param positionX  the position x
    * @param positionY  the position y
+   * @param paddingX
+   * @param paddingY
    * @return the tensor
    */
   @Nonnull
-  public static Tensor copy(@Nonnull final Tensor inputData, @Nonnull final Tensor outputData, final int positionX, final int positionY) {
+  public static Tensor copy(@Nonnull final Tensor inputData, @Nonnull final Tensor outputData, final int positionX, final int positionY, final int paddingX, final int paddingY) {
     int[] inputDataDimensions = inputData.getDimensions();
     @Nonnull final int[] inDim = inputDataDimensions;
     @Nonnull final int[] outDim = outputData.getDimensions();
@@ -95,9 +101,9 @@ public class ImgTileAssemblyLayer extends LayerBase {
       int y = c.getCoords()[1] - positionY;
       int z = c.getCoords()[2];
       double value;
-      if (x < 0) { value = Double.NaN; }
+      if (x < paddingX) { value = Double.NaN; }
       else if (x >= width) { value = Double.NaN; }
-      else if (y < 0) { value = Double.NaN; }
+      else if (y < paddingY) { value = Double.NaN; }
       else if (y >= height) { value = Double.NaN; }
       else { value = inputData.get(x, y, z); }
       if (Double.isFinite(value)) outputData.set(c, value);
@@ -137,12 +143,12 @@ public class ImgTileAssemblyLayer extends LayerBase {
             int[] tileDimensions = tileTensor.getDimensions();
             rowHeight = Math.max(rowHeight, tileDimensions[1]);
             Tensor inputData = tileTensor.get(dataIndex);
-            ImgTileAssemblyLayer.copy(inputData, outputData, positionX, totalHeight);
+            ImgTileAssemblyLayer.copy(inputData, outputData, positionX, totalHeight, 0 == positionX ? 0 : getPaddingX() / 2, 0 == totalHeight ? 0 : getPaddingY() / 2);
             inputData.freeRef();
-            positionX += tileDimensions[0];
+            positionX += tileDimensions[0] - getPaddingX();
             inputIndex += 1;
           }
-          totalHeight += rowHeight;
+          totalHeight += rowHeight - getPaddingY();
           totalWidth = Math.max(totalWidth, positionX);
         }
         
@@ -165,16 +171,16 @@ public class ImgTileAssemblyLayer extends LayerBase {
               .mapToObj(dataIndex -> {
                 @Nullable final Tensor deltaTensor = delta.get(dataIndex);
                 @Nonnull final Tensor passbackTensor = new Tensor(inputDataDimensions);
-                ImgTileAssemblyLayer.copy(deltaTensor, passbackTensor, -_positionX, -_totalHeight);
+                ImgTileAssemblyLayer.copy(deltaTensor, passbackTensor, -_positionX, -_totalHeight, 0 == _positionX ? 0 : getPaddingX() / 2, 0 == _totalHeight ? 0 : getPaddingY() / 2);
                 deltaTensor.freeRef();
                 return passbackTensor;
               }).toArray(i -> new Tensor[i]));
             in.accumulate(buffer, tensorArray);
           }
-          positionX += inputDataDimensions[0];
+          positionX += inputDataDimensions[0] - getPaddingX();
           inputIndex += 1;
         }
-        totalHeight += rowHeight;
+        totalHeight += rowHeight - getPaddingY();
       }
     }) {
       
@@ -201,10 +207,10 @@ public class ImgTileAssemblyLayer extends LayerBase {
       for (int col = 0; col < columns; col++) {
         int[] dimensions = inObj[inputIndex].getData().getDimensions();
         rowHeight = Math.max(rowHeight, dimensions[1]);
-        positionX += dimensions[0];
+        positionX += dimensions[0] - getPaddingX();
         inputIndex += 1;
       }
-      totalHeight += rowHeight;
+      totalHeight += rowHeight - getPaddingY();
       totalWidth = Math.max(totalWidth, positionX);
     }
     return new int[]{totalWidth, totalHeight, bands};
@@ -216,6 +222,8 @@ public class ImgTileAssemblyLayer extends LayerBase {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("columns", columns);
     json.addProperty("rows", rows);
+    json.addProperty("paddingX", getPaddingX());
+    json.addProperty("paddingY", getPaddingY());
     return json;
   }
   
@@ -226,4 +234,21 @@ public class ImgTileAssemblyLayer extends LayerBase {
   }
   
   
+  public int getPaddingX() {
+    return paddingX;
+  }
+  
+  public ImgTileAssemblyLayer setPaddingX(int paddingX) {
+    this.paddingX = paddingX;
+    return this;
+  }
+  
+  public int getPaddingY() {
+    return paddingY;
+  }
+  
+  public ImgTileAssemblyLayer setPaddingY(int paddingY) {
+    this.paddingY = paddingY;
+    return this;
+  }
 }

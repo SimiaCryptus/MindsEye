@@ -200,7 +200,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @return the buffered image
    */
   public BufferedImage generate(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
@@ -215,7 +215,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @return the buffered image

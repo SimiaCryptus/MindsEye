@@ -33,6 +33,7 @@ import com.simiacryptus.mindseye.layers.cudnn.MeanSqLossLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SquareActivationLayer;
 import com.simiacryptus.mindseye.layers.cudnn.ValueLayer;
+import com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer;
 import com.simiacryptus.mindseye.models.CVPipe;
 import com.simiacryptus.mindseye.models.CVPipe_VGG16;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
@@ -148,7 +149,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @return the buffered image
    */
   public BufferedImage transfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
@@ -161,7 +162,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @return the tensor
    */
   public Tensor transfer(final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
@@ -176,7 +177,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @return the buffered image
@@ -204,7 +205,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    * @param canvasData      the canvas data
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @return the tensor
@@ -324,7 +325,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    * @param log             the log
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @param canvas          the canvas
@@ -437,6 +438,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
         ArtistryUtil.setPrecision((DAGNetwork) network, style.precision);
         //network = new ImgTileSubnetLayer(network, 400,400,400,400);
         Tensor content = network.eval(contentInput).getDataAndFree().getAndFree(0);
+        System.gc();
         self.contentTarget.content.put(layerType, content);
         logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
         logger.info(String.format("%s : content statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(content.getData()).getMetrics())));
@@ -445,49 +447,13 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
           SegmentedStyleTarget<T> segmentedStyleTarget = self.styleTargets.get(key);
           if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
             continue;
-          System.gc();
           Tensor styleInput = styleEntry.getValue();
           alphaMap(styleInput, masks.get(styleInput)).forEach((mask, styleMask) -> {
             StyleTarget<T> styleTarget = segmentedStyleTarget.getSegment(mask);
-            Layer wrapAvg = ArtistryUtil.wrapTiledAvg(network.copy(), 400);
-            Tensor mean = null;
-            try {
-              mean = wrapAvg.eval(styleMask).getDataAndFree().getAndFree(0);
-              if (styleTarget.mean.put(layerType, mean) != null) throw new AssertionError();
-              logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
-              logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
-              if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
-                return;
-              System.gc();
-              Layer gram = null;
-              Tensor cov0;
-              try {
-                gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy()), 400);
-                cov0 = gram.eval(styleMask).getDataAndFree().getAndFree(0);
-              } finally {
-                gram.freeRef();
-              }
-              Tensor cov1;
-              try {
-                gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy(), mean), 400);
-                cov1 = gram.eval(styleMask).getDataAndFree().getAndFree(0);
-              } finally {
-                gram.freeRef();
-              }
-              styleMask.freeRef();
-              if (styleTarget.cov0.put(layerType, cov0) != null) throw new AssertionError();
-              if (styleTarget.cov1.put(layerType, cov1) != null) throw new AssertionError();
-              int featureBands = mean.getDimensions()[2];
-              int covarianceElements = cov1.getDimensions()[2];
-              int selectedBands = covarianceElements / featureBands;
-              logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
-              logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
-              logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
-              logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
-            } finally {
-              styleTarget.freeRef();
-              wrapAvg.freeRef();
-            }
+            if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
+              return;
+            measureStyle(network, styleTarget, layerType, styleMask, 800);
+            logStyle(styleTarget, layerType);
           });
         }
       } finally {
@@ -499,6 +465,108 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
       v.forEach(ReferenceCountingBase::freeRef);
     });
     return self;
+  }
+  
+  public void logStyle(final StyleTarget<T> styleTarget, final T layerType) {
+    Tensor cov0 = styleTarget.cov0.get(layerType);
+    Tensor cov1 = styleTarget.cov1.get(layerType);
+    Tensor mean = styleTarget.mean.get(layerType);
+    int featureBands = mean.getDimensions()[2];
+    int covarianceElements = cov1.getDimensions()[2];
+    int selectedBands = covarianceElements / featureBands;
+    logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
+    logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
+    logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
+    logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
+    logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
+    logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
+  }
+  
+  public void measureStyle(final Layer network, final StyleTarget<T> styleTarget, final T layerType, final Tensor image, int tileSize) {
+    int[] dimensions = image.getDimensions();
+    int width = tileSize;
+    int height = tileSize;
+    int strideX = tileSize;
+    int strideY = tileSize;
+    int cols = (int) (Math.ceil((dimensions[0] - width) * 1.0 / strideX) + 1);
+    int rows = (int) (Math.ceil((dimensions[1] - height) * 1.0 / strideY) + 1);
+    if (cols == 1 && rows == 1) {
+      measureStyle(network, styleTarget, layerType, image);
+    }
+    else {
+      StyleTarget tiledStyle = IntStream.range(0, rows).mapToObj(x -> x).flatMap(row -> {
+        return IntStream.range(0, cols).mapToObj(col -> {
+          StyleTarget styleTarget1 = new StyleTarget();
+          int positionX = col * strideX;
+          int positionY = row * strideY;
+          assert positionX >= 0;
+          assert positionY >= 0;
+          assert positionX < dimensions[0];
+          assert positionY < dimensions[1];
+          ImgTileSelectLayer tileSelectLayer = new com.simiacryptus.mindseye.layers.java.ImgTileSelectLayer(width, height, positionX, positionY);
+          Tensor selectedTile = tileSelectLayer.eval(image).getDataAndFree().getAndFree(0);
+          tileSelectLayer.freeRef();
+          double factor = (double) selectedTile.length() / image.length();
+          measureStyle(network, styleTarget1, layerType, selectedTile);
+          StyleTarget scale = styleTarget1.scale(factor);
+          styleTarget1.freeRef();
+          return scale;
+        });
+      }).reduce((a, b) -> {
+        StyleTarget add = a.add(b);
+        a.freeRef();
+        b.freeRef();
+        return add;
+      }).get();
+      System.gc();
+      put(tiledStyle, styleTarget);
+      tiledStyle.freeRef();
+    }
+  }
+  
+  public void put(final StyleTarget fromStyle, final StyleTarget<T> toStyle) {
+    toStyle.mean.putAll(fromStyle.mean);
+    ((Stream<Tensor>) fromStyle.mean.values().stream()).forEach(ReferenceCountingBase::addRef);
+    toStyle.cov0.putAll(fromStyle.cov0);
+    ((Stream<Tensor>) fromStyle.cov0.values().stream()).forEach(ReferenceCountingBase::addRef);
+    toStyle.cov1.putAll(fromStyle.cov1);
+    ((Stream<Tensor>) fromStyle.cov1.values().stream()).forEach(ReferenceCountingBase::addRef);
+  }
+  
+  public void measureStyle(final Layer network, final StyleTarget<T> styleTarget, final T layerType, final Tensor image) {
+    try {
+      Layer wrapAvg = null;
+      Tensor mean;
+      try {
+        wrapAvg = ArtistryUtil.wrapTiledAvg(network.copy(), 400);
+        System.gc();
+        mean = wrapAvg.eval(image).getDataAndFree().getAndFree(0);
+        if (styleTarget.mean.put(layerType, mean) != null) throw new AssertionError();
+      } finally {
+        if (null != wrapAvg) wrapAvg.freeRef();
+      }
+      
+      Layer gram = null;
+      try {
+        gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy()), 400);
+        System.gc();
+        Tensor cov0 = gram.eval(image).getDataAndFree().getAndFree(0);
+        if (styleTarget.cov0.put(layerType, cov0) != null) throw new AssertionError();
+      } finally {
+        if (null != gram) gram.freeRef();
+      }
+      try {
+        gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy(), mean), 400);
+        System.gc();
+        Tensor cov1 = gram.eval(image).getDataAndFree().getAndFree(0);
+        if (styleTarget.cov1.put(layerType, cov1) != null) throw new AssertionError();
+      } finally {
+        if (null != gram) gram.freeRef();
+      }
+    } finally {
+      image.freeRef();
+      System.gc();
+    }
   }
   
   public Set<Tensor> getMasks(final NotebookOutput log, final Tensor value, final MaskJob maskJob1) {

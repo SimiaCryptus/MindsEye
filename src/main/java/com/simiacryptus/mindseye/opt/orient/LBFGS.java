@@ -252,7 +252,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   public SimpleLineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
 
 //    if (getClass().desiredAssertionStatus()) {
-//      double verify = subject.measure(monitor).getMean();
+//      double verify = subject.measureStyle(monitor).getMean();
 //      double input = measurement.getMean();
 //      boolean isDifferent = Math.abs(verify - input) > 1e-2;
 //      if (isDifferent) throw new AssertionError(String.format("Invalid input point: %s != %s", verify, input));

@@ -42,8 +42,13 @@ import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.InnerNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
+import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.mindseye.opt.orient.OwlQn;
+import com.simiacryptus.mindseye.opt.orient.LBFGS;
+import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
+import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
+import com.simiacryptus.mindseye.opt.region.OrthonormalConstraint;
+import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FileNanoHTTPD;
@@ -193,7 +198,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @return the buffered image
    */
   public BufferedImage transfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
@@ -208,7 +213,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @return the buffered image
@@ -236,7 +241,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @return the buffered image
@@ -260,7 +265,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param log             the log
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @param canvas          the canvas
@@ -390,7 +395,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param log             the log
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
-   * @param measureStyle    the measure style
+   * @param measureStyle    the measureStyle style
    * @param maxIterations   the max iterations
    * @param verbose         the verbose
    * @param canvas          the canvas
@@ -429,7 +434,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       trainingLog.code(() -> {
         new IterativeTrainer(trainable)
           .setMonitor(TestUtil.getMonitor(history))
-          .setOrientation(new OwlQn())
+          .setOrientation(getOrientation())
           .setMaxIterations(maxIterations)
           .setIterationsPerSample(100)
           .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-1).setCurrentRate(1e0))
@@ -442,6 +447,26 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       trainable.freeRef();
     }
     return colorForwardTransform;
+  }
+  
+  @Nonnull
+  public OrientationStrategy<LineSearchCursor> getOrientation() {
+    return new TrustRegionStrategy(new LBFGS()) {
+      @Override
+      public TrustRegion getRegionPolicy(final Layer layer) {
+        if (layer instanceof SimpleConvolutionLayer) {
+          int[] kernelDimensions = ((SimpleConvolutionLayer) layer).getKernelDimensions();
+          double b = Math.sqrt(kernelDimensions[2]);
+          int h = kernelDimensions[1];
+          int w = kernelDimensions[0];
+          int l = (int) (w * h * b);
+          return new OrthonormalConstraint(IntStream.range(0, (int) b).mapToObj(i -> {
+            return IntStream.range(0, l).map(j -> j + l * i).toArray();
+          }).toArray(i -> new int[i][]));
+        }
+        return null;
+      }
+    };
   }
   
   /**
@@ -514,8 +539,8 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         ));
       }
       else {
-        negTarget.freeRef();
-        negAvg.freeRef();
+        if (null != negTarget) negTarget.freeRef();
+        if (null != negAvg) negAvg.freeRef();
       }
     }
     else {
