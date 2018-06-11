@@ -197,7 +197,8 @@ public class ImgTileAssemblyLayer extends LayerBase {
   }
   
   private int[] getOutputDims(@Nonnull final Result[] inObj) {
-    int bands = inObj[0].getData().getDimensions()[2];
+    int[] dimensions1 = inObj[0].getData().getDimensions();
+    int bands = dimensions1.length < 2 ? 1 : dimensions1[2];
     int totalWidth = 0;
     int totalHeight = 0;
     int inputIndex = 0;

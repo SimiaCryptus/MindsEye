@@ -572,7 +572,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   public Set<Tensor> getMasks(final NotebookOutput log, final Tensor value, final MaskJob maskJob1) {
     int width = value.getDimensions()[0];
     int height = value.getDimensions()[1];
-    return maskCache.computeIfAbsent(maskJob1, maskJob -> {
+    return getMaskCache().computeIfAbsent(maskJob1, maskJob -> {
       Set<Tensor> tensors = ImageSegmenter.quickMasks(log, value, maskJob.getStyle_masks(), maskJob.getStlye_colorClusters(), maskJob.getStyle_textureClusters())
         .stream().distinct().collect(Collectors.toSet());
       assert null != tensors;
@@ -812,6 +812,10 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   public SegmentedStyleTransfer<T, U> setStyle_textureClusters(int style_textureClusters) {
     this.style_textureClusters = style_textureClusters;
     return this;
+  }
+  
+  public Map<MaskJob, Set<Tensor>> getMaskCache() {
+    return maskCache;
   }
   
   /**
@@ -1200,7 +1204,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     public NeuralSetup(final StyleSetup style) {this.style = style;}
   }
   
-  private static class MaskJob {
+  public static class MaskJob {
     private final int style_masks;
     private final int stlye_colorClusters;
     private final int style_textureClusters;

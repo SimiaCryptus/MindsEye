@@ -131,7 +131,7 @@ public class ImgTileSelectLayer extends LayerBase {
     final TensorList batch = input.getData();
     @Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
-    @Nonnull final int[] dimOut = getViewDimensions(inputDims, new int[]{sizeY, sizeX, inputDims[2]}, new int[]{positionX, positionY, 0});
+    @Nonnull final int[] dimOut = getViewDimensions(inputDims, new int[]{sizeX, sizeY, inputDims[2]}, new int[]{positionX, positionY, 0});
     return new Result(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
       .mapToObj(dataIndex -> {
         @Nonnull final Tensor outputData = new Tensor(dimOut);
