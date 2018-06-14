@@ -177,10 +177,7 @@ public class ImgTileSelectLayer extends LayerBase {
   @Nonnull
   public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
     @Nonnull final int[] viewDim = new int[3];
-    Arrays.parallelSetAll(viewDim, i ->
-      Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) -
-        Math.max(offset[i], 0)
-    );
+    Arrays.parallelSetAll(viewDim, i -> Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) - Math.max(offset[i], 0));
     return viewDim;
   }
   

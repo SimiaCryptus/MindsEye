@@ -186,9 +186,9 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
         assert positionY >= 0;
         assert positionX < inputDims[0];
         assert positionY < inputDims[1];
-        Tensor selectedTile = new ImgTileSelectLayer(width, height, positionX, positionY).eval(canvas).getData().get(0);
-        tiles[index] = selectedTile;
-        index = index + 1;
+        ImgTileSelectLayer tileSelectLayer = new ImgTileSelectLayer(width, height, positionX, positionY);
+        tiles[index++] = tileSelectLayer.eval(canvas).getDataAndFree().getAndFree(0);
+        tileSelectLayer.freeRef();
       }
     }
     return tiles;
