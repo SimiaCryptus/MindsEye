@@ -556,7 +556,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the boolean
    */
   public boolean isValid() {
-    return !isFinalized() && null == this.data || this.data.length == Tensor.length(dimensions);
+    return !isFinalized() && (null == this.data || this.data.length == Tensor.length(dimensions));
   }
   
   /**
