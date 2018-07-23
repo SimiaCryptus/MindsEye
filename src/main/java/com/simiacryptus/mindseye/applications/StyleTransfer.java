@@ -47,7 +47,7 @@ import com.simiacryptus.mindseye.opt.region.RangeConstraint;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.JsonUtil;
@@ -126,7 +126,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param verbose         the verbose
    * @return the buffered image
    */
-  public BufferedImage transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
+  public BufferedImage transfer(final FileHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
     try {
       BufferedImage result = log.code(() -> {
         Tensor canvas = Tensor.fromRGB(canvasImage);
@@ -154,7 +154,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param verbose         the verbose
    * @return the tensor
    */
-  public Tensor transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final Tensor canvasData, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
+  public Tensor transfer(final FileHTTPD server, @Nonnull final NotebookOutput log, final Tensor canvasData, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
     try {
       transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasData);
       log.p("Result:");
@@ -177,7 +177,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param verbose         the verbose
    * @param canvas          the canvas
    */
-  public void transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
+  public void transfer(final FileHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
 //      log.p("Input Content:");
 //      log.p(log.image(styleParameters.contentImage, "Content Image"));
 //      log.p("Style Content:");

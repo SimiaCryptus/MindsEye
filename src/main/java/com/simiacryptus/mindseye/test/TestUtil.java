@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
@@ -1125,25 +1125,27 @@ public class TestUtil {
     return copy;
   }
   
-  public static void addGlobalHandlers(final FileNanoHTTPD httpd) {
-    httpd.addHandler("gpu.json", MimeType.JSON, out -> {
-      try {
-        JsonUtil.getMapper().writer().writeValue(out, CudaSystem.getExecutionStatistics());
-        //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
-        out.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
-    httpd.addHandler("threads.json", MimeType.JSON, out -> {
-      try {
-        JsonUtil.getMapper().writer().writeValue(out, getStackInfo());
-        //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
-        out.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
+  public static void addGlobalHandlers(final FileHTTPD httpd) {
+    if (null != httpd) {
+      httpd.addHandler("gpu.json", MimeType.JSON, out -> {
+        try {
+          JsonUtil.getMapper().writer().writeValue(out, CudaSystem.getExecutionStatistics());
+          //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
+          out.close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+      httpd.addHandler("threads.json", MimeType.JSON, out -> {
+        try {
+          JsonUtil.getMapper().writer().writeValue(out, getStackInfo());
+          //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
+          out.close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
   }
   
   public static Map<String, List<String>> getStackInfo() {

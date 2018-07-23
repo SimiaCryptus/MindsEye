@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.applications.DeepDream;
 import com.simiacryptus.mindseye.applications.TextureGeneration;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
-import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
@@ -62,8 +62,8 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
   
   
     ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x)).forEach(styleSources -> {
-    
-      final FileNanoHTTPD server = log.getHttpd();
+  
+      final FileHTTPD server = log.getHttpd();
       TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
         map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
           .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)

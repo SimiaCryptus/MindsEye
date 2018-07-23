@@ -45,7 +45,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.PCAUtil;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FastRandom;
-import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.io.JsonUtil;
 import com.simiacryptus.util.io.NotebookOutput;
@@ -78,7 +78,7 @@ public class ArtistryUtil {
    * @param painterNetwork the painter network
    * @param server         the server
    */
-  public static void addLayersHandler(final DAGNetwork painterNetwork, final FileNanoHTTPD server) {
+  public static void addLayersHandler(final DAGNetwork painterNetwork, final FileHTTPD server) {
     if (null != server) server.addHandler("layers.json", MimeType.JSON, out -> {
       try {
         JsonUtil.getMapper().writer().writeValue(out, TestUtil.samplePerformance(painterNetwork));

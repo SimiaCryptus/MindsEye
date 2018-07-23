@@ -46,7 +46,7 @@ import com.simiacryptus.mindseye.opt.region.RangeConstraint;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.JsonUtil;
@@ -111,7 +111,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param styleSize       the style size
    * @return the buffered image
    */
-  public static BufferedImage generate(@Nonnull final NotebookOutput log, final VGG19 styleTransfer, final Precision precision, int imageSize, final double growthFactor, final Map<List<CharSequence>, StyleCoefficients> styles, final int trainingMinutes, BufferedImage canvasImage, final int phases, final int maxIterations, final FileNanoHTTPD server, int styleSize) {
+  public static BufferedImage generate(@Nonnull final NotebookOutput log, final VGG19 styleTransfer, final Precision precision, int imageSize, final double growthFactor, final Map<List<CharSequence>, StyleCoefficients> styles, final int trainingMinutes, BufferedImage canvasImage, final int phases, final int maxIterations, final FileHTTPD server, int styleSize) {
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     StyleSetup styleSetup;
     NeuralSetup measureStyle;
@@ -220,7 +220,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param verbose         the verbose
    * @return the buffered image
    */
-  public BufferedImage generate(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
+  public BufferedImage generate(final FileHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
     BufferedImage result = ArtistryUtil.logExceptionWithDefault(log, () -> {
       System.gc();
       Tensor canvas = Tensor.fromRGB(canvasImage);

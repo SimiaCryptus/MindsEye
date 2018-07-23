@@ -42,7 +42,7 @@ import com.simiacryptus.mindseye.opt.region.RangeConstraint;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.io.NullNotebookOutput;
@@ -98,7 +98,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage deepDream(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final int maxIterations, final boolean verbose) {
+  public BufferedImage deepDream(final FileHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final int maxIterations, final boolean verbose) {
     PipelineNetwork network = fitnessNetwork(processStats(styleParameters));
     log.p("Input Parameters:");
     log.code(() -> {
@@ -123,7 +123,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage train(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, PipelineNetwork network, final Precision precision, final int trainingMinutes, final int maxIterations) {
+  public BufferedImage train(final FileHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, PipelineNetwork network, final Precision precision, final int trainingMinutes, final int maxIterations) {
     System.gc();
     Tensor canvas = Tensor.fromRGB(canvasImage);
     log.p("<a href=\"/image.jpg\"><img src=\"/image.jpg\"></a>");

@@ -51,7 +51,7 @@ import com.simiacryptus.mindseye.opt.region.OrthonormalConstraint;
 import com.simiacryptus.mindseye.opt.region.TrustRegion;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.FileNanoHTTPD;
+import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.JsonUtil;
@@ -218,7 +218,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param verbose         the verbose
    * @return the buffered image
    */
-  public BufferedImage transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
+  public BufferedImage transfer(final FileHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
     try {
       final Tensor canvasTensor = log.code(() -> {
         return Tensor.fromRGB(canvasImage);
@@ -246,7 +246,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param verbose         the verbose
    * @return the buffered image
    */
-  public Tensor transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
+  public Tensor transfer(final FileHTTPD server, @Nonnull final NotebookOutput log, final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
     try {
       Tensor result = canvasImage.set(transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasImage));
       log.p("Result:");
@@ -272,7 +272,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the tensor
    */
   @Nonnull
-  public Tensor transfer(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
+  public Tensor transfer(final FileHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
 //      log.p("Input Content:");
 //      log.p(log.image(styleParameters.contentImage, "Content Image"));
 //      log.p("Style Content:");
@@ -402,7 +402,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the simple convolution layer
    */
   @Nonnull
-  public SimpleConvolutionLayer train(final FileNanoHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
+  public SimpleConvolutionLayer train(final FileHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
     NotebookOutput trainingLog = verbose ? log : new NullNotebookOutput();
     SimpleConvolutionLayer colorForwardTransform = unitTransformer();
     Trainable trainable = trainingLog.code(() -> {
