@@ -39,9 +39,8 @@ import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.StreamNanoHTTPD;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.HtmlNotebookOutput;
+import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
@@ -124,14 +123,12 @@ public class ImageDecompositionLab {
    * @return the log
    */
   @Nonnull
-  public HtmlNotebookOutput report() {
+  public MarkdownNotebookOutput report() {
     try {
       @Nonnull final CharSequence directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
       @Nonnull final File path = new File(Util.mkString(File.separator, "www", directoryName));
       path.mkdirs();
-      @Nonnull final File logFile = new File(path, "index.html");
-      @Nonnull final StreamNanoHTTPD server = new StreamNanoHTTPD(1999, "text/html", logFile).init();
-      @Nonnull final HtmlNotebookOutput log = new HtmlNotebookOutput(path, server.dataReciever);
+      @Nonnull final MarkdownNotebookOutput log = new MarkdownNotebookOutput(path, getClass().getSimpleName(), true);
       return log;
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);
