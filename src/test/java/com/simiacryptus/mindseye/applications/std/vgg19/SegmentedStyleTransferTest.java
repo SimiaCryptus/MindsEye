@@ -51,7 +51,7 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
    */
   public void run(@Nonnull NotebookOutput log) {
     Executors.newScheduledThreadPool(1).scheduleAtFixedRate(System::gc, 1, 1, TimeUnit.MINUTES);
-    SegmentedStyleTransfer.VGG19 styleTransfer = new SegmentedStyleTransfer.VGG19();
+    SegmentedStyleTransfer<CVPipe_VGG19.Layer, CVPipe_VGG19> styleTransfer = new SegmentedStyleTransfer.VGG19();
     init(log);
     Precision precision = Precision.Float;
     final AtomicInteger imageSize = new AtomicInteger(600);
