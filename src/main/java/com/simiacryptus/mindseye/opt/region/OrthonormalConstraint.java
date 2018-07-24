@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.lang.RecycleBin;
 import com.simiacryptus.util.ArrayUtil;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,15 +55,42 @@ public class OrthonormalConstraint implements TrustRegion {
     return ArrayUtil.magnitude(weights);
   }
   
-  @Nonnull
-  @Override
-  public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
-    return recompose(unitVectors(decompose(point)));
+  public static double dot(double[] a, double[] b) {
+    return IntStream.range(0, a.length).mapToDouble(i -> a[i] * b[i]).sum();
   }
   
   public List<double[]> unitVectors(final List<double[]> vectors) {
     double[] magnitudes = vectors.stream().mapToDouble(x -> Math.sqrt(Arrays.stream(x).map(a -> a * a).sum())).toArray();
-    return IntStream.range(0, magnitudes.length).mapToObj(n -> Arrays.stream(vectors.get(n)).map(x -> x / magnitudes[n]).toArray()).collect(Collectors.toList());
+    return IntStream.range(
+      0,
+      magnitudes.length
+    ).mapToObj(n -> Arrays.stream(vectors.get(n)).map(x -> x / magnitudes[n]).toArray()).collect(Collectors.toList());
+  }
+  
+  public static double[] add(double[] a, double[] b) {
+    return IntStream.range(0, a.length).mapToDouble(i -> a[i] + b[i]).toArray();
+  }
+  
+  public static double[] scale(double[] a, double b) {
+    return Arrays.stream(a).map(v -> v * b).toArray();
+  }
+  
+  @Nonnull
+  @Override
+  public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
+    return recompose(unitVectors(orthogonal(decompose(point))));
+  }
+  
+  public List<double[]> orthogonal(final List<double[]> vectors) {
+    ArrayList<double[]> result = new ArrayList<>();
+    for (final double[] vector : vectors) {
+      double[] orthogonalVector = scale(vector, 1);
+      for (final double[] basisVector : result) {
+        orthogonalVector = add(orthogonalVector, scale(basisVector, -dot(orthogonalVector, basisVector) / dot(basisVector, basisVector)));
+      }
+      result.add(orthogonalVector);
+    }
+    return result;
   }
   
   public double[] recompose(final List<double[]> unitVectors) {
