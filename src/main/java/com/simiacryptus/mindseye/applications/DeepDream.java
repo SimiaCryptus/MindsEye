@@ -82,7 +82,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage deepDream(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
+  public BufferedImage deepDream(final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
     return deepDream(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, 50, true);
   }
   
@@ -99,7 +99,16 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage deepDream(final FileHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final int maxIterations, final boolean verbose) {
+  public BufferedImage deepDream(
+    final FileHTTPD server,
+    @Nonnull final NotebookOutput log,
+    final Tensor canvasImage,
+    final StyleSetup<T> styleParameters,
+    final int trainingMinutes,
+    final int maxIterations,
+    final boolean verbose
+  )
+  {
     PipelineNetwork network = fitnessNetwork(processStats(styleParameters));
     log.p("Input Parameters:");
     log.code(() -> {
@@ -124,26 +133,34 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage train(final FileHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, PipelineNetwork network, final Precision precision, final int trainingMinutes, final int maxIterations) {
+  public BufferedImage train(
+    final FileHTTPD server,
+    @Nonnull final NotebookOutput log,
+    final Tensor canvasImage,
+    PipelineNetwork network,
+    final Precision precision,
+    final int trainingMinutes,
+    final int maxIterations
+  )
+  {
     System.gc();
-    Tensor canvas = Tensor.fromRGB(canvasImage);
     String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
     log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
     log.getHttpd().addHandler(imageName + ".jpg", imageName + "/jpeg", r -> {
       try {
-        ImageIO.write(canvas.toImage(), "jpeg", r);
+        ImageIO.write(canvasImage.toImage(), "jpeg", r);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     });
-    TestUtil.monitorImage(canvas, false, false);
+    TestUtil.monitorImage(canvasImage, false, false);
     network.setFrozen(true);
     ArtistryUtil.setPrecision(network, precision);
     TestUtil.instrumentPerformance(network);
     if (null != server) ArtistryUtil.addLayersHandler(network, server);
     if (tiled) network = ArtistryUtil.tileCycle(network);
-    train(log, network, canvas, trainingMinutes, maxIterations);
-    return canvas.toImage();
+    train(log, network, canvasImage, trainingMinutes, maxIterations);
+    return canvasImage.toImage();
   }
   
   /**
@@ -208,14 +225,13 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    */
   public NeuralSetup processStats(final StyleSetup<T> style) {
     NeuralSetup<T> self = new NeuralSetup(style);
-    Tensor contentInput = Tensor.fromRGB(style.contentImage);
     self.contentTarget = new ContentTarget();
     for (final T layerType : getLayerTypes()) {
       System.gc();
       final PipelineNetwork network = layerType.network();
       ContentCoefficients contentCoefficients = style.coefficients.get(layerType);
       if (null != contentCoefficients && 0 != contentCoefficients.rms) {
-        self.contentTarget.content.put(layerType, network.eval(contentInput).getDataAndFree().getAndFree(0));
+        self.contentTarget.content.put(layerType, network.eval(style.contentImage).getDataAndFree().getAndFree(0));
         logger.info(String.format("target_content_%s=%s", layerType.name(), self.contentTarget.content.get(layerType).prettyPrint()));
       }
     }
@@ -383,7 +399,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
     /**
      * The Content image.
      */
-    public final transient BufferedImage contentImage;
+    public final transient Tensor contentImage;
     /**
      * The Content.
      */
@@ -397,7 +413,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
      * @param contentImage        the content image
      * @param contentCoefficients the content coefficients
      */
-    public StyleSetup(final Precision precision, final BufferedImage contentImage, Map<T, ContentCoefficients> contentCoefficients) {
+    public StyleSetup(final Precision precision, final Tensor contentImage, Map<T, ContentCoefficients> contentCoefficients) {
       this.precision = precision;
       this.contentImage = contentImage;
       this.coefficients = contentCoefficients;

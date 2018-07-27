@@ -624,7 +624,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   public NeuralSetup measureStyle(final StyleSetup<T> style) {
     NeuralSetup<T> self = new NeuralSetup(style);
     List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
-    Tensor contentInput = null == style.contentImage ? null : Tensor.fromRGB(style.contentImage);
+    Tensor contentInput = style.contentImage;
     List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
     IntStream.range(0, keyList.size()).forEach(i -> {
       self.styleTargets.put(keyList.get(i), new StyleTarget());
@@ -1003,7 +1003,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     /**
      * The Content image.
      */
-    public transient BufferedImage contentImage;
+    public transient Tensor contentImage;
     
     
     /**
@@ -1017,7 +1017,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
      */
     public StyleSetup(
       final Precision precision,
-      final BufferedImage contentImage,
+      final Tensor contentImage,
       ContentCoefficients contentCoefficients,
       final Map<CharSequence, BufferedImage> styleImages,
       final Map<List<CharSequence>, StyleCoefficients> styles

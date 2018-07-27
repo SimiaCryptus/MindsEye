@@ -381,7 +381,6 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   public NeuralSetup measureStyle(final StyleSetup<T> style) {
     NeuralSetup<T> self = new NeuralSetup(style);
     List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
-    Tensor contentInput = Tensor.fromRGB(style.contentImage);
     List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
     IntStream.range(0, keyList.size()).forEach(i -> {
       self.styleTargets.put(keyList.get(i), new StyleTarget());
@@ -393,7 +392,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       try {
         ArtistryUtil.setPrecision((DAGNetwork) network, style.precision);
         //network = new ImgTileSubnetLayer(network, 400,400,400,400);
-        Tensor content = network.eval(contentInput).getDataAndFree().getAndFree(0);
+        Tensor content = network.eval(style.contentImage).getDataAndFree().getAndFree(0);
         self.contentTarget.content.put(layerType, content);
         logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
         logger.info(String.format(
@@ -451,7 +450,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         network.freeRef();
       }
     }
-    contentInput.freeRef();
+    style.contentImage.freeRef();
     return self;
   }
   
@@ -742,7 +741,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     /**
      * The Content image.
      */
-    public transient BufferedImage contentImage;
+    public transient Tensor contentImage;
   
   
     /**
@@ -756,7 +755,7 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
      */
     public StyleSetup(
       final Precision precision,
-      final BufferedImage contentImage,
+      final Tensor contentImage,
       ContentCoefficients contentCoefficients,
       final Map<CharSequence, BufferedImage> styleImages,
       final Map<List<CharSequence>, StyleCoefficients> styles

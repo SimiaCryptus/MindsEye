@@ -633,4 +633,8 @@ public class ArtistryUtil {
       netNet.wrap(network, netNet.wrap(new ImgTileCycleLayer(), netNet.getInput(0)))).freeRef();
     return netNet;
   }
+  
+  public static Tensor loadTensor(final CharSequence contentSource, final int width, final int height) {
+    return Tensor.fromRGB(load(contentSource, width, height));
+  }
 }

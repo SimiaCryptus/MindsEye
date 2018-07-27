@@ -112,7 +112,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param styleSize       the style size
    * @return the buffered image
    */
-  public static BufferedImage generate(
+  public static Tensor generate(
     @Nonnull final NotebookOutput log,
     final VGG19 styleTransfer,
     final Precision precision,
@@ -120,7 +120,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     final double growthFactor,
     final Map<List<CharSequence>, StyleCoefficients> styles,
     final int trainingMinutes,
-    BufferedImage canvasImage,
+    Tensor canvasImage,
     final int phases,
     final int maxIterations,
     final FileHTTPD server,
@@ -147,8 +147,8 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     }
     styleSetup = new StyleSetup(precision, styleImages, styles);
     measureStyle = styleTransfer.measureStyle(styleSetup);
-    
-    canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+  
+    canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize, true));
     canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     for (int i = 1; i < phases; i++) {
       imageSize *= growthFactor;
@@ -171,7 +171,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       styleSetup = new StyleSetup(precision, styleImages, styles);
       measureStyle = styleTransfer.measureStyle(styleSetup);
   
-      canvasImage = TestUtil.resize(canvasImage, imageSize, true);
+      canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize, true));
       canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     }
     return canvasImage;
@@ -230,8 +230,8 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param measureStyle    the measureStyle style
    * @return the buffered image
    */
-  public BufferedImage generate(
-    final BufferedImage canvasImage,
+  public Tensor generate(
+    final Tensor canvasImage,
     final StyleSetup<T> styleParameters,
     final int trainingMinutes,
     final NeuralSetup measureStyle
@@ -253,10 +253,10 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param verbose         the verbose
    * @return the buffered image
    */
-  public BufferedImage generate(
+  public Tensor generate(
     final FileHTTPD server,
     @Nonnull final NotebookOutput log,
-    final BufferedImage canvasImage,
+    final Tensor canvasImage,
     final StyleSetup<T> styleParameters,
     final int trainingMinutes,
     final NeuralSetup measureStyle,
@@ -264,15 +264,14 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     final boolean verbose
   )
   {
-    BufferedImage result = ArtistryUtil.logExceptionWithDefault(log, () -> {
+    Tensor result = ArtistryUtil.logExceptionWithDefault(log, () -> {
       System.gc();
-      Tensor canvas = Tensor.fromRGB(canvasImage);
-      TestUtil.monitorImage(canvas, false, false);
+      TestUtil.monitorImage(canvasImage, false, false);
       String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
       log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
       log.getHttpd().addHandler(imageName + ".jpg", "image/jpeg", outputStream -> {
         try {
-          ImageIO.write(canvas.toImage(), "jpeg", outputStream);
+          ImageIO.write(canvasImage.toImage(), "jpeg", outputStream);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -287,11 +286,11 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       TestUtil.instrumentPerformance(network);
       if (null != server) ArtistryUtil.addLayersHandler(network, server);
       if (tiled) network = ArtistryUtil.tileCycle(network);
-      train(verbose ? log : new NullNotebookOutput(), canvas, network, trainingMinutes, maxIterations);
-      return canvas.toImage();
+      train(verbose ? log : new NullNotebookOutput(), canvasImage, network, trainingMinutes, maxIterations);
+      return canvasImage;
     }, canvasImage);
     log.p("Result:");
-    log.p(log.image(result, "Result"));
+    log.p(log.image(result.toImage(), "Result"));
     return result;
   }
   

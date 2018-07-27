@@ -143,11 +143,7 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
    * @param imageStream the image stream
    */
   public void writeGif(@Nonnull final NotebookOutput log, final Stream<BufferedImage> imageStream) {
-    BufferedImage[] imgs = imageStream.toArray(i -> new BufferedImage[i]);
-    log.p(TestUtil.animatedGif(log,
-      //IntStream.range(1-imgs.length,imgs.length).buildMap(x->Math.abs(x)).mapToObj(i->imgs[i]).toArray(i->new BufferedImage[i])
-      imgs
-    ));
+    log.p(TestUtil.animatedGif(log, imageStream.toArray(i -> new BufferedImage[i])));
   }
   
   /**
@@ -174,8 +170,12 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
         canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
       }
       StyleTransfer.StyleSetup styleSetup = new StyleTransfer.StyleSetup(precision,
-        ArtistryUtil.load(contentSource, canvasImage.getWidth(), canvasImage.getHeight()),
-        contentCoefficients, create(y -> y.putAll(styles.keySet().stream().flatMap(x -> x.stream())
+                                                                         ArtistryUtil.loadTensor(
+                                                                           contentSource,
+                                                                           canvasImage.getWidth(),
+                                                                           canvasImage.getHeight()
+                                                                         ),
+                                                                         contentCoefficients, create(y -> y.putAll(styles.keySet().stream().flatMap(x -> x.stream())
         .collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))))), styles);
       canvasImage = styleTransfer.transfer(log.getHttpd(), log, canvasImage, styleSetup,
         trainingMinutes, styleTransfer.measureStyle(styleSetup), maxIterations, true);

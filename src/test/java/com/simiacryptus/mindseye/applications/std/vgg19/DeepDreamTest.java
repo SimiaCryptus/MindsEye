@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
 import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.ArtistryUtil;
 import com.simiacryptus.mindseye.applications.DeepDream;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.mindseye.test.TestUtil;
@@ -61,8 +62,16 @@ public class DeepDreamTest extends ArtistryAppBase_VGG19 {
     BufferedImage canvasImage = ArtistryUtil.load(source, imageSize.get());
     //canvasImage = randomize(canvasImage);
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
-    BufferedImage contentImage = ArtistryUtil.load(source, canvasImage.getWidth(), canvasImage.getHeight());
-    dreamBase.deepDream(log.getHttpd(), log, canvasImage, new DeepDream.StyleSetup(precision, contentImage, dreamCoeff), trainingMinutes, maxIterations, true);
+    Tensor contentImage = Tensor.fromRGB(ArtistryUtil.load(source, canvasImage.getWidth(), canvasImage.getHeight()));
+    dreamBase.deepDream(
+      log.getHttpd(),
+      log,
+      Tensor.fromRGB(canvasImage),
+      new DeepDream.StyleSetup(precision, contentImage, dreamCoeff),
+      trainingMinutes,
+      maxIterations,
+      true
+    );
     
     log.setFrontMatterProperty("status", "OK");
   }

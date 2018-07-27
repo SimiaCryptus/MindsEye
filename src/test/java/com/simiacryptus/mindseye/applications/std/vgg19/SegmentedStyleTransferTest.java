@@ -78,7 +78,7 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
     Tensor image = Tensor.fromRGB(TestUtil.resize(canvasImage, 16, true));
     canvasImage = ArtistryUtil.expandPlasma(image, imageSize.get(), 1000.0, 1.1).toImageAndFree();
     image.freeRef();
-    BufferedImage contentImage = ArtistryUtil.load(ArtistryData.CLASSIC_CONTENT.get(0), canvasImage.getWidth(), canvasImage.getHeight());
+    Tensor contentImage = ArtistryUtil.loadTensor(ArtistryData.CLASSIC_CONTENT.get(0), canvasImage.getWidth(), canvasImage.getHeight());
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     SegmentedStyleTransfer.StyleSetup styleSetup;
     

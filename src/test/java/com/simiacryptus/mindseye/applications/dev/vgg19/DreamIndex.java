@@ -23,13 +23,13 @@ import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
 import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.DeepDream;
 import com.simiacryptus.mindseye.applications.TextureGeneration;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -67,7 +67,7 @@ public class DreamIndex extends ArtistryAppBase_VGG19 {
         throw new RuntimeException(e);
       }
       for (final CVPipe_VGG19.Layer layer : CVPipe_VGG19.Layer.values()) {
-        BufferedImage canvas = TextureGeneration.initCanvas(new AtomicInteger(256));
+        Tensor canvas = Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(256)));
         log.h2("Layer: " + layer);
         Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
         textureStyle.put(Arrays.asList(file), new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
@@ -75,7 +75,7 @@ public class DreamIndex extends ArtistryAppBase_VGG19 {
         canvas = TextureGeneration.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, trainingMinutes, canvas, 1, iterations, log.getHttpd(), 0);
         Map<CVPipe_VGG19.Layer, DeepDream.ContentCoefficients> dreamCoeff = new HashMap<>();
         dreamCoeff.put(layer, new DeepDream.ContentCoefficients(0, 1e0));
-        canvas = deepDream.deepDream(log.getHttpd(), log, canvas, new DeepDream.StyleSetup(precision, canvas, dreamCoeff), trainingMinutes, iterations, true);
+        deepDream.deepDream(log.getHttpd(), log, canvas, new DeepDream.StyleSetup(precision, canvas, dreamCoeff), trainingMinutes, iterations, true);
       }
     }
     

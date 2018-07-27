@@ -22,12 +22,12 @@ package com.simiacryptus.mindseye.applications.std.vgg19;
 import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
 import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.TextureGeneration;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
-import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,15 +51,27 @@ public class TextureGenerationTest extends ArtistryAppBase_VGG19 {
     double growthFactor = Math.sqrt(2);
     int trainingMinutes = 90;
     final int maxIterations = 5;
-    BufferedImage canvas = TextureGeneration.initCanvas(new AtomicInteger(256));
-  
+    Tensor canvas = Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(256)));
     Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
     textureStyle.put(ArtistryData.CLASSIC_STYLES.subList(0, 1), new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
       .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)
     );
-    canvas = TextureGeneration.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, trainingMinutes, canvas, 2, maxIterations, log.getHttpd(), 256);
+    TextureGeneration.generate(
+      log,
+      styleTransfer,
+      precision,
+      256,
+      growthFactor,
+      textureStyle,
+      trainingMinutes,
+      canvas,
+      2,
+      maxIterations,
+      log.getHttpd(),
+      256
+    );
     
     log.setFrontMatterProperty("status", "OK");
   }

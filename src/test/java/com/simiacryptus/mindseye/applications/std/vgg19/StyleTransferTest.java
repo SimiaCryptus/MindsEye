@@ -73,7 +73,7 @@ public class StyleTransferTest extends ArtistryAppBase_VGG19 {
     BufferedImage canvasImage = ArtistryUtil.load(ArtistryData.CLASSIC_STYLES.get(0), imageSize.get());
     canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
     canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(TestUtil.resize(canvasImage, 16, true)), imageSize.get(), 1000.0, 1.1).toImage();
-    BufferedImage contentImage = ArtistryUtil.load(ArtistryData.CLASSIC_CONTENT.get(0), canvasImage.getWidth(), canvasImage.getHeight());
+    Tensor contentImage = ArtistryUtil.loadTensor(ArtistryData.CLASSIC_CONTENT.get(0), canvasImage.getWidth(), canvasImage.getHeight());
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     StyleTransfer.StyleSetup styleSetup;
     

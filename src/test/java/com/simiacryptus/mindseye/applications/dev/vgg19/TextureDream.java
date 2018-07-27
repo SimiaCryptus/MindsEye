@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.applications.ArtistryAppBase_VGG19;
 import com.simiacryptus.mindseye.applications.ArtistryData;
 import com.simiacryptus.mindseye.applications.DeepDream;
 import com.simiacryptus.mindseye.applications.TextureGeneration;
+import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.models.CVPipe_VGG19;
 import com.simiacryptus.util.FileHTTPD;
@@ -31,9 +32,11 @@ import com.simiacryptus.util.io.NotebookOutput;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * The type Style transfer vgg 19.
@@ -61,56 +64,152 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
     int trainingMinutes = 90;
   
   
-    ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x)).forEach(styleSources -> {
-  
+    Stream<List<CharSequence>> listStream = ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x));
+    listStream.forEach(styleSources -> {
+      
       final FileHTTPD server = log.getHttpd();
-      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
-          .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
-        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+      TextureGeneration.generate(
+        log,
+        styleTransfer,
+        precision,
+        imageSize,
+        growthFactor,
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+                                              .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
+                                              .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0))),
+        trainingMinutes,
+        Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(imageSize))),
+        phases,
+        maxIterations,
+        server,
+        styleSize
+      );
     
-      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
-          .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
-        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+      TextureGeneration.generate(
+        log,
+        styleTransfer,
+        precision,
+        imageSize,
+        growthFactor,
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+                                              .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
+                                              .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
+        )),
+        trainingMinutes,
+        Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(imageSize))),
+        phases,
+        maxIterations,
+        server,
+        styleSize
+      );
     
-      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 1e0)
-          .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
-        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+      TextureGeneration.generate(
+        log,
+        styleTransfer,
+        precision,
+        imageSize,
+        growthFactor,
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+                                              .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 1e0)
+                                              .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
+        )),
+        trainingMinutes,
+        Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(imageSize))),
+        phases,
+        maxIterations,
+        server,
+        styleSize
+      );
     
-      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
-          .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 1e0)
-        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+      TextureGeneration.generate(
+        log,
+        styleTransfer,
+        precision,
+        imageSize,
+        growthFactor,
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+                                              .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
+                                              .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 1e0)
+        )),
+        trainingMinutes,
+        Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(imageSize))),
+        phases,
+        maxIterations,
+        server,
+        styleSize
+      );
     
-      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
-          .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
-        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+      TextureGeneration.generate(
+        log,
+        styleTransfer,
+        precision,
+        imageSize,
+        growthFactor,
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+                                              .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
+                                              .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
+        )),
+        trainingMinutes,
+        Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(imageSize))),
+        phases,
+        maxIterations,
+        server,
+        styleSize
+      );
     
-      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
-          .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
-        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+      TextureGeneration.generate(
+        log,
+        styleTransfer,
+        precision,
+        imageSize,
+        growthFactor,
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+                                              .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
+                                              .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
+        )),
+        trainingMinutes,
+        Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(imageSize))),
+        phases,
+        maxIterations,
+        server,
+        styleSize
+      );
     
-      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 0)
-          .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
-        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+      TextureGeneration.generate(
+        log,
+        styleTransfer,
+        precision,
+        imageSize,
+        growthFactor,
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+                                              .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 0)
+                                              .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
+        )),
+        trainingMinutes,
+        Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(imageSize))),
+        phases,
+        maxIterations,
+        server,
+        styleSize
+      );
     
-      TextureGeneration.generate(log, styleTransfer, precision, imageSize, growthFactor, create(map ->
-        map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
-          .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 0)
-        )), trainingMinutes, TextureGeneration.initCanvas(new AtomicInteger(imageSize)), phases, maxIterations, server, styleSize);
+      TextureGeneration.generate(
+        log,
+        styleTransfer,
+        precision,
+        imageSize,
+        growthFactor,
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+                                              .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
+                                              .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 0)
+        )),
+        trainingMinutes,
+        Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(imageSize))),
+        phases,
+        maxIterations,
+        server,
+        styleSize
+      );
     });
   
     log.setFrontMatterProperty("status", "OK");

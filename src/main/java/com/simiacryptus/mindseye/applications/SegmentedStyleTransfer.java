@@ -470,7 +470,6 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   public NeuralSetup<T> measureStyle(final NotebookOutput log, final StyleSetup<T> style) {
     NeuralSetup<T> self = new NeuralSetup(style);
     List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
-    Tensor contentInput = Tensor.fromRGB(style.contentImage);
     Map<CharSequence, Tensor> styleInputs = keyList.stream().collect(Collectors.toMap(x -> x, x -> Tensor.fromRGB(style.styleImages.get(x))));
     log.h2("Style Partitioning");
     Map<Tensor, Set<Tensor>> masks = styleInputs.entrySet().stream().collect(Collectors.toMap(x -> x.getValue(), (styleInput) -> {
@@ -490,14 +489,14 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
       self.styleTargets.put(keyList.get(i), new SegmentedStyleTarget());
     });
     self.contentTarget = new ContentTarget();
-    self.contentSource = contentInput;
+    self.contentSource = style.contentImage;
     for (final T layerType : getLayerTypes()) {
       System.gc();
       Layer network = layerType.network();
       try {
         ArtistryUtil.setPrecision((DAGNetwork) network, style.precision);
         //network = new ImgTileSubnetLayer(network, 400,400,400,400);
-        Tensor content = network.eval(contentInput).getDataAndFree().getAndFree(0);
+        Tensor content = network.eval(style.contentImage).getDataAndFree().getAndFree(0);
         System.gc();
         self.contentTarget.content.put(layerType, content);
         logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
@@ -1049,7 +1048,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     /**
      * The Content image.
      */
-    public transient BufferedImage contentImage;
+    public transient Tensor contentImage;
     
     
     /**
@@ -1063,7 +1062,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
      */
     public StyleSetup(
       final Precision precision,
-      final BufferedImage contentImage,
+      final Tensor contentImage,
       ContentCoefficients contentCoefficients,
       final Map<CharSequence, BufferedImage> styleImages,
       final Map<List<CharSequence>, StyleCoefficients> styles
