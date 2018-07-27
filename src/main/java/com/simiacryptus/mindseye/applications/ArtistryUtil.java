@@ -637,4 +637,8 @@ public class ArtistryUtil {
   public static Tensor loadTensor(final CharSequence contentSource, final int width, final int height) {
     return Tensor.fromRGB(load(contentSource, width, height));
   }
+  
+  public static Tensor loadTensor(final CharSequence contentSource, final int res) {
+    return Tensor.fromRGB(load(contentSource, res));
+  }
 }

@@ -73,12 +73,16 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
     int phases = 1;
     
     log.h1("Phase 0");
-    BufferedImage canvasImage = ArtistryUtil.load(ArtistryData.CLASSIC_STYLES.get(0), imageSize.get());
-    canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
-    Tensor image = Tensor.fromRGB(TestUtil.resize(canvasImage, 16, true));
-    canvasImage = ArtistryUtil.expandPlasma(image, imageSize.get(), 1000.0, 1.1).toImageAndFree();
+    Tensor canvasImage = ArtistryUtil.loadTensor(ArtistryData.CLASSIC_STYLES.get(0), imageSize.get());
+    canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize.get(), true));
+    Tensor image = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), 16, true));
+    canvasImage = ArtistryUtil.expandPlasma(image, imageSize.get(), 1000.0, 1.1);
     image.freeRef();
-    Tensor contentImage = ArtistryUtil.loadTensor(ArtistryData.CLASSIC_CONTENT.get(0), canvasImage.getWidth(), canvasImage.getHeight());
+    Tensor contentImage = ArtistryUtil.loadTensor(
+      ArtistryData.CLASSIC_CONTENT.get(0),
+      canvasImage.getDimensions()[0],
+      canvasImage.getDimensions()[1]
+    );
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
     SegmentedStyleTransfer.StyleSetup styleSetup;
     
@@ -91,7 +95,7 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
     for (int i = 1; i < phases; i++) {
       log.h1("Phase " + i);
       imageSize.set((int) (imageSize.get() * growthFactor));
-      canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
+      canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize.get(), true));
       
       styleImages.clear();
       styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))));

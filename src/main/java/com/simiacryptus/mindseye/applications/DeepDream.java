@@ -53,7 +53,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,7 +81,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage deepDream(final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
+  public Tensor deepDream(final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes) {
     return deepDream(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, 50, true);
   }
   
@@ -99,7 +98,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage deepDream(
+  public Tensor deepDream(
     final FileHTTPD server,
     @Nonnull final NotebookOutput log,
     final Tensor canvasImage,
@@ -114,9 +113,17 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
     log.code(() -> {
       return ArtistryUtil.toJson(styleParameters);
     });
-    BufferedImage result = train(server, verbose ? log : new NullNotebookOutput(), canvasImage, network, styleParameters.precision, trainingMinutes, maxIterations);
+    Tensor result = train(
+      server,
+      verbose ? log : new NullNotebookOutput(),
+      canvasImage,
+      network,
+      styleParameters.precision,
+      trainingMinutes,
+      maxIterations
+    );
     log.p("Result:");
-    log.p(log.image(result, "Result"));
+    log.p(log.image(result.toImage(), "Result"));
     return result;
   }
   
@@ -133,7 +140,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the buffered image
    */
   @Nonnull
-  public BufferedImage train(
+  public Tensor train(
     final FileHTTPD server,
     @Nonnull final NotebookOutput log,
     final Tensor canvasImage,
@@ -160,7 +167,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
     if (null != server) ArtistryUtil.addLayersHandler(network, server);
     if (tiled) network = ArtistryUtil.tileCycle(network);
     train(log, network, canvasImage, trainingMinutes, maxIterations);
-    return canvasImage.toImage();
+    return canvasImage;
   }
   
   /**

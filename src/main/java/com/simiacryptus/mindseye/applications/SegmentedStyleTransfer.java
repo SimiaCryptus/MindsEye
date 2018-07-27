@@ -145,25 +145,6 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   }
   
   /**
-   * Style transfer buffered image.
-   *
-   * @param canvasImage     the canvas image
-   * @param styleParameters the style parameters
-   * @param trainingMinutes the training minutes
-   * @param measureStyle    the measureStyle style
-   * @return the buffered image
-   */
-  public BufferedImage transfer(
-    final BufferedImage canvasImage,
-    final StyleSetup<T> styleParameters,
-    final int trainingMinutes,
-    final NeuralSetup measureStyle
-  )
-  {
-    return transfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
-  }
-  
-  /**
    * Transfer tensor.
    *
    * @param canvasImage     the canvas image
@@ -174,44 +155,6 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    */
   public Tensor transfer(final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
     return transfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
-  }
-  
-  /**
-   * Style transfer buffered image.
-   *
-   * @param server          the server
-   * @param log             the log
-   * @param canvasImage     the canvas image
-   * @param styleParameters the style parameters
-   * @param trainingMinutes the training minutes
-   * @param measureStyle    the measureStyle style
-   * @param maxIterations   the max iterations
-   * @param verbose         the verbose
-   * @return the buffered image
-   */
-  public BufferedImage transfer(
-    final FileHTTPD server,
-    @Nonnull final NotebookOutput log,
-    final BufferedImage canvasImage,
-    final StyleSetup<T> styleParameters,
-    final int trainingMinutes,
-    final NeuralSetup measureStyle,
-    final int maxIterations,
-    final boolean verbose
-  )
-  {
-    try {
-      Tensor canvas = Tensor.fromRGB(canvasImage);
-      transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvas);
-      BufferedImage result = log.code(() -> {
-        return canvas.toImage();
-      });
-      log.p("Result:");
-      log.p(log.image(result, "Output Canvas"));
-      return result;
-    } catch (Throwable e) {
-      return canvasImage;
-    }
   }
   
   /**
@@ -455,6 +398,8 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
           .runAndFree();
         return TestUtil.plot(history);
       });
+      log.p("Result:");
+      log.p(log.image(canvas.toImage(), "Output Canvas"));
     } finally {
       trainable.freeRef();
     }

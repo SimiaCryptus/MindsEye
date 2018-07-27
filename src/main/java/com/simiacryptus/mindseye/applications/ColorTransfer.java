@@ -202,52 +202,14 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param measureStyle    the measureStyle style
    * @return the buffered image
    */
-  public BufferedImage transfer(
-    final BufferedImage canvasImage,
+  public Tensor transfer(
+    final Tensor canvasImage,
     final StyleSetup<T> styleParameters,
     final int trainingMinutes,
     final NeuralSetup measureStyle
   )
   {
     return transfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
-  }
-  
-  /**
-   * Style transfer buffered image.
-   *
-   * @param server          the server
-   * @param log             the log
-   * @param canvasImage     the canvas image
-   * @param styleParameters the style parameters
-   * @param trainingMinutes the training minutes
-   * @param measureStyle    the measureStyle style
-   * @param maxIterations   the max iterations
-   * @param verbose         the verbose
-   * @return the buffered image
-   */
-  public BufferedImage transfer(
-    final FileHTTPD server,
-    @Nonnull final NotebookOutput log,
-    final BufferedImage canvasImage,
-    final StyleSetup<T> styleParameters,
-    final int trainingMinutes,
-    final NeuralSetup measureStyle,
-    final int maxIterations,
-    final boolean verbose
-  )
-  {
-    try {
-      final Tensor canvasTensor = log.code(() -> {
-        return Tensor.fromRGB(canvasImage);
-      });
-      Tensor transfer = transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasTensor);
-      BufferedImage result = transfer.toImage();
-      log.p("Result:");
-      log.p(log.image(result, "Output Canvas"));
-      return result;
-    } catch (Throwable e) {
-      return canvasImage;
-    }
   }
   
   /**
@@ -336,23 +298,10 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       });
     }
     this.setColorForwardTransform(train(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvas));
-    return forwardTransform(canvas);
-  }
-  
-  /**
-   * Forward transform buffered image.
-   *
-   * @param canvas the canvas
-   * @return the buffered image
-   */
-  @Nonnull
-  public BufferedImage forwardTransform(final BufferedImage canvas) {
-    Tensor canvasTensor = Tensor.fromRGB(canvas);
-    Tensor tensor = forwardTransform(canvasTensor);
-    canvasTensor.freeRef();
-    BufferedImage image = tensor.toImage();
-    tensor.freeRef();
-    return image;
+    Tensor tensor = forwardTransform(canvas);
+    log.p("Result:");
+    log.p(log.image(tensor.toImage(), "Output Canvas"));
+    return tensor;
   }
   
   /**

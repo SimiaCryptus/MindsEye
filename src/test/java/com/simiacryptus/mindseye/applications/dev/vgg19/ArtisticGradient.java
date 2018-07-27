@@ -126,10 +126,13 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
                   //.set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, dreamCoeff)
                 );
               }),
-              new StyleTransfer.ContentCoefficients()
+                          new StyleTransfer.ContentCoefficients()
                 .set(CVPipe_VGG19.Layer.Layer_1c, contentMixingCoeff)
                 .set(CVPipe_VGG19.Layer.Layer_1d, contentMixingCoeff),
-              trainingMinutes, maxIterations, phases)));
+                          trainingMinutes,
+                          maxIterations,
+                          phases
+            ).toImage()));
       }));
     });
   
@@ -162,18 +165,31 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
    * @param phases              the phases
    * @return the buffered image
    */
-  public BufferedImage styleTransfer(@Nonnull final NotebookOutput log, final StyleTransfer.VGG19 styleTransfer, final Precision precision, final AtomicInteger imageSize, final double growthFactor, final CharSequence contentSource, final Map<List<CharSequence>, StyleTransfer.StyleCoefficients> styles, final StyleTransfer.ContentCoefficients contentCoefficients, final int trainingMinutes, final int maxIterations, final int phases) {
-    BufferedImage canvasImage = init(contentSource, imageSize.get());
+  public Tensor styleTransfer(
+    @Nonnull final NotebookOutput log,
+    final StyleTransfer.VGG19 styleTransfer,
+    final Precision precision,
+    final AtomicInteger imageSize,
+    final double growthFactor,
+    final CharSequence contentSource,
+    final Map<List<CharSequence>, StyleTransfer.StyleCoefficients> styles,
+    final StyleTransfer.ContentCoefficients contentCoefficients,
+    final int trainingMinutes,
+    final int maxIterations,
+    final int phases
+  )
+  {
+    Tensor canvasImage = Tensor.fromRGB(init(contentSource, imageSize.get()));
     for (int i = 0; i < phases; i++) {
       if (0 < i) {
         imageSize.set((int) (imageSize.get() * growthFactor));
-        canvasImage = TestUtil.resize(canvasImage, imageSize.get(), true);
+        canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize.get(), true));
       }
       StyleTransfer.StyleSetup styleSetup = new StyleTransfer.StyleSetup(precision,
                                                                          ArtistryUtil.loadTensor(
                                                                            contentSource,
-                                                                           canvasImage.getWidth(),
-                                                                           canvasImage.getHeight()
+                                                                           canvasImage.getDimensions()[0],
+                                                                           canvasImage.getDimensions()[1]
                                                                          ),
                                                                          contentCoefficients, create(y -> y.putAll(styles.keySet().stream().flatMap(x -> x.stream())
         .collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))))), styles);
