@@ -44,6 +44,7 @@ import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.io.NullNotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
@@ -126,8 +127,9 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   public BufferedImage train(final FileHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, PipelineNetwork network, final Precision precision, final int trainingMinutes, final int maxIterations) {
     System.gc();
     Tensor canvas = Tensor.fromRGB(canvasImage);
-    log.p("<a href=\"/image.jpg\"><img src=\"/image.jpg\"></a>");
-    log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
+    String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
+    log.getHttpd().addHandler(imageName + ".jpg", imageName + "/jpeg", r -> {
       try {
         ImageIO.write(canvas.toImage(), "jpeg", r);
       } catch (IOException e) {
@@ -156,8 +158,9 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   public void train(@Nonnull final NotebookOutput log, final PipelineNetwork network, final Tensor canvas, final int trainingMinutes, final int maxIterations) {
     @Nonnull Trainable trainable = getTrainable(network, canvas);
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
-    log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+    String trainingName = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + trainingName + ".jpg\"><img src=\"/" + trainingName + ".jpg\"></a>");
+    log.getHttpd().addHandler(trainingName + ".jpg", "image/jpeg", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
       } catch (IOException e) {

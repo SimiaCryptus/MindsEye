@@ -55,6 +55,7 @@ import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.JsonUtil;
+import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.io.NullNotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
@@ -201,7 +202,13 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param measureStyle    the measureStyle style
    * @return the buffered image
    */
-  public BufferedImage transfer(final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
+  public BufferedImage transfer(
+    final BufferedImage canvasImage,
+    final StyleSetup<T> styleParameters,
+    final int trainingMinutes,
+    final NeuralSetup measureStyle
+  )
+  {
     return transfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
   }
   
@@ -218,7 +225,17 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param verbose         the verbose
    * @return the buffered image
    */
-  public BufferedImage transfer(final FileHTTPD server, @Nonnull final NotebookOutput log, final BufferedImage canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
+  public BufferedImage transfer(
+    final FileHTTPD server,
+    @Nonnull final NotebookOutput log,
+    final BufferedImage canvasImage,
+    final StyleSetup<T> styleParameters,
+    final int trainingMinutes,
+    final NeuralSetup measureStyle,
+    final int maxIterations,
+    final boolean verbose
+  )
+  {
     try {
       final Tensor canvasTensor = log.code(() -> {
         return Tensor.fromRGB(canvasImage);
@@ -246,7 +263,17 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @param verbose         the verbose
    * @return the buffered image
    */
-  public Tensor transfer(final FileHTTPD server, @Nonnull final NotebookOutput log, final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose) {
+  public Tensor transfer(
+    final FileHTTPD server,
+    @Nonnull final NotebookOutput log,
+    final Tensor canvasImage,
+    final StyleSetup<T> styleParameters,
+    final int trainingMinutes,
+    final NeuralSetup measureStyle,
+    final int maxIterations,
+    final boolean verbose
+  )
+  {
     try {
       Tensor result = canvasImage.set(transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasImage));
       log.p("Result:");
@@ -272,7 +299,17 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the tensor
    */
   @Nonnull
-  public Tensor transfer(final FileHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
+  public Tensor transfer(
+    final FileHTTPD server,
+    @Nonnull final NotebookOutput log,
+    final StyleSetup<T> styleParameters,
+    final int trainingMinutes,
+    final NeuralSetup measureStyle,
+    final int maxIterations,
+    final boolean verbose,
+    final Tensor canvas
+  )
+  {
 //      log.p("Input Content:");
 //      log.p(log.image(styleParameters.contentImage, "Content Image"));
 //      log.p("Style Content:");
@@ -283,8 +320,9 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
 //      log.p(log.image(canvasImage, "Input Canvas"));
     System.gc();
     TestUtil.monitorImage(canvas, false, false);
-    log.p("<a href=\"/image.jpg\"><img src=\"/image.jpg\"></a>");
-    log.getHttpd().addHandler("image.jpg", "image/jpeg", r -> {
+    String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
+    log.getHttpd().addHandler(imageName + ".jpg", "image/jpeg", r -> {
       try {
         if (canvas.isValid()) ImageIO.write(canvas.toImage(), "jpeg", r);
       } catch (IOException e) {
@@ -309,23 +347,12 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    */
   @Nonnull
   public BufferedImage forwardTransform(final BufferedImage canvas) {
-    Tensor canvas1 = Tensor.fromRGB(canvas);
-    Tensor tensor = forwardTransform(canvas1);
-    canvas1.freeRef();
+    Tensor canvasTensor = Tensor.fromRGB(canvas);
+    Tensor tensor = forwardTransform(canvasTensor);
+    canvasTensor.freeRef();
     BufferedImage image = tensor.toImage();
     tensor.freeRef();
     return image;
-  }
-  
-  /**
-   * Inverse transform buffered image.
-   *
-   * @param canvas the canvas
-   * @return the buffered image
-   */
-  @Nonnull
-  public BufferedImage inverseTransform(final BufferedImage canvas) {
-    return inverseTransform(Tensor.fromRGB(canvas)).toImage();
   }
   
   /**
@@ -366,7 +393,8 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   public Layer getFwdTransform() {
     SimpleConvolutionLayer colorForwardTransform = getColorForwardTransform();
     if (null == colorForwardTransform) return unitTransformer();
-    return PipelineNetwork.wrap(1,
+    return PipelineNetwork.wrap(
+      1,
       colorForwardTransform,
       ArtistryUtil.getClamp(255)
     );
@@ -382,9 +410,13 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     PipelineNetwork network = new PipelineNetwork(1);
     SimpleConvolutionLayer colorForwardTransform = getColorForwardTransform();
     if (null == colorForwardTransform) return unitTransformer();
-    network.wrap(ArtistryUtil.getClamp(255),
-      network.wrap(invert(colorForwardTransform),
-        network.getInput(0))).freeRef();
+    network.wrap(
+      ArtistryUtil.getClamp(255),
+      network.wrap(
+        invert(colorForwardTransform),
+        network.getInput(0)
+      )
+    ).freeRef();
     return network;
   }
   
@@ -402,7 +434,17 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the simple convolution layer
    */
   @Nonnull
-  public SimpleConvolutionLayer train(final FileHTTPD server, @Nonnull final NotebookOutput log, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle, final int maxIterations, final boolean verbose, final Tensor canvas) {
+  public SimpleConvolutionLayer train(
+    final FileHTTPD server,
+    @Nonnull final NotebookOutput log,
+    final StyleSetup<T> styleParameters,
+    final int trainingMinutes,
+    final NeuralSetup measureStyle,
+    final int maxIterations,
+    final boolean verbose,
+    final Tensor canvas
+  )
+  {
     NotebookOutput trainingLog = verbose ? log : new NullNotebookOutput();
     SimpleConvolutionLayer colorForwardTransform = unitTransformer();
     Trainable trainable = trainingLog.code(() -> {
@@ -411,10 +453,16 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       TestUtil.instrumentPerformance(network);
       if (null != server) ArtistryUtil.addLayersHandler(network, server);
       PipelineNetwork trainingAssembly = new PipelineNetwork(1);
-      trainingAssembly.wrap(network,
-        trainingAssembly.wrap(ArtistryUtil.getClamp(255),
-          trainingAssembly.add(colorForwardTransform,
-            trainingAssembly.getInput(0)))).freeRef();
+      trainingAssembly.wrap(
+        network,
+        trainingAssembly.wrap(
+          ArtistryUtil.getClamp(255),
+          trainingAssembly.add(
+            colorForwardTransform,
+            trainingAssembly.getInput(0)
+          )
+        )
+      ).freeRef();
       ArtistryUtil.setPrecision(trainingAssembly, styleParameters.precision);
       Trainable trainable1 = new ArrayTrainable(trainingAssembly, 1).setVerbose(true).setMask(false).setData(Arrays.asList(new Tensor[][]{{canvas}}));
       trainingAssembly.freeRef();
@@ -422,8 +470,9 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     });
     try {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
-      log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+      String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+      log.p("<a href=\"/" + training_name + ".jpg\"><img src=\"/" + training_name + ".jpg\"></a>");
+      log.getHttpd().addHandler(training_name + ".jpg", "image/jpeg", r -> {
         try {
           BufferedImage im = Util.toImage(TestUtil.plot(history));
           if (null != im) ImageIO.write(im, "jpeg", r);
@@ -481,7 +530,15 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the style components
    */
   @Nonnull
-  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(final DAGNode node, final PipelineNetwork network, final LayerStyleParams styleParams, final Tensor mean, final Tensor covariance, final CenteringMode centeringMode) {
+  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(
+    final DAGNode node,
+    final PipelineNetwork network,
+    final LayerStyleParams styleParams,
+    final Tensor mean,
+    final Tensor covariance,
+    final CenteringMode centeringMode
+  )
+  {
     ArrayList<Tuple2<Double, DAGNode>> styleComponents = new ArrayList<>();
     if (null != styleParams && (styleParams.cov != 0 || styleParams.mean != 0 || styleParams.enhance != 0)) {
       InnerNode negTarget = null == mean ? null : network.wrap(new ValueLayer(mean.scale(-1)), new DAGNode[]{});
@@ -507,10 +564,16 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         double covRms = null == covariance ? 1.0 : covariance.rms();
         if (styleParams.enhance != 0) {
           recentered.addRef();
-          styleComponents.add(new Tuple2<>(-(0 == covRms ? styleParams.enhance : styleParams.enhance / covRms),
-            network.wrap(new AvgReducerLayer(),
-              network.wrap(new SquareActivationLayer(),
-                recentered))));
+          styleComponents.add(new Tuple2<>(
+            -(0 == covRms ? styleParams.enhance : styleParams.enhance / covRms),
+            network.wrap(
+              new AvgReducerLayer(),
+              network.wrap(
+                new SquareActivationLayer(),
+                recentered
+              )
+            )
+          ));
         }
         if (styleParams.cov != 0) {
           int[] covDim = covariance.getDimensions();
@@ -521,9 +584,11 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           assert 0 < outputBands : Arrays.toString(covDim) + " / " + inputBands;
           double covScale = 0 == covRms ? 1 : 1.0 / covRms;
           recentered.addRef();
-          styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(new MeanSqLossLayer().setAlpha(covScale),
+          styleComponents.add(new Tuple2<>(styleParams.cov, network.wrap(
+            new MeanSqLossLayer().setAlpha(covScale),
             network.wrap(new ValueLayer(covariance), new DAGNode[]{}),
-            network.wrap(new GramianLayer(), recentered))
+            network.wrap(new GramianLayer(), recentered)
+          )
           ));
         }
         recentered.freeRef();
@@ -534,7 +599,8 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       if (styleParams.mean != 0) {
         double meanRms = mean.rms();
         double meanScale = 0 == meanRms ? 1 : 1.0 / meanRms;
-        styleComponents.add(new Tuple2<>(styleParams.mean,
+        styleComponents.add(new Tuple2<>(
+          styleParams.mean,
           network.wrap(new MeanSqLossLayer().setAlpha(meanScale), negAvg, negTarget)
         ));
       }
@@ -574,13 +640,18 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         if (null != content) {
           self.contentTarget.content.put(layerType, content);
           logger.info(String.format("%s : target content = %s", layerType.name(), content.prettyPrint()));
-          logger.info(String.format("%s : content statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(content.getData()).getMetrics())));
+          logger.info(String.format(
+            "%s : content statistics = %s",
+            layerType.name(),
+            JsonUtil.toJson(new ScalarStatistics().add(content.getData()).getMetrics())
+          ));
         }
         for (int i = 0; i < styleInputs.size(); i++) {
           Tensor styleInput = styleInputs.get(i);
           CharSequence key = keyList.get(i);
           StyleTarget<T> styleTarget = self.styleTargets.get(key);
-          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
+          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(
+            layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
             continue;
           System.gc();
           Layer wrapAvg = ArtistryUtil.wrapTiledAvg(network.copy(), 400);
@@ -588,8 +659,13 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           wrapAvg.freeRef();
           styleTarget.mean.put(layerType, mean);
           logger.info(String.format("%s : style mean = %s", layerType.name(), mean.prettyPrint()));
-          logger.info(String.format("%s : mean statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())));
-          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
+          logger.info(String.format(
+            "%s : mean statistics = %s",
+            layerType.name(),
+            JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())
+          ));
+          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(
+            layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
             continue;
           System.gc();
           Layer gram = ArtistryUtil.wrapTiledAvg(ArtistryUtil.gram(network.copy()), 400);
@@ -603,10 +679,26 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           int featureBands = mean.getDimensions()[2];
           int covarianceElements = cov1.getDimensions()[2];
           int selectedBands = covarianceElements / featureBands;
-          logger.info(String.format("%s : target cov0 = %s", layerType.name(), cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
-          logger.info(String.format("%s : cov0 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())));
-          logger.info(String.format("%s : target cov1 = %s", layerType.name(), cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()));
-          logger.info(String.format("%s : cov1 statistics = %s", layerType.name(), JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())));
+          logger.info(String.format(
+            "%s : target cov0 = %s",
+            layerType.name(),
+            cov0.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()
+          ));
+          logger.info(String.format(
+            "%s : cov0 statistics = %s",
+            layerType.name(),
+            JsonUtil.toJson(new ScalarStatistics().add(cov0.getData()).getMetrics())
+          ));
+          logger.info(String.format(
+            "%s : target cov1 = %s",
+            layerType.name(),
+            cov1.reshapeCast(featureBands, selectedBands, 1).prettyPrintAndFree()
+          ));
+          logger.info(String.format(
+            "%s : cov1 statistics = %s",
+            layerType.name(),
+            JsonUtil.toJson(new ScalarStatistics().add(cov1.getData()).getMetrics())
+          ));
         }
       } finally {
         network.freeRef();
@@ -730,7 +822,8 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           final PipelineNetwork network = (PipelineNetwork) node.getNetwork();
           assert network != null;
           InnerNode innerNode = network.wrap(new MeanSqLossLayer().setAlpha(1.0 / content.rms()),
-            node, network.wrap(new ValueLayer(content), new DAGNode[]{}));
+                                             node, network.wrap(new ValueLayer(content), new DAGNode[]{})
+          );
           contentComponents.add(new Tuple2<>(coeff_content, innerNode));
         }
       }
@@ -922,7 +1015,14 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
      * @param styleImages         the style image
      * @param styles              the styles
      */
-    public StyleSetup(final Precision precision, final BufferedImage contentImage, ContentCoefficients contentCoefficients, final Map<CharSequence, BufferedImage> styleImages, final Map<List<CharSequence>, StyleCoefficients> styles) {
+    public StyleSetup(
+      final Precision precision,
+      final BufferedImage contentImage,
+      ContentCoefficients contentCoefficients,
+      final Map<CharSequence, BufferedImage> styleImages,
+      final Map<List<CharSequence>, StyleCoefficients> styles
+    )
+    {
       this.precision = precision;
       this.contentImage = contentImage;
       this.styleImages = styleImages;
@@ -965,7 +1065,14 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
      * @param coeff_style_cov  the coeff style bandCovariance
      * @return the style coefficients
      */
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {return set(layerType, coeff_style_mean, coeff_style_cov, 0.0);}
+    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
+      return set(
+        layerType,
+        coeff_style_mean,
+        coeff_style_cov,
+        0.0
+      );
+    }
     
     /**
      * Set style coefficients.

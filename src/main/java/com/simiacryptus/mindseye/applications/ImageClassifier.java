@@ -47,6 +47,7 @@ import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
+import com.simiacryptus.util.io.MarkdownNotebookOutput;
 import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +108,14 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<CharSequence, Double>> predict(@Nonnull Layer network, int count, @Nonnull List<CharSequence> categories, int batchSize, Tensor... data) {
+  public static List<LinkedHashMap<CharSequence, Double>> predict(
+    @Nonnull Layer network,
+    int count,
+    @Nonnull List<CharSequence> categories,
+    int batchSize,
+    Tensor... data
+  )
+  {
     return predict(network, count, categories, batchSize, true, false, data);
   }
   
@@ -123,7 +131,16 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data       the data
    * @return the list
    */
-  public static List<LinkedHashMap<CharSequence, Double>> predict(@Nonnull Layer network, int count, @Nonnull List<CharSequence> categories, int batchSize, boolean asyncGC, boolean nullGC, Tensor[] data) {
+  public static List<LinkedHashMap<CharSequence, Double>> predict(
+    @Nonnull Layer network,
+    int count,
+    @Nonnull List<CharSequence> categories,
+    int batchSize,
+    boolean asyncGC,
+    boolean nullGC,
+    Tensor[] data
+  )
+  {
     try {
       return Lists.partition(Arrays.asList(data), 1).stream().flatMap(batch -> {
         Tensor[][] input = {
@@ -140,8 +157,8 @@ public abstract class ImageClassifier implements NetworkFactory {
         List<LinkedHashMap<CharSequence, Double>> maps = resultData.stream().map(tensor -> {
           @Nullable double[] predictionSignal = tensor.getData();
           int[] order = IntStream.range(0, 1000).mapToObj(x -> x)
-            .sorted(Comparator.comparing(i -> -predictionSignal[i]))
-            .mapToInt(x -> x).toArray();
+                          .sorted(Comparator.comparing(i -> -predictionSignal[i]))
+                          .mapToInt(x -> x).toArray();
           assert categories.size() == predictionSignal.length;
           @Nonnull LinkedHashMap<CharSequence, Double> topN = new LinkedHashMap<>();
           for (int i = 0; i < count; i++) {
@@ -185,7 +202,12 @@ public abstract class ImageClassifier implements NetworkFactory {
       try {
         if (explode instanceof DAGNetwork) {
           ((DAGNetwork) explode).visitNodes(node -> name(node.getLayer()));
-          log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), ((DAGNetwork) explode).getNodes().size()));
+          log.info(String.format(
+            "Exploded %s to %s (%s nodes)",
+            layer.getName(),
+            explode.getClass().getSimpleName(),
+            ((DAGNetwork) explode).getNodes().size()
+          ));
         }
         else {
           log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getName()));
@@ -217,9 +239,10 @@ public abstract class ImageClassifier implements NetworkFactory {
     try {
       @Nonnull int[] new_dimensions = newPrototype.getDimensions();
       log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
-        cnt, layer, numberOfParameters, //
-        Arrays.toString(prev_dimensions), Tensor.length(prev_dimensions), //
-        Arrays.toString(new_dimensions), Tensor.length(new_dimensions)));
+                             cnt, layer, numberOfParameters, //
+                             Arrays.toString(prev_dimensions), Tensor.length(prev_dimensions), //
+                             Arrays.toString(new_dimensions), Tensor.length(new_dimensions)
+      ));
       return newPrototype.get(0);
     } finally {
       newPrototype.freeRef();
@@ -238,18 +261,23 @@ public abstract class ImageClassifier implements NetworkFactory {
       }
       else if (layer instanceof SimpleConvolutionLayer) {
         layer.setName(String.format("%s: %s", layer.getClass().getSimpleName(),
-          Arrays.toString(((SimpleConvolutionLayer) layer).getKernelDimensions())));
+                                    Arrays.toString(((SimpleConvolutionLayer) layer).getKernelDimensions())
+        ));
       }
       else if (layer instanceof FullyConnectedLayer) {
-        layer.setName(String.format("%s:%sx%s",
+        layer.setName(String.format(
+          "%s:%sx%s",
           layer.getClass().getSimpleName(),
           Arrays.toString(((FullyConnectedLayer) layer).inputDims),
-          Arrays.toString(((FullyConnectedLayer) layer).outputDims)));
+          Arrays.toString(((FullyConnectedLayer) layer).outputDims)
+        ));
       }
       else if (layer instanceof BiasLayer) {
-        layer.setName(String.format("%s:%s",
+        layer.setName(String.format(
+          "%s:%s",
           layer.getClass().getSimpleName(),
-          ((BiasLayer) layer).bias.length));
+          ((BiasLayer) layer).bias.length
+        ));
       }
     }
   }
@@ -276,8 +304,9 @@ public abstract class ImageClassifier implements NetworkFactory {
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image) {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
-    log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+    String trainingName = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + trainingName + ".jpg\"><img src=\"/" + trainingName + ".jpg\"></a>");
+    log.getHttpd().addHandler(trainingName + ".jpg", "image/jpeg", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
       } catch (IOException e) {
@@ -297,7 +326,10 @@ public abstract class ImageClassifier implements NetworkFactory {
 //        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(image), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
 //      });
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
-      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(Arrays.<Tensor[]>asList(new Tensor[]{image}));
+      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(
+        true,
+        false
+      ).setData(Arrays.<Tensor[]>asList(new Tensor[]{image}));
       new IterativeTrainer(trainable)
         .setMonitor(getTrainingMonitor(history, supervised))
         .setOrientation(new QQN())
@@ -317,7 +349,13 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param data       the data
    * @return the list
    */
-  public List<LinkedHashMap<CharSequence, Double>> predict(@Nonnull Layer network, int count, @Nonnull List<CharSequence> categories, @Nonnull Tensor... data) {
+  public List<LinkedHashMap<CharSequence, Double>> predict(
+    @Nonnull Layer network,
+    int count,
+    @Nonnull List<CharSequence> categories,
+    @Nonnull Tensor... data
+  )
+  {
     return predict(network, count, categories, Math.max(data.length, getBatchSize()), data);
   }
   
@@ -381,7 +419,14 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param totalCategories     the total categories
    * @param config              the config
    */
-  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config) {deepDream(log, image, targetCategoryIndex, totalCategories, config, getNetwork(), new EntropyLossLayer(), -1.0);}
+  public void deepDream(
+    @Nonnull final NotebookOutput log,
+    final Tensor image,
+    final int targetCategoryIndex,
+    final int totalCategories,
+    Function<IterativeTrainer, IterativeTrainer> config
+  )
+  {deepDream(log, image, targetCategoryIndex, totalCategories, config, getNetwork(), new EntropyLossLayer(), -1.0);}
   
   @Nonnull
   @Override
@@ -427,7 +472,17 @@ public abstract class ImageClassifier implements NetworkFactory {
    * @param lossLayer           the loss layer
    * @param targetValue         the target value
    */
-  public void deepDream(@Nonnull final NotebookOutput log, final Tensor image, final int targetCategoryIndex, final int totalCategories, Function<IterativeTrainer, IterativeTrainer> config, final Layer network, final Layer lossLayer, final double targetValue) {
+  public void deepDream(
+    @Nonnull final NotebookOutput log,
+    final Tensor image,
+    final int targetCategoryIndex,
+    final int totalCategories,
+    Function<IterativeTrainer, IterativeTrainer> config,
+    final Layer network,
+    final Layer lossLayer,
+    final double targetValue
+  )
+  {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
       image, new Tensor(1, 1, totalCategories).set(targetCategoryIndex, targetValue)
     });
@@ -437,8 +492,9 @@ public abstract class ImageClassifier implements NetworkFactory {
       }
     });
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    log.p("<a href=\"/training.jpg\"><img src=\"/training.jpg\"></a>");
-    log.getHttpd().addHandler("training.jpg", "image/jpeg", r -> {
+    String trainingName = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + trainingName + ".jpg\"><img src=\"/" + trainingName + ".jpg\"></a>");
+    log.getHttpd().addHandler(trainingName + ".jpg", "image/jpeg", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
       } catch (IOException e) {
@@ -452,10 +508,14 @@ public abstract class ImageClassifier implements NetworkFactory {
       clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
       clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
       @Nonnull PipelineNetwork supervised = new PipelineNetwork(2);
-      supervised.wrap(lossLayer,
-        supervised.add(network.freeze(),
-          supervised.wrap(clamp, supervised.getInput(0))),
-        supervised.getInput(1)).freeRef();
+      supervised.wrap(
+        lossLayer,
+        supervised.add(
+          network.freeze(),
+          supervised.wrap(clamp, supervised.getInput(0))
+        ),
+        supervised.getInput(1)
+      ).freeRef();
 //      TensorList[] gpuInput = data.stream().buildMap(data1 -> {
 //        return CudnnHandle.apply(gpu -> {
 //          Precision precision = Precision.Float;
@@ -463,13 +523,13 @@ public abstract class ImageClassifier implements NetworkFactory {
 //        });
 //      }).toArray(i -> new TensorList[i]);
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
-    
+  
       @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(true, false).setData(data);
       config.apply(new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history, supervised))
-        .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(60, TimeUnit.MINUTES))
+                     .setMonitor(getTrainingMonitor(history, supervised))
+                     .setOrientation(new QQN())
+                     .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+                     .setTimeout(60, TimeUnit.MINUTES))
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       return TestUtil.plot(history);
