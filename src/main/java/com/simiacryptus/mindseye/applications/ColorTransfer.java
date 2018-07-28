@@ -247,41 +247,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   {
     canvasImage.assertAlive();
     try {
-      Tensor result = canvasImage.set(transfer(log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasImage));
-      log.p("Result:");
-      log.p(log.image(result.toImage(), "Output Canvas"));
-      result.assertAlive();
-      return result;
-    } catch (Throwable e) {
-      logger.warn("Error in color transfer", e);
-      return canvasImage;
-    }
-  }
-  
-  /**
-   * Transfer tensor.
-   *
-   * @param log             the log
-   * @param styleParameters the style parameters
-   * @param trainingMinutes the training minutes
-   * @param measureStyle    the measureStyle style
-   * @param maxIterations   the max iterations
-   * @param verbose         the verbose
-   * @param canvas          the canvas
-   * @return the tensor
-   */
-  @Nonnull
-  public Tensor transfer(
-    @Nonnull final NotebookOutput log,
-    final StyleSetup<T> styleParameters,
-    final int trainingMinutes,
-    final NeuralSetup measureStyle,
-    final int maxIterations,
-    final boolean verbose,
-    final Tensor canvas
-  )
-  {
-//      log.p("Input Content:");
+      //      log.p("Input Content:");
 //      log.p(log.image(styleParameters.contentImage, "Content Image"));
 //      log.p("Style Content:");
 //      styleParameters.styleImages.forEach((file, styleImage) -> {
@@ -289,33 +255,37 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
 //      });
 //      log.p("Input Canvas:");
 //      log.p(log.image(canvasImage, "Input Canvas"));
-    System.gc();
-    TestUtil.monitorImage(canvas, false, false);
-    String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
-    log.getHttpd().addHandler(imageName + ".jpg", "image/jpeg", r -> {
+      System.gc();
+      TestUtil.monitorImage(canvasImage, false, false);
+      String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+      log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
+      log.getHttpd().addHandler(imageName + ".jpg", "image/jpeg", r -> {
+        try {
+          ImageIO.write(canvasImage.toImage(), "jpeg", r);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+      if (verbose) {
+        log.p("Input Parameters:");
+        log.code(() -> {
+          return ArtistryUtil.toJson(styleParameters);
+        });
+      }
+      this.setColorForwardTransform(train(log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasImage));
       try {
-        ImageIO.write(canvas.toImage(), "jpeg", r);
+        ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName + ".jpg"));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    });
-    if (verbose) {
-      log.p("Input Parameters:");
-      log.code(() -> {
-        return ArtistryUtil.toJson(styleParameters);
-      });
+      Tensor result = forwardTransform(canvasImage);
+      log.p("Result:");
+      log.p(log.image(result.toImage(), "Output Canvas"));
+      return canvasImage.set(result);
+    } catch (Throwable e) {
+      logger.warn("Error in color transfer", e);
+      return canvasImage;
     }
-    this.setColorForwardTransform(train(log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvas));
-    try {
-      ImageIO.write(canvas.toImage(), "jpeg", log.file(imageName + ".jpg"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    Tensor tensor = forwardTransform(canvas);
-    log.p("Result:");
-    log.p(log.image(tensor.toImage(), "Output Canvas"));
-    return tensor;
   }
   
   /**

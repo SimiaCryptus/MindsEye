@@ -144,19 +144,6 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
   }
   
   /**
-   * Transfer tensor.
-   *
-   * @param canvasImage     the canvas image
-   * @param styleParameters the style parameters
-   * @param trainingMinutes the training minutes
-   * @param measureStyle    the measureStyle style
-   * @return the tensor
-   */
-  public Tensor transfer(final Tensor canvasImage, final StyleSetup<T> styleParameters, final int trainingMinutes, final NeuralSetup measureStyle) {
-    return transfer(new NullNotebookOutput(), styleParameters, trainingMinutes, measureStyle, 50, true, canvasImage);
-  }
-  
-  /**
    * Alpha map map.
    *
    * @param styleInput the style input
@@ -304,16 +291,6 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     );
     System.gc();
     log.h2("Content Painting");
-    TestUtil.monitorImage(canvas, false, false);
-    String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
-    log.getHttpd().addHandler(imageName + ".jpg", "image/jpeg", r -> {
-      try {
-        ImageIO.write(canvas.toImage(), "jpeg", r);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
     if (verbose) {
       log.p("Input Parameters:");
       log.code(() -> {
@@ -321,6 +298,16 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
       });
     }
     final FileHTTPD server = log.getHttpd();
+    TestUtil.monitorImage(canvas, false, false);
+    String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
+    server.addHandler(imageName + ".jpg", "image/jpeg", r -> {
+      try {
+        ImageIO.write(canvas.toImage(), "jpeg", r);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
     Trainable trainable = trainingLog.code(() -> {
       PipelineNetwork network = fitnessNetwork(measureStyle, masks);
       network.setFrozen(true);
@@ -359,7 +346,6 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
           .setTimeout(trainingMinutes, TimeUnit.MINUTES)
           .setTerminateThreshold(Double.NEGATIVE_INFINITY)
           .runAndFree();
-        return TestUtil.plot(history);
       });
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name + ".png"));
@@ -443,7 +429,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
       }
     }
     masks.forEach((k, v) -> {
-      k.freeRef();
+      //k.freeRef();
       v.forEach(ReferenceCountingBase::freeRef);
     });
     return self;
