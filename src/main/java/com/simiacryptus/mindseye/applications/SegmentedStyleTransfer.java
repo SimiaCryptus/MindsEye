@@ -380,10 +380,14 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    * @param style the style
    * @return the neural setup
    */
-  public NeuralSetup<T> measureStyle(final NotebookOutput log, final StyleSetup<T> style) {
-    NeuralSetup<T> self = new NeuralSetup(style);
+  public NeuralSetup measureStyle(final NotebookOutput log, final StyleSetup<T> style) {
+    NeuralSetup self = new NeuralSetup(style);
     List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
-    Map<CharSequence, Tensor> styleInputs = keyList.stream().collect(Collectors.toMap(x -> x, x -> style.styleImages.get(x)));
+    Map<CharSequence, Tensor> styleInputs = keyList.stream().collect(Collectors.toMap(x -> x, x -> {
+      Tensor tensor = style.styleImages.get(x);
+      tensor.assertAlive();
+      return tensor;
+    }));
     log.h2("Style Partitioning");
     Map<Tensor, Set<Tensor>> masks = styleInputs.entrySet().stream().collect(Collectors.toMap(x -> x.getValue(), (styleInput) -> {
       Set<Tensor> masks1 = getMasks(
@@ -399,9 +403,9 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     }));
     log.h2("Style Measurement");
     IntStream.range(0, keyList.size()).forEach(i -> {
-      self.styleTargets.put(keyList.get(i), new SegmentedStyleTarget());
+      self.styleTargets.put(keyList.get(i), new SegmentedStyleTarget<>());
     });
-    self.contentTarget = new ContentTarget();
+    self.contentTarget = new ContentTarget<>();
     self.contentSource = style.contentImage;
     for (final T layerType : getLayerTypes()) {
       System.gc();
@@ -421,13 +425,13 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
         for (Map.Entry<CharSequence, Tensor> styleEntry : styleInputs.entrySet()) {
           CharSequence key = styleEntry.getKey();
           SegmentedStyleTarget<T> segmentedStyleTarget = self.styleTargets.get(key);
-          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(
+          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> x.getValue().params.get(
             layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
             continue;
           Tensor styleInput = styleEntry.getValue();
           alphaMap(styleInput, masks.get(styleInput)).forEach((mask, styleMask) -> {
             StyleTarget<T> styleTarget = segmentedStyleTarget.getSegment(mask);
-            if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(
+            if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> x.getValue().params.get(
               layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
               return;
             measureStyle(network, styleTarget, layerType, styleMask, 800);
@@ -484,9 +488,9 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
       measureStyle(network, styleTarget, layerType, image);
     }
     else {
-      StyleTarget tiledStyle = IntStream.range(0, rows).mapToObj(x -> x).flatMap(row -> {
+      StyleTarget<T> tiledStyle = IntStream.range(0, rows).mapToObj(x -> x).flatMap(row -> {
         return IntStream.range(0, cols).mapToObj(col -> {
-          StyleTarget styleTarget1 = new StyleTarget();
+          StyleTarget<T> styleTarget1 = new StyleTarget<>();
           int positionX = col * strideX;
           int positionY = row * strideY;
           assert positionX >= 0;
@@ -498,12 +502,12 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
           tileSelectLayer.freeRef();
           double factor = (double) selectedTile.length() / image.length();
           measureStyle(network, styleTarget1, layerType, selectedTile);
-          StyleTarget scale = styleTarget1.scale(factor);
+          StyleTarget<T> scale = styleTarget1.scale(factor);
           styleTarget1.freeRef();
           return scale;
         });
       }).reduce((a, b) -> {
-        StyleTarget add = a.add(b);
+        StyleTarget<T> add = a.add(b);
         a.freeRef();
         b.freeRef();
         return add;
@@ -514,13 +518,13 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     }
   }
   
-  public void put(final StyleTarget fromStyle, final StyleTarget<T> toStyle) {
+  public void put(final StyleTarget<T> fromStyle, final StyleTarget<T> toStyle) {
     toStyle.mean.putAll(fromStyle.mean);
-    ((Stream<Tensor>) fromStyle.mean.values().stream()).forEach(ReferenceCountingBase::addRef);
+    fromStyle.mean.values().stream().forEach(ReferenceCountingBase::addRef);
     toStyle.cov0.putAll(fromStyle.cov0);
-    ((Stream<Tensor>) fromStyle.cov0.values().stream()).forEach(ReferenceCountingBase::addRef);
+    fromStyle.cov0.values().stream().forEach(ReferenceCountingBase::addRef);
     toStyle.cov1.putAll(fromStyle.cov1);
-    ((Stream<Tensor>) fromStyle.cov1.values().stream()).forEach(ReferenceCountingBase::addRef);
+    fromStyle.cov1.values().stream().forEach(ReferenceCountingBase::addRef);
   }
   
   public void measureStyle(final Layer network, final StyleTarget<T> styleTarget, final T layerType, final Tensor image) {
@@ -590,7 +594,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    */
   @Nonnull
   public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(
-    NeuralSetup<T> setup,
+    NeuralSetup setup,
     final Map<T, DAGNode> nodeMap,
     final Function<SegmentedStyleTarget<T>, StyleTarget<T>> selector
   )
@@ -730,7 +734,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
    * @return the content components
    */
   @Nonnull
-  public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
+  public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(NeuralSetup setup, final Map<T, DAGNode> nodeMap) {
     ArrayList<Tuple2<Double, DAGNode>> contentComponents = new ArrayList<>();
     for (final T layerType : getLayerTypes()) {
       final DAGNode node = nodeMap.get(layerType);
@@ -901,7 +905,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
      * @param v the v
      * @return the content coefficients
      */
-    public ContentCoefficients set(final T l, final double v) {
+    public ContentCoefficients<T> set(final T l, final double v) {
       params.put(l, v);
       return this;
     }
@@ -953,7 +957,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     /**
      * The Styles.
      */
-    public final Map<List<CharSequence>, StyleCoefficients> styles;
+    public final Map<List<CharSequence>, StyleCoefficients<T>> styles;
     /**
      * The Content.
      */
@@ -976,9 +980,9 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     public StyleSetup(
       final Precision precision,
       final Tensor contentImage,
-      ContentCoefficients contentCoefficients,
+      ContentCoefficients<T> contentCoefficients,
       final Map<CharSequence, Tensor> styleImages,
-      final Map<List<CharSequence>, StyleCoefficients> styles
+      final Map<List<CharSequence>, StyleCoefficients<T>> styles
     )
     {
       if (!styleImages.values().stream().allMatch(x -> x instanceof Tensor)) throw new AssertionError();
@@ -1024,7 +1028,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
      * @param coeff_style_cov  the coeff style bandCovariance
      * @return the style coefficients
      */
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
+    public StyleCoefficients<T> set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
       return set(
         layerType,
         coeff_style_mean,
@@ -1042,7 +1046,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
      * @param dream            the dream
      * @return the style coefficients
      */
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov, final double dream) {
+    public StyleCoefficients<T> set(final T layerType, final double coeff_style_mean, final double coeff_style_cov, final double dream) {
       params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov, dream));
       return this;
     }
@@ -1199,12 +1203,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     
   }
   
-  /**
-   * The type Neural setup.
-   *
-   * @param <T> the type parameter
-   */
-  public class NeuralSetup<T extends LayerEnum<T>> {
+  public class NeuralSetup {
     
     /**
      * The Style parameters.
@@ -1213,7 +1212,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     /**
      * The Content target.
      */
-    public ContentTarget<T> contentTarget = new ContentTarget();
+    public ContentTarget<T> contentTarget = new ContentTarget<>();
     /**
      * The Style targets.
      */
@@ -1229,7 +1228,7 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
      *
      * @param style the style
      */
-    public NeuralSetup(final StyleSetup style) {this.style = style;}
+    public NeuralSetup(final StyleSetup<T> style) {this.style = style;}
   }
   
   public static class MaskJob {

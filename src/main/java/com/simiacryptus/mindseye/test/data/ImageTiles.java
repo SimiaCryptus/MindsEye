@@ -244,7 +244,7 @@ public class ImageTiles {
         try {
           queue.addAll(ImageTiles.toTiles(f, tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols, maxTileRows));
         } catch (@Nonnull final Throwable e) {
-          e.printStackTrace();
+          throw new RuntimeException(e);
         }
       }
     }

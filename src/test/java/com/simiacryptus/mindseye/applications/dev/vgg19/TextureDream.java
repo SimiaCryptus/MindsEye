@@ -74,7 +74,7 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
         precision,
         imageSize,
         growthFactor,
-        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>(TextureGeneration.CenteringMode.Origin)
                                               .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
                                               .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0))),
         trainingMinutes,
@@ -84,14 +84,14 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
         server,
         styleSize
       );
-    
+  
       TextureGeneration.generate(
         log,
         styleTransfer,
         precision,
         imageSize,
         growthFactor,
-        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>(TextureGeneration.CenteringMode.Origin)
                                               .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
                                               .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 1e0)
         )),
@@ -102,14 +102,14 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
         server,
         styleSize
       );
-    
+  
       TextureGeneration.generate(
         log,
         styleTransfer,
         precision,
         imageSize,
         growthFactor,
-        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>(TextureGeneration.CenteringMode.Origin)
                                               .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 1e0)
                                               .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
         )),
@@ -120,14 +120,14 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
         server,
         styleSize
       );
-    
+  
       TextureGeneration.generate(
         log,
         styleTransfer,
         precision,
         imageSize,
         growthFactor,
-        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>(TextureGeneration.CenteringMode.Origin)
                                               .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
                                               .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 1e0)
         )),
@@ -138,14 +138,14 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
         server,
         styleSize
       );
-    
+  
       TextureGeneration.generate(
         log,
         styleTransfer,
         precision,
         imageSize,
         growthFactor,
-        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>(TextureGeneration.CenteringMode.Origin)
                                               .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
                                               .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
         )),
@@ -156,14 +156,14 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
         server,
         styleSize
       );
-    
+  
       TextureGeneration.generate(
         log,
         styleTransfer,
         precision,
         imageSize,
         growthFactor,
-        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>(TextureGeneration.CenteringMode.Origin)
                                               .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
                                               .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0, 0)
         )),
@@ -174,14 +174,14 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
         server,
         styleSize
       );
-    
+  
       TextureGeneration.generate(
         log,
         styleTransfer,
         precision,
         imageSize,
         growthFactor,
-        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>(TextureGeneration.CenteringMode.Origin)
                                               .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0, 0)
                                               .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
         )),
@@ -192,14 +192,14 @@ public class TextureDream extends ArtistryAppBase_VGG19 {
         server,
         styleSize
       );
-    
+  
       TextureGeneration.generate(
         log,
         styleTransfer,
         precision,
         imageSize,
         growthFactor,
-        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+        create(map -> map.put(styleSources, new TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>(TextureGeneration.CenteringMode.Origin)
                                               .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
                                               .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, 0)
         )),

@@ -52,8 +52,10 @@ public class TextureGenerationTest extends ArtistryAppBase_VGG19 {
     int trainingMinutes = 90;
     final int maxIterations = 5;
     Tensor canvas = Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(256)));
-    Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
-    textureStyle.put(ArtistryData.CLASSIC_STYLES.subList(0, 1), new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
+    Map<List<CharSequence>, TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>> textureStyle = new HashMap<>();
+    textureStyle.put(
+      ArtistryData.CLASSIC_STYLES.subList(0, 1),
+      new TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>(TextureGeneration.CenteringMode.Origin)
       .set(CVPipe_VGG19.Layer.Layer_0, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0)

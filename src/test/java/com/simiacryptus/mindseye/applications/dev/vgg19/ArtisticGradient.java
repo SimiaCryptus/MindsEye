@@ -61,7 +61,8 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
     canvasImage = TestUtil.resize(canvasImage, width, true);
     canvasImage = ArtistryUtil.expandPlasma(Tensor.fromRGB(
       TestUtil.resize(canvasImage, 16, true)),
-      width, 1000.0, 1.1).toImage();
+                                            width, 1000.0, 1.1
+    ).toImage();
     return canvasImage;
   }
   
@@ -107,33 +108,71 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
     Stream.concat(
       ArtistryData.PLANETS.stream(),
       ArtistryData.CLASSIC_CONTENT.stream()
-    ).forEach(contentSource ->
-    {
+    ).forEach(contentSource -> {
       log.p(log.image(ArtistryUtil.load(contentSource), "Content Image"));
-      writeGif(log, ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x)).collect(Collectors.toList()).stream().flatMap(styleSources ->
-      {
-        for (final CharSequence styleSource : styleSources) {
-          log.p(log.image(ArtistryUtil.load(styleSource), "Style Image"));
-        }
-        return dreamCoeffStream.get().mapToObj(x -> x).flatMap(dreamCoeff ->
-          contentCoeffStream.get().mapToObj(contentMixingCoeff ->
-            styleTransfer(log, styleTransfer, precision, new AtomicInteger(startImageSize), Math.pow(geometricEnd, 1.0 / (2 * phases)), contentSource, create((Map<List<CharSequence>, StyleTransfer.StyleCoefficients> x) ->
-              {
-                x.put(styleSources, new StyleTransfer.StyleCoefficients(StyleTransfer.CenteringMode.Origin)
-                    .set(CVPipe_VGG19.Layer.Layer_1a, coeff_style_mean, coeff_style_cov, dreamCoeff)
-                    .set(CVPipe_VGG19.Layer.Layer_1b, coeff_style_mean, coeff_style_cov, dreamCoeff)
-                    .set(CVPipe_VGG19.Layer.Layer_1c, coeff_style_mean, coeff_style_cov, dreamCoeff)
-                  //.set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, dreamCoeff)
-                );
-              }),
-                          new StyleTransfer.ContentCoefficients()
-                .set(CVPipe_VGG19.Layer.Layer_1c, contentMixingCoeff)
-                .set(CVPipe_VGG19.Layer.Layer_1d, contentMixingCoeff),
-                          trainingMinutes,
-                          maxIterations,
-                          phases
-            ).toImage()));
-      }));
+      writeGif(
+        log,
+        ArtistryData.CLASSIC_STYLES.stream().map(x -> Arrays.asList(x)).collect(Collectors.toList()).stream()
+          .flatMap(styleSources -> {
+            for (final CharSequence styleSource : styleSources) {
+              log.p(log.image(
+                ArtistryUtil.load(
+                  styleSource),
+                "Style Image"
+              ));
+            }
+            return dreamCoeffStream.get()
+                     .mapToObj(x -> x)
+                     .flatMap(
+                       dreamCoeff ->
+                         contentCoeffStream.get().mapToObj(
+                           contentMixingCoeff ->
+                             styleTransfer(
+                               log,
+                               styleTransfer,
+                               precision,
+                               new AtomicInteger(startImageSize),
+                               Math.pow(geometricEnd, 1.0 / (2 * phases)),
+                               contentSource,
+                               create(x -> x.put(
+                                 styleSources,
+                                 new StyleTransfer.StyleCoefficients<CVPipe_VGG19.Layer>(
+                                   StyleTransfer.CenteringMode.Origin)
+                                   .set(
+                                     CVPipe_VGG19.Layer.Layer_1a,
+                                     coeff_style_mean,
+                                     coeff_style_cov,
+                                     dreamCoeff
+                                   )
+                                   .set(
+                                     CVPipe_VGG19.Layer.Layer_1b,
+                                     coeff_style_mean,
+                                     coeff_style_cov,
+                                     dreamCoeff
+                                   )
+                                   .set(
+                                     CVPipe_VGG19.Layer.Layer_1c,
+                                     coeff_style_mean,
+                                     coeff_style_cov,
+                                     dreamCoeff
+                                   )
+                                 //.set(CVPipe_VGG19.Layer.Layer_1d, 1e0, 1e0, dreamCoeff)
+                               )),
+                               new StyleTransfer.ContentCoefficients<CVPipe_VGG19.Layer>()
+                                 .set(
+                                   CVPipe_VGG19.Layer.Layer_1c,
+                                   contentMixingCoeff
+                                 )
+                                 .set(
+                                   CVPipe_VGG19.Layer.Layer_1d,
+                                   contentMixingCoeff
+                                 ),
+                               trainingMinutes,
+                               maxIterations,
+                               phases
+                             ).toImage()));
+          })
+      );
     });
   
     log.setFrontMatterProperty("status", "OK");
@@ -172,8 +211,8 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
     final AtomicInteger imageSize,
     final double growthFactor,
     final CharSequence contentSource,
-    final Map<List<CharSequence>, StyleTransfer.StyleCoefficients> styles,
-    final StyleTransfer.ContentCoefficients contentCoefficients,
+    final Map<List<CharSequence>, StyleTransfer.StyleCoefficients<CVPipe_VGG19.Layer>> styles,
+    final StyleTransfer.ContentCoefficients<CVPipe_VGG19.Layer> contentCoefficients,
     final int trainingMinutes,
     final int maxIterations,
     final int phases
@@ -185,16 +224,22 @@ public class ArtisticGradient extends ArtistryAppBase_VGG19 {
         imageSize.set((int) (imageSize.get() * growthFactor));
         canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize.get(), true));
       }
-      StyleTransfer.StyleSetup styleSetup = new StyleTransfer.StyleSetup(precision,
-                                                                         ArtistryUtil.loadTensor(
-                                                                           contentSource,
-                                                                           canvasImage.getDimensions()[0],
-                                                                           canvasImage.getDimensions()[1]
-                                                                         ),
-                                                                         contentCoefficients, create(y -> y.putAll(styles.keySet().stream().flatMap(x -> x.stream())
-        .collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))))), styles);
-      canvasImage = styleTransfer.transfer(log.getHttpd(), log, canvasImage, styleSetup,
-        trainingMinutes, styleTransfer.measureStyle(styleSetup), maxIterations, true);
+      StyleTransfer.StyleSetup<CVPipe_VGG19.Layer> styleSetup = new StyleTransfer.StyleSetup<CVPipe_VGG19.Layer>(
+        precision,
+        ArtistryUtil.loadTensor(
+          contentSource,
+          canvasImage.getDimensions()[0],
+          canvasImage.getDimensions()[1]
+        ),
+        contentCoefficients,
+        create(y -> y.putAll(
+          styles.keySet().stream().flatMap(x -> x.stream())
+            .collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))))),
+        styles
+      );
+      canvasImage = styleTransfer.transfer(log, canvasImage, styleSetup,
+                                           trainingMinutes, styleTransfer.measureStyle(styleSetup), maxIterations, true
+      );
     }
     return canvasImage;
   }

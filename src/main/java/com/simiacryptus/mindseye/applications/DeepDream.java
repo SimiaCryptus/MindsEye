@@ -240,9 +240,9 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @param style the style
    * @return the neural setup
    */
-  public NeuralSetup processStats(final StyleSetup<T> style) {
-    NeuralSetup<T> self = new NeuralSetup(style);
-    self.contentTarget = new ContentTarget();
+  public NeuralSetup<T> processStats(final StyleSetup<T> style) {
+    NeuralSetup<T> self = new NeuralSetup<>(style);
+    self.contentTarget = new ContentTarget<>();
     for (final T layerType : getLayerTypes()) {
       System.gc();
       final PipelineNetwork network = layerType.network();
@@ -262,7 +262,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the pipeline network
    */
   @Nonnull
-  public PipelineNetwork fitnessNetwork(NeuralSetup setup) {
+  public PipelineNetwork fitnessNetwork(NeuralSetup<T> setup) {
     PipelineNetwork pipelineNetwork = getInstance().getNetwork();
     Map<T, DAGNode> nodes = new HashMap<>();
     Map<T, UUID> ids = getInstance().getNodes();
@@ -281,7 +281,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @return the fitness components
    */
   @Nonnull
-  public List<Tuple2<Double, DAGNode>> getFitnessComponents(NeuralSetup setup, final Map<T, DAGNode> nodeMap) {
+  public List<Tuple2<Double, DAGNode>> getFitnessComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
     List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
     functions.addAll(getContentComponents(setup, nodeMap));
     return functions;
@@ -338,7 +338,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
    * @param network the network
    * @return the pipeline network
    */
-  public PipelineNetwork processStats(NeuralSetup setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
+  public PipelineNetwork processStats(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
     List<Tuple2<Double, DAGNode>> functions = getFitnessComponents(setup, nodeMap);
     functions.stream().filter(x -> x._1 != 0).reduce((a, b) -> new Tuple2<>(1.0, network.wrap(new BinarySumLayer(a._1, b._1), a._2, b._2))).get();
     return network;
@@ -489,14 +489,14 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
     /**
      * The Content target.
      */
-    public ContentTarget<T> contentTarget = new ContentTarget();
+    public ContentTarget<T> contentTarget = new ContentTarget<>();
   
     /**
      * Instantiates a new Neural setup.
      *
      * @param style the style
      */
-    public NeuralSetup(final StyleSetup style) {this.style = style;}
+    public NeuralSetup(final StyleSetup<T> style) {this.style = style;}
   }
   
 }

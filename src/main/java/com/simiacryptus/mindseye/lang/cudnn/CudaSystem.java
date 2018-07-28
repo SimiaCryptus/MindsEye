@@ -430,7 +430,7 @@ public class CudaSystem {
    * @return the execution statistics
    */
   @Nonnull
-  public static final Map<CharSequence, Map<CharSequence, CharSequence>> getExecutionStatistics() {
+  public static Map<CharSequence, Map<CharSequence, CharSequence>> getExecutionStatistics() {
     @Nonnull HashMap<CharSequence, Map<CharSequence, CharSequence>> map = new HashMap<>();
     map.put("createPoolingDescriptor", toMap(createPoolingDescriptor_execution));
     map.put("cudaDeviceReset", toMap(cudaDeviceReset_execution));

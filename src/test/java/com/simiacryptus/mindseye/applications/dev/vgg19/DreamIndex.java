@@ -69,13 +69,22 @@ public class DreamIndex extends ArtistryAppBase_VGG19 {
       for (final CVPipe_VGG19.Layer layer : CVPipe_VGG19.Layer.values()) {
         Tensor canvas = Tensor.fromRGB(TextureGeneration.initCanvas(new AtomicInteger(256)));
         log.h2("Layer: " + layer);
-        Map<List<CharSequence>, TextureGeneration.StyleCoefficients> textureStyle = new HashMap<>();
-        textureStyle.put(Arrays.asList(file), new TextureGeneration.StyleCoefficients(TextureGeneration.CenteringMode.Origin)
-          .set(layer, 1e0, 1e0));
+        Map<List<CharSequence>, TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer>> textureStyle = new HashMap<>();
+        TextureGeneration.StyleCoefficients<CVPipe_VGG19.Layer> tStyleCoefficients = new TextureGeneration.StyleCoefficients<>(TextureGeneration.CenteringMode.Origin);
+        tStyleCoefficients.set(layer, 1e0, 1e0);
+        textureStyle.put(Arrays.asList(file), tStyleCoefficients);
         canvas = TextureGeneration.generate(log, styleTransfer, precision, 256, growthFactor, textureStyle, trainingMinutes, canvas, 1, iterations, log.getHttpd(), 0);
         Map<CVPipe_VGG19.Layer, DeepDream.ContentCoefficients> dreamCoeff = new HashMap<>();
         dreamCoeff.put(layer, new DeepDream.ContentCoefficients(0, 1e0));
-        deepDream.deepDream(log.getHttpd(), log, canvas, new DeepDream.StyleSetup(precision, canvas, dreamCoeff), trainingMinutes, iterations, true);
+        deepDream.deepDream(
+          log.getHttpd(),
+          log,
+          canvas,
+          new DeepDream.StyleSetup<>(precision, canvas, dreamCoeff),
+          trainingMinutes,
+          iterations,
+          true
+        );
       }
     }
     

@@ -114,8 +114,17 @@ public abstract class ImageSegmenter<T extends LayerEnum<T>, U extends CVPipe<T>
     return quickmasks(log, img, 9, masks, colorClusters, textureClusters, CVPipe_VGG19.Layer.Layer_0, CVPipe_VGG19.Layer.Layer_1a, CVPipe_VGG19.Layer.Layer_1e);
   }
   
-  public static List<Tensor> quickmasks(@Nonnull final NotebookOutput log, final Tensor img, final int blur, final int masks, final int colorClusters, final int textureClusters, final LayerEnum... layers) {
-    ImageSegmenter segmenter = new VGG19(masks) {
+  public static List<Tensor> quickmasks(
+    @Nonnull final NotebookOutput log,
+    final Tensor img,
+    final int blur,
+    final int masks,
+    final int colorClusters,
+    final int textureClusters,
+    final CVPipe_VGG19.Layer... layers
+  )
+  {
+    ImageSegmenter<CVPipe_VGG19.Layer, CVPipe_VGG19> segmenter = new VGG19(masks) {
       @Override
       public Layer modelingNetwork(final CVPipe_VGG19.Layer layer, final Tensor metrics) {
         if (layer == CVPipe_VGG19.Layer.Layer_0) {

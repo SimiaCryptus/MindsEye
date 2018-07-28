@@ -54,7 +54,7 @@ public class ImageSegmentation extends ArtistryAppBase_VGG19 {
   public void run(@Nonnull NotebookOutput log) {
     for (final Tensor img : loadImages_library()) {
       log.p(log.image(img.toImage(), ""));
-      ImageSegmenter segmenter = log.code(() -> {
+      ImageSegmenter<CVPipe_VGG19.Layer, CVPipe_VGG19> segmenter = log.code(() -> {
         return new ImageSegmenter.VGG19(9) {
           @Override
           public Layer modelingNetwork(final CVPipe_VGG19.Layer layer, final Tensor metrics) {

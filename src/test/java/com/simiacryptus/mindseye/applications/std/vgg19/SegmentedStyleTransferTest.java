@@ -30,7 +30,6 @@ import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
-import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,15 +56,15 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
     final AtomicInteger imageSize = new AtomicInteger(600);
     styleTransfer.parallelLossFunctions = true;
     double growthFactor = Math.sqrt(4);
-    
-    Map<List<CharSequence>, SegmentedStyleTransfer.StyleCoefficients> styles = new HashMap<>();
+  
+    Map<List<CharSequence>, SegmentedStyleTransfer.StyleCoefficients<CVPipe_VGG19.Layer>> styles = new HashMap<>();
     List<CharSequence> styleSources = TestUtil.shuffle(ArtistryData.CLASSIC_STYLES).subList(0, 1);
-    styles.put(styleSources, new SegmentedStyleTransfer.StyleCoefficients(SegmentedStyleTransfer.CenteringMode.Origin)
+    styles.put(styleSources, new SegmentedStyleTransfer.StyleCoefficients<CVPipe_VGG19.Layer>(SegmentedStyleTransfer.CenteringMode.Origin)
       .set(CVPipe_VGG19.Layer.Layer_1a, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1b, 1e0, 1e0)
       .set(CVPipe_VGG19.Layer.Layer_1c, 1e0, 1e0)
     );
-    SegmentedStyleTransfer.ContentCoefficients contentCoefficients = new SegmentedStyleTransfer.ContentCoefficients()
+    SegmentedStyleTransfer.ContentCoefficients<CVPipe_VGG19.Layer> contentCoefficients = new SegmentedStyleTransfer.ContentCoefficients<CVPipe_VGG19.Layer>()
       .set(CVPipe_VGG19.Layer.Layer_1b, 3e0)
       .set(CVPipe_VGG19.Layer.Layer_1c, 3e0);
     int trainingMinutes = 90;
@@ -83,14 +82,19 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
       canvasImage.getDimensions()[0],
       canvasImage.getDimensions()[1]
     );
-    Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
-    SegmentedStyleTransfer.StyleSetup styleSetup;
+    Map<CharSequence, Tensor> styleImages = new HashMap<>();
+    SegmentedStyleTransfer.StyleSetup<CVPipe_VGG19.Layer> styleSetup;
     
     styleImages.clear();
-    styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))));
-    styleSetup = new SegmentedStyleTransfer.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
-    
-    SegmentedStyleTransfer.NeuralSetup measureStyle = styleTransfer.measureStyle(log, styleSetup);
+    styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x,
+                                                                                                  file -> ArtistryUtil.loadTensor(
+                                                                                                    file,
+                                                                                                    imageSize.get()
+                                                                                                  )
+    )));
+    styleSetup = new SegmentedStyleTransfer.StyleSetup<>(precision, contentImage, contentCoefficients, styleImages, styles);
+  
+    SegmentedStyleTransfer<CVPipe_VGG19.Layer, CVPipe_VGG19>.NeuralSetup measureStyle = styleTransfer.measureStyle(log, styleSetup);
     canvasImage = styleTransfer.transfer(log, styleSetup, trainingMinutes, measureStyle, maxIterations, true, canvasImage);
     for (int i = 1; i < phases; i++) {
       log.h1("Phase " + i);
@@ -98,8 +102,9 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
       canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize.get(), true));
       
       styleImages.clear();
-      styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))));
-      styleSetup = new SegmentedStyleTransfer.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
+      styles.keySet().stream().flatMap(x -> x.stream()).forEach(x -> styleImages.put(x, ArtistryUtil.loadTensor(x, imageSize.get())));
+      //styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))));
+      styleSetup = new SegmentedStyleTransfer.StyleSetup<>(precision, contentImage, contentCoefficients, styleImages, styles);
   
       canvasImage = styleTransfer.transfer(log, styleSetup, trainingMinutes, measureStyle, maxIterations, true, canvasImage);
     }

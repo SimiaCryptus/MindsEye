@@ -583,14 +583,14 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the neural setup
    */
   public NeuralSetup measureStyle(final StyleSetup<T> style) {
-    NeuralSetup<T> self = new NeuralSetup(style);
+    NeuralSetup self = new NeuralSetup(style);
     List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
     Tensor contentInput = style.contentImage;
     List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).collect(Collectors.toList());
     IntStream.range(0, keyList.size()).forEach(i -> {
-      self.styleTargets.put(keyList.get(i), new StyleTarget());
+      self.styleTargets.put(keyList.get(i), new StyleTarget<>());
     });
-    self.contentTarget = new ContentTarget();
+    self.contentTarget = new ContentTarget<>();
     for (final T layerType : getLayerTypes()) {
       System.gc();
       Layer network = layerType.network();
@@ -611,7 +611,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           Tensor styleInput = styleInputs.get(i);
           CharSequence key = keyList.get(i);
           StyleTarget<T> styleTarget = self.styleTargets.get(key);
-          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(
+          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> x.getValue().params.get(
             layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
             continue;
           System.gc();
@@ -625,7 +625,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
             layerType.name(),
             JsonUtil.toJson(new ScalarStatistics().add(mean.getData()).getMetrics())
           ));
-          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(
+          if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> x.getValue().params.get(
             layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
             continue;
           System.gc();
@@ -693,7 +693,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the style components
    */
   @Nonnull
-  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
+  public ArrayList<Tuple2<Double, DAGNode>> getStyleComponents(NeuralSetup setup, final Map<T, DAGNode> nodeMap) {
     ArrayList<Tuple2<Double, DAGNode>> styleComponents = new ArrayList<>();
     for (final List<CharSequence> keys : setup.style.styles.keySet()) {
       StyleTarget<T> styleTarget = keys.stream().map(x -> {
@@ -771,7 +771,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the content components
    */
   @Nonnull
-  public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
+  public ArrayList<Tuple2<Double, DAGNode>> getContentComponents(NeuralSetup setup, final Map<T, DAGNode> nodeMap) {
     ArrayList<Tuple2<Double, DAGNode>> contentComponents = new ArrayList<>();
     for (final T layerType : getLayerTypes()) {
       final DAGNode node = nodeMap.get(layerType);
@@ -956,7 +956,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     /**
      * The Styles.
      */
-    public final Map<List<CharSequence>, StyleCoefficients> styles;
+    public final Map<List<CharSequence>, StyleCoefficients<T>> styles;
     /**
      * The Content.
      */
@@ -979,9 +979,9 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     public StyleSetup(
       final Precision precision,
       final Tensor contentImage,
-      ContentCoefficients contentCoefficients,
+      ContentCoefficients<T> contentCoefficients,
       final Map<CharSequence, Tensor> styleImages,
-      final Map<List<CharSequence>, StyleCoefficients> styles
+      final Map<List<CharSequence>, StyleCoefficients<T>> styles
     )
     {
       this.precision = precision;
@@ -1178,7 +1178,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    *
    * @param <T> the type parameter
    */
-  public class NeuralSetup<T extends LayerEnum<T>> {
+  public class NeuralSetup {
     
     /**
      * The Style parameters.
@@ -1187,7 +1187,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     /**
      * The Content target.
      */
-    public ContentTarget<T> contentTarget = new ContentTarget();
+    public ContentTarget<T> contentTarget = new ContentTarget<>();
     /**
      * The Style targets.
      */
@@ -1199,7 +1199,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
      *
      * @param style the style
      */
-    public NeuralSetup(final StyleSetup style) {this.style = style;}
+    public NeuralSetup(final StyleSetup<T> style) {this.style = style;}
   }
   
 }

@@ -82,8 +82,8 @@ public class OrthonormalConstraint implements TrustRegion {
   @Override
   public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
     List<double[]> decompose = decompose(point);
-    List<double[]> orthogonal = isOrtho() ? decompose : orthogonal(decompose);
-    List<double[]> unitVectors = isUnit() ? orthogonal : unitVectors(orthogonal);
+    List<double[]> orthogonal = isOrtho() ? orthogonal(decompose) : decompose;
+    List<double[]> unitVectors = isUnit() ? unitVectors(orthogonal) : orthogonal;
     return recompose(unitVectors);
   }
   

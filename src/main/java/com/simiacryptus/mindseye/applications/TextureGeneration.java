@@ -117,7 +117,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     final Precision precision,
     int imageSize,
     final double growthFactor,
-    final Map<List<CharSequence>, StyleCoefficients> styles,
+    final Map<List<CharSequence>, StyleCoefficients<CVPipe_VGG19.Layer>> styles,
     final int trainingMinutes,
     Tensor canvasImage,
     final int phases,
@@ -127,7 +127,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
   )
   {
     Map<CharSequence, BufferedImage> styleImages = new HashMap<>();
-    StyleSetup styleSetup;
+    StyleSetup<CVPipe_VGG19.Layer> styleSetup;
     NeuralSetup measureStyle;
     
     styleImages.clear();
@@ -144,7 +144,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     else {
       styleImages.putAll(styles.keySet().stream().flatMap(Collection::stream).collect(Collectors.toMap(x -> x, image -> ArtistryUtil.load(image))));
     }
-    styleSetup = new StyleSetup(precision, styleImages, styles);
+    styleSetup = new StyleSetup<>(precision, styleImages, styles);
     measureStyle = styleTransfer.measureStyle(styleSetup);
   
     canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize, true));
@@ -167,7 +167,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       else {
         styleImages.putAll(styles.keySet().stream().flatMap(Collection::stream).collect(Collectors.toMap(x -> x, image -> ArtistryUtil.load(image))));
       }
-      styleSetup = new StyleSetup(precision, styleImages, styles);
+      styleSetup = new StyleSetup<>(precision, styleImages, styles);
       measureStyle = styleTransfer.measureStyle(styleSetup);
   
       canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize, true));
@@ -443,14 +443,14 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param style the style
    * @return the neural setup
    */
-  public NeuralSetup measureStyle(final StyleSetup<T> style) {
-    NeuralSetup<T> self = new NeuralSetup(style);
+  public NeuralSetup<T> measureStyle(final StyleSetup<T> style) {
+    NeuralSetup<T> self = new NeuralSetup<>(style);
     List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
     List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
     IntStream.range(0, keyList.size()).forEach(i -> {
-      self.styleTargets.put(keyList.get(i), new StyleTarget());
+      self.styleTargets.put(keyList.get(i), new StyleTarget<>());
     });
-    self.contentTarget = new ContentTarget();
+    self.contentTarget = new ContentTarget<>();
     for (final T layerType : getLayerTypes()) {
       System.gc();
       final PipelineNetwork network = layerType.network();
@@ -458,7 +458,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       for (int i = 0; i < styleInputs.size(); i++) {
         Tensor styleInput = styleInputs.get(i);
         CharSequence key = keyList.get(i);
-        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(
+        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> x.getValue().params.get(
           layerType)).filter(x -> null != x).filter(x -> x.mean != 0 || x.cov != 0).count())
           continue;
         System.gc();
@@ -474,7 +474,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
         StyleTarget<T> styleTarget = self.styleTargets.get(key);
         styleTarget.mean.put(layerType, mean);
   
-        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> (LayerStyleParams) x.getValue().params.get(
+        if (0 == self.style.styles.entrySet().stream().filter(e1 -> e1.getKey().contains(key)).map(x -> x.getValue().params.get(
           layerType)).filter(x -> null != x).filter(x -> x.cov != 0).count())
           continue;
   
@@ -512,7 +512,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @return the fitness components
    */
   @Nonnull
-  public List<Tuple2<Double, DAGNode>> getFitnessComponents(NeuralSetup setup, final Map<T, DAGNode> nodeMap) {
+  public List<Tuple2<Double, DAGNode>> getFitnessComponents(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap) {
     List<Tuple2<Double, DAGNode>> functions = new ArrayList<>();
     functions.addAll(new ArrayList<>());
     functions.addAll(getStyleComponents(setup, nodeMap));
@@ -598,7 +598,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @param network the network
    * @return the pipeline network
    */
-  public PipelineNetwork buildNetwork(NeuralSetup setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
+  public PipelineNetwork buildNetwork(NeuralSetup<T> setup, final Map<T, DAGNode> nodeMap, final PipelineNetwork network) {
     List<Tuple2<Double, DAGNode>> functions = getFitnessComponents(setup, nodeMap);
     ArtistryUtil.reduce(network, functions, parallelLossFunctions);
     return network;
@@ -722,7 +722,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     /**
      * The Styles.
      */
-    public final Map<List<CharSequence>, StyleCoefficients> styles;
+    public final Map<List<CharSequence>, StyleCoefficients<T>> styles;
   
   
     /**
@@ -735,7 +735,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     public StyleSetup(
       final Precision precision,
       final Map<CharSequence, BufferedImage> styleImages,
-      final Map<List<CharSequence>, StyleCoefficients> styles
+      final Map<List<CharSequence>, StyleCoefficients<T>> styles
     )
     {
       this.precision = precision;
@@ -789,7 +789,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
      * @param coeff_style_cov  the coeff style bandCovariance
      * @return the style coefficients
      */
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
+    public StyleCoefficients<T> set(final T layerType, final double coeff_style_mean, final double coeff_style_cov) {
       return set(
         layerType,
         coeff_style_mean,
@@ -807,7 +807,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
      * @param enhance          the enhance
      * @return the style coefficients
      */
-    public StyleCoefficients set(final T layerType, final double coeff_style_mean, final double coeff_style_cov, final double enhance) {
+    public StyleCoefficients<T> set(final T layerType, final double coeff_style_mean, final double coeff_style_cov, final double enhance) {
       params.put(layerType, new LayerStyleParams(coeff_style_mean, coeff_style_cov, enhance));
       return this;
     }
@@ -913,7 +913,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     /**
      * The Content target.
      */
-    public ContentTarget<T> contentTarget = new ContentTarget();
+    public ContentTarget<T> contentTarget = new ContentTarget<>();
     /**
      * The Style targets.
      */
@@ -925,7 +925,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
      *
      * @param style the style
      */
-    public NeuralSetup(final StyleSetup style) {this.style = style;}
+    public NeuralSetup(final StyleSetup<T> style) {this.style = style;}
   }
   
 }

@@ -67,7 +67,7 @@ public class DeepDreamTest extends ArtistryAppBase_VGG19 {
       log.getHttpd(),
       log,
       Tensor.fromRGB(canvasImage),
-      new DeepDream.StyleSetup(precision, contentImage, dreamCoeff),
+      new DeepDream.StyleSetup<>(precision, contentImage, dreamCoeff),
       trainingMinutes,
       maxIterations,
       true

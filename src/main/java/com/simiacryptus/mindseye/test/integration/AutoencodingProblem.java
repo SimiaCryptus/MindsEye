@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The type Mnist apply base.
  */
+@SuppressWarnings("FieldCanBeLocal")
 public class AutoencodingProblem implements Problem {
   
   private static int modelNo = 0;
