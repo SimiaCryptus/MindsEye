@@ -91,7 +91,7 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
     styleSetup = new SegmentedStyleTransfer.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
     
     SegmentedStyleTransfer.NeuralSetup measureStyle = styleTransfer.measureStyle(log, styleSetup);
-    canvasImage = styleTransfer.transfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
+    canvasImage = styleTransfer.transfer(log, styleSetup, trainingMinutes, measureStyle, maxIterations, true, canvasImage);
     for (int i = 1; i < phases; i++) {
       log.h1("Phase " + i);
       imageSize.set((int) (imageSize.get() * growthFactor));
@@ -100,8 +100,8 @@ public class SegmentedStyleTransferTest extends ArtistryAppBase_VGG19 {
       styleImages.clear();
       styleImages.putAll(styles.keySet().stream().flatMap(x -> x.stream()).collect(Collectors.toMap(x -> x, file -> ArtistryUtil.load(file, imageSize.get()))));
       styleSetup = new SegmentedStyleTransfer.StyleSetup(precision, contentImage, contentCoefficients, styleImages, styles);
-      
-      canvasImage = styleTransfer.transfer(log.getHttpd(), log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
+  
+      canvasImage = styleTransfer.transfer(log, styleSetup, trainingMinutes, measureStyle, maxIterations, true, canvasImage);
     }
     log.setFrontMatterProperty("status", "OK");
   }

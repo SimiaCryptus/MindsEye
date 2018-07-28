@@ -167,6 +167,11 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
     if (null != server) ArtistryUtil.addLayersHandler(network, server);
     if (tiled) network = ArtistryUtil.tileCycle(network);
     train(log, network, canvasImage, trainingMinutes, maxIterations);
+    try {
+      ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName + ".jpg"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     return canvasImage;
   }
   
@@ -182,11 +187,11 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   public void train(@Nonnull final NotebookOutput log, final PipelineNetwork network, final Tensor canvas, final int trainingMinutes, final int maxIterations) {
     @Nonnull Trainable trainable = getTrainable(network, canvas);
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    String trainingName = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + trainingName + ".jpg\"><img src=\"/" + trainingName + ".jpg\"></a>");
-    log.getHttpd().addHandler(trainingName + ".jpg", "image/jpeg", r -> {
+    String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
+    log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -208,6 +213,11 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
         .setTimeout(trainingMinutes, TimeUnit.MINUTES)
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
+      try {
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name + ".png"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
       return TestUtil.plot(history);
     });
   }

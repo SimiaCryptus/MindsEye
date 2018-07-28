@@ -193,6 +193,17 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     return colorForwardTransform;
   }
   
+  public static int[][] getIndexMap(final SimpleConvolutionLayer layer) {
+    int[] kernelDimensions = layer.getKernelDimensions();
+    double b = Math.sqrt(kernelDimensions[2]);
+    int h = kernelDimensions[1];
+    int w = kernelDimensions[0];
+    int l = (int) (w * h * b);
+    return IntStream.range(0, (int) b).mapToObj(i -> {
+      return IntStream.range(0, l).map(j -> j + l * i).toArray();
+    }).toArray(i -> new int[i][]);
+  }
+  
   /**
    * Style transfer buffered image.
    *
@@ -209,13 +220,12 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     final NeuralSetup measureStyle
   )
   {
-    return transfer(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
+    return transfer(new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
   }
   
   /**
    * Style transfer buffered image.
    *
-   * @param server          the server
    * @param log             the log
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
@@ -226,7 +236,6 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    * @return the buffered image
    */
   public Tensor transfer(
-    final FileHTTPD server,
     @Nonnull final NotebookOutput log,
     final Tensor canvasImage,
     final StyleSetup<T> styleParameters,
@@ -236,10 +245,12 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     final boolean verbose
   )
   {
+    canvasImage.assertAlive();
     try {
-      Tensor result = canvasImage.set(transfer(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasImage));
+      Tensor result = canvasImage.set(transfer(log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasImage));
       log.p("Result:");
       log.p(log.image(result.toImage(), "Output Canvas"));
+      result.assertAlive();
       return result;
     } catch (Throwable e) {
       logger.warn("Error in color transfer", e);
@@ -250,7 +261,6 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   /**
    * Transfer tensor.
    *
-   * @param server          the server
    * @param log             the log
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
@@ -262,7 +272,6 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    */
   @Nonnull
   public Tensor transfer(
-    final FileHTTPD server,
     @Nonnull final NotebookOutput log,
     final StyleSetup<T> styleParameters,
     final int trainingMinutes,
@@ -286,7 +295,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
     log.getHttpd().addHandler(imageName + ".jpg", "image/jpeg", r -> {
       try {
-        if (canvas.isValid()) ImageIO.write(canvas.toImage(), "jpeg", r);
+        ImageIO.write(canvas.toImage(), "jpeg", r);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -297,7 +306,12 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         return ArtistryUtil.toJson(styleParameters);
       });
     }
-    this.setColorForwardTransform(train(server, log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvas));
+    this.setColorForwardTransform(train(log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvas));
+    try {
+      ImageIO.write(canvas.toImage(), "jpeg", log.file(imageName + ".jpg"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     Tensor tensor = forwardTransform(canvas);
     log.p("Result:");
     log.p(log.image(tensor.toImage(), "Output Canvas"));
@@ -372,7 +386,6 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   /**
    * Train simple convolution layer.
    *
-   * @param server          the server
    * @param log             the log
    * @param styleParameters the style parameters
    * @param trainingMinutes the training minutes
@@ -384,7 +397,6 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    */
   @Nonnull
   public SimpleConvolutionLayer train(
-    final FileHTTPD server,
     @Nonnull final NotebookOutput log,
     final StyleSetup<T> styleParameters,
     final int trainingMinutes,
@@ -400,6 +412,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       PipelineNetwork network = fitnessNetwork(measureStyle);
       network.setFrozen(true);
       TestUtil.instrumentPerformance(network);
+      final FileHTTPD server = log.getHttpd();
       if (null != server) ArtistryUtil.addLayersHandler(network, server);
       PipelineNetwork trainingAssembly = new PipelineNetwork(1);
       trainingAssembly.wrap(
@@ -420,11 +433,11 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     try {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-      log.p("<a href=\"/" + training_name + ".jpg\"><img src=\"/" + training_name + ".jpg\"></a>");
-      log.getHttpd().addHandler(training_name + ".jpg", "image/jpeg", r -> {
+      log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
+      log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
         try {
           BufferedImage im = Util.toImage(TestUtil.plot(history));
-          if (null != im) ImageIO.write(im, "jpeg", r);
+          if (null != im) ImageIO.write(im, "png", r);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -441,6 +454,12 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           .runAndFree();
         return TestUtil.plot(history);
       });
+      try {
+        BufferedImage image = Util.toImage(TestUtil.plot(history));
+        if (null != image) ImageIO.write(image, "png", log.file(training_name + ".png"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     } finally {
       trainable.freeRef();
     }
@@ -453,14 +472,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       @Override
       public TrustRegion getRegionPolicy(final Layer layer) {
         if (layer instanceof SimpleConvolutionLayer) {
-          int[] kernelDimensions = ((SimpleConvolutionLayer) layer).getKernelDimensions();
-          double b = Math.sqrt(kernelDimensions[2]);
-          int h = kernelDimensions[1];
-          int w = kernelDimensions[0];
-          int l = (int) (w * h * b);
-          return new OrthonormalConstraint(IntStream.range(0, (int) b).mapToObj(i -> {
-            return IntStream.range(0, l).map(j -> j + l * i).toArray();
-          }).toArray(i -> new int[i][]));
+          return new OrthonormalConstraint(getIndexMap((SimpleConvolutionLayer) layer));
         }
         return null;
       }
@@ -574,7 +586,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     NeuralSetup<T> self = new NeuralSetup(style);
     List<CharSequence> keyList = style.styleImages.keySet().stream().collect(Collectors.toList());
     Tensor contentInput = style.contentImage;
-    List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).map(img -> Tensor.fromRGB(img)).collect(Collectors.toList());
+    List<Tensor> styleInputs = keyList.stream().map(x -> style.styleImages.get(x)).collect(Collectors.toList());
     IntStream.range(0, keyList.size()).forEach(i -> {
       self.styleTargets.put(keyList.get(i), new StyleTarget());
     });
@@ -940,7 +952,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     /**
      * The Style image.
      */
-    public final transient Map<CharSequence, BufferedImage> styleImages;
+    public final transient Map<CharSequence, Tensor> styleImages;
     /**
      * The Styles.
      */
@@ -968,13 +980,15 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       final Precision precision,
       final Tensor contentImage,
       ContentCoefficients contentCoefficients,
-      final Map<CharSequence, BufferedImage> styleImages,
+      final Map<CharSequence, Tensor> styleImages,
       final Map<List<CharSequence>, StyleCoefficients> styles
     )
     {
       this.precision = precision;
       this.contentImage = contentImage;
+  
       this.styleImages = styleImages;
+      if (!styleImages.values().stream().allMatch(x -> x instanceof Tensor)) throw new RuntimeException();
       this.styles = styles;
       this.content = contentCoefficients;
     }

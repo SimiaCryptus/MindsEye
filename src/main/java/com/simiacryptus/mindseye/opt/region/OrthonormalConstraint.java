@@ -75,10 +75,16 @@ public class OrthonormalConstraint implements TrustRegion {
     return Arrays.stream(a).map(v -> v * b).toArray();
   }
   
+  private boolean ortho = true;
+  private boolean unit = true;
+  
   @Nonnull
   @Override
   public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
-    return recompose(unitVectors(orthogonal(decompose(point))));
+    List<double[]> decompose = decompose(point);
+    List<double[]> orthogonal = isOrtho() ? decompose : orthogonal(decompose);
+    List<double[]> unitVectors = isUnit() ? orthogonal : unitVectors(orthogonal);
+    return recompose(unitVectors);
   }
   
   public List<double[]> orthogonal(final List<double[]> vectors) {
@@ -108,4 +114,21 @@ public class OrthonormalConstraint implements TrustRegion {
     return Arrays.stream(indexMap).map(x -> Arrays.stream(x).mapToDouble(i -> point[i]).toArray()).collect(Collectors.toList());
   }
   
+  public boolean isOrtho() {
+    return ortho;
+  }
+  
+  public OrthonormalConstraint setOrtho(boolean ortho) {
+    this.ortho = ortho;
+    return this;
+  }
+  
+  public boolean isUnit() {
+    return unit;
+  }
+  
+  public OrthonormalConstraint setUnit(boolean unit) {
+    this.unit = unit;
+    return this;
+  }
 }

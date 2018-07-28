@@ -304,11 +304,11 @@ public abstract class ImageClassifier implements NetworkFactory {
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image) {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    String trainingName = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + trainingName + ".jpg\"><img src=\"/" + trainingName + ".jpg\"></a>");
-    log.getHttpd().addHandler(trainingName + ".jpg", "image/jpeg", r -> {
+    String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
+    log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -336,6 +336,11 @@ public abstract class ImageClassifier implements NetworkFactory {
         .setLineSearchFactory(name -> new ArmijoWolfeSearch())
         .setTimeout(60, TimeUnit.MINUTES)
         .runAndFree();
+      try {
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name + ".png"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
       return TestUtil.plot(history);
     });
   }
@@ -492,11 +497,11 @@ public abstract class ImageClassifier implements NetworkFactory {
       }
     });
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    String trainingName = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + trainingName + ".jpg\"><img src=\"/" + trainingName + ".jpg\"></a>");
-    log.getHttpd().addHandler(trainingName + ".jpg", "image/jpeg", r -> {
+    String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
+    log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -532,6 +537,11 @@ public abstract class ImageClassifier implements NetworkFactory {
                      .setTimeout(60, TimeUnit.MINUTES))
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
+      try {
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name + ".png"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
       return TestUtil.plot(history);
     });
   }

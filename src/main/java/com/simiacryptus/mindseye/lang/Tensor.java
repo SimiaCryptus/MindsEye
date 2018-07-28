@@ -1340,6 +1340,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the tensor
    */
   public Tensor set(@Nonnull final Tensor right) {
+    assertAlive();
     assert length() == right.length();
     @Nullable final double[] rightData = right.getData();
     Arrays.parallelSetAll(getData(), i -> rightData[i]);

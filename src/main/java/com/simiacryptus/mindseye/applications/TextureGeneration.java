@@ -56,7 +56,6 @@ import com.simiacryptus.util.io.NullNotebookOutput;
 import com.simiacryptus.util.lang.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import smile.plot.PlotCanvas;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -287,6 +286,11 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       if (null != server) ArtistryUtil.addLayersHandler(network, server);
       if (tiled) network = ArtistryUtil.tileCycle(network);
       train(verbose ? log : new NullNotebookOutput(), canvasImage, network, trainingMinutes, maxIterations);
+      try {
+        ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName + ".jpg"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
       return canvasImage;
     }, canvasImage);
     log.p("Result:");
@@ -312,16 +316,16 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
   )
   {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    String trainingName = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + trainingName + ".jpg\"><img src=\"/" + trainingName + ".jpg\"></a>");
-    log.getHttpd().addHandler(trainingName + ".jpg", "image/jpeg", r -> {
+    String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+    log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
+    log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     });
-    PlotCanvas plot = log.code(() -> {
+    log.code(() -> {
       Trainable trainable = getTrainable(network, canvas);
       new IterativeTrainer(trainable)
         .setMonitor(TestUtil.getMonitor(history))
@@ -337,6 +341,11 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
         .setTimeout(trainingMinutes, TimeUnit.MINUTES)
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
+      try {
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name + ".png"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
       return TestUtil.plot(history);
     });
   }

@@ -197,11 +197,11 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     });
     try {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      String trainingName = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-      log.p("<a href=\"/" + trainingName + ".jpg\"><img src=\"/" + trainingName + ".jpg\"></a>");
-      log.getHttpd().addHandler(trainingName + ".jpg", "image/jpeg", r -> {
+      String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
+      log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
+      log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
         try {
-          ImageIO.write(Util.toImage(TestUtil.plot(history)), "jpeg", r);
+          ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -223,6 +223,16 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
           .runAndFree();
         return TestUtil.plot(history);
       });
+      try {
+        ImageIO.write(canvas.toImage(), "jpeg", log.file(imageName + ".jpg"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      try {
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name + ".png"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
       log.p("Result:");
       log.p(log.image(canvas.toImage(), "Output Canvas"));
     } finally {
