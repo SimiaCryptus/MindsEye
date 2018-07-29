@@ -225,9 +225,10 @@ public abstract class StyleTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         throw new RuntimeException(e);
       }
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name));
+        BufferedImage image = Util.toImage(TestUtil.plot(history));
+        if (null != image) ImageIO.write(image, "png", log.file(training_name));
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        logger.warn("Error writing result images", e);
       }
       log.p("Result:");
       log.p(log.image(canvas.toImage(), "Output Canvas"));

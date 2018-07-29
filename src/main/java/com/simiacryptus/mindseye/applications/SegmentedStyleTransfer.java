@@ -62,6 +62,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -322,13 +323,14 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     masks.forEach(ReferenceCountingBase::freeRef);
     try {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      String training_name = String.format("etc/training_plot_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
-      log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
+      String training_name = String.format("training_plot_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
+      log.p(String.format("<a href=\"etc/%s\"><img src=\"etc/%s\"></a>", training_name, training_name));
       log.getHttpd().addHandler(training_name, "image/png", r -> {
         try {
-          ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
+          BufferedImage image1 = Util.toImage(TestUtil.plot(history));
+          if (null != image1) ImageIO.write(image1, "png", log.file(training_name));
         } catch (IOException e) {
-          throw new RuntimeException(e);
+          logger.warn("Error writing result images", e);
         }
       });
       trainingLog.code(() -> {
@@ -348,10 +350,15 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
           .runAndFree();
       });
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name));
+        BufferedImage image = Util.toImage(TestUtil.plot(history));
+        if (null != image) ImageIO.write(image, "png", log.file(training_name));
+      } catch (IOException e) {
+        logger.warn("Error writing result images", e);
+      }
+      try {
         ImageIO.write(canvas.toImage(), "jpeg", log.file(imageName));
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        logger.warn("Error writing result images", e);
       }
       return canvas;
     } finally {

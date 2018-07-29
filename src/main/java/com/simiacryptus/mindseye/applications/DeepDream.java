@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -214,9 +215,10 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name));
+        BufferedImage image = Util.toImage(TestUtil.plot(history));
+        if (null != image) ImageIO.write(image, "png", log.file(training_name));
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        logger.warn("Error writing result images", e);
       }
       return TestUtil.plot(history);
     });

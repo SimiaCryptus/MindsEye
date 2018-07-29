@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,7 +76,7 @@ public abstract class ImageClassifier implements NetworkFactory {
   /**
    * The constant log.
    */
-  protected static final Logger log = LoggerFactory.getLogger(ImageClassifier.class);
+  protected static final Logger logger = LoggerFactory.getLogger(ImageClassifier.class);
   /**
    * The Network.
    */
@@ -202,7 +203,7 @@ public abstract class ImageClassifier implements NetworkFactory {
       try {
         if (explode instanceof DAGNetwork) {
           ((DAGNetwork) explode).visitNodes(node -> name(node.getLayer()));
-          log.info(String.format(
+          logger.info(String.format(
             "Exploded %s to %s (%s nodes)",
             layer.getName(),
             explode.getClass().getSimpleName(),
@@ -210,7 +211,7 @@ public abstract class ImageClassifier implements NetworkFactory {
           ));
         }
         else {
-          log.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getName()));
+          logger.info(String.format("Exploded %s to %s (%s nodes)", layer.getName(), explode.getClass().getSimpleName(), explode.getName()));
         }
         return add(explode, model);
       } finally {
@@ -238,10 +239,10 @@ public abstract class ImageClassifier implements NetworkFactory {
     TensorList newPrototype = layer.eval(prevPrototype).getDataAndFree();
     try {
       @Nonnull int[] new_dimensions = newPrototype.getDimensions();
-      log.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
-                             cnt, layer, numberOfParameters, //
-                             Arrays.toString(prev_dimensions), Tensor.length(prev_dimensions), //
-                             Arrays.toString(new_dimensions), Tensor.length(new_dimensions)
+      logger.info(String.format("Added layer #%d: %s; %s params, dimensions %s (%s) -> %s (%s)", //
+                                cnt, layer, numberOfParameters, //
+                                Arrays.toString(prev_dimensions), Tensor.length(prev_dimensions), //
+                                Arrays.toString(new_dimensions), Tensor.length(new_dimensions)
       ));
       return newPrototype.get(0);
     } finally {
@@ -337,9 +338,10 @@ public abstract class ImageClassifier implements NetworkFactory {
         .setTimeout(60, TimeUnit.MINUTES)
         .runAndFree();
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name));
+        BufferedImage toImage = Util.toImage(TestUtil.plot(history));
+        if (null != toImage) ImageIO.write(toImage, "png", log.file(training_name));
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        logger.warn("Error writing result images", e);
       }
       return TestUtil.plot(history);
     });
@@ -493,7 +495,7 @@ public abstract class ImageClassifier implements NetworkFactory {
     });
     log.code(() -> {
       for (Tensor[] tensors : data) {
-        ImageClassifier.log.info(log.image(tensors[0].toImage(), "") + tensors[1]);
+        ImageClassifier.logger.info(log.image(tensors[0].toImage(), "") + tensors[1]);
       }
     });
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
@@ -538,9 +540,10 @@ public abstract class ImageClassifier implements NetworkFactory {
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name));
+        BufferedImage image1 = Util.toImage(TestUtil.plot(history));
+        if (null != image1) ImageIO.write(image1, "png", log.file(training_name));
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        logger.warn("Error writing result images", e);
       }
       return TestUtil.plot(history);
     });

@@ -40,10 +40,13 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,6 +63,8 @@ import java.util.stream.Stream;
  * The type Mnist apply base.
  */
 public class ClassifyProblem implements Problem {
+  
+  private static final Logger logger = LoggerFactory.getLogger(ClassifyProblem.class);
   
   private static int modelNo = 0;
   private final int categories;
@@ -191,15 +196,15 @@ public class ClassifyProblem implements Problem {
         return TestUtil.plotTime(history);
       });
     }
-    
+  
+    @Nonnull String training_name = log.getName() + "_" + ClassifyProblem.modelNo++ + "_plot.png";
     try {
-      @Nonnull String filename = log.getName() + "_" + ClassifyProblem.modelNo++ + "_plot.png";
-      ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(filename));
-      @Nonnull File file = new File(log.getResourceDir(), filename);
-      log.appendFrontMatterProperty("result_plot", file.toString(), ";");
+      BufferedImage image = Util.toImage(TestUtil.plot(history));
+      if (null != image) ImageIO.write(image, "png", log.file(training_name));
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      logger.warn("Error writing result images", e);
     }
+    log.appendFrontMatterProperty("result_plot", new File(log.getResourceDir(), training_name).toString(), ";");
     
     TestUtil.extractPerformance(log, supervisedNetwork);
     @Nonnull final String modelName = "classification_model_" + ClassifyProblem.modelNo++ + ".json";

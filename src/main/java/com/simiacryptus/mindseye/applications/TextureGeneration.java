@@ -342,9 +342,10 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name));
+        BufferedImage image = Util.toImage(TestUtil.plot(history));
+        if (null != image) ImageIO.write(image, "png", log.file(training_name));
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        logger.warn("Error writing result images", e);
       }
       return TestUtil.plot(history);
     });
