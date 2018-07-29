@@ -151,9 +151,9 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   )
   {
     System.gc();
-    String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
-    log.getHttpd().addHandler(imageName + ".jpg", imageName + "/jpeg", r -> {
+    String imageName = String.format("etc/image_%s.jpg", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
+    log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", imageName, imageName));
+    log.getHttpd().addHandler(imageName, imageName + "/jpeg", r -> {
       try {
         ImageIO.write(canvasImage.toImage(), "jpeg", r);
       } catch (IOException e) {
@@ -168,7 +168,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
     if (tiled) network = ArtistryUtil.tileCycle(network);
     train(log, network, canvasImage, trainingMinutes, maxIterations);
     try {
-      ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName + ".jpg"));
+      ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -187,9 +187,9 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
   public void train(@Nonnull final NotebookOutput log, final PipelineNetwork network, final Tensor canvas, final int trainingMinutes, final int maxIterations) {
     @Nonnull Trainable trainable = getTrainable(network, canvas);
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
-    log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
+    String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
+    log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
+    log.getHttpd().addHandler(training_name, "image/png", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
@@ -214,7 +214,7 @@ public abstract class DeepDream<T extends LayerEnum<T>, U extends CVPipe<T>> {
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name + ".png"));
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }

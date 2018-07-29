@@ -299,9 +299,9 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     }
     final FileHTTPD server = log.getHttpd();
     TestUtil.monitorImage(canvas, false, false);
-    String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
-    server.addHandler(imageName + ".jpg", "image/jpeg", r -> {
+    String imageName = String.format("etc/image_%s.jpg", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
+    log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", imageName, imageName));
+    server.addHandler(imageName, "image/jpeg", r -> {
       try {
         ImageIO.write(canvas.toImage(), "jpeg", r);
       } catch (IOException e) {
@@ -322,9 +322,9 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
     masks.forEach(ReferenceCountingBase::freeRef);
     try {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      String training_name = "training_plot_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-      log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
-      log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
+      String training_name = String.format("etc/training_plot_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
+      log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
+      log.getHttpd().addHandler(training_name, "image/png", r -> {
         try {
           ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
         } catch (IOException e) {
@@ -348,8 +348,8 @@ public abstract class SegmentedStyleTransfer<T extends LayerEnum<T>, U extends C
           .runAndFree();
       });
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name + ".png"));
-        ImageIO.write(canvas.toImage(), "jpeg", log.file(imageName + ".jpg"));
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name));
+        ImageIO.write(canvas.toImage(), "jpeg", log.file(imageName));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }

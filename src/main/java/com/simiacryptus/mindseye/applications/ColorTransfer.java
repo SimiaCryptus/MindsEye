@@ -95,6 +95,8 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
    */
   public boolean parallelLossFunctions = true;
   private SimpleConvolutionLayer colorForwardTransform;
+  private boolean ortho = true;
+  private boolean unit = true;
   
   /**
    * Invert simple convolution layer.
@@ -257,9 +259,9 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
 //      log.p(log.image(canvasImage, "Input Canvas"));
       System.gc();
       TestUtil.monitorImage(canvasImage, false, false);
-      String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-      log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
-      log.getHttpd().addHandler(imageName + ".jpg", "image/jpeg", r -> {
+      String imageName = String.format("etc/image_%s.jpg", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
+      log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", imageName, imageName));
+      log.getHttpd().addHandler(imageName, "image/jpeg", r -> {
         try {
           ImageIO.write(canvasImage.toImage(), "jpeg", r);
         } catch (IOException e) {
@@ -274,7 +276,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       }
       this.setColorForwardTransform(train(log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasImage));
       try {
-        ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName + ".jpg"));
+        ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -402,9 +404,9 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     });
     try {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-      String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-      log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
-      log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
+      String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
+      log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
+      log.getHttpd().addHandler(training_name, "image/png", r -> {
         try {
           BufferedImage im = Util.toImage(TestUtil.plot(history));
           if (null != im) ImageIO.write(im, "png", r);
@@ -426,7 +428,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       });
       try {
         BufferedImage image = Util.toImage(TestUtil.plot(history));
-        if (null != image) ImageIO.write(image, "png", log.file(training_name + ".png"));
+        if (null != image) ImageIO.write(image, "png", log.file(training_name));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -442,7 +444,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       @Override
       public TrustRegion getRegionPolicy(final Layer layer) {
         if (layer instanceof SimpleConvolutionLayer) {
-          return new OrthonormalConstraint(getIndexMap((SimpleConvolutionLayer) layer));
+          return new OrthonormalConstraint(getIndexMap((SimpleConvolutionLayer) layer)).setOrtho(isOrtho()).setUnit(isUnit());
         }
         return null;
       }
@@ -806,6 +808,24 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
     if (null != this.colorForwardTransform) this.colorForwardTransform.addRef();
   }
   
+  public boolean isOrtho() {
+    return ortho;
+  }
+  
+  public ColorTransfer<T, U> setOrtho(boolean ortho) {
+    this.ortho = ortho;
+    return this;
+  }
+  
+  public boolean isUnit() {
+    return unit;
+  }
+  
+  public ColorTransfer<T, U> setUnit(boolean unit) {
+    this.unit = unit;
+    return this;
+  }
+  
   /**
    * The enum Centering mode.
    */
@@ -1146,7 +1166,6 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   /**
    * The type Neural setup.
    *
-   * @param <T> the type parameter
    */
   public class NeuralSetup {
     

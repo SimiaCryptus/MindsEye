@@ -266,9 +266,9 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     Tensor result = ArtistryUtil.logExceptionWithDefault(log, () -> {
       System.gc();
       TestUtil.monitorImage(canvasImage, false, false);
-      String imageName = "image_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-      log.p("<a href=\"/" + imageName + ".jpg\"><img src=\"/" + imageName + ".jpg\"></a>");
-      log.getHttpd().addHandler(imageName + ".jpg", "image/jpeg", outputStream -> {
+      String imageName = String.format("etc/image_%s.jpg", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
+      log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", imageName, imageName));
+      log.getHttpd().addHandler(imageName, "image/jpeg", outputStream -> {
         try {
           ImageIO.write(canvasImage.toImage(), "jpeg", outputStream);
         } catch (IOException e) {
@@ -287,7 +287,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       if (tiled) network = ArtistryUtil.tileCycle(network);
       train(verbose ? log : new NullNotebookOutput(), canvasImage, network, trainingMinutes, maxIterations);
       try {
-        ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName + ".jpg"));
+        ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -316,9 +316,9 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
   )
   {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
-    String training_name = "training_" + Long.toHexString(MarkdownNotebookOutput.random.nextLong());
-    log.p("<a href=\"/" + training_name + ".png\"><img src=\"/" + training_name + ".png\"></a>");
-    log.getHttpd().addHandler(training_name + ".png", "image/png", r -> {
+    String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
+    log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
+    log.getHttpd().addHandler(training_name, "image/png", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
@@ -342,7 +342,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       try {
-        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name + ".png"));
+        ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(training_name));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
