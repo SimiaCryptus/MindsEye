@@ -51,6 +51,8 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTileCycleLayer> {
   private static final Logger log = LoggerFactory.getLogger(ImgTileCycleLayer.class);
+  private double xPos = 0.5;
+  private double yPos = 0.5;
   
   private Precision precision = Precision.Double;
   
@@ -247,9 +249,9 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
     assert 3 == inputData.getDimensions().length;
     final int length = inputData.length();
     @Nonnull int[] dimIn = inputData.getDimensions();
-    int splitX1 = dimIn[0] / 2;
+    int splitX1 = (int) (dimIn[0] * getxPos());
     int splitX2 = dimIn[0] - splitX1;
-    int splitY1 = dimIn[1] / 2;
+    int splitY1 = (int) (dimIn[1] * getyPos());
     int splitY2 = dimIn[1] - splitY1;
     final TensorList outputData = CudaSystem.run(gpu -> {
       @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
@@ -323,6 +325,24 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
   @Override
   public ImgTileCycleLayer setPrecision(final Precision precision) {
     this.precision = precision;
+    return this;
+  }
+  
+  public double getxPos() {
+    return xPos;
+  }
+  
+  public double getyPos() {
+    return yPos;
+  }
+  
+  public ImgTileCycleLayer setXPos(double xPos) {
+    this.xPos = xPos;
+    return this;
+  }
+  
+  public ImgTileCycleLayer setYPos(double yPos) {
+    this.yPos = yPos;
     return this;
   }
 }
