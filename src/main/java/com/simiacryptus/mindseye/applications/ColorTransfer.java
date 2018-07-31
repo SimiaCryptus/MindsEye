@@ -249,25 +249,13 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   {
     canvasImage.assertAlive();
     try {
-      //      log.p("Input Content:");
-//      log.p(log.image(styleParameters.contentImage, "Content Image"));
-//      log.p("Style Content:");
-//      styleParameters.styleImages.forEach((file, styleImage) -> {
-//        log.p(log.image(styleImage, file));
-//      });
-//      log.p("Input Canvas:");
-//      log.p(log.image(canvasImage, "Input Canvas"));
-      System.gc();
-      TestUtil.monitorImage(canvasImage, false, false);
-      String imageName = String.format("etc/image_%s.jpg", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
-      log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", imageName, imageName));
-      log.getHttpd().addHandler(imageName, "image/jpeg", r -> {
-        try {
-          ImageIO.write(canvasImage.toImage(), "jpeg", r);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+      log.p("Input Content:");
+      log.p(log.image(canvasImage.toImage(), "Input Content"));
+      log.p("Style Content:");
+      styleParameters.styleImages.forEach((file, styleImage) -> {
+        log.p(log.image(styleImage.toImage(), file));
       });
+      System.gc();
       if (verbose) {
         log.p("Input Parameters:");
         log.code(() -> {
@@ -275,11 +263,6 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         });
       }
       this.setColorForwardTransform(train(log, styleParameters, trainingMinutes, measureStyle, maxIterations, verbose, canvasImage));
-      try {
-        ImageIO.write(canvasImage.toImage(), "jpeg", log.file(imageName));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
       Tensor result = forwardTransform(canvasImage);
       log.p("Result:");
       log.p(log.image(result.toImage(), "Output Canvas"));
@@ -380,28 +363,9 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
   {
     NotebookOutput trainingLog = verbose ? log : new NullNotebookOutput();
     SimpleConvolutionLayer colorForwardTransform = unitTransformer();
-    Trainable trainable = trainingLog.code(() -> {
-      PipelineNetwork network = fitnessNetwork(measureStyle);
-      network.setFrozen(true);
-      TestUtil.instrumentPerformance(network);
-      final FileHTTPD server = log.getHttpd();
-      if (null != server) ArtistryUtil.addLayersHandler(network, server);
-      PipelineNetwork trainingAssembly = new PipelineNetwork(1);
-      trainingAssembly.wrap(
-        network,
-        trainingAssembly.wrap(
-          ArtistryUtil.getClamp(255),
-          trainingAssembly.add(
-            colorForwardTransform,
-            trainingAssembly.getInput(0)
-          )
-        )
-      ).freeRef();
-      ArtistryUtil.setPrecision(trainingAssembly, styleParameters.precision);
-      Trainable trainable1 = new ArrayTrainable(trainingAssembly, 1).setVerbose(true).setMask(false).setData(Arrays.asList(new Tensor[][]{{canvas}}));
-      trainingAssembly.freeRef();
-      return trainable1;
-    });
+    PipelineNetwork trainingAssembly = getNetwork(log, styleParameters, measureStyle, colorForwardTransform);
+    Trainable trainable = getTrainable(canvas, trainingAssembly);
+    trainingAssembly.freeRef();
     try {
       @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
       String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
@@ -436,6 +400,39 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
       trainable.freeRef();
     }
     return colorForwardTransform;
+  }
+  
+  @Nonnull
+  public final Trainable getTrainable(final Tensor canvas, final PipelineNetwork trainingAssembly) {
+    return new ArrayTrainable(trainingAssembly, 1).setVerbose(true).setMask(false).setData(Arrays.asList(new Tensor[][]{{canvas}}));
+  }
+  
+  @Nonnull
+  public PipelineNetwork getNetwork(
+    @Nonnull final NotebookOutput log,
+    final StyleSetup<T> styleParameters,
+    final NeuralSetup measureStyle,
+    final SimpleConvolutionLayer colorForwardTransform
+  )
+  {
+    PipelineNetwork network = fitnessNetwork(measureStyle);
+    network.setFrozen(true);
+    TestUtil.instrumentPerformance(network);
+    final FileHTTPD server = log.getHttpd();
+    if (null != server) ArtistryUtil.addLayersHandler(network, server);
+    PipelineNetwork trainingAssembly = new PipelineNetwork(1);
+    trainingAssembly.wrap(
+      network,
+      trainingAssembly.wrap(
+        ArtistryUtil.getClamp(255),
+        trainingAssembly.add(
+          colorForwardTransform,
+          trainingAssembly.getInput(0)
+        )
+      )
+    ).freeRef();
+    ArtistryUtil.setPrecision(trainingAssembly, styleParameters.precision);
+    return trainingAssembly;
   }
   
   @Nonnull
@@ -588,6 +585,7 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
             continue;
           System.gc();
           Layer wrapAvg = ArtistryUtil.wrapTiledAvg(network.copy(), 400);
+          styleInput.assertAlive();
           Tensor mean = wrapAvg.eval(styleInput).getDataAndFree().getAndFree(0);
           wrapAvg.freeRef();
           styleTarget.mean.put(layerType, mean);
@@ -637,8 +635,6 @@ public abstract class ColorTransfer<T extends LayerEnum<T>, U extends CVPipe<T>>
         network.freeRef();
       }
     }
-    styleInputs.forEach(ReferenceCountingBase::freeRef);
-    if (null != contentInput) contentInput.freeRef();
     return self;
   }
   

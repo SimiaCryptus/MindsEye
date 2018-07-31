@@ -148,7 +148,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     measureStyle = styleTransfer.measureStyle(styleSetup);
   
     canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize, true));
-    canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
+    canvasImage = styleTransfer.generate(log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     for (int i = 1; i < phases; i++) {
       imageSize *= growthFactor;
       styleSize *= growthFactor;
@@ -171,7 +171,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       measureStyle = styleTransfer.measureStyle(styleSetup);
   
       canvasImage = Tensor.fromRGB(TestUtil.resize(canvasImage.toImage(), imageSize, true));
-      canvasImage = styleTransfer.generate(server, log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
+      canvasImage = styleTransfer.generate(log, canvasImage, styleSetup, trainingMinutes, measureStyle, maxIterations, true);
     }
     return canvasImage;
   }
@@ -236,13 +236,12 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
     final NeuralSetup measureStyle
   )
   {
-    return generate(null, new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
+    return generate(new NullNotebookOutput(), canvasImage, styleParameters, trainingMinutes, measureStyle, 50, true);
   }
   
   /**
    * Style transfer buffered image.
    *
-   * @param server          the server
    * @param log             the log
    * @param canvasImage     the canvas image
    * @param styleParameters the style parameters
@@ -253,7 +252,6 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
    * @return the buffered image
    */
   public Tensor generate(
-    final FileHTTPD server,
     @Nonnull final NotebookOutput log,
     final Tensor canvasImage,
     final StyleSetup<T> styleParameters,
@@ -283,6 +281,7 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       network.setFrozen(true);
       ArtistryUtil.setPrecision(network, styleParameters.precision);
       TestUtil.instrumentPerformance(network);
+      final FileHTTPD server = log.getHttpd();
       if (null != server) ArtistryUtil.addLayersHandler(network, server);
       if (tiled) network = ArtistryUtil.tileCycle(network);
       train(verbose ? log : new NullNotebookOutput(), canvasImage, network, trainingMinutes, maxIterations);
@@ -293,8 +292,6 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       }
       return canvasImage;
     }, canvasImage);
-    log.p("Result:");
-    log.p(log.image(result.toImage(), "Result"));
     return result;
   }
   
@@ -347,7 +344,6 @@ public abstract class TextureGeneration<T extends LayerEnum<T>, U extends CVPipe
       } catch (IOException e) {
         logger.warn("Error writing result images", e);
       }
-      return TestUtil.plot(history);
     });
   }
   
