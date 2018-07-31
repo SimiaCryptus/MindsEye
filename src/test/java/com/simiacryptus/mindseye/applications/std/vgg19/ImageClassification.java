@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.applications.std.vgg19;
 
 import com.simiacryptus.mindseye.applications.ImageClassificationBase;
-import com.simiacryptus.mindseye.applications.ImageClassifier;
+import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG19;
 import com.simiacryptus.util.io.NotebookOutput;
 

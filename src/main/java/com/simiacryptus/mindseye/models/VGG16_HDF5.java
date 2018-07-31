@@ -18,7 +18,6 @@
  */
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.applications.ImageClassifier;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.ActivationLayer;

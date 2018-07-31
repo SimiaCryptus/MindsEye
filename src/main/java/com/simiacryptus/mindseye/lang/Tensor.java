@@ -23,7 +23,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.simiacryptus.mindseye.applications.PixelClusterer;
 import com.simiacryptus.mindseye.test.TestUtil;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -470,6 +469,19 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
+   * Get pixel double [ ].
+   *
+   * @param tensor the tensor
+   * @param x      the x
+   * @param y      the y
+   * @param bands  the bands
+   * @return the double [ ]
+   */
+  public static double[] getPixel(final Tensor tensor, final int x, final int y, final int bands) {
+    return IntStream.range(0, bands).mapToDouble(band -> tensor.get(x, y, band)).toArray();
+  }
+  
+  /**
    * Reduce tensor.
    *
    * @return the tensor
@@ -497,7 +509,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     int bands = dimensions[2];
     return IntStream.range(0, width).mapToObj(x -> x).parallel().flatMap(x -> {
       return IntStream.range(0, height).mapToObj(y -> y).map(y -> {
-        return PixelClusterer.getPixel(this, x, y, bands);
+        return getPixel(this, x, y, bands);
       });
     });
   }

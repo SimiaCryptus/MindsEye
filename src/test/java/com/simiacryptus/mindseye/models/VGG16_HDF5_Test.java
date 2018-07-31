@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.applications.ImageClassifier;
 import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;

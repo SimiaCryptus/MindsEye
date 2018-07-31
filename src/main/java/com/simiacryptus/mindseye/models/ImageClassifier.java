@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.applications;
+package com.simiacryptus.mindseye.models;
 
 import com.google.common.collect.Lists;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
@@ -37,7 +37,6 @@ import com.simiacryptus.mindseye.layers.cudnn.conv.SimpleConvolutionLayer;
 import com.simiacryptus.mindseye.layers.java.BiasLayer;
 import com.simiacryptus.mindseye.layers.java.EntropyLossLayer;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
-import com.simiacryptus.mindseye.models.NetworkFactory;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;

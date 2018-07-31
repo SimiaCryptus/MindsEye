@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.applications.ImageClassifier;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 
