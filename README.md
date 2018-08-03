@@ -2,7 +2,7 @@
 
 # MindsEye - Java 8 Neural Networks
 
-[Sample Art created by MindsEye](Mindseye_Textart.png)
+[![Sample Art created by MindsEye](Mindseye_Textart.png)](https://photos.app.goo.gl/K8VWG5BpGV8Ufxn3A)
  
 [![Sample Painting created by MindsEye](0.gif)](https://photos.app.goo.gl/5SeREKdmYuIzMSv12)
  
