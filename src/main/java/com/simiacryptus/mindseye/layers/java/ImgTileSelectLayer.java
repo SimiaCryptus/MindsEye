@@ -45,6 +45,7 @@ import java.util.stream.IntStream;
 public class ImgTileSelectLayer extends LayerBase {
   
   
+  private final boolean toroidal;
   private final int sizeX;
   private final int sizeY;
   private final int positionX;
@@ -59,11 +60,31 @@ public class ImgTileSelectLayer extends LayerBase {
    * @param positionY the position y
    */
   public ImgTileSelectLayer(final int sizeX, final int sizeY, final int positionX, final int positionY) {
+    this(
+      sizeX,
+      sizeY,
+      positionX,
+      positionY,
+      false
+    );
+  }
+  
+  /**
+   * Instantiates a new Img crop layer.
+   *
+   * @param sizeX     the size x
+   * @param sizeY     the size y
+   * @param positionX the position x
+   * @param positionY the position y
+   * @param toroidal
+   */
+  public ImgTileSelectLayer(final int sizeX, final int sizeY, final int positionX, final int positionY, final boolean toroidal) {
     super();
     this.sizeX = sizeX;
     this.sizeY = sizeY;
     this.positionX = positionX;
     this.positionY = positionY;
+    this.toroidal = toroidal;
   }
   
   /**
@@ -77,6 +98,7 @@ public class ImgTileSelectLayer extends LayerBase {
     sizeY = json.getAsJsonPrimitive("sizeY").getAsInt();
     positionX = json.getAsJsonPrimitive("positionX").getAsInt();
     positionY = json.getAsJsonPrimitive("positionY").getAsInt();
+    toroidal = json.getAsJsonPrimitive("toroidal").getAsBoolean();
   }
   
   /**
@@ -86,10 +108,18 @@ public class ImgTileSelectLayer extends LayerBase {
    * @param outputData the output data
    * @param posX       the pos x
    * @param posY       the pos y
+   * @param toroidal
    * @return the tensor
    */
   @Nonnull
-  public static Tensor copy(@Nonnull final Tensor inputData, @Nonnull final Tensor outputData, final int posX, final int posY) {
+  public static Tensor copy(
+    @Nonnull final Tensor inputData,
+    @Nonnull final Tensor outputData,
+    final int posX,
+    final int posY,
+    final boolean toroidal
+  )
+  {
     @Nonnull final int[] inDim = inputData.getDimensions();
     @Nonnull final int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
@@ -101,6 +131,12 @@ public class ImgTileSelectLayer extends LayerBase {
       int z = c.getCoords()[2];
       int width = inputData.getDimensions()[0];
       int height = inputData.getDimensions()[1];
+      if (toroidal) {
+        while (x < 0) x += width;
+        x %= width;
+        while (y < 0) y += height;
+        y %= height;
+      }
       double value;
       if (x < 0) { value = 0.0; }
       else if (x >= width) { value = 0.0; }
@@ -136,7 +172,7 @@ public class ImgTileSelectLayer extends LayerBase {
       .mapToObj(dataIndex -> {
         @Nonnull final Tensor outputData = new Tensor(dimOut);
         Tensor inputData = batch.get(dataIndex);
-        copy(inputData, outputData, positionX, positionY);
+        copy(inputData, outputData, positionX, positionY, toroidal);
         inputData.freeRef();
         return outputData;
       })
@@ -146,7 +182,7 @@ public class ImgTileSelectLayer extends LayerBase {
           .mapToObj(dataIndex -> {
             @Nullable final Tensor err = error.get(dataIndex);
             @Nonnull final Tensor passback = new Tensor(inputDims);
-            copy(err, passback, -positionX, -positionY);
+            copy(err, passback, -positionX, -positionY, toroidal);
             err.freeRef();
             return passback;
           }).toArray(i -> new Tensor[i]));
