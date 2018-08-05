@@ -20,7 +20,6 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.Layer;
@@ -101,7 +100,9 @@ public class ImgTileAssemblyLayer extends LayerBase {
     final int offsetY,
     final int paddingX,
     final int paddingY,
-    final boolean toroidal
+    final boolean toroidal,
+    final double rowF,
+    final double colF
   )
   {
     int[] inputDataDimensions = inputData.getDimensions();
@@ -116,50 +117,36 @@ public class ImgTileAssemblyLayer extends LayerBase {
 //    });
     inputData.coordStream(true).forEach(inputCoord -> {
       double inputValue = inputData.get(inputCoord);
-      setValue(outputData, inputData.getDimensions(), inputCoord, offsetX, offsetY, paddingX, paddingY, toroidal, inputValue);
+      int[] outputDataDimensions = outputData.getDimensions();
+      int inputWidth = inputDataDimensions[0];
+      int inputHeight = inputDataDimensions[1];
+      int outputWidth = outputDataDimensions[0];
+      int outputHeight = outputDataDimensions[1];
+      int x = inputCoord.getCoords()[0];
+      int y = inputCoord.getCoords()[1];
+      if (x < paddingX && colF != 0.0) { return; }
+      if (y < paddingY && rowF != 0.0) { return; }
+      if (x >= inputWidth - paddingX && colF != 1.0) { return; }
+      if (y >= inputHeight - paddingY && rowF != 1.0) { return; }
+      x += offsetX;
+      y += offsetY;
+      int z = inputCoord.getCoords()[2];
+      if (toroidal) {
+        while (x < 0) x += outputWidth;
+        x %= outputWidth;
+        while (y < 0) y += outputHeight;
+        y %= outputHeight;
+      }
+      if (x < 0) { return; }
+      if (y < 0) { return; }
+      if (x >= outputWidth) { return; }
+      if (y >= outputHeight) { return; }
+      outputData.set(x, y, z, inputValue);
     });
   
     return outputData;
   }
   
-  
-  public static void setValue(
-    @Nonnull final Tensor outputData,
-    final int[] inputDataDimensions, final Coordinate inputCoord,
-    final int offsetX,
-    final int offsetY,
-    final int paddingX,
-    final int paddingY,
-    final boolean toroidal,
-    double value
-  )
-  {
-    int[] outputDataDimensions = outputData.getDimensions();
-    int inputWidth = inputDataDimensions[0];
-    int inputHeight = inputDataDimensions[1];
-    int outputWidth = outputDataDimensions[0];
-    int outputHeight = outputDataDimensions[1];
-    int x = inputCoord.getCoords()[0];
-    int y = inputCoord.getCoords()[1];
-    if (x < paddingX) { return; }
-    if (y < paddingY) { return; }
-    if (x >= inputWidth - paddingX) { return; }
-    if (y >= inputHeight - paddingY) { return; }
-    x += offsetX;
-    y += offsetY;
-    int z = inputCoord.getCoords()[2];
-    if (toroidal) {
-      while (x < 0) x += outputWidth;
-      x %= outputWidth;
-      while (y < 0) y += outputHeight;
-      y %= outputHeight;
-    }
-    if (x < 0) { return; }
-    if (y < 0) { return; }
-    if (x >= outputWidth) { return; }
-    if (y >= outputHeight) { return; }
-    outputData.set(x, y, z, value);
-  }
   
   /**
    * From json img crop layer.
@@ -200,7 +187,9 @@ public class ImgTileAssemblyLayer extends LayerBase {
                                                  positionY,
                                                  0 >= positionX ? 0 : getPaddingX() / 2,
                                                  0 >= positionY ? 0 : getPaddingY() / 2,
-                                                 offsetX < 0 || offsetY < 0
+                                                 offsetX < 0 || offsetY < 0,
+                                                 (double) row / rows,
+                                                 (double) col / columns
                                                );
                                                inputData.freeRef();
                                                positionX += tileDimensions[0] - getPaddingX();
@@ -223,6 +212,8 @@ public class ImgTileAssemblyLayer extends LayerBase {
           int[] inputDataDimensions = in.getData().getDimensions();
           rowHeight = Math.max(rowHeight, inputDataDimensions[1]);
           if (in.isAlive()) {
+            final int finalRow = row;
+            final int finalCol = col;
             @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel()
                                                                   .mapToObj(dataIndex -> {
                                                                     @Nullable final Tensor deltaTensor = delta.get(dataIndex);
@@ -232,7 +223,9 @@ public class ImgTileAssemblyLayer extends LayerBase {
                                                                                               -positionY.get(),
                                                                                               0 == positionX.get() ? 0 : getPaddingX() / 2,
                                                                                               0 == positionY.get() ? 0 : getPaddingY() / 2,
-                                                                                              offsetX < 0 || offsetY < 0
+                                                                                              offsetX < 0 || offsetY < 0,
+                                                                                              (double) finalRow / rows,
+                                                                                              (double) finalCol / columns
                                                                     );
                                                                     deltaTensor.freeRef();
                                                                     return passbackTensor;
