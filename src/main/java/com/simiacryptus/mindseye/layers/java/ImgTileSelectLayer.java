@@ -28,6 +28,7 @@ import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -159,6 +160,59 @@ public class ImgTileSelectLayer extends LayerBase {
     return new ImgTileSelectLayer(json);
   }
   
+  /**
+   * To tiles tensor [ ].
+   *
+   * @param canvas  the canvas
+   * @param width   the width
+   * @param height  the height
+   * @param strideX the stride x
+   * @param strideY the stride y
+   * @return the tensor [ ]
+   */
+  @Nonnull
+  public static Tensor[] toTiles(
+    final NotebookOutput log,
+    final Tensor canvas,
+    final int width,
+    final int height,
+    final int strideX,
+    final int strideY,
+    final int offsetX,
+    final int offsetY
+  )
+  {
+    
+    @Nonnull final int[] inputDims = canvas.getDimensions();
+    int cols = (int) (Math.ceil((inputDims[0] - width - offsetX) * 1.0 / strideX) + 1);
+    int rows = (int) (Math.ceil((inputDims[1] - height - offsetY) * 1.0 / strideY) + 1);
+    log.p(String.format(
+      "Partition %s x %s image with %s x %s tile size into %s x %s grid with stride %s x %s offset %s x %s",
+      inputDims[0],
+      inputDims[1],
+      width,
+      height,
+      cols,
+      rows,
+      strideX,
+      strideY,
+      offsetX,
+      offsetY
+    ));
+    Tensor[] tiles = new Tensor[rows * cols];
+    int index = 0;
+    for (int row = 0; row < rows; row++) {
+      for (int col = 0; col < cols; col++) {
+        int positionX = col * strideX + offsetX;
+        int positionY = row * strideY + offsetY;
+        ImgTileSelectLayer tileSelectLayer = new ImgTileSelectLayer(width, height, positionX, positionY, offsetX < 0 || offsetY < 0);
+        tiles[index++] = tileSelectLayer.eval(canvas).getDataAndFree().getAndFree(0);
+        tileSelectLayer.freeRef();
+      }
+    }
+    return tiles;
+  }
+  
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -213,7 +267,10 @@ public class ImgTileSelectLayer extends LayerBase {
   @Nonnull
   public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
     @Nonnull final int[] viewDim = new int[3];
-    Arrays.parallelSetAll(viewDim, i -> Math.min(sourceDimensions[i], destinationDimensions[i] + offset[i]) - Math.max(offset[i], 0));
+    Arrays.parallelSetAll(viewDim, i -> toroidal ? (destinationDimensions[i]) : (Math.min(
+      sourceDimensions[i],
+      destinationDimensions[i] + offset[i]
+    ) - Math.max(offset[i], 0)));
     return viewDim;
   }
   
@@ -225,6 +282,7 @@ public class ImgTileSelectLayer extends LayerBase {
     json.addProperty("sizeY", sizeY);
     json.addProperty("positionX", positionX);
     json.addProperty("positionY", positionY);
+    json.addProperty("toroidal", toroidal);
     return json;
   }
   
