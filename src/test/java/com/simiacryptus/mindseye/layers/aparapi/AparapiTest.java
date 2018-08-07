@@ -237,8 +237,8 @@ public class AparapiTest {
      *
      * @param range          the range
      * @param _convMatrix3x3 the conv matrix 3 x 3
-     * @param _imageIn       the image in
-     * @param _imageOut      the image out
+     * @param _imageIn       the png in
+     * @param _imageOut      the png out
      * @param _width         the width
      * @param _height        the height
      * @return the aparapi apply . convolution

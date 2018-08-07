@@ -191,14 +191,14 @@ public class EncodingUtil {
     @Nonnull final CharSequence avgHexColor = Long.toHexString(red + (green << 8) + (blue << 16));
     return "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n" +
       ("<defs>\n" +
-        "<filter id=\"image\" >\n" + (
+         "<filter id=\"png\" >\n" + (
         positiveFilter + "\n" +
           negativeFilter + "\n" +
           compositingFilters
       ).replaceAll("\n", "\n\t") + "\n" +
         "</filter>\n" +
         "</defs>\n" +
-        "<rect style=\"filter:url(#image);\" setByCoord=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
+         "<rect style=\"filter:url(#png);\" setByCoord=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
       ).replaceAll("\n", "\n\t") +
       "\n</svg>";
   }
@@ -281,7 +281,7 @@ public class EncodingUtil {
     decoderBand.add(decoder).freeRef();
     try {
       return decoderBand.eval(tensor).getData().get(0);
-      //return log.image(t.toImage(), "");
+      //return log.png(t.toImage(), "");
     } catch (@Nonnull final RuntimeException e) {
       throw e;
     } catch (@Nonnull final Exception e) {

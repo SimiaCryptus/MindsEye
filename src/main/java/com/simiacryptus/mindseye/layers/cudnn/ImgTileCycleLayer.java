@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Reduces the resolution of the input by selecting a centered window. The output image will have the same number of
+ * Reduces the resolution of the input by selecting a centered window. The output png will have the same number of
  * color bands.
  */
 @SuppressWarnings("serial")

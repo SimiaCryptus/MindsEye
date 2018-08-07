@@ -260,7 +260,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
         }
       };
     } catch (@Nonnull final Throwable e) {
-      throw new ComponentException("Error apply image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error apply png res " + Arrays.toString(inputSize), e);
     }
   }
   
@@ -324,11 +324,11 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
    */
   public enum SoftmaxMode {
     /**
-     * The softmax operation is computed per spatial location (H,W) per image (N) across the dimension C.
+     * The softmax operation is computed per spatial location (H,W) per png (N) across the dimension C.
      */
     CHANNEL(cudnnSoftmaxMode.CUDNN_SOFTMAX_MODE_CHANNEL),
     /**
-     * The softmax operation is computed per image (N) across the dimensions C,H,W.
+     * The softmax operation is computed per png (N) across the dimensions C,H,W.
      */
     INSTANCE(cudnnSoftmaxMode.CUDNN_SOFTMAX_MODE_INSTANCE);
   

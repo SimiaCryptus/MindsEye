@@ -43,7 +43,7 @@ import java.util.stream.IntStream;
 
 /**
  * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
- * across larger image regions.
+ * across larger png regions.
  */
 @SuppressWarnings("serial")
 public class StochasticSamplingSubnetLayer extends WrapperLayer implements StochasticComponent, MultiPrecision<StochasticSamplingSubnetLayer> {

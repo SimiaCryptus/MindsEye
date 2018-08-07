@@ -51,7 +51,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * The standard image-pixel pooling layer. Using a configurable stride and window size, reduces pixels using either the
+ * The standard png-pixel pooling layer. Using a configurable stride and window size, reduces pixels using either the
  * Max or Avg operation.
  */
 @SuppressWarnings("serial")

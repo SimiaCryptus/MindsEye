@@ -38,7 +38,7 @@ import java.util.Map;
 
 /**
  * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
- * across larger image regions. Implemented via CudaSystem.
+ * across larger png regions. Implemented via CudaSystem.
  */
 @SuppressWarnings("serial")
 public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<RescaledSubnetLayer> {

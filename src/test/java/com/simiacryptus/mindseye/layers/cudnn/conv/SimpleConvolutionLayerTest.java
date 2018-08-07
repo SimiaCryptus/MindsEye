@@ -135,7 +135,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Typical 3x3 image convolution (64-bit)
+   * Typical 3x3 png convolution (64-bit)
    */
   public static class Image extends SimpleConvolutionLayerTest {
     /**
@@ -149,7 +149,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Typical 3x3 image convolution (32-bit)
+   * Typical 3x3 png convolution (32-bit)
    */
   public static class Image_Float extends SimpleConvolutionLayerTest {
     /**
@@ -168,7 +168,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Basic single-band 3x3 image filter.
+   * Basic single-band 3x3 png filter.
    */
   public static class Matrix extends SimpleConvolutionLayerTest {
     /**
@@ -253,7 +253,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Typical 3x3 image convolution (64-bit)
+   * Typical 3x3 png convolution (64-bit)
    */
   public static class SpanBug extends Bug_Control {
     /**

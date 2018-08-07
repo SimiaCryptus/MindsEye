@@ -53,7 +53,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.
+ * Similar to the pooling layer, but the pool size is always the png size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
 public class AvgReducerLayer extends LayerBase implements MultiPrecision<AvgReducerLayer> {

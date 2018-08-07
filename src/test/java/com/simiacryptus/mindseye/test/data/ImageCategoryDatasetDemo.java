@@ -69,7 +69,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
       return testData.stream().map(labeledObj -> {
         @Nullable BufferedImage img = labeledObj.data.get();
         img = TestUtil.resize(img, 224, true);
-        return log.image(img, labeledObj.label);
+        return log.png(img, labeledObj.label);
       }).limit(20).reduce((a, b) -> a + b).get();
     }));
   }

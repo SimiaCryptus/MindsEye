@@ -251,7 +251,7 @@ public class ClassifyProblem implements Problem {
     final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
     if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
     @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-    row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
+    row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
     row.put("Prediction", Arrays.stream(predictionList).limit(3)
       .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
       .reduce((a, b) -> a + ", " + b).get());

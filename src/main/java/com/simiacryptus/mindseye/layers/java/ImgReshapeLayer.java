@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
- * Reduces or expands image resolution by rearranging the values in NxN tiles to effectively stripe the small-scale
+ * Reduces or expands png resolution by rearranging the values in NxN tiles to effectively stripe the small-scale
  * spacial dimension across N^2 color bands.
  */
 @SuppressWarnings("serial")

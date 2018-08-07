@@ -50,7 +50,7 @@ public class CaltechTests {
    */
   @Nonnull
   public static FwdNetworkFactory fwd_conv_1 = (log, features) -> {
-    log.p("The image-to-vector network is a single layer convolutional:");
+    log.p("The png-to-vector network is a single layer convolutional:");
     return log.code(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
   
@@ -92,7 +92,7 @@ public class CaltechTests {
    */
   @Nonnull
   public static RevNetworkFactory rev_conv_1 = (log, features) -> {
-    log.p("The vector-to-image network uses a fully connected layer then a single convolutional layer:");
+    log.p("The vector-to-png network uses a fully connected layer then a single convolutional layer:");
     return log.code(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
   
@@ -135,7 +135,7 @@ public class CaltechTests {
   };
   
   /**
-   * Basic demonstratin problems involving the Caltech101 image dataset.
+   * Basic demonstratin problems involving the Caltech101 png dataset.
    */
   public abstract static class All_Caltech_Tests extends AllTrainingTests {
   
@@ -179,7 +179,7 @@ public class CaltechTests {
   }
   
   /**
-   * Basic demonstration problems involving the Caltech101 image dataset and Quadratic Quasi-Newton optimizer
+   * Basic demonstration problems involving the Caltech101 png dataset and Quadratic Quasi-Newton optimizer
    */
   public static class QQN extends All_Caltech_Tests {
     /**

@@ -20,16 +20,8 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.network.PipelineNetwork;
-import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.mindseye.test.unit.ComponentTest;
-import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
-import com.simiacryptus.mindseye.test.unit.PerformanceTester;
-import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Random;
 
 
@@ -64,85 +56,24 @@ public abstract class ImgTileCycleLayerTest extends CudaLayerTestBase {
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
-    return new ImgCropLayer(5, 5);
+    return new ImgTileCycleLayer();
   }
   
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
-    return com.simiacryptus.mindseye.layers.java.ImgCropLayer.class;
+    return null;
   }
   
   
-  @Nullable
-  @Override
-  public ComponentTest<ToleranceStatistics> getPerformanceTester() {
-    @Nonnull ComponentTest<ToleranceStatistics> inner = new PerformanceTester().setSamples(100).setBatches(10);
-    return new ComponentTestBase<ToleranceStatistics>() {
-      @Override
-      public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
-//        @Nullable PrintStream apiLog = null;
-        try {
-//          apiLog = new PrintStream(log.file("cuda_perf.log"));
-//          CudaSystem.addLog(apiLog);
-          return inner.test(log, component, inputPrototype);
-        } finally {
-//          log.p(log.file((String) null, "cuda_perf.log", "GPU Log"));
-//          if (null != apiLog) {
-//            apiLog.close();
-//            CudaSystem.apiLog.remove(apiLog);
-//          }
-        }
-      }
-      
-      @Override
-      protected void _free() {
-        inner.freeRef();
-        super._free();
-      }
-    };
-  }
+  public static class OneThird extends ImgTileCycleLayerTest {
   
-  /**
-   * The type Chained.
-   */
-  public static class Chained extends ImgTileCycleLayerTest {
-  
-    /**
-     * Instantiates a new Chained.
-     */
-    public Chained() {
-      validateDifferentials = false;
-    }
-    
     @Nonnull
     @Override
-    public Layer getLayer(int[][] inputSize, Random random) {
-      @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(4, 5);
-      //return wrap(imgCropLayer);
-      return imgCropLayer;
-    }
-  
-    /**
-     * Wrap nn layer.
-     *
-     * @param imgCropLayer the img crop layer
-     * @return the nn layer
-     */
-    @Nonnull
-    public Layer wrap(ImgCropLayer imgCropLayer) {
-      @Nonnull PipelineNetwork network = new PipelineNetwork();
-      network.wrap(imgCropLayer).freeRef();
-      return network;
-    }
-    
-    @Nonnull
-    @Override
-    public Class<? extends Layer> getTestClass() {
-      return ImgCropLayer.class;
+    public Layer getLayer(final int[][] inputSize, Random random) {
+      return new ImgTileCycleLayer().setXPos(0.3).setYPos(0.3);
     }
     
   }
-  
   /**
    * Basic Test
    */

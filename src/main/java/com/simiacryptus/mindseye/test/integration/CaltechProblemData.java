@@ -48,7 +48,7 @@ public class CaltechProblemData implements ImageProblemData {
   /**
    * Instantiates a new Caltech problem data.
    *
-   * @param imageSize the image size
+   * @param imageSize the png size
    */
   public CaltechProblemData(int imageSize) {
     this.imageSize = imageSize;
@@ -65,9 +65,9 @@ public class CaltechProblemData implements ImageProblemData {
   }
   
   /**
-   * Gets image size.
+   * Gets png size.
    *
-   * @return the image size
+   * @return the png size
    */
   public int getImageSize() {
     return imageSize;

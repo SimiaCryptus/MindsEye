@@ -263,8 +263,8 @@ public class EncodingProblem implements Problem {
       Arrays.stream(trainingData).map(tensorArray -> {
         @Nullable final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
         @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-        row.put("Source", log.image(tensorArray[1].toImage(), ""));
-        row.put("Echo", log.image(predictionSignal.toImage(), ""));
+        row.put("Source", log.png(tensorArray[1].toImage(), ""));
+        row.put("Echo", log.png(predictionSignal.toImage(), ""));
         return row;
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
       return table;
@@ -292,7 +292,7 @@ public class EncodingProblem implements Problem {
       @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
       @Nullable final Tensor tensor = imageNetwork.eval(input).getData().get(0);
       TestUtil.renderToImages(tensor, true).forEach(img -> {
-        log.out(log.image(img, ""));
+        log.out(log.png(img, ""));
       });
     }
     

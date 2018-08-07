@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Increases the resolution of the input by selecting a larger centered window. The output image will have the same
- * number of color bands, and the area outside the source image will be setWeights to 0.
+ * Increases the resolution of the input by selecting a larger centered window. The output png will have the same
+ * number of color bands, and the area outside the source png will be setWeights to 0.
  */
 @SuppressWarnings("serial")
 public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<ImgZeroPaddingLayer> {

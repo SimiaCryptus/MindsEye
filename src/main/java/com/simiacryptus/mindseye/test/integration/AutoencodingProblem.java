@@ -238,7 +238,7 @@ public class AutoencodingProblem implements Problem {
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
       @Nullable final Tensor tensor = revNetwork.eval(input).getData().get(0);
-      log.out(log.image(tensor.toImage(), ""));
+      log.out(log.png(tensor.toImage(), ""));
     }
     return this;
   }
@@ -254,8 +254,8 @@ public class AutoencodingProblem implements Problem {
   @Nonnull
   public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
     @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-    row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
-    row.put("Echo", log.image(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
+    row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
+    row.put("Echo", log.png(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
     return row;
   }
 }

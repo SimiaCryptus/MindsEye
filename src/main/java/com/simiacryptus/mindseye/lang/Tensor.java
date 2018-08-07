@@ -1433,9 +1433,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To gray image buffered image.
+   * To gray png buffered png.
    *
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toGrayImage() {
@@ -1443,10 +1443,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To gray image buffered image.
+   * To gray png buffered png.
    *
    * @param band the band
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toGrayImage(final int band) {
@@ -1463,9 +1463,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To image buffered image.
+   * To png buffered png.
    *
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toImage() {
@@ -1603,9 +1603,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To rgb image buffered image.
+   * To rgb png buffered png.
    *
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toRgbImage() {
@@ -1613,12 +1613,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To rgb image buffered image.
+   * To rgb png buffered png.
    *
    * @param redBand   the red band
    * @param greenBand the green band
    * @param blueBand  the blue band
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toRgbImage(final int redBand, final int greenBand, final int blueBand) {
@@ -1643,13 +1643,13 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To rgb image buffered image.
+   * To rgb png buffered png.
    *
    * @param redBand   the red band
    * @param greenBand the green band
    * @param blueBand  the blue band
    * @param alphaMask the alphaList mask
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toRgbImageAlphaMask(final int redBand, final int greenBand, final int blueBand, Tensor alphaMask) {

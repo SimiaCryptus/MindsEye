@@ -274,7 +274,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
         }
       };
     } catch (@Nonnull final Throwable e) {
-      throw new ComponentException("Error apply image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error apply png res " + Arrays.toString(inputSize), e);
     }
   }
   

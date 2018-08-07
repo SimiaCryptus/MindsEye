@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * The interface Multi layer image network.
+ * The interface Multi layer png network.
  *
  * @param <T> the type parameter
  */

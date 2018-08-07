@@ -553,7 +553,7 @@ public class TestUtil {
    */
   public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor, final boolean normalize) {
     return TestUtil.renderToImages(tensor, normalize).map(image -> {
-      return log.image(image, "");
+      return log.png(image, "");
     }).reduce((a, b) -> a + b).get();
   }
   
@@ -602,22 +602,22 @@ public class TestUtil {
   }
   
   /**
-   * Resize buffered image.
+   * Resize buffered png.
    *
    * @param source the source
    * @param size   the size
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public static BufferedImage resize(@Nonnull final BufferedImage source, final int size) {return resize(source, size, false);}
   
   /**
-   * Resize buffered image.
+   * Resize buffered png.
    *
    * @param source         the source
    * @param size           the size
    * @param preserveAspect the preserve aspect
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public static BufferedImage resize(@Nonnull final BufferedImage source, final int size, boolean preserveAspect) {
@@ -626,11 +626,11 @@ public class TestUtil {
   }
   
   /**
-   * Resize px buffered image.
+   * Resize px buffered png.
    *
    * @param source the source
    * @param size   the size
-   * @return the buffered image
+   * @return the buffered png
    */
   public static BufferedImage resizePx(@Nonnull final BufferedImage source, final long size) {
     if (size < 0) return source;
@@ -641,12 +641,12 @@ public class TestUtil {
   }
   
   /**
-   * Resize buffered image.
+   * Resize buffered png.
    *
    * @param source the source
    * @param width  the width
    * @param height the height
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public static BufferedImage resize(BufferedImage source, int width, int height) {
@@ -818,7 +818,7 @@ public class TestUtil {
           return;
         }
       } catch (Throwable e) {
-        log.warn("Error updating image", e);
+        log.warn("Error updating png", e);
       }
       JDialog jDialog = dialog.get();
       jDialog.hide();
@@ -923,7 +923,7 @@ public class TestUtil {
   /**
    * Normalize bands tensor.
    *
-   * @param image the image
+   * @param image the png
    * @return the tensor
    */
   public static Tensor normalizeBands(final Tensor image) {return normalizeBands(image, 255);}
@@ -931,7 +931,7 @@ public class TestUtil {
   /**
    * Normalize bands tensor.
    *
-   * @param image the image
+   * @param image the png
    * @param max   the max
    * @return the tensor
    */
@@ -1046,7 +1046,7 @@ public class TestUtil {
    * Write gif.
    *
    * @param log         the log
-   * @param imageStream the image stream
+   * @param imageStream the png stream
    */
   public static void writeGif(@Nonnull final NotebookOutput log, final Stream<BufferedImage> imageStream) {
     BufferedImage[] imgs = imageStream.toArray(i -> new BufferedImage[i]);

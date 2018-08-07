@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.
+ * Similar to the pooling layer, but the pool size is always the png size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
 public class BandReducerLayer extends LayerBase implements MultiPrecision<BandReducerLayer> {

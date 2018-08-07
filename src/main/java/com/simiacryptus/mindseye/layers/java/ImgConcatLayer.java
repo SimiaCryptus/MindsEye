@@ -82,7 +82,7 @@ public class ImgConcatLayer extends LayerBase {
   @Override
   public Result eval(@Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    assert Arrays.stream(inObj).allMatch(x -> x.getData().getDimensions().length == 3) : "This component is for use mapCoords 3d image tensors only";
+    assert Arrays.stream(inObj).allMatch(x -> x.getData().getDimensions().length == 3) : "This component is for use mapCoords 3d png tensors only";
     final int numBatches = inObj[0].getData().length();
     assert Arrays.stream(inObj).allMatch(x -> x.getData().length() == numBatches) : "All inputs must use same batch size";
     @Nonnull final int[] outputDims = Arrays.copyOf(inObj[0].getData().getDimensions(), 3);

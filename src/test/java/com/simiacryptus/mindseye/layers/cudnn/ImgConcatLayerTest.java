@@ -91,7 +91,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Test truncation feature that limits the image to N bands, discarding the last as needed.
+   * Test truncation feature that limits the png to N bands, discarding the last as needed.
    */
   public static class BandLimitTest extends ImgConcatLayerTest {
   
@@ -124,7 +124,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   }
   
   /**
-   * Test truncation feature that both concatenates images and limits the image to N bands, discarding the last as
+   * Test truncation feature that both concatenates images and limits the png to N bands, discarding the last as
    * needed.
    */
   public static class BandConcatLimitTest extends ImgConcatLayerTest {

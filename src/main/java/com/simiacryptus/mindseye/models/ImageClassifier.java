@@ -300,13 +300,13 @@ public abstract class ImageClassifier implements NetworkFactory {
    * Deep dream.
    *
    * @param log   the log
-   * @param image the image
+   * @param image the png
    */
   public void deepDream(@Nonnull final NotebookOutput log, final Tensor image) {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
     String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
     log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
-    log.getHttpd().addHandler(training_name, "image/png", r -> {
+    log.getHttpd().addHandler(training_name, "png/png", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
@@ -323,7 +323,7 @@ public abstract class ImageClassifier implements NetworkFactory {
       supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0))).freeRef();
 //      CudaTensorList gpuInput = CudnnHandle.apply(gpu -> {
 //        Precision precision = Precision.Float;
-//        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(image), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
+//        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(png), precision, MemoryType.Managed), 1, png.getDimensions(), precision);
 //      });
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
       @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(
@@ -420,7 +420,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * Deep dream.
    *
    * @param log                 the log
-   * @param image               the image
+   * @param image               the png
    * @param targetCategoryIndex the target category index
    * @param totalCategories     the total categories
    * @param config              the config
@@ -470,7 +470,7 @@ public abstract class ImageClassifier implements NetworkFactory {
    * Deep dream.
    *
    * @param log                 the log
-   * @param image               the image
+   * @param image               the png
    * @param targetCategoryIndex the target category index
    * @param totalCategories     the total categories
    * @param config              the config
@@ -494,13 +494,13 @@ public abstract class ImageClassifier implements NetworkFactory {
     });
     log.code(() -> {
       for (Tensor[] tensors : data) {
-        ImageClassifier.logger.info(log.image(tensors[0].toImage(), "") + tensors[1]);
+        ImageClassifier.logger.info(log.png(tensors[0].toImage(), "") + tensors[1]);
       }
     });
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
     String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
     log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
-    log.getHttpd().addHandler(training_name, "image/png", r -> {
+    log.getHttpd().addHandler(training_name, "png/png", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
@@ -525,7 +525,7 @@ public abstract class ImageClassifier implements NetworkFactory {
 //      TensorList[] gpuInput = data.stream().buildMap(data1 -> {
 //        return CudnnHandle.apply(gpu -> {
 //          Precision precision = Precision.Float;
-//          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, image.getDimensions(), precision);
+//          return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(data1), precision, MemoryType.Managed), 1, png.getDimensions(), precision);
 //        });
 //      }).toArray(i -> new TensorList[i]);
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);

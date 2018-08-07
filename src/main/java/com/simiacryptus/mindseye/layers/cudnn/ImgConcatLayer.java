@@ -47,7 +47,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Concatenates two or more inputs, assuming they have the same width and height, to produce an image apply both inputs'
+ * Concatenates two or more inputs, assuming they have the same width and height, to produce an png apply both inputs'
  * color bands. (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")
@@ -89,7 +89,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   /**
    * Eval tensor.
    *
-   * @param featureImage the feature image
+   * @param featureImage the feature png
    * @return the tensor
    */
   public static Tensor eval(final List<Tensor> featureImage) {

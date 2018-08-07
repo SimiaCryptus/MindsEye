@@ -68,7 +68,7 @@ public class ImageDecompositionLab {
   @Nonnull
   public List<Layer> dataPipeline = new ArrayList<>();
   /**
-   * The Display image.
+   * The Display png.
    */
   int displayImage = 5;
   /**
@@ -161,7 +161,7 @@ public class ImageDecompositionLab {
       }).toArray(i -> new Tensor[i][]);
   
     Arrays.stream(trainingImages).map(x -> x[1]).map(x -> x.toImage()).map(x -> {
-      return log.image(x, "example");
+      return log.png(x, "example");
     }).forEach(str -> log.p(str));
   
     log.h1("First LayerBase");
@@ -674,7 +674,7 @@ public class ImageDecompositionLab {
      *
      * @param log                the log
      * @param category           the category
-     * @param imageCount         the image count
+     * @param imageCount         the png count
      * @param size               the size
      * @param trainMinutes       the trainCjGD minutes
      * @param model              the model

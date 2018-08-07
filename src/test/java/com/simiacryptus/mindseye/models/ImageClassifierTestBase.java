@@ -56,10 +56,10 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   }
   
   /**
-   * Gets image classifier.
+   * Gets png classifier.
    *
    * @param log the log
-   * @return the image classifier
+   * @return the png classifier
    */
   public abstract ImageClassifier getImageClassifier(NotebookOutput log);
   
@@ -116,7 +116,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
       for (int i = 0; i < images.length; i++) {
         int index = i;
         @Nonnull HashMap<CharSequence, Object> row = new HashMap<>();
-        row.put("Image", log.image(images[i][1].toImage(), ""));
+        row.put("Image", log.png(images[i][1].toImage(), ""));
         modelPredictions.forEach((model, predictions) -> {
           row.put(model, predictions.get(index).entrySet().stream()
             .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
