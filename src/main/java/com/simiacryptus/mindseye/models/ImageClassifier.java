@@ -55,6 +55,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -306,44 +307,48 @@ public abstract class ImageClassifier implements NetworkFactory {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
     String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
     log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
-    log.getHttpd().addHandler(training_name, "png/png", r -> {
+    try (Closeable closeable = log.getHttpd().addHandler(training_name, "image/png", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    });
-    log.code(() -> {
-      @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
-      clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
-      clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
-      clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
-      clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
-      @Nonnull PipelineNetwork supervised = new PipelineNetwork(1);
-      supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0))).freeRef();
+    }))
+    {
+      log.code(() -> {
+        @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
+        clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
+        clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
+        clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
+        clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
+        @Nonnull PipelineNetwork supervised = new PipelineNetwork(1);
+        supervised.add(getNetwork().freeze(), supervised.wrap(clamp, supervised.getInput(0))).freeRef();
 //      CudaTensorList gpuInput = CudnnHandle.apply(gpu -> {
 //        Precision precision = Precision.Float;
 //        return CudaTensorList.wrap(gpu.getPtr(TensorArray.wrap(png), precision, MemoryType.Managed), 1, png.getDimensions(), precision);
 //      });
 //      @Nonnull Trainable trainable = new TensorListTrainable(supervised, gpuInput).setVerbosity(1).setMask(true);
-      @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(
-        true,
-        false
-      ).setData(Arrays.<Tensor[]>asList(new Tensor[]{image}));
-      new IterativeTrainer(trainable)
-        .setMonitor(getTrainingMonitor(history, supervised))
-        .setOrientation(new QQN())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch())
-        .setTimeout(60, TimeUnit.MINUTES)
-        .runAndFree();
-      try {
-        BufferedImage toImage = Util.toImage(TestUtil.plot(history));
-        if (null != toImage) ImageIO.write(toImage, "png", log.file(training_name));
-      } catch (IOException e) {
-        logger.warn("Error writing result images", e);
-      }
-      return TestUtil.plot(history);
-    });
+        @Nonnull Trainable trainable = new ArrayTrainable(supervised, 1).setVerbose(true).setMask(
+          true,
+          false
+        ).setData(Arrays.<Tensor[]>asList(new Tensor[]{image}));
+        new IterativeTrainer(trainable)
+          .setMonitor(getTrainingMonitor(history, supervised))
+          .setOrientation(new QQN())
+          .setLineSearchFactory(name -> new ArmijoWolfeSearch())
+          .setTimeout(60, TimeUnit.MINUTES)
+          .runAndFree();
+        try {
+          BufferedImage toImage = Util.toImage(TestUtil.plot(history));
+          if (null != toImage) ImageIO.write(toImage, "png", log.file(training_name));
+        } catch (IOException e) {
+          logger.warn("Error writing result images", e);
+        }
+        return TestUtil.plot(history);
+      });
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
   
   /**
@@ -500,7 +505,7 @@ public abstract class ImageClassifier implements NetworkFactory {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
     String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
     log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
-    log.getHttpd().addHandler(training_name, "png/png", r -> {
+    Closeable png = log.getHttpd().addHandler(training_name, "image/png", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
@@ -539,6 +544,7 @@ public abstract class ImageClassifier implements NetworkFactory {
         .setTerminateThreshold(Double.NEGATIVE_INFINITY)
         .runAndFree();
       try {
+        png.close();
         BufferedImage image1 = Util.toImage(TestUtil.plot(history));
         if (null != image1) ImageIO.write(image1, "png", log.file(training_name));
       } catch (IOException e) {
