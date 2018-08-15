@@ -650,7 +650,7 @@ public class TestUtil {
    */
   @Nonnull
   public static BufferedImage resize(BufferedImage source, int width, int height) {
-    @Nonnull final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    @Nonnull final BufferedImage image = new BufferedImage(width, height, source.getType());
     @Nonnull final Graphics2D graphics = (Graphics2D) image.getGraphics();
     graphics.setRenderingHints(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
     graphics.drawImage(source, 0, 0, width, height, null);
