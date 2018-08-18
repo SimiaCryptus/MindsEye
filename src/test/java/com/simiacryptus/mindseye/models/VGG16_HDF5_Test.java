@@ -33,7 +33,7 @@ public class VGG16_HDF5_Test extends ImageClassifierTestBase {
 //    @Nonnull PrintStream apiLog = new PrintStream(log.file("cuda.log"));
 //    CudaSystem.addLog(apiLog);
 //    log.p(log.file((String) null, "cuda.log", "GPU Log"));
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull ImageClassifier vgg16_hdf5 = VGG16.fromHDF5();
       ((HasHDF5) vgg16_hdf5).getHDF5().print();
       return vgg16_hdf5;

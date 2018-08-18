@@ -272,7 +272,7 @@ public class TestUtil {
    */
   public static void extractPerformance(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
     log.p("Per-layer Performance Metrics:");
-    log.code(() -> {
+    log.run(() -> {
       @Nonnull final Map<CharSequence, MonitoringWrapperLayer> metrics = new HashMap<>();
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
@@ -473,7 +473,7 @@ public class TestUtil {
     for (int col = 1; col < data[0].length; col++) {
       final int c = col;
       log.out("Learned Representation Statistics for Column " + col + " (all bands)");
-      log.code(() -> {
+      log.eval(() -> {
         @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
         Arrays.stream(data)
           .flatMapToDouble(row -> Arrays.stream(row[c].getData()))
@@ -482,7 +482,7 @@ public class TestUtil {
       });
       final int _col = col;
       log.out("Learned Representation Statistics for Column " + col + " (by band)");
-      log.code(() -> {
+      log.eval(() -> {
         @Nonnull final int[] dimensions = data[0][_col].getDimensions();
         return IntStream.range(0, dimensions[2]).mapToObj(x -> x).flatMap(b -> {
           return Arrays.stream(data).map(r -> r[_col]).map(tensor -> {
@@ -504,7 +504,7 @@ public class TestUtil {
   public static void printHistory(@Nonnull final NotebookOutput log, @Nonnull final List<StepRecord> history) {
     if (!history.isEmpty()) {
       log.out("Convergence Plot: ");
-      log.code(() -> {
+      log.eval(() -> {
         final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
         @Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step ->
           new double[]{step.iteration, Math.log10(Math.max(valueStats.getMin(), step.fitness))})

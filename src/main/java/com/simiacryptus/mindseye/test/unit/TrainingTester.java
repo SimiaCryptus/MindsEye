@@ -355,10 +355,10 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       completeLearning = null;
     }
     log.h2("Results");
-    log.code(() -> {
+    log.eval(() -> {
       return grid(inputLearning, modelLearning, completeLearning);
     });
-    ComponentResult result = log.code(() -> {
+    ComponentResult result = log.eval(() -> {
       return new ComponentResult(
         null == inputLearning ? null : inputLearning.value,
         null == modelLearning ? null : modelLearning.value,
@@ -396,11 +396,11 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
-    log.code(() -> {
+    log.eval(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
     log.p("We simultaneously regress this target input:");
-    log.code(() -> {
+    log.eval(() -> {
       return Arrays.stream(input_target)
         .flatMap(x -> Arrays.stream(x))
         .map(x -> x.prettyPrint())
@@ -415,7 +415,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     TensorList result = eval.getData();
     eval.freeRef();
     final Tensor[] output_target = result.stream().toArray(i -> new Tensor[i]);
-    log.code(() -> {
+    log.eval(() -> {
       return Stream.of(output_target).map(x -> x.prettyPrint()).reduce((a, b) -> a + "\n" + b).orElse("");
     });
     //if (output_target.length != inputPrototype.length) return null;
@@ -438,7 +438,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     @Nonnull final Layer network = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this apply, we use a network to learn this target input, given it's pre-evaluated output:");
-    log.code(() -> {
+    log.eval(() -> {
       return Arrays.stream(input_target)
         .flatMap(x -> Arrays.stream(x))
         .map(x -> x.prettyPrint())
@@ -489,7 +489,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     @Nonnull final Layer network_target = shuffle(random, component.copy()).freeze();
     final Tensor[][] input_target = shuffleCopy(random, inputPrototype);
     log.p("In this apply, attempt to train a network to emulate a randomized network given an example input/output. The target state is:");
-    log.code(() -> {
+    log.eval(() -> {
       return network_target.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     });
     Result[] array = ConstantResult.batchResultArray(input_target);
@@ -567,10 +567,10 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
       result.put("LBFGS", new TrainingResult(getResultType(lbfgs), min(lbfgs)));
       result.put("Experimental", new TrainingResult(getResultType(magic), min(magic)));
       if (verbose) {
-        final PlotCanvas iterPlot = log.code(() -> {
+        final PlotCanvas iterPlot = log.eval(() -> {
           return TestUtil.compare(title + " vs Iteration", runs);
         });
-        final PlotCanvas timePlot = log.code(() -> {
+        final PlotCanvas timePlot = log.eval(() -> {
           return TestUtil.compareTime(title + " vs Time", runs);
         });
         return new TestResult(iterPlot, timePlot, result);
@@ -600,13 +600,13 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
         if (history.stream().mapToDouble(x -> x.fitness).min().orElse(1) > 1e-5) {
           if (!network.isFrozen()) {
             log.p("This training apply resulted in the following configuration:");
-            log.code(() -> {
+            log.eval(() -> {
               return network.state().stream().map(Arrays::toString).reduce((a, b) -> a + "\n" + b).orElse("");
             });
           }
           if (0 < mask.length) {
             log.p("And regressed input:");
-            log.code(() -> {
+            log.eval(() -> {
               return Arrays.stream(data)
                 .flatMap(x -> Arrays.stream(x))
                 .limit(1)
@@ -616,7 +616,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
             });
           }
           log.p("To produce the following output:");
-          log.code(() -> {
+          log.eval(() -> {
             Result[] array = ConstantResult.batchResultArray(pop(data));
             @Nullable Result eval = layer.eval(array);
             for (@Nonnull Result result : array) {
@@ -669,7 +669,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     @Nonnull final List<StepRecord> history = new ArrayList<>();
     @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
-      log.code(() -> {
+      log.eval(() -> {
         return new IterativeTrainer(trainable)
           .setLineSearchFactory(label -> new QuadraticSearch())
           .setOrientation(new GradientDescent())
@@ -698,7 +698,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     @Nonnull final List<StepRecord> history = new ArrayList<>();
     @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
-      log.code(() -> {
+      log.eval(() -> {
         return new IterativeTrainer(trainable)
           .setLineSearchFactory(label -> new ArmijoWolfeSearch())
           .setOrientation(new GradientDescent())
@@ -727,7 +727,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     @Nonnull final List<StepRecord> history = new ArrayList<>();
     @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
-      log.code(() -> {
+      log.eval(() -> {
         return new IterativeTrainer(trainable)
           .setLineSearchFactory(label -> new ArmijoWolfeSearch())
           .setOrientation(new LBFGS())
@@ -757,7 +757,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
     @Nonnull final List<StepRecord> history = new ArrayList<>();
     @Nonnull final TrainingMonitor monitor = TrainingTester.getMonitor(history);
     try {
-      log.code(() -> {
+      log.eval(() -> {
         return new IterativeTrainer(trainable)
           .setLineSearchFactory(label -> new StaticLearningRate(1.0))
           .setOrientation(new RecursiveSubspace() {

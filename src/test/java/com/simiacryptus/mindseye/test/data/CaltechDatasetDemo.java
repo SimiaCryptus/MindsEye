@@ -34,7 +34,7 @@ public class CaltechDatasetDemo extends ImageCategoryDatasetDemo {
   
   @Override
   public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
-    return log.code(() -> {
+    return log.eval(() -> {
       Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream = Caltech101.trainingDataStream();
       return trainingDataStream;
     });

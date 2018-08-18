@@ -47,7 +47,8 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
   public void run(@Nonnull NotebookOutput log) {
     log.h1("Model");
     log.p("In this demonstration, we will show how to load an png recognition network and use it to identify object in images.");
-    log.p("We start by loading the VGG16 pretrained model using the HD5 importer. This downloads, if needed, the weights from a file in S3 and re-constructs the network architecture by custom code.");
+    log.p(
+      "We start by loading the VGG16 pretrained model using the HD5 importer. This downloads, if needed, the weights from a file in S3 and re-constructs the network architecture by custom run.");
     log.p("Next, we need an example png to analyze:");
     log.p(
       "We pass this png to the categorization network, and get the following top-10 results. Note that multiple objects may be detected, and the total percentage may be greater than 100%.");
@@ -59,7 +60,7 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
     Tensor[] images = loadData(log);
     
     log.h1("Prediction");
-    List<LinkedHashMap<CharSequence, Double>> predictions = log.code(() -> {
+    List<LinkedHashMap<CharSequence, Double>> predictions = log.eval(() -> {
       return vgg16.predict(5, images);
     });
     
@@ -86,7 +87,7 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
    * @return the tensor [ ]
    */
   public Tensor[] loadData(@Nonnull final NotebookOutput log) {
-    return log.code(() -> {
+    return log.eval(() -> {
       return Caltech101.trainingDataStream().sorted(getShuffleComparator()).map(labeledObj -> {
         @Nullable BufferedImage img = labeledObj.data.get();
         img = TestUtil.resize(img, 224, false);

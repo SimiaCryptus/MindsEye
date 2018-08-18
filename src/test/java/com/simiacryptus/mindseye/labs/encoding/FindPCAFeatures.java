@@ -68,7 +68,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
    * @return the tensor [ ]
    */
   protected Tensor[] findFeatureSpace(@Nonnull final NotebookOutput log, @Nonnull final Supplier<Stream<Tensor[]>> featureVectors, final int components) {
-    return log.code(() -> {
+    return log.eval(() -> {
       final int column = 1;
       @Nonnull final Tensor[] prototype = featureVectors.get().findAny().get();
       @Nonnull final int[] dimensions = prototype[column].getDimensions();

@@ -191,7 +191,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
       TestUtil.instrumentPerformance((DAGNetwork) component);
     }
     log.p("Now we execute larger-scale runs to benchmark performance:");
-    log.code(() -> {
+    log.run(() -> {
       test(component, inputPrototype);
     });
     if (component instanceof DAGNetwork) {

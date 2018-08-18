@@ -64,7 +64,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
       log.h1("Reference Input/Output Pairs");
       log.p("Display pre-setBytes input/output example pairs:");
       referenceIO.forEach((input, output) -> {
-        log.code(() -> {
+        log.eval(() -> {
           @Nonnull final SimpleEval eval = SimpleEval.run(layer, input);
           Tensor add = output.scale(-1).addAndFree(eval.getOutput());
           @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(add.getData());
@@ -81,7 +81,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
     else {
       log.h1("Example Input/Output Pair");
       log.p("Display input/output pairs from random executions:");
-      log.code(() -> {
+      log.eval(() -> {
         @Nonnull final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
           Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""),

@@ -51,7 +51,7 @@ public class MnistTests {
   @Nonnull
   public static FwdNetworkFactory fwd_conv_1 = (log, features) -> {
     log.p("The png-to-vector network is a single layer convolutional:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new ConvolutionLayer(5, 5, 1, 32).set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new ImgBandBiasLayer(32));
@@ -79,7 +79,7 @@ public class MnistTests {
   @Nonnull
   public static FwdNetworkFactory fwd_conv_1_n = (log, features) -> {
     log.p("The png-to-vector network is a single layer convolutional:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       double weight = 1e-3;
       
@@ -115,7 +115,7 @@ public class MnistTests {
   @Nonnull
   public static FwdNetworkFactory fwd_linear_1 = (log, features) -> {
     log.p("The png-to-vector network is a single layer, fully connected:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
       network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{features})
@@ -130,7 +130,7 @@ public class MnistTests {
   @Nonnull
   public static RevNetworkFactory rev_conv_1 = (log, features) -> {
     log.p("The vector-to-png network uses a fully connected layer then a single convolutional layer:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{1024})
         .set(() -> 0.25 * (Math.random() - 0.5)));
@@ -160,7 +160,7 @@ public class MnistTests {
   @Nonnull
   public static RevNetworkFactory rev_linear_1 = (log, features) -> {
     log.p("The vector-to-png network is a single fully connected layer:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 1})
         .set(() -> 0.25 * (Math.random() - 0.5)));

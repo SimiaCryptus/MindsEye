@@ -59,7 +59,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
       getTrainingStream(log).sorted(getShuffleComparator()).collect(Collectors.toList());
     
     log.h3("Categories");
-    log.code(() -> {
+    log.run(() -> {
       testData.stream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()))
         .forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
     });

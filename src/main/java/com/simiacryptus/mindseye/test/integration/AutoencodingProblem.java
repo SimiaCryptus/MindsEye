@@ -158,15 +158,15 @@ public class AutoencodingProblem implements Problem {
       supervisedNetwork.getInput(0)).freeRef();
     
     log.h3("Network Diagrams");
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
         .height(400).width(600).render(Format.PNG).toImage();
     });
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(revNetwork))
         .height(400).width(600).render(Format.PNG).toImage();
     });
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(supervisedNetwork))
         .height(400).width(600).render(Format.PNG).toImage();
     });
@@ -197,14 +197,14 @@ public class AutoencodingProblem implements Problem {
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
       new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
       new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
-    log.code(() -> {
+    log.run(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });
     if (!history.isEmpty()) {
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plot(history);
       });
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plotTime(history);
       });
     }
@@ -219,14 +219,14 @@ public class AutoencodingProblem implements Problem {
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
 
 //    log.h3("Metrics");
-//    log.code(() -> {
+//    log.run(() -> {
 //      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
 //    });
     
     log.h3("Validation");
     
     log.p("Here are some re-encoded examples:");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
       data.validationData().map(labeledObject -> {
         return toRow(log, labeledObject, echoNetwork.eval(labeledObject.data).getData().get(0).getData());

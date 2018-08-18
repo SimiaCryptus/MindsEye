@@ -62,7 +62,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
   public DAGNetwork buildModel(@Nonnull NotebookOutput log) {
     log.h3("Model");
     log.p("We use a multi-level convolution network");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       double weight = 1e-3;
   
@@ -98,7 +98,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
   
   @Override
   public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @Nonnull ValidatingTrainer trainer = new ValidatingTrainer(
         new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 1000),

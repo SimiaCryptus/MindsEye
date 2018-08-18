@@ -124,7 +124,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
     log.h1("Model");
     log.p("This is a very simple model that performs basic logistic regression. " +
       "It is expected to be trainable to about 91% accuracy on MNIST.");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.wrap(new BiasLayer(28, 28, 1)).freeRef();
       network.wrap(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
@@ -196,7 +196,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
   public void report(@Nonnull final NotebookOutput log, @Nonnull final MonitoredObject monitoringRoot, @Nonnull final List<Step> history, @Nonnull final Layer network) {
     
     if (!history.isEmpty()) {
-      log.code(() -> {
+      log.eval(() -> {
         @Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "log10(Fitness)");
@@ -209,7 +209,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
   
     log.h1("Metrics");
-    log.code(() -> {
+    log.eval(() -> {
       try {
         @Nonnull final ByteArrayOutputStream out = new ByteArrayOutputStream();
         JsonUtil.getMapper().writeValue(out, monitoringRoot.getMetrics());
@@ -267,14 +267,14 @@ public abstract class MnistTestBase extends NotebookReportBase {
   public void validate(@Nonnull final NotebookOutput log, @Nonnull final Layer network) {
     log.h1("Validation");
     log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
-    log.code(() -> {
+    log.eval(() -> {
       return MNIST.validationDataStream().mapToDouble(labeledObject ->
         predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
         .average().getAsDouble() * 100;
     });
     
     log.p("Let's examine some incorrectly predicted results in more detail:");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
       MNIST.validationDataStream().map(labeledObject -> {
         final int actualCategory = parse(labeledObject.label);

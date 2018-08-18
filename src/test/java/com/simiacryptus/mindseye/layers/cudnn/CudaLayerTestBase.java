@@ -62,7 +62,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
 //    CudaSystem.addLog(apiLog);
     super.run(log);
     log.p("CudaSystem Statistics:");
-    log.code(() -> {
+    log.eval(() -> {
       return TestUtil.toFormattedJson(CudaSystem.getExecutionStatistics());
     });
 //    apiLog.close();

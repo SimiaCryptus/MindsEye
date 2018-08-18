@@ -129,12 +129,12 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
       eval.freeRef();
       return doubles;
     }).collect(Collectors.toList());
-    
-    log.code(() -> {
+  
+    log.eval(() -> {
       return ActivationLayerTestBase.plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
     });
-    
-    log.code(() -> {
+  
+    log.eval(() -> {
       return ActivationLayerTestBase.plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
     });
     

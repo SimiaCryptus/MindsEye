@@ -315,7 +315,7 @@ public abstract class ImageClassifier implements NetworkFactory {
       }
     }))
     {
-      log.code(() -> {
+      log.eval(() -> {
         @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
         clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
         clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();
@@ -497,7 +497,7 @@ public abstract class ImageClassifier implements NetworkFactory {
     @Nonnull List<Tensor[]> data = Arrays.<Tensor[]>asList(new Tensor[]{
       image, new Tensor(1, 1, totalCategories).set(targetCategoryIndex, targetValue)
     });
-    log.code(() -> {
+    log.run(() -> {
       for (Tensor[] tensors : data) {
         ImageClassifier.logger.info(log.png(tensors[0].toImage(), "") + tensors[1]);
       }
@@ -512,7 +512,7 @@ public abstract class ImageClassifier implements NetworkFactory {
         throw new RuntimeException(e);
       }
     });
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull PipelineNetwork clamp = new PipelineNetwork(1);
       clamp.wrap(new ActivationLayer(ActivationLayer.Mode.RELU)).freeRef();
       clamp.wrap(new LinearActivationLayer().setBias(255).setScale(-1).freeze()).freeRef();

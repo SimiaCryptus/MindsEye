@@ -391,7 +391,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         try {
           log.h1("Network Diagram");
           log.p("This is a network apply the following layout:");
-          log.code(() -> {
+          log.eval(() -> {
             return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) smallLayer))
               .height(400).width(600).render(Format.PNG).toImage();
           });
@@ -406,7 +406,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
             log.h1("Exploded Network Diagram");
             log.p("This is a network apply the following layout:");
             @Nonnull DAGNetwork network = (DAGNetwork) explode;
-            log.code(() -> {
+            log.eval(() -> {
               @Nonnull Graphviz graphviz = Graphviz.fromGraph(TestUtil.toGraph(network)).height(400).width(600);
               @Nonnull File file = new File(log.getResourceDir(), log.getName() + "_network.svg");
               graphviz.render(Format.SVG_STANDALONE).toFile(file);
@@ -438,7 +438,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           }
         }
       }
-      log.code(() -> {
+      log.run(() -> {
         throwException(exceptions);
       });
     } finally {

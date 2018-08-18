@@ -173,7 +173,7 @@ public class ClassifyProblem implements Problem {
     
     @Nonnull final DAGNetwork network = fwdFactory.imageToVector(log, categories);
     log.h3("Network Diagram");
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(network))
         .height(400).width(600).render(Format.PNG).toImage();
     });
@@ -185,14 +185,14 @@ public class ClassifyProblem implements Problem {
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
       new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
       new ArrayTrainable(trainingData, supervisedNetwork, getBatchSize()), monitor);
-    log.code(() -> {
+    log.run(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });
     if (!history.isEmpty()) {
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plot(history);
       });
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plotTime(history);
       });
     }
@@ -213,14 +213,14 @@ public class ClassifyProblem implements Problem {
     
     log.h3("Validation");
     log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
-    log.code(() -> {
+    log.eval(() -> {
       return data.validationData().mapToDouble(labeledObject ->
         predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
         .average().getAsDouble() * 100;
     });
     
     log.p("Let's examine some incorrectly predicted results in more detail:");
-    log.code(() -> {
+    log.eval(() -> {
       try {
         @Nonnull final TableOutput table = new TableOutput();
         Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(batch -> {

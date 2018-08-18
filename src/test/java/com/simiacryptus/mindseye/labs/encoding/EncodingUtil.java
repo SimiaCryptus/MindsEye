@@ -313,7 +313,7 @@ public class EncodingUtil {
    */
   public static Tensor[][] getImages(@Nonnull final NotebookOutput log, final Function<BufferedImage, BufferedImage> fn, final int maxImages, @Nonnull final CharSequence[] categories) {
     log.out("Available images and categories:");
-    log.code(() -> {
+    log.eval(() -> {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
     });
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
@@ -362,7 +362,7 @@ public class EncodingUtil {
    */
   public static void printModel(@Nonnull final NotebookOutput log, @Nonnull final Layer network, final int modelNo) {
     log.out("Learned Model Statistics: ");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       network.state().stream().flatMapToDouble(x -> Arrays.stream(x))
         .forEach(v -> scalarStatistics.add(v));
@@ -443,7 +443,7 @@ public class EncodingUtil {
    */
   public static void validationReport(@Nonnull final NotebookOutput log, @Nonnull final Tensor[][] data, @Nonnull final List<Layer> dataPipeline, final int maxRows) {
     log.out("Current dataset and evaluation results: ");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
       Arrays.stream(data).limit(maxRows).map(tensorArray -> {
         @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();

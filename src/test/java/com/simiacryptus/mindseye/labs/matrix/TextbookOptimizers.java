@@ -51,7 +51,7 @@ public class TextbookOptimizers extends OptimizerComparison {
   @Nonnull
   public static OptimizationStrategy conjugate_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Conjugate Gradient Descent method:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
@@ -67,7 +67,7 @@ public class TextbookOptimizers extends OptimizerComparison {
   @Nonnull
   public static OptimizationStrategy limited_memory_bfgs = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Limited-Memory BFGS method:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
@@ -84,7 +84,7 @@ public class TextbookOptimizers extends OptimizerComparison {
   @Nonnull
   public static OptimizationStrategy orthantwise_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Orthantwise Quasi-Newton search method:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
@@ -101,7 +101,7 @@ public class TextbookOptimizers extends OptimizerComparison {
   @Nonnull
   public static OptimizationStrategy simple_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Stochastic Gradient Descent method:");
-    return log.code(() -> {
+    return log.eval(() -> {
       final double rate = 0.05;
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
@@ -119,7 +119,7 @@ public class TextbookOptimizers extends OptimizerComparison {
   @Nonnull
   public static OptimizationStrategy stochastic_gradient_descent = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Stochastic Gradient Descent method apply momentum and adaptve learning rate:");
-    return log.code(() -> {
+    return log.eval(() -> {
       final double carryOver = 0.5;
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMaxEpochIterations(100)
@@ -157,10 +157,10 @@ public class TextbookOptimizers extends OptimizerComparison {
     @Nonnull final ProblemRun owlqn = new ProblemRun("OWL-QN", test.apply(TextbookOptimizers.orthantwise_quasi_newton),
       Color.ORANGE, ProblemRun.PlotType.Line);
     log.h2("Comparison");
-    log.code(() -> {
+    log.eval(() -> {
       return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
     });
-    log.code(() -> {
+    log.eval(() -> {
       return TestUtil.compareTime("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);
     });
   }

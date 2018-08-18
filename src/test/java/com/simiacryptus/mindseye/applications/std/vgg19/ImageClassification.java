@@ -55,7 +55,7 @@ public abstract class ImageClassification extends ImageClassificationBase {
      */
     @Override
     public ImageClassifier loadModel(@Nonnull final NotebookOutput log) {
-      return log.code(() -> {
+      return log.eval(() -> {
         ImageClassifier classifier = VGG19.fromHDF5();
         classifier.getNetwork();
         return classifier;

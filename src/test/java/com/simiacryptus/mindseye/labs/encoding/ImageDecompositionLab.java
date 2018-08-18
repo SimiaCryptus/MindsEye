@@ -165,34 +165,34 @@ public class ImageDecompositionLab {
     }).forEach(str -> log.p(str));
   
     log.h1("First LayerBase");
-    @Nonnull final InitializationStep step0 = log.code(() -> {
+    @Nonnull final InitializationStep step0 = log.eval(() -> {
       return new InitializationStep(log, trainingImages,
         size, pretrainMinutes, timeoutMinutes, 3, 9, 5);
     }).invoke(); // output: 260
   
     log.h1("Second LayerBase");
-    @Nonnull final AddLayerStep step1 = log.code(() -> {
+    @Nonnull final AddLayerStep step1 = log.eval(() -> {
       return new AddLayerStep(log, step0.trainingData, step0.model,
         2, step0.toSize, pretrainMinutes * 2, timeoutMinutes,
         step0.band1, 18, 3, 4);
     }).invoke(); // output: 274
   
     log.h1("Third LayerBase");
-    @Nonnull final AddLayerStep step2 = log.code(() -> {
+    @Nonnull final AddLayerStep step2 = log.eval(() -> {
       return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
         3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
         step1.band2, 48, 3, 1);
     }).invoke(); // 276
   
     log.h1("Fourth LayerBase");
-    @Nonnull final AddLayerStep step3 = log.code(() -> {
+    @Nonnull final AddLayerStep step3 = log.eval(() -> {
       return new AddLayerStep(log, step2.trainingData, step2.integrationModel,
         4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
         step2.band2, 48, 5, 4);
     }).invoke(); // 278
     
     log.h1("Transcoding Different Category");
-    log.code(() -> {
+    log.eval(() -> {
       return new TranscodeStep(log, "yin_yang",
         images, size, timeoutMinutes * 5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
     }).invoke();
@@ -210,7 +210,7 @@ public class ImageDecompositionLab {
    */
   protected void train(@Nonnull final NotebookOutput log, final TrainingMonitor monitor, final Layer network, @Nonnull final Tensor[][] data, final int timeoutMinutes, final boolean... mask) {
     log.out("Training for %s minutes, mask=%s", timeoutMinutes, Arrays.toString(mask));
-    log.code(() -> {
+    log.run(() -> {
       @Nonnull SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
       trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
       @Nonnull final ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
@@ -346,7 +346,7 @@ public class ImageDecompositionLab {
       convolutionLayer = new ConvolutionLayer(radius, radius, band2, band1).set(i -> 0.01 * (Math.random() - 0.5));
       biasLayer = new ImgBandBiasLayer(band1);
       innerModel = buildNetwork();
-      integrationModel = log.code(() -> {
+      integrationModel = log.eval(() -> {
         @Nonnull final PipelineNetwork network = new PipelineNetwork(1);
         network.add(innerModel).freeRef();
         network.add(priorModel).freeRef();
@@ -360,7 +360,7 @@ public class ImageDecompositionLab {
      * @return the pipeline network
      */
     public PipelineNetwork buildNetwork() {
-      return log.code(() -> {
+      return log.eval(() -> {
         return new PipelineNetwork(1,
           new RescaledSubnetLayer(scale,
             new PipelineNetwork(1,
@@ -401,7 +401,7 @@ public class ImageDecompositionLab {
     @Nonnull
     public AddLayerStep invoke() {
       dataPipeline.add(innerModel);
-      log.code(() -> {
+      log.run(() -> {
         initialize(log, () -> {
           @Nonnull final Stream<Tensor[]> tensors = EncodingUtil.downExplodeTensors(Arrays.stream(trainingData).map(x -> new Tensor[]{x[0], x[layerNumber]}), scale);
           return EncodingUtil.convolutionFeatures(tensors, radius, 1);
@@ -560,7 +560,7 @@ public class ImageDecompositionLab {
      * @return the pipeline network
      */
     public PipelineNetwork buildModel() {
-      return log.code(() -> {
+      return log.eval(() -> {
         @Nonnull final PipelineNetwork network = new PipelineNetwork(1);
         network.add(convolutionLayer).freeRef();
         network.add(biasLayer).freeRef();
@@ -579,7 +579,7 @@ public class ImageDecompositionLab {
     @Nonnull
     public InitializationStep invoke() {
       dataPipeline.add(model);
-      log.code(() -> {
+      log.run(() -> {
         initialize(log, () -> EncodingUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius, 1), convolutionLayer, biasLayer);
       });
       

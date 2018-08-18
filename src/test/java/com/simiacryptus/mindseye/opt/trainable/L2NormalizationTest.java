@@ -45,7 +45,7 @@ public class L2NormalizationTest extends MnistTestBase {
       "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
       "Finally, we use a simple iterative scheme to refine the weights of our model. " +
       "The final output is the last output value of the loss function when evaluating the last batch.");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @Nonnull final Trainable trainable = new L12Normalizer(new SampledArrayTrainable(trainingData, supervisedNetwork, 1000)) {
         @Override

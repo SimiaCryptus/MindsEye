@@ -108,11 +108,11 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
     }).collect(Collectors.toList());
     layer.freeRef();
   
-    log.code(() -> {
+    log.eval(() -> {
       return ActivationLayerTestBase.plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
     });
   
-    log.code(() -> {
+    log.eval(() -> {
       return ActivationLayerTestBase.plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
     });
   

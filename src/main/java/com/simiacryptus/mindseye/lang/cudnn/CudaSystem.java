@@ -860,7 +860,7 @@ public class CudaSystem {
   /**
    * Handle.
    *
-   * @param returnCode the return code
+   * @param returnCode the return run
    */
   public static void handle(final int returnCode) {
     if (returnCode != cudnnStatus.CUDNN_STATUS_SUCCESS) {

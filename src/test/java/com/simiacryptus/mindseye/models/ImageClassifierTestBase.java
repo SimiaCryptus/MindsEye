@@ -85,7 +85,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     
     log.h1("Network Diagram");
     log.p("This is a diagram of the imported network:");
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) network))
         .height(4000).width(800).render(Format.PNG).toImage();
     });
@@ -129,7 +129,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     });
 
 //    log.p("CudaSystem Statistics:");
-//    log.code(() -> {
+//    log.run(() -> {
 //      return TestUtil.toFormattedJson(CudaSystem.getExecutionStatistics());
 //    });
   
@@ -146,7 +146,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    */
   public List<LinkedHashMap<CharSequence, Double>> predict(@Nonnull NotebookOutput log, @Nonnull ImageClassifier vgg16, @Nonnull Layer network, @Nonnull Tensor[][] images) {
     TestUtil.instrumentPerformance((DAGNetwork) network);
-    List<LinkedHashMap<CharSequence, Double>> predictions = log.code(() -> {
+    List<LinkedHashMap<CharSequence, Double>> predictions = log.eval(() -> {
       Tensor[] data = Arrays.stream(images).map(x -> x[1]).toArray(i -> new Tensor[i]);
       return ImageClassifier.predict(network, 5, vgg16.getCategories(), 1, data);
     });

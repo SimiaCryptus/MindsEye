@@ -164,7 +164,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, final Layer reference, @Nonnull final Tensor... inputPrototype) {
     log.h1("Batch Execution");
     log.p("Most layers, including this one, should behave the same no matter how the items are split between batches. We verify this:");
-    return log.code(() -> {
+    return log.eval(() -> {
       return test(reference, inputPrototype);
     });
   }

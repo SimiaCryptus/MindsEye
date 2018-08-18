@@ -47,7 +47,7 @@ public class CifarTests {
   @Nonnull
   public static FwdNetworkFactory fwd_conv_1 = (log, features) -> {
     log.p("The png-to-vector network is a single layer convolutional:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new ConvolutionLayer(3, 3, 3, 5).set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
@@ -65,7 +65,7 @@ public class CifarTests {
   @Nonnull
   public static FwdNetworkFactory fwd_linear_1 = (log, features) -> {
     log.p("The png-to-vector network is a single layer, fully connected:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(32, 32, 3));
       network.add(new FullyConnectedLayer(new int[]{32, 32, 3}, new int[]{features})
@@ -80,7 +80,7 @@ public class CifarTests {
   @Nonnull
   public static RevNetworkFactory rev_conv_1 = (log, features) -> {
     log.p("The vector-to-png network uses a fully connected layer then a single convolutional layer:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 5})
         .set(() -> 0.25 * (Math.random() - 0.5)));
@@ -98,7 +98,7 @@ public class CifarTests {
   @Nonnull
   public static RevNetworkFactory rev_linear_1 = (log, features) -> {
     log.p("The vector-to-png network is a single fully connected layer:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 3})
         .set(() -> 0.25 * (Math.random() - 0.5)));

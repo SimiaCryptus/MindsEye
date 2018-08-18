@@ -122,7 +122,7 @@ public abstract class NLayerTest {
   public void graphviz(@Nonnull final NotebookOutput log, final Layer layer) {
     if (layer instanceof DAGNetwork) {
       log.p("This is a network apply the following layout:");
-      log.code(() -> {
+      log.eval(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
           .height(400).width(600).render(Format.PNG).toImage();
       });

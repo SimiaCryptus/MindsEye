@@ -70,7 +70,7 @@ public class CudnnTest extends NotebookReportBase {
     CudnnHandle.forEach(gpu -> {
       log.h1("Device " + gpu.getDeviceId() + ": " + CudaDevice.getDeviceName(gpu.getDeviceId()));
       try {
-        log.code(() -> {
+        log.eval(() -> {
           @Nonnull ArrayList<Object> list = new ArrayList<>();
           int maxValue = Integer.MAX_VALUE - 0xFFF;
           int size = 8;
@@ -124,7 +124,7 @@ public class CudnnTest extends NotebookReportBase {
       return tensor;
     }).toArray(j -> new Tensor[j]));
     TensorList original = factory.get();
-    log.code(() -> {
+    log.run(() -> {
       CudaTensor write = CudaSystem.run(gpu -> {
         @Nonnull TimedResult<CudaTensor> timedResult = TimedResult.time(() -> {
           return gpu.getTensor(original, Precision.Double, MemoryType.Managed, false);
@@ -192,7 +192,7 @@ public class CudnnTest extends NotebookReportBase {
       Arrays.parallelSetAll(tensor.getData(), this::random);
       return tensor;
     }).toArray(j -> new Tensor[j]));
-    log.code(() -> {
+    log.run(() -> {
       @Nonnull TimedResult<TensorList> originalTiming = TimedResult.time(() -> factory.get());
       logger.info(String.format("Calculated test data in %.4fsec", originalTiming.seconds()));
       TensorList original = originalTiming.result;
@@ -305,7 +305,7 @@ public class CudnnTest extends NotebookReportBase {
       Arrays.parallelSetAll(tensor.getData(), this::random);
       return tensor;
     }).toArray(j -> new Tensor[j]));
-    log.code(() -> {
+    log.run(() -> {
       @Nonnull ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(5));
       PrintStream out = SysOutInterceptor.INSTANCE.currentHandler();
       try {
