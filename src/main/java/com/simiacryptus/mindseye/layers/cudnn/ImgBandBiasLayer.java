@@ -124,11 +124,17 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       throw new IllegalArgumentException("inObj.length=" + inObj.length);
     }
     Result input = inObj[0];
-    final TensorList leftData = input.getData();
-    @Nonnull final int[] inputDimensions = leftData.getDimensions();
-    final int length = leftData.length();
+    final TensorList inputData = input.getData();
+    @Nonnull final int[] inputDimensions = inputData.getDimensions();
+    final int length = inputData.length();
     if (3 != inputDimensions.length) {
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(inputDimensions));
+    }
+    if (0 == Tensor.length(inputData.getDimensions())) {
+      return input;
+    }
+    if (0 == bias.length()) {
+      return input;
     }
 //   assert !right.isAlive();
     return new Result(CudaSystem.run(gpu -> {
@@ -139,7 +145,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
         inputDimensions[1] * inputDimensions[0],
         inputDimensions[0],
         1);
-      @Nullable final CudaTensor inputTensor = gpu.getTensor(leftData, precision, MemoryType.Device, false);
+      @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       CudaMemory biasMem = gpu.allocate(bias.length() * precision.size, MemoryType.Device, true).write(precision, bias.getData());
       int[] biasDim = bias.getDimensions();
       CudaDevice.CudaTensorDescriptor biasDescriptor = gpu.newTensorDescriptor(precision, 1, biasDim[2], biasDim[1], biasDim[0],
@@ -162,7 +168,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       opDescriptor.freeRef();
       CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, inputDimensions, precision);
-    }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         @Nonnull double[] biasDelta = CudaSystem.run(gpu -> {
           @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
@@ -199,7 +205,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   
       @Override
       protected void _free() {
-        leftData.freeRef();
+        inputData.freeRef();
         input.freeRef();
       }
   

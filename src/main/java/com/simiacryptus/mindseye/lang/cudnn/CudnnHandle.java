@@ -287,7 +287,9 @@ public class CudnnHandle extends CudaDevice {
       }
     }
     final int listLength = data.length();
+    if (listLength <= 0) throw new IllegalStateException(String.format("listLength = %d", listLength));
     final int elementLength = Tensor.length(data.getDimensions());
+    if (elementLength <= 0) throw new IllegalStateException(String.format("elementLength = %d", elementLength));
     @Nonnull final CudaMemory ptr = this.allocate((long) elementLength * listLength * precision.size, memoryType, true);
     for (int i = 0; i < listLength; i++) {
       Tensor tensor = data.get(i);

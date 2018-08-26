@@ -107,7 +107,8 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
     TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
     int length = inputData.length();
-    
+    if (length <= 0) throw new AssertionError();
+    if (Tensor.length(inputData.getDimensions()) <= 0) return input;
     final int bands = inputSize[2];
     CudaTensorList result = CudaSystem.run(gpu -> {
       CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);

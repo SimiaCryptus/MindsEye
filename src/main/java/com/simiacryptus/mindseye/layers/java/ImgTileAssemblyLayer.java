@@ -124,10 +124,12 @@ public class ImgTileAssemblyLayer extends LayerBase {
       int outputHeight = outputDataDimensions[1];
       int x = inputCoord.getCoords()[0];
       int y = inputCoord.getCoords()[1];
-      if (x < paddingX && colF != 0.0) { return; }
-      if (y < paddingY && rowF != 0.0) { return; }
-      if (x >= inputWidth - paddingX && colF != 1.0) { return; }
-      if (y >= inputHeight - paddingY && rowF != 1.0) { return; }
+//      x += offsetX;
+//      y += offsetY;
+      if (x < paddingX / 2 && colF > 0.0) { return; }
+      if (y < paddingY / 2 && rowF > 0.0) { return; }
+      if (x >= inputWidth - paddingX / 2 && colF < 1.0) { return; }
+      if (y >= inputHeight - paddingY / 2 && rowF < 1.0) { return; }
       x += offsetX;
       y += offsetY;
       int z = inputCoord.getCoords()[2];
@@ -188,8 +190,8 @@ public class ImgTileAssemblyLayer extends LayerBase {
                                                  0 >= positionX ? 0 : getPaddingX() / 2,
                                                  0 >= positionY ? 0 : getPaddingY() / 2,
                                                  offsetX < 0 || offsetY < 0,
-                                                 (double) row / rows,
-                                                 (double) col / columns
+                                                 (double) row / (rows - 1),
+                                                 (double) col / (columns - 1)
                                                );
                                                inputData.freeRef();
                                                positionX += tileDimensions[0] - getPaddingX();
@@ -263,13 +265,15 @@ public class ImgTileAssemblyLayer extends LayerBase {
       for (int col = 0; col < columns; col++) {
         int[] dimensions = inObj[inputIndex].getData().getDimensions();
         rowHeight = Math.max(rowHeight, dimensions[1]);
+        //positionX += dimensions[0] - positionX==0?0:getPaddingX();
         positionX += dimensions[0] - getPaddingX();
         inputIndex += 1;
       }
+//      totalHeight += rowHeight - totalHeight==0?0:getPaddingY();
       totalHeight += rowHeight - getPaddingY();
       totalWidth = Math.max(totalWidth, positionX);
     }
-    return new int[]{totalWidth, totalHeight, bands};
+    return new int[]{totalWidth + getPaddingX(), totalHeight + getPaddingY(), bands};
   }
   
   @Nonnull
