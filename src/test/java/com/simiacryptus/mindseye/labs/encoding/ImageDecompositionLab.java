@@ -128,7 +128,7 @@ public class ImageDecompositionLab {
       @Nonnull final CharSequence directoryName = new SimpleDateFormat("YYYY-MM-dd-HH-mm").format(new Date());
       @Nonnull final File path = new File(Util.mkString(File.separator, "www", directoryName));
       path.mkdirs();
-      @Nonnull final NotebookOutput log = new MarkdownNotebookOutput(path, getClass().getSimpleName(), true);
+      @Nonnull final NotebookOutput log = new MarkdownNotebookOutput(new File(path, getClass().getSimpleName()), true);
       return log;
     } catch (@Nonnull final IOException e) {
       throw new RuntimeException(e);

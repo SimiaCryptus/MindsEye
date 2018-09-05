@@ -104,7 +104,7 @@ public abstract class NotebookReportBase {
       StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
       String methodName = callingFrame.getMethodName();
       path.getParentFile().mkdirs();
-      return new MarkdownNotebookOutput(path, methodName, TestSettings.INSTANCE.autobrowse);
+      return new MarkdownNotebookOutput(new File(path, methodName), TestSettings.INSTANCE.autobrowse);
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     }

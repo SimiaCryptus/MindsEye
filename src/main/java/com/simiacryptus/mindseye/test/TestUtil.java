@@ -1127,7 +1127,7 @@ public class TestUtil {
   
   public static void addGlobalHandlers(final FileHTTPD httpd) {
     if (null != httpd) {
-      httpd.addHandler("gpu.json", MimeType.JSON, out -> {
+      httpd.addGET("gpu.json", MimeType.JSON, out -> {
         try {
           JsonUtil.getMapper().writer().writeValue(out, CudaSystem.getExecutionStatistics());
           //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
@@ -1136,7 +1136,7 @@ public class TestUtil {
           throw new RuntimeException(e);
         }
       });
-      httpd.addHandler("threads.json", MimeType.JSON, out -> {
+      httpd.addGET("threads.json", MimeType.JSON, out -> {
         try {
           JsonUtil.getMapper().writer().writeValue(out, getStackInfo());
           //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());

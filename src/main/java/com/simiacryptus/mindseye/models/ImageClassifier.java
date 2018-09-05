@@ -307,7 +307,7 @@ public abstract class ImageClassifier implements NetworkFactory {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
     String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
     log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
-    try (Closeable closeable = log.getHttpd().addHandler(training_name, "image/png", r -> {
+    try (Closeable closeable = log.getHttpd().addGET(training_name, "image/png", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
@@ -505,7 +505,7 @@ public abstract class ImageClassifier implements NetworkFactory {
     @Nonnull ArrayList<StepRecord> history = new ArrayList<>();
     String training_name = String.format("etc/training_%s.png", Long.toHexString(MarkdownNotebookOutput.random.nextLong()));
     log.p(String.format("<a href=\"%s\"><img src=\"%s\"></a>", training_name, training_name));
-    Closeable png = log.getHttpd().addHandler(training_name, "image/png", r -> {
+    Closeable png = log.getHttpd().addGET(training_name, "image/png", r -> {
       try {
         ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", r);
       } catch (IOException e) {
