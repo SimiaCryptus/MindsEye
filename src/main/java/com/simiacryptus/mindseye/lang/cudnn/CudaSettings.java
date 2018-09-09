@@ -31,7 +31,7 @@ public class CudaSettings implements Settings {
    */
   public static final CudaSettings INSTANCE = new CudaSettings();
   /**
-   * The Memory cache mode.
+   * The Memory cacheLocal mode.
    */
   public final PersistanceMode memoryCacheMode;
   private final long maxTotalMemory;
@@ -220,16 +220,16 @@ public class CudaSettings implements Settings {
   }
   
   /**
-   * Gets memory cache ttl.
+   * Gets memory cacheLocal ttl.
    *
-   * @return the memory cache ttl
+   * @return the memory cacheLocal ttl
    */
   public int getMemoryCacheTTL() {
     return memoryCacheTTL;
   }
   
   /**
-   * Is convolution cache boolean.
+   * Is convolution cacheLocal boolean.
    *
    * @return the boolean
    */

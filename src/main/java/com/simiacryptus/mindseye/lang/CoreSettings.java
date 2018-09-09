@@ -67,9 +67,9 @@ public class CoreSettings implements Settings {
   }
   
   /**
-   * Gets double cache mode.
+   * Gets double cacheLocal mode.
    *
-   * @return the double cache mode
+   * @return the double cacheLocal mode
    */
   public PersistanceMode getDoubleCacheMode() {
     return doubleCacheMode;
