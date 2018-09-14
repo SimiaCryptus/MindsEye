@@ -28,12 +28,17 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
@@ -85,14 +90,40 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     return obj.referenceReport(includeCaller, obj.isFinalized());
   }
   
+  public static StackTraceElement[] removeSuffix(final StackTraceElement[] stack, final Collection<StackTraceElement> prefix) {
+    return Arrays.stream(stack).limit(stack.length - prefix.size()).toArray(i -> new StackTraceElement[i]);
+  }
+  
+  public static List<StackTraceElement> findCommonPrefix(final List<List<StackTraceElement>> reversedStacks) {
+    if (0 == reversedStacks.size()) return null;
+    List<StackTraceElement> protoprefix = reversedStacks.get(0);
+    for (int i = 0; i < protoprefix.size(); i++) {
+      final int finalI = i;
+      if (!reversedStacks.stream().allMatch(x -> x.size() > finalI && x.get(finalI).equals(protoprefix.get(finalI)))) {
+        return protoprefix.subList(0, i);
+      }
+    }
+    return protoprefix;
+  }
+  
+  public static <T> List<T> reverseCopy(final List<T> x) {
+    if (null == x) return Arrays.asList();
+    return IntStream.range(0, x.size()).map(i -> (x.size() - 1) - i).mapToObj(i -> x.get(i)).collect(Collectors.toList());
+  }
+  
+  public static <T> List<T> reverseCopy(final T[] x) {
+    return IntStream.range(0, x.length).map(i -> (x.length - 1) - i).mapToObj(i -> x[i]).collect(Collectors.toList());
+  }
+  
   @Override
   public int currentRefCount() {
     return references.get();
   }
   
   @Override
-  public void addRef() {
+  public ReferenceCountingBase addRef() {
     addRef(this);
+    return this;
   }
   
   @Override
@@ -139,13 +170,25 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     @Nonnull PrintStream out = new PrintStream(buffer);
     out.print(String.format("Object %s %s (%d refs, %d frees) ",
       getClass().getName(), getObjectId().toString(), 1 + addRefObjs.size(), freeRefObjs.size()));
+    List<StackTraceElement> prefix = reverseCopy(findCommonPrefix(Stream.concat(
+      Stream.<StackTraceElement[]>of(createdBy),
+      Stream.concat(
+        addRefs.stream(),
+        freeRefs.stream()
+      )
+    ).filter(x -> x != null).map(x -> reverseCopy(x)).collect(Collectors.toList())));
+    
     if (null != createdBy) {
+      StackTraceElement[] trace = this.createdBy;
+      //trace = removeSuffix(trace, prefix);
       out.println(String.format("created by \n\t%s",
-        getString(createdBy).replaceAll("\n", "\n\t")));
+        getString(trace).replaceAll("\n", "\n\t")));
     }
     synchronized (addRefObjs) {
+  
       for (int i = 0; i < addRefObjs.size(); i++) {
         StackTraceElement[] stack = i < addRefs.size() ? addRefs.get(i) : new StackTraceElement[]{};
+        stack = removeSuffix(stack, prefix);
         UUID linkObj = addRefObjs.get(i);
         CharSequence linkStr = this.equals(linkObj) ? "" : linkObj.toString();
         out.println(String.format("reference added by %s\n\t%s", linkStr,
@@ -155,16 +198,19 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     synchronized (freeRefObjs) {
       for (int i = 0; i < freeRefObjs.size() - (isFinalized ? 1 : 0); i++) {
         StackTraceElement[] stack = i < freeRefs.size() ? freeRefs.get(i) : new StackTraceElement[]{};
+        stack = removeSuffix(stack, prefix);
         UUID linkObj = freeRefObjs.get(i);
         CharSequence linkStr = objectId == linkObj ? "" : linkObj.toString();
         out.println(String.format("reference removed by %s\n\t%s", linkStr,
           getString(stack).replaceAll("\n", "\n\t")));
       }
-      if (isFinalized) {
+      if (isFinalized && 0 < freeRefs.size()) {
         UUID linkObj = freeRefObjs.isEmpty() ? objectId : freeRefObjs.get(freeRefObjs.size() - 1);
         CharSequence linkStr = objectId.equals(linkObj) ? "" : linkObj.toString();
+        StackTraceElement[] stack = freeRefs.get(freeRefs.size() - 1);
+        stack = removeSuffix(stack, prefix);
         out.println(String.format("freed by %s\n\t%s", linkStr,
-          (0 == freeRefs.size() ? "" : getString(freeRefs.get(freeRefs.size() - 1))).replaceAll("\n", "\n\t")));
+          (0 == freeRefs.size() ? "" : getString(stack)).replaceAll("\n", "\n\t")));
       }
     }
     if (includeCaller) out.println(String.format("apply current stack \n\t%s",

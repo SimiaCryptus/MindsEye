@@ -338,7 +338,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     final Tensor outputPrototype = SimpleEval.run(component, inputPrototype).getOutputAndFree();
     try {
       if (verbose) {
-        output.code(() -> {
+        output.run(() -> {
           log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse("")));
           log.info(String.format("Inputs Statistics: %s", Arrays.stream(inputPrototype).map(x -> new ScalarStatistics().add(x.getData()).toString()).reduce((a, b) -> a + ",\n" + b).orElse("")));
           log.info(String.format("Output: %s", null == outputPrototype ? null : outputPrototype.prettyPrint()));
@@ -349,7 +349,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         output.h2("Feedback Validation");
         output.p("We validate the agreement between the implemented derivative _of the inputs_ apply finite difference estimations:");
         final ToleranceStatistics statistics = _statistics;
-        _statistics = output.code(() -> {
+        _statistics = output.eval(() -> {
           return testFeedback(statistics, component, inputPrototype, outputPrototype);
         });
       }
@@ -357,7 +357,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         output.h2("Learning Validation");
         output.p("We validate the agreement between the implemented derivative _of the internal weights_ apply finite difference estimations:");
         final ToleranceStatistics statistics = _statistics;
-        _statistics = output.code(() -> {
+        _statistics = output.eval(() -> {
           return testLearning(statistics, component, inputPrototype, outputPrototype);
         });
       }
@@ -367,7 +367,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     output.h2("Total Accuracy");
     output.p("The overall agreement accuracy between the implemented derivative and the finite difference estimations:");
     final ToleranceStatistics statistics = _statistics;
-    output.code(() -> {
+    output.run(() -> {
       //log.info(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toStream(inputPrototype), outputPrototype));
       log.info(String.format("Finite-Difference Derivative Accuracy:"));
       log.info(String.format("absoluteTol: %s", statistics.absoluteTol));
@@ -375,7 +375,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     });
   
     output.h2("Frozen and Alive Status");
-    output.code(() -> {
+    output.run(() -> {
       testFrozen(component, inputPrototype);
       testUnFrozen(component, inputPrototype);
     });
@@ -555,7 +555,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }).filter(x -> x != null).collect(Collectors.toList());
     buffer.freeRef();
     if (!deltas.isEmpty() && !component.state().isEmpty()) {
-      throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
+      throw new AssertionError("Frozen component listed in evalInputDelta. Deltas: " + deltas);
     }
     if (!reachedInputFeedback.get() && 0 < inElements) {
       throw new RuntimeException("Frozen component did not pass input backwards");
@@ -601,7 +601,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
     if (deltas.isEmpty() && !stateList.isEmpty()) {
-      throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
+      throw new AssertionError("Nonfrozen component not listed in evalInputDelta. Deltas: " + deltas);
     }
     frozen.freeRef();
     buffer.freeRef();

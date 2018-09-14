@@ -66,13 +66,13 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   private double alpha = 1.0;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   public GramianLayer() {
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -84,11 +84,11 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static GramianLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GramianLayer(json, rs);
@@ -152,7 +152,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
    *
    * @param gpu         the gpu
    * @param inputTensor the input tensor
-   * @param deltaTensor the delta tensor
+   * @param deltaTensor the evalInputDelta tensor
    * @return the feedback
    */
   @Nonnull
@@ -370,19 +370,19 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   }
   
   /**
-   * Gets alpha.
+   * Gets alphaList.
    *
-   * @return the alpha
+   * @return the alphaList
    */
   public double getAlpha() {
     return alpha;
   }
   
   /**
-   * Sets alpha.
+   * Sets alphaList.
    *
-   * @param alpha the alpha
-   * @return the alpha
+   * @param alpha the alphaList
+   * @return the alphaList
    */
   public GramianLayer setAlpha(final double alpha) {
     this.alpha = alpha;

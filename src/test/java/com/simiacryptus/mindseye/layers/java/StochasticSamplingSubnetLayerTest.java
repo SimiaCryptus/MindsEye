@@ -47,7 +47,7 @@ public abstract class StochasticSamplingSubnetLayerTest extends LayerTestBase {
     PipelineNetwork subnetwork = new PipelineNetwork(1);
     subnetwork.wrap(new ProductLayer(),
       subnetwork.getInput(0),
-      subnetwork.add(new StochasticBinaryNoiseLayer(0.5, 1.0, inputSize[0]), new DAGNode[]{}));
+      subnetwork.add(new StochasticBinaryNoiseLayer(0.5, 1.0, inputSize[0]), new DAGNode[]{})).freeRef();
     
     StochasticSamplingSubnetLayer tileSubnetLayer = new StochasticSamplingSubnetLayer(subnetwork, 2);
     subnetwork.freeRef();

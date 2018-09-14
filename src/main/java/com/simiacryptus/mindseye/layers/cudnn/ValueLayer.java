@@ -59,7 +59,9 @@ public class ValueLayer extends LayerBase {
   protected ValueLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> resources) {
     super(json);
     this.precision = Precision.valueOf(json.get("precision").getAsString());
-    this.tensorList = toDevice(Tensor.fromJson(json.get("value"), resources), precision);
+    Tensor value = Tensor.fromJson(json.get("value"), resources);
+    this.tensorList = toDevice(value, precision);
+    value.freeRef();
   }
   
   /**

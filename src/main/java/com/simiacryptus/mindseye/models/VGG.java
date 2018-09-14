@@ -19,7 +19,6 @@
 
 package com.simiacryptus.mindseye.models;
 
-import com.simiacryptus.mindseye.applications.ImageClassifierBase;
 import com.simiacryptus.mindseye.lang.Layer;
 
 import javax.annotation.Nonnull;
@@ -32,7 +31,7 @@ import java.util.zip.ZipFile;
 /**
  * The type Vgg.
  */
-public abstract class VGG extends ImageClassifierBase {
+public abstract class VGG extends ImageClassifier {
   
   /**
    * From zip vgg 16.

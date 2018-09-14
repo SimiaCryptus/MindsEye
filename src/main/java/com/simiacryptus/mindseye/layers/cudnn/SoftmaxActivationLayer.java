@@ -220,7 +220,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
                 localOutMemory.dirty();
                 deltaTensorMemory.dirty();
                 passbackMemory.dirty();
-  
+    
                 localOutMemory.freeRef();
                 deltaTensorMemory.freeRef();
                 inputMemory.freeRef();
@@ -260,7 +260,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
         }
       };
     } catch (@Nonnull final Throwable e) {
-      throw new ComponentException("Error apply image res " + Arrays.toString(inputSize), e);
+      throw new ComponentException("Error apply png res " + Arrays.toString(inputSize), e);
     }
   }
   
@@ -297,15 +297,15 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
    */
   public enum SoftmaxAlgorithm {
     /**
-     * Fast softmax algorithm.
+     * This implementation applies the straightforward softmax operation.
      */
     FAST(cudnnSoftmaxAlgorithm.CUDNN_SOFTMAX_FAST),
     /**
-     * Accurate softmax algorithm.
+     * This implementation scales each point of the softmax input domain by its maximum value to avoid potential floating point overflows in the softmax evaluation.
      */
     ACCURATE(cudnnSoftmaxAlgorithm.CUDNN_SOFTMAX_ACCURATE),
     /**
-     * Log softmax algorithm.
+     * This entry performs the Log softmax operation, avoiding overflows by scaling each point in the input domain as in CUDNN_SOFTMAX_ACCURATE.
      */
     LOG(cudnnSoftmaxAlgorithm.CUDNN_SOFTMAX_LOG);
   
@@ -324,11 +324,11 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
    */
   public enum SoftmaxMode {
     /**
-     * Channel softmax mode.
+     * The softmax operation is computed per spatial location (H,W) per png (N) across the dimension C.
      */
     CHANNEL(cudnnSoftmaxMode.CUDNN_SOFTMAX_MODE_CHANNEL),
     /**
-     * Instance softmax mode.
+     * The softmax operation is computed per png (N) across the dimensions C,H,W.
      */
     INSTANCE(cudnnSoftmaxMode.CUDNN_SOFTMAX_MODE_INSTANCE);
   

@@ -40,10 +40,13 @@ import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,6 +63,8 @@ import java.util.stream.Stream;
  * The type Mnist apply base.
  */
 public class ClassifyProblem implements Problem {
+  
+  private static final Logger logger = LoggerFactory.getLogger(ClassifyProblem.class);
   
   private static int modelNo = 0;
   private final int categories;
@@ -168,7 +173,7 @@ public class ClassifyProblem implements Problem {
     
     @Nonnull final DAGNetwork network = fwdFactory.imageToVector(log, categories);
     log.h3("Network Diagram");
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(network))
         .height(400).width(600).render(Format.PNG).toImage();
     });
@@ -180,26 +185,26 @@ public class ClassifyProblem implements Problem {
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
       new SampledArrayTrainable(trainingData, supervisedNetwork, initialSampleSize, getBatchSize()),
       new ArrayTrainable(trainingData, supervisedNetwork, getBatchSize()), monitor);
-    log.code(() -> {
+    log.run(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });
     if (!history.isEmpty()) {
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plot(history);
       });
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plotTime(history);
       });
     }
-    
+  
+    @Nonnull String training_name = log.getName() + "_" + ClassifyProblem.modelNo++ + "_plot.png";
     try {
-      @Nonnull String filename = log.getName() + "_" + ClassifyProblem.modelNo++ + "_plot.png";
-      ImageIO.write(Util.toImage(TestUtil.plot(history)), "png", log.file(filename));
-      @Nonnull File file = new File(log.getResourceDir(), filename);
-      log.appendFrontMatterProperty("result_plot", file.toString(), ";");
+      BufferedImage image = Util.toImage(TestUtil.plot(history));
+      if (null != image) ImageIO.write(image, "png", log.file(training_name));
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      logger.warn("Error writing result images", e);
     }
+    log.appendFrontMatterProperty("result_plot", new File(log.getResourceDir(), training_name).toString(), ";");
     
     TestUtil.extractPerformance(log, supervisedNetwork);
     @Nonnull final String modelName = "classification_model_" + ClassifyProblem.modelNo++ + ".json";
@@ -208,14 +213,14 @@ public class ClassifyProblem implements Problem {
     
     log.h3("Validation");
     log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
-    log.code(() -> {
+    log.eval(() -> {
       return data.validationData().mapToDouble(labeledObject ->
         predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
         .average().getAsDouble() * 100;
     });
     
     log.p("Let's examine some incorrectly predicted results in more detail:");
-    log.code(() -> {
+    log.eval(() -> {
       try {
         @Nonnull final TableOutput table = new TableOutput();
         Lists.partition(data.validationData().collect(Collectors.toList()), 100).stream().flatMap(batch -> {
@@ -233,12 +238,12 @@ public class ClassifyProblem implements Problem {
   }
   
   /**
-   * To row linked hash map.
+   * To row linked hash buildMap.
    *
    * @param log              the log
    * @param labeledObject    the labeled object
    * @param predictionSignal the prediction signal
-   * @return the linked hash map
+   * @return the linked hash buildMap
    */
   @Nullable
   public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
@@ -246,7 +251,7 @@ public class ClassifyProblem implements Problem {
     final int[] predictionList = IntStream.range(0, categories).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
     if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
     @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-    row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
+    row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
     row.put("Prediction", Arrays.stream(predictionList).limit(3)
       .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
       .reduce((a, b) -> a + ", " + b).get());

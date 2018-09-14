@@ -305,82 +305,84 @@ public class IterativeTrainer extends ReferenceCountingBase {
     final long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     long lastIterationTime = System.nanoTime();
     @Nullable PointSample currentPoint = measure(true);
-    mainLoop:
-    while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
-      if (currentIteration.get() > maxIterations) {
-        break;
-      }
-      currentPoint.freeRef();
-      currentPoint = measure(true);
-      assert 0 < currentPoint.delta.getMap().size() : "Nothing to optimize";
-      subiterationLoop:
-      for (int subiteration = 0; subiteration < iterationsPerSample || iterationsPerSample <= 0; subiteration++) {
-        if (timeoutMs < System.currentTimeMillis()) {
-          break mainLoop;
-        }
-        if (currentIteration.incrementAndGet() > maxIterations) {
-          break mainLoop;
+    try {
+      mainLoop:
+      while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
+        if (currentIteration.get() > maxIterations) {
+          break;
         }
         currentPoint.freeRef();
         currentPoint = measure(true);
-        @Nullable final PointSample _currentPoint = currentPoint;
-        @Nonnull final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
-        final LineSearchCursor direction = timedOrientation.result;
-        final CharSequence directionType = direction.getDirectionType();
-        @Nullable final PointSample previous = currentPoint;
-        previous.addRef();
-        try {
-          @Nonnull final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
+        assert 0 < currentPoint.delta.getMap().size() : "Nothing to optimize";
+        subiterationLoop:
+        for (int subiteration = 0; subiteration < iterationsPerSample || iterationsPerSample <= 0; subiteration++) {
+          if (timeoutMs < System.currentTimeMillis()) {
+            break mainLoop;
+          }
+          if (currentIteration.incrementAndGet() > maxIterations) {
+            break mainLoop;
+          }
           currentPoint.freeRef();
-          currentPoint = timedLineSearch.result;
-          final long now = System.nanoTime();
-          final CharSequence perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
-            (now - lastIterationTime) / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
-          lastIterationTime = now;
-          monitor.log(String.format("Fitness changed from %s to %s", previous.getMean(), currentPoint.getMean()));
-          if (previous.getMean() <= currentPoint.getMean()) {
-            if (previous.getMean() < currentPoint.getMean()) {
-              monitor.log(String.format("Resetting Iteration %s", perfString));
-              currentPoint.freeRef();
-              currentPoint = direction.step(0, monitor).point;
+          currentPoint = measure(true);
+          @Nullable final PointSample _currentPoint = currentPoint;
+          @Nonnull final TimedResult<LineSearchCursor> timedOrientation = TimedResult.time(() -> orientation.orient(subject, _currentPoint, monitor));
+          final LineSearchCursor direction = timedOrientation.result;
+          final CharSequence directionType = direction.getDirectionType();
+          @Nullable final PointSample previous = currentPoint;
+          previous.addRef();
+          try {
+            @Nonnull final TimedResult<PointSample> timedLineSearch = TimedResult.time(() -> step(direction, directionType, previous));
+            currentPoint.freeRef();
+            currentPoint = timedLineSearch.result;
+            final long now = System.nanoTime();
+            final CharSequence perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
+              (now - lastIterationTime) / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
+            lastIterationTime = now;
+            monitor.log(String.format("Fitness changed from %s to %s", previous.getMean(), currentPoint.getMean()));
+            if (previous.getMean() <= currentPoint.getMean()) {
+              if (previous.getMean() < currentPoint.getMean()) {
+                monitor.log(String.format("Resetting Iteration %s", perfString));
+                currentPoint.freeRef();
+                currentPoint = direction.step(0, monitor).point;
+              }
+              else {
+                monitor.log(String.format("Static Iteration %s", perfString));
+              }
+              if (subject.reseed(System.nanoTime())) {
+                monitor.log(String.format("Iteration %s failed, retrying. Error: %s",
+                  currentIteration.get(), currentPoint.getMean()));
+                monitor.log(String.format("Previous Error: %s -> %s",
+                  previous.getRate(), previous.getMean()));
+                break subiterationLoop;
+              }
+              else {
+                monitor.log(String.format("Iteration %s failed, aborting. Error: %s",
+                  currentIteration.get(), currentPoint.getMean()));
+                monitor.log(String.format("Previous Error: %s -> %s",
+                  previous.getRate(), previous.getMean()));
+                break mainLoop;
+              }
             }
             else {
-              monitor.log(String.format("Static Iteration %s", perfString));
-            }
-            if (subject.reseed(System.nanoTime())) {
-              monitor.log(String.format("Iteration %s failed, retrying. Error: %s",
+              monitor.log(String.format("Iteration %s complete. Error: %s " + perfString,
                 currentIteration.get(), currentPoint.getMean()));
-              monitor.log(String.format("Previous Error: %s -> %s",
-                previous.getRate(), previous.getMean()));
-              break subiterationLoop;
             }
-            else {
-              monitor.log(String.format("Iteration %s failed, aborting. Error: %s",
-                currentIteration.get(), currentPoint.getMean()));
-              monitor.log(String.format("Previous Error: %s -> %s",
-                previous.getRate(), previous.getMean()));
-              break mainLoop;
-            }
+            monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
+          } finally {
+            previous.freeRef();
+            direction.freeRef();
           }
-          else {
-            monitor.log(String.format("Iteration %s complete. Error: %s " + perfString,
-              currentIteration.get(), currentPoint.getMean()));
-          }
-          monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
-        } finally {
-          previous.freeRef();
-          direction.freeRef();
         }
       }
+      if (subject.getLayer() instanceof DAGNetwork) {
+        ((DAGNetwork) subject.getLayer()).visitLayers(layer -> {
+          if (layer instanceof StochasticComponent) ((StochasticComponent) layer).clearNoise();
+        });
+      }
+      return null == currentPoint ? Double.NaN : currentPoint.getMean();
+    } finally {
+      currentPoint.freeRef();
     }
-    if (subject.getLayer() instanceof DAGNetwork) {
-      ((DAGNetwork) subject.getLayer()).visitLayers(layer -> {
-        if (layer instanceof StochasticComponent) ((StochasticComponent) layer).clearNoise();
-      });
-    }
-    double mean = null == currentPoint ? Double.NaN : currentPoint.getMean();
-    currentPoint.freeRef();
-    return mean;
   }
   
   /**

@@ -45,7 +45,7 @@ public class ImageTiles {
   /**
    * Read tensor.
    *
-   * @param image  the image
+   * @param image  the png
    * @param width  the width
    * @param height the height
    * @param x      the x
@@ -80,7 +80,7 @@ public class ImageTiles {
   /**
    * Tiles rgb tensor [ ].
    *
-   * @param image  the image
+   * @param image  the png
    * @param width  the width
    * @param height the height
    * @return the tensor [ ]
@@ -92,7 +92,7 @@ public class ImageTiles {
   /**
    * Tiles rgb tensor [ ].
    *
-   * @param image   the image
+   * @param image   the png
    * @param width   the width
    * @param height  the height
    * @param overlap the overlap
@@ -105,7 +105,7 @@ public class ImageTiles {
   /**
    * Tiles rgb tensor [ ].
    *
-   * @param image  the image
+   * @param image  the png
    * @param width  the width
    * @param height the height
    * @param xStep  the x runStep
@@ -130,7 +130,7 @@ public class ImageTiles {
   /**
    * To tiles list.
    *
-   * @param image            the image
+   * @param image            the png
    * @param tileWidth        the tile width
    * @param tileHeight       the tile height
    * @param minSpacingWidth  the min spacing width
@@ -244,7 +244,7 @@ public class ImageTiles {
         try {
           queue.addAll(ImageTiles.toTiles(f, tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols, maxTileRows));
         } catch (@Nonnull final Throwable e) {
-          e.printStackTrace();
+          throw new RuntimeException(e);
         }
       }
     }

@@ -50,7 +50,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Reduces the resolution of the input by selecting a centered window. The output image will have the same number of
+ * Reduces the resolution of the input by selecting a centered window. The output png will have the same number of
  * color bands.
  */
 @SuppressWarnings("serial")
@@ -63,7 +63,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   private boolean parallel;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private ImgTileAssemblyLayer() {
   }
@@ -80,7 +80,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -94,11 +94,11 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgTileAssemblyLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileAssemblyLayer(json, rs);
@@ -193,12 +193,12 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
       if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
       stream.forEach(this::backprop);
     }) {
-  
+    
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-  
+    
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());

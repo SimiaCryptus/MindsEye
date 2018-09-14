@@ -107,7 +107,7 @@ public class SumInputsLayerTest {
     public Layer getLayer(int[][] inputSize, Random random) {
       @Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
-      network.wrap(new SumInputsLayer(), input, input);
+      network.wrap(new SumInputsLayer(), input, input).freeRef();
       return network;
     }
     

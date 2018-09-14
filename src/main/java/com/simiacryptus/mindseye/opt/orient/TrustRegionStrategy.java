@@ -149,8 +149,8 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
           @Nullable final double[] delta = buffer.getDelta();
           if (null == delta) return;
           final double[] currentPosition = buffer.target;
-          @Nullable final double[] originalAlphaD = originalAlphaDerivative.get(layer, currentPosition).getDelta();
-          @Nullable final double[] newAlphaD = newAlphaDerivative.get(layer, currentPosition).getDelta();
+          @Nullable final double[] originalAlphaD = originalAlphaDerivative.get(layer, currentPosition).getDeltaAndFree();
+          @Nullable final double[] newAlphaD = newAlphaDerivative.get(layer, currentPosition).getDeltaAndFree();
           @Nonnull final double[] proposedPosition = ArrayUtil.add(currentPosition, delta);
           final TrustRegion region = getRegionPolicy(layer);
           if (null != region) {
@@ -166,8 +166,8 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
               }
               @Nonnull final double[] normal = ArrayUtil.subtract(projectedPosition, proposedPosition);
               final double normalMagSq = ArrayUtil.dot(normal, normal);
-//              monitor.log(String.format("%s: delta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
-//                ArrayUtil.dot(delta,delta),
+//              monitor.log(String.format("%s: evalInputDelta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
+//                ArrayUtil.dot(evalInputDelta,evalInputDelta),
 //                ArrayUtil.dot(projectedPosition,projectedPosition),
 //                ArrayUtil.dot(proposedPosition,proposedPosition),
 //                ArrayUtil.dot(currentPosition,currentPosition),
@@ -206,8 +206,13 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
         @Nonnull final DeltaSet<Layer> adjustedPosVector = cursor.position(alpha);
         @Nonnull final DeltaSet<Layer> adjustedGradient = project(adjustedPosVector, monitor);
         adjustedPosVector.accumulate(1);
+        adjustedPosVector.freeRef();
         @Nonnull final PointSample sample = subject.measure(monitor).setRate(alpha);
-        return new LineSearchPoint(sample, adjustedGradient.dot(sample.delta));
+        double dot = adjustedGradient.dot(sample.delta);
+        adjustedGradient.freeRef();
+        LineSearchPoint lineSearchPoint = new LineSearchPoint(sample, dot);
+        sample.freeRef();
+        return lineSearchPoint;
       }
       
       @Override

@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This trains a subject apply a diagnostic goal: trainCjGD each layer individually, and measure the ideal rate for each
+ * This trains a subject apply a diagnostic goal: trainCjGD each layer individually, and measureStyle the ideal rate for each
  * phase. This can indicate how balanced a network is, and how to trainCjGD it.
  */
 public class LayerRateDiagnosticTrainer {
@@ -287,9 +287,9 @@ public class LayerRateDiagnosticTrainer {
   }
   
   /**
-   * Run map.
+   * Run buildMap.
    *
-   * @return the map
+   * @return the buildMap
    */
   @Nonnull
   public Map<Layer, LayerStats> run() {
@@ -416,7 +416,7 @@ public class LayerRateDiagnosticTrainer {
      * Instantiates a new LayerBase stats.
      *
      * @param rate  the rate
-     * @param delta the delta
+     * @param delta the evalInputDelta
      */
     public LayerStats(final double rate, final double delta) {
       this.rate = rate;
@@ -428,7 +428,7 @@ public class LayerRateDiagnosticTrainer {
     public String toString() {
       @Nonnull final StringBuffer sb = new StringBuffer("{");
       sb.append("rate=").append(rate);
-      sb.append(", delta=").append(delta);
+      sb.append(", evalInputDelta=").append(delta);
       sb.append('}');
       return sb.toString();
     }

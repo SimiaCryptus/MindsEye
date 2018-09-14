@@ -62,7 +62,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
   public DAGNetwork buildModel(@Nonnull NotebookOutput log) {
     log.h3("Model");
     log.p("We use a multi-level convolution network");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       double weight = 1e-3;
   
@@ -72,13 +72,13 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       network.add(newNormalizationLayer());
-
+  
       network.add(new ConvolutionLayer(3, 3, 5, 5).set(init));
       network.add(new ImgBandBiasLayer(5));
       network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
       network.add(new ActivationLayer(ActivationLayer.Mode.RELU));
       network.add(newNormalizationLayer());
-
+  
       network.add(new BiasLayer(7, 7, 5));
       network.add(new FullyConnectedLayer(new int[]{7, 7, 5}, new int[]{10}).set(init));
       network.add(new SoftmaxActivationLayer());
@@ -98,7 +98,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
   
   @Override
   public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @Nonnull ValidatingTrainer trainer = new ValidatingTrainer(
         new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 1000),
@@ -131,7 +131,7 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
     public OrientationStrategy<?> getOrientation() {
       return new LBFGS();
     }
-
+  
   }
   
   /**

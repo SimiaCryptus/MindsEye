@@ -47,8 +47,8 @@ public class MeanSqLossLayer extends PipelineNetwork {
   public MeanSqLossLayer() {
     super(2);
     this.binaryNode = wrap(new BinarySumLayer(alpha, -alpha), getInput(0), getInput(1));
-    wrap(new SquareActivationLayer());
-    wrap(new AvgReducerLayer());
+    wrap(new SquareActivationLayer()).freeRef();
+    wrap(new AvgReducerLayer()).freeRef();
   }
   
   /**
@@ -60,7 +60,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
   protected MeanSqLossLayer(@Nonnull final JsonObject id, Map<CharSequence, byte[]> rs) {
     super(id, rs);
     alpha = id.get("alpha").getAsDouble();
-    binaryNode = (InnerNode) nodesById.get(UUID.fromString(id.get("binaryNode").getAsString()));
+    binaryNode = (InnerNode) getNodeById(UUID.fromString(id.get("binaryNode").getAsString()));
   }
   
   /**
@@ -83,19 +83,19 @@ public class MeanSqLossLayer extends PipelineNetwork {
   }
   
   /**
-   * Gets alpha.
+   * Gets alphaList.
    *
-   * @return the alpha
+   * @return the alphaList
    */
   public double getAlpha() {
     return alpha;
   }
   
   /**
-   * Sets alpha.
+   * Sets alphaList.
    *
-   * @param alpha the alpha
-   * @return the alpha
+   * @param alpha the alphaList
+   * @return the alphaList
    */
   public MeanSqLossLayer setAlpha(final double alpha) {
     this.alpha = alpha;

@@ -41,14 +41,14 @@ public class L1NormalizationTest extends MnistTestBase {
   
   @Override
   public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @Nonnull final Trainable trainable = new L12Normalizer(new SampledArrayTrainable(trainingData, supervisedNetwork, 1000)) {
         @Override
         public Layer getLayer() {
           return inner.getLayer();
         }
-
+  
         @Override
         protected double getL1(final Layer layer) {
           return 1.0;

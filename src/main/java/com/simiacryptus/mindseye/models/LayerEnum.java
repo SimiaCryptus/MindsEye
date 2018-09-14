@@ -32,7 +32,7 @@ public interface LayerEnum<T> {
    *
    * @return the pipeline network
    */
-  PipelineNetwork texture();
+  PipelineNetwork network();
   
   /**
    * Name char sequence.

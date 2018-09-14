@@ -69,7 +69,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   private int batchBands = 0;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private FullyConnectedLayer() {
     outputDims = null;
@@ -98,7 +98,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -113,11 +113,11 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static FullyConnectedLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new FullyConnectedLayer(json, rs);
@@ -189,7 +189,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     int inputVol = Tensor.length(inputDims);
     int outVol = Tensor.length(outputDims);
     @Nonnull PipelineNetwork network = new PipelineNetwork(1);
-    network.wrap(new ReshapeLayer(1, 1, inputVol));
+    network.wrap(new ReshapeLayer(1, 1, inputVol)).freeRef();
     @Nullable Tensor tensor = this.weights.reshapeCast(1, 1, inputVol * outVol);
     @Nonnull ConvolutionLayer convolutionLayer = new ConvolutionLayer(1, 1, inputVol, outVol)
       .set(tensor)
@@ -200,7 +200,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     tensor.freeRef();
     grid.add(network.getHead());
     grid.freeRef();
-    network.wrap(new ReshapeLayer(outputDims));
+    network.wrap(new ReshapeLayer(outputDims)).freeRef();
     network.setName(getName());
     return network;
   }

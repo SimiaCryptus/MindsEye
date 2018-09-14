@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * A diagnostic wrapper that collects performance data and, if enabled, value statistics of output and backprop
  * signals.
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "FieldCanBeLocal"})
 public final class MonitoringWrapperLayer extends WrapperLayer implements MonitoredItem {
   
   private final PercentileStatistics backwardPerformance = new PercentileStatistics();

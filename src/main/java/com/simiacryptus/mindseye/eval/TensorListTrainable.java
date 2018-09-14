@@ -148,7 +148,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
       @Nonnull PointSample pointSample;
       try {
         result.accumulate(deltaSet, 1.0);
-        //log.info(String.format("Evaluated to %s delta buffers, %s mag", DeltaSet<LayerBase>.getMap().size(), DeltaSet<LayerBase>.getMagnitude()));
+        //log.info(String.format("Evaluated to %s evalInputDelta buffers, %s mag", DeltaSet<LayerBase>.getMap().size(), DeltaSet<LayerBase>.getMagnitude()));
         @Nonnull StateSet<Layer> stateSet = new StateSet<>(deltaSet);
         pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, items);
         stateSet.freeRef();
@@ -201,7 +201,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
     int items = data[0].length();
     assert 0 < items;
     @Nonnull final TimedResult<PointSample> timedResult = TimedResult.time(() -> eval(data, monitor));
-    //          log.info(String.format("Evaluated to %s delta arrays", DeltaSet<LayerBase>.apply.size()));
+    //          log.info(String.format("Evaluated to %s evalInputDelta arrays", DeltaSet<LayerBase>.apply.size()));
     if (null != monitor && verbosity() > 1) {
       monitor.log(String.format("Evaluated %s items in %.4fs (%s/%s)", items, timedResult.timeNanos / 1e9, timedResult.result.getMean(), timedResult.result.delta.getMagnitude()));
     }

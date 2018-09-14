@@ -86,7 +86,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     String prettyPrint = "";
     log.h2("Raw Json");
     try {
-      prettyPrint = log.code(() -> {
+      prettyPrint = log.eval(() -> {
         final JsonObject json = layer.getJson();
         @Nonnull final Layer echo = Layer.fromJson(json);
         if (echo == null) throw new AssertionError("Failed to deserialize");

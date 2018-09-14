@@ -387,7 +387,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @Nonnull IOPair ioPair = new IOPair(component, inputPrototype[0]).invoke();
     
     if (verbose) {
-      log.code(() -> {
+      log.run(() -> {
         BatchDerivativeTester.log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
         BatchDerivativeTester.log.info(String.format("Inputs Statistics: %s", Arrays.stream(inputPrototype).map(x -> new ScalarStatistics().add(x.getData()).toString()).reduce((a, b) -> a + ",\n" + b).get()));
         BatchDerivativeTester.log.info(String.format("Output: %s", ioPair.getOutputPrototype().prettyPrint()));
@@ -401,7 +401,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       log.h2("Feedback Validation");
       log.p("We validate the agreement between the implemented derivative _of the inputs_ apply finite difference estimations:");
       ToleranceStatistics statistics = _statistics;
-      _statistics = log.code(() -> {
+      _statistics = log.eval(() -> {
         return testFeedback(component, ioPair, statistics);
       });
     }
@@ -409,7 +409,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       log.h2("Learning Validation");
       log.p("We validate the agreement between the implemented derivative _of the internal weights_ apply finite difference estimations:");
       ToleranceStatistics statistics = _statistics;
-      _statistics = log.code(() -> {
+      _statistics = log.eval(() -> {
         return testLearning(component, ioPair, statistics);
       });
     }
@@ -417,7 +417,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     log.h2("Total Accuracy");
     log.p("The overall agreement accuracy between the implemented derivative and the finite difference estimations:");
     ToleranceStatistics statistics = _statistics;
-    log.code(() -> {
+    log.run(() -> {
       //log.info(String.format("Component: %s\nInputs: %s\noutput=%s", component, Arrays.toStream(inputPrototype), outputPrototype));
       BatchDerivativeTester.log.info(String.format("Finite-Difference Derivative Accuracy:"));
       BatchDerivativeTester.log.info(String.format("absoluteTol: %s", statistics.absoluteTol));
@@ -425,7 +425,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     });
   
     log.h2("Frozen and Alive Status");
-    log.code(() -> {
+    log.run(() -> {
       testFrozen(component, ioPair.getInputPrototype());
       testUnFrozen(component, ioPair.getInputPrototype());
     });
@@ -460,7 +460,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
     if (!deltas.isEmpty() && !component.state().isEmpty()) {
-      throw new AssertionError("Frozen component listed in delta. Deltas: " + deltas);
+      throw new AssertionError("Frozen component listed in evalInputDelta. Deltas: " + deltas);
     }
     final int inElements = Arrays.stream(inputPrototype).mapToInt(x -> x.length()).sum();
     if (!reachedInputFeedback.get() && 0 < inElements) {
@@ -495,7 +495,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
     if (deltas.isEmpty() && !stateList.isEmpty()) {
-      throw new AssertionError("Nonfrozen component not listed in delta. Deltas: " + deltas);
+      throw new AssertionError("Nonfrozen component not listed in evalInputDelta. Deltas: " + deltas);
     }
     if (!reachedInputFeedback.get()) {
       throw new RuntimeException("Nonfrozen component did not pass input backwards");

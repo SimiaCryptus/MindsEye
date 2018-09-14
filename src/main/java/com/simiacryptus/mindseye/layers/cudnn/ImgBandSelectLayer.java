@@ -45,7 +45,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Concatenates two or more inputs, assuming they have the same width and height, to produce an image apply both inputs'
+ * Concatenates two or more inputs, assuming they have the same width and height, to produce an png apply both inputs'
  * color bands. (e.g. Used in Inception modules in GoogLeNet.)
  */
 @SuppressWarnings("serial")
@@ -67,7 +67,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    */
@@ -79,11 +79,11 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgBandSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandSelectLayer(json);

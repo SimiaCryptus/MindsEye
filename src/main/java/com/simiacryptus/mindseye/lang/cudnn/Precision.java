@@ -30,7 +30,7 @@ import java.nio.FloatBuffer;
 
 /**
  * This enum defines the levels or precision supported by (our support of) the CudaSystem library. It also provides
- * related methods involving precision-dependant code.
+ * related methods involving precision-dependant run.
  */
 public enum Precision {
   /**

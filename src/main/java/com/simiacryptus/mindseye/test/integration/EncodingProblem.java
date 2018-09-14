@@ -197,7 +197,7 @@ public class EncodingProblem implements Problem {
   
     @Nonnull final DAGNetwork imageNetwork = revFactory.vectorToImage(log, features);
     log.h3("Network Diagram");
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(imageNetwork))
         .height(400).width(600).render(Format.PNG).toImage();
     });
@@ -210,7 +210,7 @@ public class EncodingProblem implements Problem {
       trainingNetwork.add(new NthPowerActivationLayer().setPower(1.0 / 2.0),
         trainingNetwork.add(new MeanSqLossLayer(), image, trainingNetwork.getInput(1))
       )
-    );
+    ).freeRef();
     log.h3("Training");
     log.p("We start by training apply a very small population to improve initial convergence performance:");
     TestUtil.instrumentPerformance(trainingNetwork);
@@ -218,7 +218,7 @@ public class EncodingProblem implements Problem {
     @Nonnull final ValidatingTrainer preTrainer = optimizer.train(log,
       (SampledTrainable) new SampledArrayTrainable(primingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
       new ArrayTrainable(primingData, trainingNetwork, batchSize), monitor);
-    log.code(() -> {
+    log.run(() -> {
       preTrainer.setTimeout(timeoutMinutes / 2, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
     TestUtil.extractPerformance(log, trainingNetwork);
@@ -228,16 +228,16 @@ public class EncodingProblem implements Problem {
     @Nonnull final ValidatingTrainer mainTrainer = optimizer.train(log,
       (SampledTrainable) new SampledArrayTrainable(trainingData, trainingNetwork, trainingSize, batchSize).setMinSamples(trainingSize).setMask(true, false),
       new ArrayTrainable(trainingData, trainingNetwork, batchSize), monitor);
-    log.code(() -> {
+    log.run(() -> {
       mainTrainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(batchSize).run();
     });
     TestUtil.extractPerformance(log, trainingNetwork);
     
     if (!history.isEmpty()) {
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plot(history);
       });
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plotTime(history);
       });
     }
@@ -258,20 +258,20 @@ public class EncodingProblem implements Problem {
     log.h3("Results");
     @Nonnull final PipelineNetwork testNetwork = new PipelineNetwork(2);
     testNetwork.add(imageNetwork, testNetwork.getInput(0));
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
       Arrays.stream(trainingData).map(tensorArray -> {
         @Nullable final Tensor predictionSignal = testNetwork.eval(tensorArray).getData().get(0);
         @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-        row.put("Source", log.image(tensorArray[1].toImage(), ""));
-        row.put("Echo", log.image(predictionSignal.toImage(), ""));
+        row.put("Source", log.png(tensorArray[1].toImage(), ""));
+        row.put("Echo", log.png(predictionSignal.toImage(), ""));
         return row;
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
       return table;
     });
     
     log.p("Learned Model Statistics:");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       trainingNetwork.state().stream().flatMapToDouble(x -> Arrays.stream(x))
         .forEach(v -> scalarStatistics.add(v));
@@ -279,7 +279,7 @@ public class EncodingProblem implements Problem {
     });
     
     log.p("Learned Representation Statistics:");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       Arrays.stream(trainingData)
         .flatMapToDouble(row -> Arrays.stream(row[0].getData()))
@@ -292,7 +292,7 @@ public class EncodingProblem implements Problem {
       @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
       @Nullable final Tensor tensor = imageNetwork.eval(input).getData().get(0);
       TestUtil.renderToImages(tensor, true).forEach(img -> {
-        log.out(log.image(img, ""));
+        log.out(log.png(img, ""));
       });
     }
     

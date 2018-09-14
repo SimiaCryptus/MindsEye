@@ -199,7 +199,7 @@ public class ConvolutionLayer extends LayerBase {
       final double[][] outputBuffers = Arrays.stream(output).map(x -> x.getData()).toArray(i -> new double[i][]);
       convolutionController.convolve(inputBuffers, kernelData, outputBuffers);
     } catch (@Nonnull final Throwable e) {
-      throw new RuntimeException("Error mapCoords image res " + Arrays.toString(inputDims), e);
+      throw new RuntimeException("Error mapCoords png res " + Arrays.toString(inputDims), e);
     }
     int outputLength = output.length;
     return new Result(TensorArray.wrap(output), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {

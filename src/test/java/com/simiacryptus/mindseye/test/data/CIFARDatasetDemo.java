@@ -34,7 +34,7 @@ public class CIFARDatasetDemo extends ImageCategoryDatasetDemo {
   
   @Override
   public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
-    return log.code(() -> {
+    return log.eval(() -> {
       return CIFAR10.trainingDataStream().map(x -> x.map(y -> new SupplierWeakCache<>(() -> y.toImage())));
     });
   }

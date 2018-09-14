@@ -23,6 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.simiacryptus.mindseye.test.TestUtil;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
@@ -468,6 +469,73 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
+   * Get pixel double [ ].
+   *
+   * @param tensor the tensor
+   * @param x      the x
+   * @param y      the y
+   * @param bands  the bands
+   * @return the double [ ]
+   */
+  public static double[] getPixel(final Tensor tensor, final int x, final int y, final int bands) {
+    return IntStream.range(0, bands).mapToDouble(band -> tensor.get(x, y, band)).toArray();
+  }
+  
+  /**
+   * Reduce tensor.
+   *
+   * @return the tensor
+   */
+  @Nonnull
+  public Tensor sumChannels() {
+    int[] dimensions = getDimensions();
+    Tensor self = this;
+    return new Tensor(dimensions[0], dimensions[1], 1).setByCoord(c -> {
+      int[] coords = c.getCoords();
+      return IntStream.range(0, dimensions[2]).mapToDouble(j -> self.get(coords[0], coords[1], j)).sum();
+    });
+  }
+  
+  /**
+   * Gets pixel stream.
+   *
+   * @return the pixel stream
+   */
+  @Nonnull
+  public Stream<double[]> getPixelStream() {
+    int[] dimensions = getDimensions();
+    int width = dimensions[0];
+    int height = dimensions[1];
+    int bands = dimensions[2];
+    return IntStream.range(0, width).mapToObj(x -> x).parallel().flatMap(x -> {
+      return IntStream.range(0, height).mapToObj(y -> y).map(y -> {
+        return getPixel(this, x, y, bands);
+      });
+    });
+  }
+  
+  /**
+   * Rescale rms tensor.
+   *
+   * @param rms the rms
+   * @return the tensor
+   */
+  public Tensor rescaleRms(final double rms) {
+    return scale(rms / rms());
+  }
+  
+  /**
+   * Normalize distribution tensor.
+   *
+   * @return the tensor
+   */
+  public Tensor normalizeDistribution() {
+    double[] sortedValues = Arrays.stream(getData()).sorted().toArray();
+    Tensor result = map(v -> Math.abs(((double) Arrays.binarySearch(sortedValues, v)) / ((double) sortedValues.length)));
+    return result;
+  }
+  
+  /**
    * Reorder dimensions tensor.
    *
    * @param fn the fn
@@ -500,7 +568,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the boolean
    */
   public boolean isValid() {
-    return !isFinalized() && null == this.data || this.data.length == Tensor.length(dimensions);
+    return !isFinalized() && (null == this.data || this.data.length == Tensor.length(dimensions));
   }
   
   /**
@@ -931,15 +999,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   @Nullable
   public Tensor map(@Nonnull final DoubleUnaryOperator f) {
     @Nullable final double[] data = getData();
-    @Nonnull final double[] cpy = new double[data.length];
-    for (int i = 0; i < data.length; i++) {
-      final double x = data[i];
-      // assert Double.isFinite(x);
-      final double v = f.applyAsDouble(x);
-      // assert Double.isFinite(v);
-      cpy[i] = v;
-    }
-    return new Tensor(cpy, dimensions);
+    Tensor tensor = new Tensor(dimensions);
+    @Nonnull final double[] cpy = tensor.getData();
+    IntStream.range(0, data.length).parallel().forEach(i -> cpy[i] = f.applyAsDouble(data[i]));
+    return tensor;
   }
   
   /**
@@ -1065,6 +1128,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   public String prettyPrint() {
     return toString(true);
+  }
+  
+  public String prettyPrintAndFree() {
+    String prettyPrint = prettyPrint();
+    freeRef();
+    return prettyPrint;
   }
   
   /**
@@ -1280,11 +1349,14 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * Set.
    *
    * @param right the right
+   * @return the tensor
    */
-  public void set(@Nonnull final Tensor right) {
+  public Tensor set(@Nonnull final Tensor right) {
+    assertAlive();
     assert length() == right.length();
     @Nullable final double[] rightData = right.getData();
     Arrays.parallelSetAll(getData(), i -> rightData[i]);
+    return this;
   }
   
   /**
@@ -1361,9 +1433,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To gray image buffered image.
+   * To gray png buffered png.
    *
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toGrayImage() {
@@ -1371,10 +1443,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To gray image buffered image.
+   * To gray png buffered png.
    *
    * @param band the band
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toGrayImage(final int band) {
@@ -1391,9 +1463,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To image buffered image.
+   * To png buffered png.
    *
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toImage() {
@@ -1531,9 +1603,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To rgb image buffered image.
+   * To rgb png buffered png.
    *
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toRgbImage() {
@@ -1541,12 +1613,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To rgb image buffered image.
+   * To rgb png buffered png.
    *
    * @param redBand   the red band
    * @param greenBand the green band
    * @param blueBand  the blue band
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toRgbImage(final int redBand, final int greenBand, final int blueBand) {
@@ -1571,13 +1643,13 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   }
   
   /**
-   * To rgb image buffered image.
+   * To rgb png buffered png.
    *
    * @param redBand   the red band
    * @param greenBand the green band
    * @param blueBand  the blue band
-   * @param alphaMask the alpha mask
-   * @return the buffered image
+   * @param alphaMask the alphaList mask
+   * @return the buffered png
    */
   @Nonnull
   public BufferedImage toRgbImageAlphaMask(final int redBand, final int greenBand, final int blueBand, Tensor alphaMask) {
@@ -1695,10 +1767,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @Nullable
   public Tensor reshapeCastAndFree(@Nonnull int... dims) {
-    if (0 == dims.length) throw new IllegalArgumentException();
-    if (length(dims) != length()) throw new IllegalArgumentException();
-    double[] data = getData();
-    return new Tensor(dims, data);
+    Tensor tensor = reshapeCast(dims);
+    freeRef();
+    return tensor;
   }
   
   /**
@@ -1736,6 +1807,44 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   public Tensor unit() {
     return scale(1.0 / Math.sqrt(sumSq()));
+  }
+  
+  /**
+   * Select band tensor.
+   *
+   * @param band the band
+   * @return the tensor
+   */
+  public Tensor selectBand(final int band) {
+    assert band >= 0;
+    int[] dimensions = getDimensions();
+    assert 3 == dimensions.length;
+    assert band < dimensions[2];
+    return new Tensor(dimensions[0], dimensions[1], 1).setByCoord(c -> {
+      int[] coords = c.getCoords();
+      return get(coords[0], coords[1], band);
+    });
+  }
+  
+  public BufferedImage toImageAndFree() {
+    BufferedImage image = toImage();
+    freeRef();
+    return image;
+  }
+  
+  public Tensor copyAndFree() {
+    if (currentRefCount() == 1) return this;
+    Tensor copy = copy();
+    freeRef();
+    return copy;
+  }
+  
+  public Tensor resizeAsImg(final int width, final int height) {
+    if (getDimensions()[0] == width && getDimensions()[1] == height) {
+      addRef();
+      return this;
+    }
+    return Tensor.fromRGB(TestUtil.resize(toImage(), width, height));
   }
   
   /**

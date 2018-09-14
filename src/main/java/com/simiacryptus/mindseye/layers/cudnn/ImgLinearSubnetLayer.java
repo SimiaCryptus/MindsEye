@@ -51,7 +51,7 @@ import java.util.stream.Stream;
 
 /**
  * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
- * across larger image regions.
+ * across larger png regions.
  */
 @SuppressWarnings("serial")
 public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<ImgLinearSubnetLayer> {
@@ -268,7 +268,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     private final Layer inner;
     private final int fromBand;
     private final int toBand;
-
+  
     /**
      * Instantiates a new Subnet leg.
      *

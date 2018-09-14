@@ -19,8 +19,7 @@
 
 package com.simiacryptus.mindseye.lang;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.function.BiConsumer;
 
 /**
@@ -51,6 +50,25 @@ public class Result extends ReferenceCountingBase {
   }
   
   /**
+   * Get single delta double [ ].
+   *
+   * @return the double [ ]
+   */
+  public double[] getSingleDelta() {
+    DeltaSet<Layer> deltaBuffer = new DeltaSet<>();
+    accumulate(deltaBuffer);
+    if (deltaBuffer.getMap().size() != 1) throw new AssertionError(deltaBuffer.getMap().size());
+    double[] delta = copy(deltaBuffer.getMap().values().iterator().next().getDelta());
+    deltaBuffer.freeRef();
+    return delta;
+  }
+  
+  public double[] copy(double[] delta) {
+    delta = Arrays.copyOf(delta, delta.length);
+    return delta;
+  }
+  
+  /**
    * Accumulate.
    *
    * @param buffer the buffer
@@ -66,13 +84,7 @@ public class Result extends ReferenceCountingBase {
    * @param value  the value
    */
   public final void accumulate(final DeltaSet<Layer> buffer, final double value) {
-    @Nonnull TensorArray tensorArray = TensorArray.wrap(getData().stream().map(t -> {
-      @Nullable Tensor map = t.map(v -> value);
-      t.freeRef();
-      return map;
-    })
-      .toArray(i -> new Tensor[i]));
-    accumulate(buffer, tensorArray);
+    accumulate(buffer, TensorArray.wrap(getData().stream().map(t -> t.mapAndFree(v -> value)).toArray(i -> new Tensor[i])));
   }
   
   
@@ -80,7 +92,7 @@ public class Result extends ReferenceCountingBase {
    * Accumulate.
    *
    * @param buffer the buffer
-   * @param delta  the delta
+   * @param delta  the evalInputDelta
    */
   public void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
     try {
@@ -124,7 +136,9 @@ public class Result extends ReferenceCountingBase {
    * @return the data and free
    */
   public TensorList getDataAndFree() {
+    assertAlive();
     TensorList data = getData();
+    data.assertAlive();
     freeRef();
     return data;
   }

@@ -51,7 +51,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * The standard image-pixel pooling layer. Using a configurable stride and window size, reduces pixels using either the
+ * The standard png-pixel pooling layer. Using a configurable stride and window size, reduces pixels using either the
  * Max or Avg operation.
  */
 @SuppressWarnings("serial")
@@ -429,19 +429,19 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   }
   
   /**
-   * Gets alpha.
+   * Gets alphaList.
    *
-   * @return the alpha
+   * @return the alphaList
    */
   public double getAlpha() {
     return alpha;
   }
   
   /**
-   * Sets alpha.
+   * Sets alphaList.
    *
-   * @param alpha the alpha
-   * @return the alpha
+   * @param alpha the alphaList
+   * @return the alphaList
    */
   public PoolingLayer setAlpha(double alpha) {
     this.alpha = alpha;

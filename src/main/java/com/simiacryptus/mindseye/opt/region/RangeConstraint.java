@@ -25,13 +25,32 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 /**
- * This constraint ensures that the L2 magnitude of the weight delta cannot exceed a simple threshold. A simpler version
+ * This constraint ensures that the L2 magnitude of the weight evalInputDelta cannot exceed a simple threshold. A simpler version
  * of AdaptiveTrustSphere, it places a limit on the step size for a given layer.
  */
 public class RangeConstraint implements TrustRegion {
   
-  private double min = 0;
-  private double max = 255;
+  private double min;
+  private double max;
+  
+  /**
+   * Instantiates a new Range constraint.
+   */
+  public RangeConstraint() {
+    min = 0;
+    max = 255;
+  }
+  
+  /**
+   * Instantiates a new Range constraint.
+   *
+   * @param min the min
+   * @param max the max
+   */
+  public RangeConstraint(final double min, final double max) {
+    this.min = min;
+    this.max = max;
+  }
   
   /**
    * Gets max.

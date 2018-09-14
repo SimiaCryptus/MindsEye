@@ -34,7 +34,7 @@ public class MNistDatasetDemo extends ImageCategoryDatasetDemo {
   
   @Override
   public Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> getTrainingStream(@Nonnull NotebookOutput log) {
-    return log.code(() -> {
+    return log.eval(() -> {
       return MNIST.trainingDataStream().map(x -> x.map(y -> new SupplierWeakCache<>(() -> y.toImage())));
     });
   }

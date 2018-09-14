@@ -54,7 +54,7 @@ public abstract class DeepConvolution extends NLayerTest {
   public DeepConvolution(int radius, final int[]... dimList) {
     super(dimList);
     this.radius = radius;
-
+  
   }
   
   
@@ -62,9 +62,9 @@ public abstract class DeepConvolution extends NLayerTest {
   public void addLayer(@Nonnull final PipelineNetwork network, final int[] in, final int[] out) {
     assert in[0] == out[0];
     assert in[1] == out[1];
-    network.add(new ConvolutionLayer(radius, radius, in[2], out[2]).set(i -> random()));
-    network.add(new ImgBandBiasLayer(out[2]));
-    network.add(getActivation());
+    network.wrap(new ConvolutionLayer(radius, radius, in[2], out[2]).set(i -> random())).freeRef();
+    network.wrap(new ImgBandBiasLayer(out[2])).freeRef();
+    network.wrap(getActivation()).freeRef();
   }
   
   /**

@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
+import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,46 +29,42 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
- * The type Normalization meta layer.
+ * The type Std dev meta layer.
  */
 @SuppressWarnings("serial")
-public class NormalizationMetaLayer extends PipelineNetwork {
+public class AutoEntropyLayer extends PipelineNetwork {
   
   @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(NormalizationMetaLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(AutoEntropyLayer.class);
   
   /**
-   * Instantiates a new Normalization meta layer.
+   * Instantiates a new Std dev meta layer.
    */
-  public NormalizationMetaLayer() {
+  public AutoEntropyLayer() {
     super(1);
-    getInput(0);
-    wrap(new SqActivationLayer()).freeRef();
-    wrap(new AvgReducerLayer()).freeRef();
-    wrap(new AvgMetaLayer()).freeRef();
-    wrap(new NthPowerActivationLayer().setPower(-0.5)).freeRef();
-    wrap(new ProductInputsLayer(), getHead(), getInput(0)).freeRef();
+    DAGNode input = getInput(0);
+    wrap(new EntropyLossLayer(), input, input).freeRef();
   }
   
   /**
-   * Instantiates a new Normalization meta layer.
+   * Instantiates a new Std dev meta layer.
    *
    * @param json the json
    * @param rs   the rs
    */
-  protected NormalizationMetaLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
+  protected AutoEntropyLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
   }
   
   /**
-   * From json normalization meta layer.
+   * From json std dev meta layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the normalization meta layer
+   * @return the std dev meta layer
    */
-  public static NormalizationMetaLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
-    return new NormalizationMetaLayer(json, rs);
+  public static AutoEntropyLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
+    return new AutoEntropyLayer(json, rs);
   }
   
 }

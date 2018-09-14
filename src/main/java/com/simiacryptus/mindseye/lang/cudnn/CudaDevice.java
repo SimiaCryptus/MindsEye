@@ -344,6 +344,14 @@ public class CudaDevice extends CudaSystem {
   public CudaTensorDescriptor newTensorDescriptor(final Precision dataType,
     final int batchCount, final int channels, final int height, final int width,
     final int nStride, final int cStride, final int hStride, final int wStride) {
+    assert batchCount > 0;
+    assert channels > 0;
+    assert height > 0;
+    assert width > 0;
+    assert nStride > 0;
+    assert cStride > 0;
+    assert hStride > 0;
+    assert wStride > 0;
     long startTime = System.nanoTime();
     @Nonnull final cudnnTensorDescriptor desc = new cudnnTensorDescriptor();
     int result = JCudnn.cudnnCreateTensorDescriptor(desc);

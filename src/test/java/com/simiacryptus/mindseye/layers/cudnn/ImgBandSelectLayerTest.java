@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Img concat layer apply.
+ * The type Img eval layer apply.
  */
 public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
   
@@ -47,7 +47,7 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
   int inputBands;
   
   /**
-   * Instantiates a new Img concat layer apply.
+   * Instantiates a new Img eval layer apply.
    *
    * @param precision  the precision
    * @param inputBands the input bands

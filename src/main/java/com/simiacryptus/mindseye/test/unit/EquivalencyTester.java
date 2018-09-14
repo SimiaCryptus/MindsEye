@@ -112,11 +112,11 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   public ToleranceStatistics test(@Nonnull final NotebookOutput output, final Layer subject, @Nonnull final Tensor... inputPrototype) {
     output.h1("Reference Implementation");
     output.p("This layer is an alternate implementation which is expected to behave the same as the following layer:");
-    output.code(() -> {
+    output.run(() -> {
       log.info(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
     });
-    output.p("We measure the agreement between the two layers in a random execution:");
-    return output.code(() -> {
+    output.p("We measureStyle the agreement between the two layers in a random execution:");
+    return output.eval(() -> {
       return test(subject, inputPrototype);
     });
   }

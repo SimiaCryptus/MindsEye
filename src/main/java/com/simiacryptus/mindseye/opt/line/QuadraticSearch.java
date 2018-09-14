@@ -114,7 +114,7 @@ public class QuadraticSearch implements LineSearchStrategy {
           isLeft = thisPoint.derivative < 0;
         }
         //monitor.log(String.format("isLeft=%s; isBracketed=%s; leftPoint=%s; rightPoint=%s", isLeft, isBracketed, leftPoint, rightPoint));
-        monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
+        monitor.log(String.format("F(%s) = %s, evalInputDelta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
         if (loops++ > 10) {
           monitor.log(String.format("Loops = %s", loops));
           PointSample filter = filter(cursor, thisPoint.point, monitor);
@@ -378,7 +378,7 @@ public class QuadraticSearch implements LineSearchStrategy {
       initialPoint = leftPoint;
       thisX = getCurrentRate() > 0 ? getCurrentRate() : Math.abs(leftPoint.point.getMean() * 1e-4 / leftPoint.derivative);
       thisPoint = cursor.step(thisX, monitor);
-      monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
+      monitor.log(String.format("F(%s) = %s, evalInputDelta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
       this.cursor.addRef();
       this.initialPoint.addRef();
     }
@@ -419,7 +419,7 @@ public class QuadraticSearch implements LineSearchStrategy {
             monitor.log(String.format("%s ~= %s", lastPoint.point.rate, thisX));
             return this;
           }
-          monitor.log(String.format("F(%s) = %s, delta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
+          monitor.log(String.format("F(%s) = %s, evalInputDelta = %s", thisX, thisPoint, thisPoint.point.getMean() - initialPoint.point.getMean()));
           if (loops++ > 50) {
             monitor.log(String.format("Loops = %s", loops));
             return this;

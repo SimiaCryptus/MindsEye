@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.network;
 
 import com.simiacryptus.mindseye.lang.CoreSettings;
 import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Result;
 import com.simiacryptus.util.Util;
 
@@ -43,7 +44,7 @@ public final class InnerNode extends LazyResult {
   private final DAGNetwork dagNetwork;
   @Nonnull
   private final DAGNode[] inputNodes;
-  private Layer layer;
+  private volatile Layer layer;
   private boolean parallel = true;
   
   /**
@@ -120,17 +121,14 @@ public final class InnerNode extends LazyResult {
   public synchronized void setLayer(@Nonnull final Layer newLayer) {
     assertAlive();
     dagNetwork.assertAlive();
-    synchronized (dagNetwork.layersById) {
-      if (!dagNetwork.layersById.containsKey(newLayer.getId())) {
-        Layer put = dagNetwork.layersById.put(newLayer.getId(), newLayer);
-        newLayer.addRef();
-        if (null != put) put.freeRef();
-      }
+    newLayer.assertAlive();
+    Layer prevLayer = this.layer;
+    if (newLayer != prevLayer) {
+      if (null != prevLayer) prevLayer.freeRef();
+      this.layer = newLayer;
+      if (null != newLayer) newLayer.addRef();
+      dagNetwork.assertConsistent();
     }
-    newLayer.addRef();
-    if (null != this.layer) this.layer.freeRef();
-    this.layer = newLayer;
-    dagNetwork.assertConsistent();
   }
   
   @Override
@@ -141,10 +139,9 @@ public final class InnerNode extends LazyResult {
   @Override
   protected void _free() {
     super._free();
-    for (@Nonnull DAGNode node : this.inputNodes) {
-      node.freeRef();
-    }
+    Arrays.stream(this.inputNodes).forEach(ReferenceCounting::freeRef);
     this.layer.freeRef();
+    this.layer = null;
   }
   
   /**

@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Increases the resolution of the input by selecting a larger centered window. The output image will have the same
- * number of color bands, and the area outside the source image will be setWeights to 0.
+ * Increases the resolution of the input by selecting a larger centered window. The output png will have the same
+ * number of color bands, and the area outside the source png will be setWeights to 0.
  */
 @SuppressWarnings("serial")
 public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<ImgModulusPaddingLayer> {
@@ -49,7 +49,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   private Precision precision = Precision.Double;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private ImgModulusPaddingLayer() {
   }
@@ -80,7 +80,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -95,11 +95,11 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgModulusPaddingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgModulusPaddingLayer(json, rs);

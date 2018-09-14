@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
+import com.simiacryptus.mindseye.network.PipelineNetwork;
 import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nonnull;
@@ -114,6 +115,45 @@ public interface Layer extends ReferenceCounting, Serializable {
     } catch (@Nonnull IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  /**
+   * And then layer.
+   *
+   * @param append the append
+   * @return the layer
+   */
+  default PipelineNetwork andThen(Layer append) {
+    return PipelineNetwork.build(1,
+      this,
+      append
+    );
+  }
+  
+  default PipelineNetwork freeAndThen(Layer append) {
+    PipelineNetwork build = andThen(append);
+    this.freeRef();
+    return build;
+  }
+  
+  default PipelineNetwork andThenWrap(Layer append) {
+    assert append.assertAlive();
+    assert assertAlive();
+    PipelineNetwork wrap = PipelineNetwork.build(1,
+      this,
+      append
+    );
+    append.freeRef();
+    return wrap;
+  }
+  
+  default PipelineNetwork freeAndThenWrap(Layer append) {
+    assert append.assertAlive();
+    PipelineNetwork build = PipelineNetwork.wrap(1,
+      this,
+      append
+    );
+    return build;
   }
   
   /**
@@ -382,4 +422,9 @@ public interface Layer extends ReferenceCounting, Serializable {
   @Nullable
   List<double[]> state();
   
+  default Layer copyAndFree() {
+    Layer copy = copy();
+    freeRef();
+    return copy;
+  }
 }

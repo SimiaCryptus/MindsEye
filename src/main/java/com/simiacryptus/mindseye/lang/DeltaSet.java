@@ -61,10 +61,10 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   }
   
   /**
-   * Accumulate delta setByCoord.
+   * Accumulate evalInputDelta setByCoord.
    *
-   * @param alpha the alpha
-   * @return the delta setByCoord
+   * @param alpha the alphaList
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DeltaSet<K> accumulate(final double alpha) {
@@ -74,10 +74,10 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   
   
   /**
-   * Add delta setByCoord.
+   * Add evalInputDelta setByCoord.
    *
    * @param right the right
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DeltaSet<K> add(@Nonnull final DeltaSet<K> right) {
@@ -85,10 +85,10 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   }
   
   /**
-   * Add in place delta setByCoord.
+   * Add in place evalInputDelta setByCoord.
    *
    * @param right the right
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DeltaSet<K> addInPlace(@Nonnull final DeltaSet<K> right) {
@@ -179,10 +179,10 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   }
   
   /**
-   * Scale delta setByCoord.
+   * Scale evalInputDelta setByCoord.
    *
    * @param f the f
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DeltaSet<K> scale(final double f) {
@@ -190,10 +190,10 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   }
   
   /**
-   * Subtract delta setByCoord.
+   * Subtract evalInputDelta setByCoord.
    *
    * @param right the right
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DeltaSet<K> subtract(@Nonnull final DeltaSet<K> right) {
@@ -201,9 +201,9 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   }
   
   /**
-   * Unit delta setByCoord.
+   * Unit evalInputDelta setByCoord.
    *
-   * @return the delta setByCoord
+   * @return the evalInputDelta setByCoord
    */
   @Nonnull
   public DeltaSet<K> unit() {

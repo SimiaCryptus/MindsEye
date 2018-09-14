@@ -53,7 +53,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.
+ * Similar to the pooling layer, but the pool size is always the png size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
 public class SumReducerLayer extends LayerBase implements MultiPrecision<SumReducerLayer> {
@@ -139,7 +139,7 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
       
       // Not supported by CuDNN?
 //      CudaTensorList passback = CudaSystem.generate(gpu -> {
-//        CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
+//        CudaTensor deltaTensor = gpu.getTensor(evalInputDelta, precision, MemoryType.Device, false);
 //        CudaMemory deltaMemory = deltaTensor.getMemory(gpu);
 //
 //        @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor1 = gpu.newTensorDescriptor(

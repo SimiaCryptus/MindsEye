@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Increases the resolution of the input by selecting a larger centered window. The output image will have the same
- * number of color bands, and the area outside the source image will be setWeights to 0.
+ * Increases the resolution of the input by selecting a larger centered window. The output png will have the same
+ * number of color bands, and the area outside the source png will be setWeights to 0.
  */
 @SuppressWarnings("serial")
 public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<ImgZeroPaddingLayer> {
@@ -50,7 +50,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   private Precision precision = Precision.Double;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private ImgZeroPaddingLayer() {
   }
@@ -68,7 +68,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -82,11 +82,11 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgZeroPaddingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgZeroPaddingLayer(json, rs);

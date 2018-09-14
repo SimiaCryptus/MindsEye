@@ -124,12 +124,12 @@ public abstract class MnistTestBase extends NotebookReportBase {
     log.h1("Model");
     log.p("This is a very simple model that performs basic logistic regression. " +
       "It is expected to be trainable to about 91% accuracy on MNIST.");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
-      network.add(new BiasLayer(28, 28, 1));
-      network.add(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
-        .set(() -> 0.001 * (Math.random() - 0.45)));
-      network.add(new SoftmaxActivationLayer());
+      network.wrap(new BiasLayer(28, 28, 1)).freeRef();
+      network.wrap(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
+        .set(() -> 0.001 * (Math.random() - 0.45))).freeRef();
+      network.wrap(new SoftmaxActivationLayer()).freeRef();
       return network;
     });
   }
@@ -196,7 +196,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
   public void report(@Nonnull final NotebookOutput log, @Nonnull final MonitoredObject monitoringRoot, @Nonnull final List<Step> history, @Nonnull final Layer network) {
     
     if (!history.isEmpty()) {
-      log.code(() -> {
+      log.eval(() -> {
         @Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
         plot.setTitle("Convergence Plot");
         plot.setAxisLabels("Iteration", "log10(Fitness)");
@@ -209,10 +209,10 @@ public abstract class MnistTestBase extends NotebookReportBase {
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
   
     log.h1("Metrics");
-    log.code(() -> {
+    log.eval(() -> {
       try {
         @Nonnull final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JsonUtil.writeJson(out, monitoringRoot.getMetrics());
+        JsonUtil.getMapper().writeValue(out, monitoringRoot.getMetrics());
         return out.toString();
       } catch (@Nonnull final IOException e) {
         throw new RuntimeException(e);
@@ -267,14 +267,14 @@ public abstract class MnistTestBase extends NotebookReportBase {
   public void validate(@Nonnull final NotebookOutput log, @Nonnull final Layer network) {
     log.h1("Validation");
     log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
-    log.code(() -> {
+    log.eval(() -> {
       return MNIST.validationDataStream().mapToDouble(labeledObject ->
         predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
         .average().getAsDouble() * 100;
     });
     
     log.p("Let's examine some incorrectly predicted results in more detail:");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
       MNIST.validationDataStream().map(labeledObject -> {
         final int actualCategory = parse(labeledObject.label);
@@ -282,7 +282,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
         final int[] predictionList = IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
         if (predictionList[0] == actualCategory) return null; // We will only examine mispredicted rows
         @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-        row.put("Image", log.image(labeledObject.data.toGrayImage(), labeledObject.label));
+        row.put("Image", log.png(labeledObject.data.toGrayImage(), labeledObject.label));
         row.put("Prediction", Arrays.stream(predictionList).limit(3)
           .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
           .reduce((a, b) -> a + ", " + b).get());

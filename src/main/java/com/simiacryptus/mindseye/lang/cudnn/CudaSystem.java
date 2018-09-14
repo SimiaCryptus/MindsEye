@@ -406,10 +406,10 @@ public class CudaSystem {
   }
   
   /**
-   * To map map.
+   * To buildMap buildMap.
    *
    * @param obj the obj
-   * @return the map
+   * @return the buildMap
    */
   @Nonnull
   protected static Map<CharSequence, CharSequence> toMap(@Nonnull DoubleStatistics obj) {
@@ -430,7 +430,7 @@ public class CudaSystem {
    * @return the execution statistics
    */
   @Nonnull
-  public static final Map<CharSequence, Map<CharSequence, CharSequence>> getExecutionStatistics() {
+  public static Map<CharSequence, Map<CharSequence, CharSequence>> getExecutionStatistics() {
     @Nonnull HashMap<CharSequence, Map<CharSequence, CharSequence>> map = new HashMap<>();
     map.put("createPoolingDescriptor", toMap(createPoolingDescriptor_execution));
     map.put("cudaDeviceReset", toMap(cudaDeviceReset_execution));
@@ -860,7 +860,7 @@ public class CudaSystem {
   /**
    * Handle.
    *
-   * @param returnCode the return code
+   * @param returnCode the return run
    */
   public static void handle(final int returnCode) {
     if (returnCode != cudnnStatus.CUDNN_STATUS_SUCCESS) {

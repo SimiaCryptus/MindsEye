@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * An arithmetic delta being staged to effect an in-memory change to a double[] array. In comparison apply the State
+ * An arithmetic evalInputDelta being staged to effect an in-memory change to a double[] array. In comparison apply the State
  * class via geometric analogy, this would be a vector whereas State is a point.
  *
  * @param <K> the type parameter
@@ -52,7 +52,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    *
    * @param layer  the layer
    * @param target the target
-   * @param delta  the delta
+   * @param delta  the evalInputDelta
    */
   public Delta(@Nonnull final K layer, final double[] target, @Nonnull final double[] delta) {
     this(layer, target, delta, RecycleBin.DOUBLES.obtain(delta.length));
@@ -64,7 +64,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * @param layer             the layer
    * @param target            the target
    * @param delta             the doubles
-   * @param deltaCompensation the delta compensation
+   * @param deltaCompensation the evalInputDelta compensation
    */
   protected Delta(@Nonnull final K layer, @Nullable final double[] target, @Nullable final double[] delta, final double[] deltaCompensation) {
     super(layer, target, delta);
@@ -78,7 +78,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    * Accumulate.
    *
    * @param data             the data
-   * @param delta            the delta
+   * @param delta            the evalInputDelta
    * @param dataCompensation the data compensation
    */
   public static void accumulate(@Nonnull final double[] data, final double[] delta, @Nullable final double[] dataCompensation) {
@@ -128,10 +128,10 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   }
   
   /**
-   * Add in place delta.
+   * Add in place evalInputDelta.
    *
    * @param buffer the buffer
-   * @return the delta
+   * @return the evalInputDelta
    */
   @Nonnull
   public Delta<K> addInPlace(@Nonnull final Delta<K> buffer) {
@@ -140,10 +140,10 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   }
   
   /**
-   * Accumulate delta.
+   * Accumulate evalInputDelta.
    *
    * @param data the data
-   * @return the delta
+   * @return the evalInputDelta
    */
   @Nonnull
   public Delta<K> addInPlace(@Nonnull final double[] data) {
@@ -180,10 +180,10 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   }
   
   /**
-   * Scale delta.
+   * Scale evalInputDelta.
    *
    * @param f the f
-   * @return the delta
+   * @return the evalInputDelta
    */
   @Nonnull
   public Delta<K> scale(final double f) {

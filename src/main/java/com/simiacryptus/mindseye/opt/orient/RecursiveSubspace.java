@@ -69,19 +69,22 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   public SimpleLineSearchCursor orient(@Nonnull Trainable subject, @Nonnull PointSample measurement, @Nonnull TrainingMonitor monitor) {
     @Nonnull PointSample origin = measurement.copyFull().backup();
     @Nullable Layer macroLayer = buildSubspace(subject, measurement, monitor);
-    train(monitor, macroLayer);
-    Result eval = macroLayer.eval((Result) null);
-    macroLayer.freeRef();
-    eval.getData().freeRef();
-    eval.freeRef();
-    @Nonnull StateSet<Layer> backupCopy = origin.weights.backupCopy();
-    @Nonnull DeltaSet<Layer> delta = backupCopy.subtract(origin.weights);
-    backupCopy.freeRef();
-    origin.restore();
-    @Nonnull SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
-    delta.freeRef();
-    origin.freeRef();
-    return simpleLineSearchCursor.setDirectionType(CURSOR_LABEL);
+    try {
+      train(monitor, macroLayer);
+      Result eval = macroLayer.eval((Result) null);
+      eval.getData().freeRef();
+      eval.freeRef();
+      @Nonnull StateSet<Layer> backupCopy = origin.weights.backupCopy();
+      @Nonnull DeltaSet<Layer> delta = backupCopy.subtract(origin.weights);
+      backupCopy.freeRef();
+      origin.restore();
+      @Nonnull SimpleLineSearchCursor simpleLineSearchCursor = new SimpleLineSearchCursor(subject, origin, delta);
+      delta.freeRef();
+      return simpleLineSearchCursor.setDirectionType(CURSOR_LABEL);
+    } finally {
+      origin.freeRef();
+      macroLayer.freeRef();
+    }
   }
   
   /**
@@ -162,6 +165,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   
       @Override
       protected void _free() {
+        //deltaLayers.stream().forEach(ReferenceCounting::freeRef);
         direction.freeRef();
         origin.freeRef();
         super._free();

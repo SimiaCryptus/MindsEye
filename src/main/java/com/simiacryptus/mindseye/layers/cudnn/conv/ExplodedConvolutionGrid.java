@@ -77,7 +77,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
   
   @Override
   protected void _free() {
-    subLayers.stream().forEach(x -> x.freeRef());
+    subLayers.stream().forEach(ReferenceCountingBase::freeRef);
     super._free();
   }
   
@@ -144,7 +144,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
   /**
    * Read tensor.
    *
-   * @param deltaSet the delta set
+   * @param deltaSet the evalInputDelta set
    * @param remove   the remove
    * @return the tensor
    */
@@ -167,7 +167,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
   public PipelineNetwork getNetwork() {
     assertAlive();
     @Nonnull PipelineNetwork network = new PipelineNetwork(1);
-    add(network.getInput(0));
+    add(network.getInput(0)).freeRef();
     return network;
   }
   

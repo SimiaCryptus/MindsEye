@@ -95,7 +95,8 @@ public class PolynomialNetwork extends DAGNetwork {
    */
   protected PolynomialNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
-    head = nodesById.get(UUID.fromString(json.get("head").getAsString()));
+    head = getNodeById(UUID.fromString(json.get("head").getAsString()));
+    Map<Object, Layer> layersById = getLayersById();
     if (json.get("alpha") != null) {
       alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
     }
@@ -189,9 +190,9 @@ public class PolynomialNetwork extends DAGNetwork {
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
-    @Nullable final DAGNode head = getHead();
+    @Nullable final UUID head = getHeadId();
     final JsonObject json = super.getJson(resources, dataSerializer);
-    json.addProperty("head", head.getId().toString());
+    json.addProperty("head", head.toString());
     if (null != alpha) {
       json.addProperty("alpha", alpha.getId().toString());
     }
@@ -290,6 +291,7 @@ public class PolynomialNetwork extends DAGNetwork {
      */
     public Correcton(@Nonnull final JsonObject json) {
       power = json.get("power").getAsDouble();
+      Map<Object, Layer> layersById = getLayersById();
       bias = layersById.get(UUID.fromString(json.get("bias").getAsString()));
       factor = layersById.get(UUID.fromString(json.get("factor").getAsString()));
     }

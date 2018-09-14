@@ -126,7 +126,7 @@ public class SparkTrainable extends TrainableBase {
   /**
    * Gets result.
    *
-   * @param delta  the delta
+   * @param delta  the evalInputDelta
    * @param values the values
    * @return the result
    */
@@ -151,10 +151,10 @@ public class SparkTrainable extends TrainableBase {
   }
   
   /**
-   * Gets delta.
+   * Gets evalInputDelta.
    *
-   * @param reduce the reduce
-   * @return the delta
+   * @param reduce the sumChannels
+   * @return the evalInputDelta
    */
   @Nonnull
   protected DeltaSet<Layer> getDelta(@Nonnull final SparkTrainable.ReducableResult reduce) {

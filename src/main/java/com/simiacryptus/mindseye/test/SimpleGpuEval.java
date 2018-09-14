@@ -83,10 +83,10 @@ public class SimpleGpuEval extends SimpleListEval {
   }
   
   /**
-   * Gets delta.
+   * Gets evalInputDelta.
    *
    * @param output the output
-   * @return the delta
+   * @return the evalInputDelta
    */
   @Nonnull
   public TensorArray getDelta(final TensorList output) {

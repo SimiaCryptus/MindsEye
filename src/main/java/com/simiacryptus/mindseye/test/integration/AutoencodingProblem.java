@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The type Mnist apply base.
  */
+@SuppressWarnings("FieldCanBeLocal")
 public class AutoencodingProblem implements Problem {
   
   private static int modelNo = 0;
@@ -144,28 +145,28 @@ public class AutoencodingProblem implements Problem {
     @Nonnull final DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
     
     @Nonnull final PipelineNetwork echoNetwork = new PipelineNetwork(1);
-    echoNetwork.add(fwdNetwork);
-    echoNetwork.add(revNetwork);
+    echoNetwork.add(fwdNetwork).freeRef();
+    echoNetwork.add(revNetwork).freeRef();
     
     @Nonnull final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
-    supervisedNetwork.add(fwdNetwork);
+    supervisedNetwork.add(fwdNetwork).freeRef();
     @Nonnull final DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(dropout);
-    supervisedNetwork.add(dropoutNoiseLayer);
-    supervisedNetwork.add(revNetwork);
-    supervisedNetwork.add(new MeanSqLossLayer(),
+    supervisedNetwork.add(dropoutNoiseLayer).freeRef();
+    supervisedNetwork.add(revNetwork).freeRef();
+    supervisedNetwork.wrap(new MeanSqLossLayer(),
       supervisedNetwork.getHead(),
-      supervisedNetwork.getInput(0));
+      supervisedNetwork.getInput(0)).freeRef();
     
     log.h3("Network Diagrams");
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
         .height(400).width(600).render(Format.PNG).toImage();
     });
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(revNetwork))
         .height(400).width(600).render(Format.PNG).toImage();
     });
-    log.code(() -> {
+    log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(supervisedNetwork))
         .height(400).width(600).render(Format.PNG).toImage();
     });
@@ -196,14 +197,14 @@ public class AutoencodingProblem implements Problem {
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
       new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
       new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
-    log.code(() -> {
+    log.run(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });
     if (!history.isEmpty()) {
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plot(history);
       });
-      log.code(() -> {
+      log.eval(() -> {
         return TestUtil.plotTime(history);
       });
     }
@@ -218,14 +219,14 @@ public class AutoencodingProblem implements Problem {
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
 
 //    log.h3("Metrics");
-//    log.code(() -> {
+//    log.run(() -> {
 //      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
 //    });
     
     log.h3("Validation");
     
     log.p("Here are some re-encoded examples:");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
       data.validationData().map(labeledObject -> {
         return toRow(log, labeledObject, echoNetwork.eval(labeledObject.data).getData().get(0).getData());
@@ -237,24 +238,24 @@ public class AutoencodingProblem implements Problem {
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
       @Nullable final Tensor tensor = revNetwork.eval(input).getData().get(0);
-      log.out(log.image(tensor.toImage(), ""));
+      log.out(log.png(tensor.toImage(), ""));
     }
     return this;
   }
   
   /**
-   * To row linked hash map.
+   * To row linked hash buildMap.
    *
    * @param log              the log
    * @param labeledObject    the labeled object
    * @param predictionSignal the prediction signal
-   * @return the linked hash map
+   * @return the linked hash buildMap
    */
   @Nonnull
   public LinkedHashMap<CharSequence, Object> toRow(@Nonnull final NotebookOutput log, @Nonnull final LabeledObject<Tensor> labeledObject, final double[] predictionSignal) {
     @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
-    row.put("Image", log.image(labeledObject.data.toImage(), labeledObject.label));
-    row.put("Echo", log.image(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
+    row.put("Image", log.png(labeledObject.data.toImage(), labeledObject.label));
+    row.put("Echo", log.png(new Tensor(predictionSignal, labeledObject.data.getDimensions()).toImage(), labeledObject.label));
     return row;
   }
 }

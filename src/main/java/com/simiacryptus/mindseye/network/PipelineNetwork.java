@@ -46,7 +46,6 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public PipelineNetwork() {
     this(1);
-    head = getInput().get(0);
   }
   
   /**
@@ -57,9 +56,8 @@ public class PipelineNetwork extends DAGNetwork {
    */
   public PipelineNetwork(final int inputs, @Nonnull final Layer... layers) {
     super(inputs);
-    head = 0 == inputs ? null : getInput().get(0);
     for (final Layer layer : layers) {
-      add(layer);
+      add(layer).freeRef();
     }
   }
   
@@ -72,16 +70,10 @@ public class PipelineNetwork extends DAGNetwork {
   protected PipelineNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     @Nonnull final UUID headId = UUID.fromString(json.get("head").getAsString());
-    assert null != headId;
-    head = nodesById.get(headId);
-    if (null == head) {
-      head = getInput().get(0);
+    if (!inputHandles.contains(headId)) {
+      assert null != headId;
+      setHead(getNodeById(headId));
     }
-    final int inputIndex = inputHandles.indexOf(headId);
-    if (null == head && 0 <= inputIndex) {
-      head = getInput(inputIndex);
-    }
-    if (null == head) throw new IllegalArgumentException();
   }
   
   /**
@@ -105,6 +97,29 @@ public class PipelineNetwork extends DAGNetwork {
     return new PipelineNetwork(json, rs);
   }
   
+  /**
+   * Build pipeline network.
+   *
+   * @param inputs the inputs
+   * @param layers the layers
+   * @return the pipeline network
+   */
+  public static PipelineNetwork build(final int inputs, final Layer... layers) {
+    PipelineNetwork pipelineNetwork = new PipelineNetwork(inputs);
+    for (final Layer layer : layers) {
+      pipelineNetwork.add(layer).freeRef();
+    }
+    return pipelineNetwork;
+  }
+  
+  public static PipelineNetwork wrap(final int inputs, final Layer... layers) {
+    PipelineNetwork pipelineNetwork = new PipelineNetwork(inputs);
+    for (final Layer layer : layers) {
+      pipelineNetwork.wrap(layer).freeRef();
+    }
+    return pipelineNetwork;
+  }
+  
   @Nonnull
   @Override
   public PipelineNetwork copy(final SerialPrecision precision) {
@@ -125,6 +140,7 @@ public class PipelineNetwork extends DAGNetwork {
    */
   @Nullable
   public InnerNode add(@Nullable final Layer nextHead) {
+    assert nextHead.assertAlive();
     if (null == nextHead) return null;
     return add(nextHead, getHead());
   }
@@ -167,11 +183,11 @@ public class PipelineNetwork extends DAGNetwork {
   @Nullable
   @Override
   public InnerNode add(@Nullable final Layer nextHead, @Nonnull final DAGNode... head) {
-    if (null == nextHead && head.length == 1) throw new IllegalArgumentException();
+    if (null == nextHead && head.length > 0) throw new IllegalArgumentException();
     if (null == nextHead) return null;
-    assert Arrays.stream(head).allMatch(x -> x == null || nodesById.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
+    assert Arrays.stream(head).allMatch(x -> x == null || internalNodes.containsKey(x.getId()) || inputNodes.containsKey(x.getId()));
     @Nullable final InnerNode node = super.add(nextHead, head);
-    assert null != getInput();
+    assert null != inputHandles;
     setHead(node);
     return node;
   }
@@ -182,7 +198,7 @@ public class PipelineNetwork extends DAGNetwork {
     if (null == layer) throw new IllegalArgumentException();
     final InnerNode node = super.add(label, layer, head);
     //assert Arrays.stream(head).allMatch(x -> x != null);
-    assert null != getInput();
+    assert null != inputHandles;
     setHead(node);
     return node;
   }
@@ -219,16 +235,35 @@ public class PipelineNetwork extends DAGNetwork {
    */
   @Nullable
   public DAGNode constValue(final Tensor tensor) {
-    return super.add(new ValueLayer(tensor));
+    return super.wrap(new ValueLayer(tensor));
+  }
+  
+  @Nullable
+  public DAGNode constValueWrap(final Tensor tensor) {
+    DAGNode node = constValue(tensor);
+    tensor.freeRef();
+    return node;
+  }
+  
+  @Override
+  protected void _free() {
+    super._free();
+    if (null != head) {
+      head.freeRef();
+      head = null;
+    }
   }
   
   @Nullable
   @Override
   public DAGNode getHead() {
     if (null == head) {
-      head = getInput().get(0);
+      return getInput(0);
     }
-    return head;
+    else {
+      head.addRef();
+      return head;
+    }
   }
   
   /**
@@ -239,7 +274,11 @@ public class PipelineNetwork extends DAGNetwork {
    */
   @Nonnull
   public PipelineNetwork setHead(final DAGNode obj) {
-    head = obj;
+    if (obj != head) {
+      if (null != head) head.freeRef();
+      head = obj;
+      if (null != head) head.addRef();
+    }
     return this;
   }
   
@@ -247,7 +286,7 @@ public class PipelineNetwork extends DAGNetwork {
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
     final JsonObject json = super.getJson(resources, dataSerializer);
-    json.addProperty("head", head.getId().toString());
+    json.addProperty("head", getHeadId().toString());
     return json;
   }
   

@@ -52,14 +52,14 @@ public class MaxImageBandLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(MaxImageBandLayer.class);
   
   /**
-   * Instantiates a new Max image band layer.
+   * Instantiates a new Max png band layer.
    */
   public MaxImageBandLayer() {
     super();
   }
   
   /**
-   * Instantiates a new Max image band layer.
+   * Instantiates a new Max png band layer.
    *
    * @param id         the id
    * @param kernelDims the kernel dims
@@ -69,11 +69,11 @@ public class MaxImageBandLayer extends LayerBase {
   }
   
   /**
-   * From json max image band layer.
+   * From json max png band layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the max image band layer
+   * @return the max png band layer
    */
   public static MaxImageBandLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxImageBandLayer(json,

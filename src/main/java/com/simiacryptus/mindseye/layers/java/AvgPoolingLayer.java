@@ -181,7 +181,7 @@ public class AvgPoolingLayer extends LayerBase {
   }
   
   /**
-   * The type Index map key.
+   * The type Index buildMap key.
    */
   public static final class IndexMapKey {
     /**
@@ -194,7 +194,7 @@ public class AvgPoolingLayer extends LayerBase {
     int[] output;
   
     /**
-     * Instantiates a new Index map key.
+     * Instantiates a new Index buildMap key.
      *
      * @param kernel the kernel
      * @param output the output
@@ -206,7 +206,7 @@ public class AvgPoolingLayer extends LayerBase {
     }
   
     /**
-     * Instantiates a new Index map key.
+     * Instantiates a new Index buildMap key.
      *
      * @param kernel the kernel
      * @param input  the input

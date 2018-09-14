@@ -939,19 +939,19 @@ public class ValidatingTrainer {
     }
   
     /**
-     * Gets line search strategy map.
+     * Gets line search strategy buildMap.
      *
-     * @return the line search strategy map
+     * @return the line search strategy buildMap
      */
     public Map<CharSequence, LineSearchStrategy> getLineSearchStrategyMap() {
       return lineSearchStrategyMap;
     }
   
     /**
-     * Sets line search strategy map.
+     * Sets line search strategy buildMap.
      *
-     * @param lineSearchStrategyMap the line search strategy map
-     * @return the line search strategy map
+     * @param lineSearchStrategyMap the line search strategy buildMap
+     * @return the line search strategy buildMap
      */
     @Nonnull
     public TrainingPhase setLineSearchStrategyMap(final Map<CharSequence, LineSearchStrategy> lineSearchStrategyMap) {

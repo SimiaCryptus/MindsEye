@@ -375,6 +375,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   
       @Override
       protected void _free() {
+        kernel.assertAlive();
         kernel.freeRef();
         inputData.freeRef();
         Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
@@ -409,7 +410,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    * Gets backward filter algorithm.
    *
    * @param gpu                   the gpu
-   * @param deltaTensor           the delta tensor
+   * @param deltaTensor           the evalInputDelta tensor
    * @param inputTensor           the input tensor
    * @param filterDescriptor      the filter descriptor
    * @param convolutionDescriptor the convolution descriptor
@@ -427,7 +428,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    * @param inputDescriptor       the input descriptor
    * @param filterDescriptor      the filter descriptor
    * @param convolutionDescriptor the convolution descriptor
-   * @param deltaTensor           the delta tensor
+   * @param deltaTensor           the evalInputDelta tensor
    * @return the backward data algorithm
    */
   public int getBackwardDataAlgorithm(final CudnnHandle gpu, final CudaDevice.CudaTensorDescriptor inputDescriptor, final CudaResource<cudnnFilterDescriptor> filterDescriptor, final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, final CudaTensor deltaTensor) {
@@ -785,5 +786,16 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     return kernel.getDimensions();
   }
   
-  
+  @Override
+  public boolean assertAlive() {
+    if (!super.assertAlive()) {
+      assert false;
+      return false;
+    }
+    if (!kernel.assertAlive()) {
+      assert false;
+      return false;
+    }
+    return true;
+  }
 }

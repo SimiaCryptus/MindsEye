@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
  */
 public interface RevNetworkFactory {
   /**
-   * Vector to image dag network.
+   * Vector to png dag network.
    *
    * @param log      the log
    * @param features the features

@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.test;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.layers.StochasticComponent;
 import com.simiacryptus.mindseye.layers.java.LoggingWrapperLayer;
 import com.simiacryptus.mindseye.layers.java.MonitoringWrapperLayer;
@@ -28,7 +29,9 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.opt.Step;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
+import com.simiacryptus.util.FileHTTPD;
 import com.simiacryptus.util.MonitoredObject;
+import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
@@ -42,6 +45,7 @@ import guru.nidi.graphviz.model.Link;
 import guru.nidi.graphviz.model.LinkSource;
 import guru.nidi.graphviz.model.LinkTarget;
 import guru.nidi.graphviz.model.MutableNode;
+import org.apache.hadoop.yarn.webapp.MimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smile.plot.PlotCanvas;
@@ -67,7 +71,9 @@ import java.io.PrintStream;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
@@ -79,6 +85,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.IntToLongFunction;
@@ -103,6 +110,7 @@ public class TestUtil {
    * The constant scheduledThreadPool.
    */
   public static ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
+  private static int gifNumber = 0;
   
   /**
    * Add logging.
@@ -264,7 +272,7 @@ public class TestUtil {
    */
   public static void extractPerformance(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
     log.p("Per-layer Performance Metrics:");
-    log.code(() -> {
+    log.run(() -> {
       @Nonnull final Map<CharSequence, MonitoringWrapperLayer> metrics = new HashMap<>();
       network.visitNodes(node -> {
         if (node.getLayer() instanceof MonitoringWrapperLayer) {
@@ -302,10 +310,10 @@ public class TestUtil {
   }
   
   /**
-   * Sample performance map.
+   * Sample performance buildMap.
    *
    * @param network the network
-   * @return the map
+   * @return the buildMap
    */
   public static Map<CharSequence, Object> samplePerformance(@Nonnull final DAGNetwork network) {
     @Nonnull final Map<CharSequence, Object> metrics = new HashMap<>();
@@ -465,7 +473,7 @@ public class TestUtil {
     for (int col = 1; col < data[0].length; col++) {
       final int c = col;
       log.out("Learned Representation Statistics for Column " + col + " (all bands)");
-      log.code(() -> {
+      log.eval(() -> {
         @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
         Arrays.stream(data)
           .flatMapToDouble(row -> Arrays.stream(row[c].getData()))
@@ -474,7 +482,7 @@ public class TestUtil {
       });
       final int _col = col;
       log.out("Learned Representation Statistics for Column " + col + " (by band)");
-      log.code(() -> {
+      log.eval(() -> {
         @Nonnull final int[] dimensions = data[0][_col].getDimensions();
         return IntStream.range(0, dimensions[2]).mapToObj(x -> x).flatMap(b -> {
           return Arrays.stream(data).map(r -> r[_col]).map(tensor -> {
@@ -496,7 +504,7 @@ public class TestUtil {
   public static void printHistory(@Nonnull final NotebookOutput log, @Nonnull final List<StepRecord> history) {
     if (!history.isEmpty()) {
       log.out("Convergence Plot: ");
-      log.code(() -> {
+      log.eval(() -> {
         final DoubleSummaryStatistics valueStats = history.stream().mapToDouble(x -> x.fitness).filter(x -> x > 0).summaryStatistics();
         @Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step ->
           new double[]{step.iteration, Math.log10(Math.max(valueStats.getMin(), step.fitness))})
@@ -545,7 +553,7 @@ public class TestUtil {
    */
   public static CharSequence render(@Nonnull final NotebookOutput log, @Nonnull final Tensor tensor, final boolean normalize) {
     return TestUtil.renderToImages(tensor, normalize).map(image -> {
-      return log.image(image, "");
+      return log.png(image, "");
     }).reduce((a, b) -> a + b).get();
   }
   
@@ -594,22 +602,22 @@ public class TestUtil {
   }
   
   /**
-   * Resize buffered image.
+   * Resize buffered png.
    *
    * @param source the source
    * @param size   the size
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public static BufferedImage resize(@Nonnull final BufferedImage source, final int size) {return resize(source, size, false);}
   
   /**
-   * Resize buffered image.
+   * Resize buffered png.
    *
    * @param source         the source
    * @param size           the size
    * @param preserveAspect the preserve aspect
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public static BufferedImage resize(@Nonnull final BufferedImage source, final int size, boolean preserveAspect) {
@@ -618,16 +626,31 @@ public class TestUtil {
   }
   
   /**
-   * Resize buffered image.
+   * Resize px buffered png.
+   *
+   * @param source the source
+   * @param size   the size
+   * @return the buffered png
+   */
+  public static BufferedImage resizePx(@Nonnull final BufferedImage source, final long size) {
+    if (size < 0) return source;
+    double scale = Math.sqrt(size / ((double) source.getHeight() * source.getWidth()));
+    int width = (int) (scale * source.getWidth());
+    int height = (int) (scale * source.getHeight());
+    return resize(source, width, height);
+  }
+  
+  /**
+   * Resize buffered png.
    *
    * @param source the source
    * @param width  the width
    * @param height the height
-   * @return the buffered image
+   * @return the buffered png
    */
   @Nonnull
   public static BufferedImage resize(BufferedImage source, int width, int height) {
-    @Nonnull final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    @Nonnull final BufferedImage image = new BufferedImage(width, height, source.getType());
     @Nonnull final Graphics2D graphics = (Graphics2D) image.getGraphics();
     graphics.setRenderingHints(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC));
     graphics.drawImage(source, 0, 0, width, height, null);
@@ -643,7 +666,7 @@ public class TestUtil {
   public static CharSequence toFormattedJson(final Object metrics) {
     try {
       @Nonnull final ByteArrayOutputStream out = new ByteArrayOutputStream();
-      JsonUtil.writeJson(out, metrics);
+      JsonUtil.getMapper().writeValue(out, metrics);
       return out.toString();
     } catch (@Nonnull final IOException e1) {
       throw new RuntimeException(e1);
@@ -782,32 +805,36 @@ public class TestUtil {
     if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
       return;
     JLabel label = new JLabel(new ImageIcon(input.toImage()));
+    final AtomicReference<JDialog> dialog = new AtomicReference<JDialog>();
     WeakReference<JLabel> labelWeakReference = new WeakReference<>(label);
     ScheduledFuture<?> updater = scheduledThreadPool.scheduleAtFixedRate(() -> {
       try {
         JLabel jLabel = labelWeakReference.get();
-        if (null != jLabel) {
+        if (null != jLabel && !input.isFinalized()) {
           BufferedImage image = (normalize ? normalizeBands(input) : input).toImage();
           int width = jLabel.getWidth();
           if (width > 0) TestUtil.resize(image, width, jLabel.getHeight());
           jLabel.setIcon(new ImageIcon(image));
+          return;
         }
       } catch (Throwable e) {
-        log.warn("Error updating image", e);
+        log.warn("Error updating png", e);
       }
+      JDialog jDialog = dialog.get();
+      jDialog.hide();
+      jDialog.dispose();
     }, 0, period, TimeUnit.SECONDS);
     new Thread(() -> {
-      final JDialog dialog;
       Window window = JOptionPane.getRootFrame();
       String title = "Image: " + Arrays.toString(input.getDimensions());
       if (window instanceof Frame) {
-        dialog = new JDialog((Frame) window, title, true);
+        dialog.set(new JDialog((Frame) window, title, true));
       }
       else {
-        dialog = new JDialog((Dialog) window, title, true);
+        dialog.set(new JDialog((Dialog) window, title, true));
       }
-      dialog.setResizable(false);
-      dialog.setSize(input.getDimensions()[0], input.getDimensions()[1]);
+      dialog.get().setResizable(false);
+      dialog.get().setSize(input.getDimensions()[0], input.getDimensions()[1]);
       JMenuBar menu = new JMenuBar();
       JMenu fileMenu = new JMenu("File");
       JMenuItem saveAction = new JMenuItem("Save");
@@ -829,7 +856,7 @@ public class TestUtil {
             }
           });
   
-          int result = fileChooser.showSaveDialog(dialog);
+          int result = fileChooser.showSaveDialog(dialog.get());
           if (JFileChooser.APPROVE_OPTION == result) {
             try {
               File selectedFile = fileChooser.getSelectedFile();
@@ -844,22 +871,22 @@ public class TestUtil {
         }
       });
       menu.add(fileMenu);
-      dialog.setJMenuBar(menu);
-      
-      Container contentPane = dialog.getContentPane();
+      dialog.get().setJMenuBar(menu);
+  
+      Container contentPane = dialog.get().getContentPane();
       contentPane.setLayout(new BorderLayout());
       contentPane.add(label, BorderLayout.CENTER);
       //contentPane.add(dialog, BorderLayout.CENTER);
       if (JDialog.isDefaultLookAndFeelDecorated()) {
         boolean supportsWindowDecorations = UIManager.getLookAndFeel().getSupportsWindowDecorations();
         if (supportsWindowDecorations) {
-          dialog.setUndecorated(true);
-          SwingUtilities.getRootPane(dialog).setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
+          dialog.get().setUndecorated(true);
+          SwingUtilities.getRootPane(dialog.get()).setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
         }
       }
-      dialog.pack();
-      dialog.setLocationRelativeTo(null);
-      dialog.addComponentListener(new ComponentAdapter() {
+      dialog.get().pack();
+      dialog.get().setLocationRelativeTo(null);
+      dialog.get().addComponentListener(new ComponentAdapter() {
         @Override
         public void componentResized(final ComponentEvent e) {
           //dialog.pack();
@@ -868,14 +895,14 @@ public class TestUtil {
           int width = e.getComponent().getWidth();
           if (width > 0) TestUtil.resize(image, width, e.getComponent().getHeight());
           label.setIcon(new ImageIcon(image));
-          dialog.pack();
+          dialog.get().pack();
         }
       });
-      dialog.addWindowListener(new WindowAdapter() {
+      dialog.get().addWindowListener(new WindowAdapter() {
         private boolean gotFocus = false;
         
         public void windowClosed(WindowEvent e) {
-          dialog.getContentPane().removeAll();
+          dialog.get().getContentPane().removeAll();
           updater.cancel(false);
           if (exitOnClose) System.exit(0);
         }
@@ -888,15 +915,15 @@ public class TestUtil {
         }
         
       });
-      dialog.show();
-      dialog.dispose();
+      dialog.get().show();
+      dialog.get().dispose();
     }).start();
   }
   
   /**
    * Normalize bands tensor.
    *
-   * @param image the image
+   * @param image the png
    * @return the tensor
    */
   public static Tensor normalizeBands(final Tensor image) {return normalizeBands(image, 255);}
@@ -904,7 +931,7 @@ public class TestUtil {
   /**
    * Normalize bands tensor.
    *
-   * @param image the image
+   * @param image the png
    * @param max   the max
    * @return the tensor
    */
@@ -954,7 +981,7 @@ public class TestUtil {
    *
    * @return the stack trace element [ ]
    */
-  public static StackTraceElement[] getStackTrace() {return getStackTrace(5);}
+  public static StackTraceElement[] getStackTrace() {return getStackTrace(6);}
   
   /**
    * Get stack trace stack trace element [ ].
@@ -963,22 +990,29 @@ public class TestUtil {
    * @return the stack trace element [ ]
    */
   public static StackTraceElement[] getStackTrace(final int skip) {
-    StackTraceElement[] elements = Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
-      .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.")
-        && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang.")
-        && !x.getClassName().startsWith("com.simiacryptus.mindseye.test."))
-      .limit(1)
-      .toArray(i -> new StackTraceElement[i]);
+    int maxSize = 1;
+    StackTraceElement[] elements = getStackTrace0(skip, maxSize);
     if (0 == elements.length) {
-      elements = Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
-        .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye."))
-        .limit(1)
-        .toArray(i -> new StackTraceElement[i]);
+      elements = getStackTrace1(skip, maxSize);
     }
     return elements;
   }
   
-  private static int gifNumber = 0;
+  public static StackTraceElement[] getStackTrace0(final int skip, final int maxSize) {
+    return Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
+      .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye.")
+        && !x.getClassName().startsWith("com.simiacryptus.mindseye.lang.")
+        && !x.getClassName().startsWith("com.simiacryptus.mindseye.test."))
+      .limit(maxSize)
+      .toArray(i -> new StackTraceElement[i]);
+  }
+  
+  public static StackTraceElement[] getStackTrace1(final int skip, final int maxSize) {
+    return Arrays.stream(Thread.currentThread().getStackTrace()).skip(skip)
+      .filter(x -> x.getClassName().startsWith("com.simiacryptus.mindseye."))
+      .limit(maxSize)
+      .toArray(i -> new StackTraceElement[i]);
+  }
   
   /**
    * Animated gif char sequence.
@@ -1008,38 +1042,117 @@ public class TestUtil {
     }
   }
   
+  /**
+   * Write gif.
+   *
+   * @param log         the log
+   * @param imageStream the png stream
+   */
   public static void writeGif(@Nonnull final NotebookOutput log, final Stream<BufferedImage> imageStream) {
     BufferedImage[] imgs = imageStream.toArray(i -> new BufferedImage[i]);
     log.p("Animated Sequence:");
     log.p(animatedGif(log, imgs));
   }
   
+  /**
+   * Build map map.
+   *
+   * @param <K>       the type parameter
+   * @param <V>       the type parameter
+   * @param configure the configure
+   * @return the map
+   */
   @Nonnull
-  public static <K, V> Map<K, V> map(Consumer<Map<K, V>> configure) {
+  public static <K, V> Map<K, V> buildMap(Consumer<Map<K, V>> configure) {
     Map<K, V> map = new HashMap<>();
     configure.accept(map);
     return map;
   }
   
+  /**
+   * Geometric stream supplier.
+   *
+   * @param start the start
+   * @param end   the end
+   * @param steps the steps
+   * @return the supplier
+   */
   @Nonnull
   public static Supplier<DoubleStream> geometricStream(final double start, final double end, final int steps) {
     double step = Math.pow(end / start, 1.0 / (steps - 1));
     return () -> DoubleStream.iterate(start, x -> x * step).limit(steps);
   }
   
+  /**
+   * Arithmetic stream supplier.
+   *
+   * @param start the start
+   * @param end   the end
+   * @param steps the steps
+   * @return the supplier
+   */
   @Nonnull
   public static Supplier<DoubleStream> arithmeticStream(final double start, final double end, final int steps) {
     double step = Math.pow(end - start, 1.0 / steps);
     return () -> DoubleStream.iterate(start, x -> x + step).limit(steps);
   }
   
+  /**
+   * Constant stream supplier.
+   *
+   * @param values the values
+   * @return the supplier
+   */
   @Nonnull
   public static Supplier<DoubleStream> constantStream(final double... values) {
     return () -> Arrays.stream(values);
   }
   
+  /**
+   * Browse.
+   *
+   * @param uri the uri
+   * @throws IOException the io exception
+   */
   public static void browse(final URI uri) throws IOException {
-    if (!GraphicsEnvironment.isHeadless() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
+    if (Util.AUTO_BROWSE && !GraphicsEnvironment.isHeadless() && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
       Desktop.getDesktop().browse(uri);
+  }
+  
+  public static <T> List<T> shuffle(final List<T> list) {
+    ArrayList<T> copy = new ArrayList<>(list);
+    Collections.shuffle(copy);
+    return copy;
+  }
+  
+  public static void addGlobalHandlers(final FileHTTPD httpd) {
+    if (null != httpd) {
+      httpd.addGET("gpu.json", MimeType.JSON, out -> {
+        try {
+          JsonUtil.getMapper().writer().writeValue(out, CudaSystem.getExecutionStatistics());
+          //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
+          out.close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+      httpd.addGET("threads.json", MimeType.JSON, out -> {
+        try {
+          JsonUtil.getMapper().writer().writeValue(out, getStackInfo());
+          //JsonUtil.MAPPER.writer().writeValue(out, new HashMap<>());
+          out.close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
+  }
+  
+  public static Map<String, List<String>> getStackInfo() {
+    return Thread.getAllStackTraces().entrySet().stream().collect(Collectors.toMap(entry -> {
+      return entry.getKey().getName();
+    }, entry -> {
+      return Arrays.stream(entry.getValue()).map(StackTraceElement::toString).collect(Collectors.toList());
+    }));
   }
 }

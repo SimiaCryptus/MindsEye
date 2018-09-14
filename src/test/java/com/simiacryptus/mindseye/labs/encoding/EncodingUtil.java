@@ -116,7 +116,7 @@ public class EncodingUtil {
     // network.add(new NthPowerActivationLayer().setPower(0.5), );
     network.wrap(new MeanSqLossLayer(),
       network.add("image", innerModel, network.getInput(learnedColumn)),
-      network.getInput(reproducedColumn));
+      network.getInput(reproducedColumn)).freeRef();
     //addLogging(network);
     return network;
   }
@@ -191,14 +191,14 @@ public class EncodingUtil {
     @Nonnull final CharSequence avgHexColor = Long.toHexString(red + (green << 8) + (blue << 16));
     return "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n" +
       ("<defs>\n" +
-        "<filter id=\"image\" >\n" + (
+         "<filter id=\"png\" >\n" + (
         positiveFilter + "\n" +
           negativeFilter + "\n" +
           compositingFilters
       ).replaceAll("\n", "\n\t") + "\n" +
         "</filter>\n" +
         "</defs>\n" +
-        "<rect style=\"filter:url(#image);\" setByCoord=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
+         "<rect style=\"filter:url(#png);\" setByCoord=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
       ).replaceAll("\n", "\n\t") +
       "\n</svg>";
   }
@@ -221,8 +221,8 @@ public class EncodingUtil {
         select[i] = offset + i;
       }
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
-      network.add(new ImgReshapeLayer(factor, factor, false));
-      network.add(new ImgBandSelectLayer(select));
+      network.wrap(new ImgReshapeLayer(factor, factor, false)).freeRef();
+      network.wrap(new ImgBandSelectLayer(select)).freeRef();
       @Nullable final Tensor result = network.eval(tensor[1]).getData().get(0);
       return new Tensor[]{tensor[0], result};
     }));
@@ -277,11 +277,11 @@ public class EncodingUtil {
     @Nonnull final PipelineNetwork decoderBand = new PipelineNetwork();
     @Nonnull final double[] gate = new double[tensor.getDimensions()[2]];
     gate[band] = 1;
-    decoderBand.add(new ImgBandScaleLayer(gate));
-    decoderBand.add(decoder);
+    decoderBand.wrap(new ImgBandScaleLayer(gate)).freeRef();
+    decoderBand.add(decoder).freeRef();
     try {
       return decoderBand.eval(tensor).getData().get(0);
-      //return log.image(t.toImage(), "");
+      //return log.png(t.toImage(), "");
     } catch (@Nonnull final RuntimeException e) {
       throw e;
     } catch (@Nonnull final Exception e) {
@@ -313,7 +313,7 @@ public class EncodingUtil {
    */
   public static Tensor[][] getImages(@Nonnull final NotebookOutput log, final Function<BufferedImage, BufferedImage> fn, final int maxImages, @Nonnull final CharSequence[] categories) {
     log.out("Available images and categories:");
-    log.code(() -> {
+    log.eval(() -> {
       return Caltech101.trainingDataStream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()));
     });
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
@@ -362,7 +362,7 @@ public class EncodingUtil {
    */
   public static void printModel(@Nonnull final NotebookOutput log, @Nonnull final Layer network, final int modelNo) {
     log.out("Learned Model Statistics: ");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       network.state().stream().flatMapToDouble(x -> Arrays.stream(x))
         .forEach(v -> scalarStatistics.add(v));
@@ -443,7 +443,7 @@ public class EncodingUtil {
    */
   public static void validationReport(@Nonnull final NotebookOutput log, @Nonnull final Tensor[][] data, @Nonnull final List<Layer> dataPipeline, final int maxRows) {
     log.out("Current dataset and evaluation results: ");
-    log.code(() -> {
+    log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
       Arrays.stream(data).limit(maxRows).map(tensorArray -> {
         @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();

@@ -46,7 +46,7 @@ import java.util.stream.IntStream;
 /**
  * A lower level of convolution desconstruction logic, implements support for an arbitrary number of output bands by
  * splitting the convolution into even batches of input x input kernel dimensions. These results are then concatenated
- * together as successive image bands. Even at small scale, this breakdown is required because CuDNN only supports
+ * together as successive png bands. Even at small scale, this breakdown is required because CuDNN only supports
  * convolutions apply equal input/output band counts.
  */
 class ExplodedConvolutionLeg extends ReferenceCountingBase {
@@ -101,12 +101,12 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
         .setPrecision(this.convolutionParams.precision);
   
       PipelineNetwork stackableConv = new PipelineNetwork(1);
-      if (paddingY != 0 || paddingX != 0) stackableConv.add(new ImgZeroPaddingLayer(paddingX, paddingY));
-      stackableConv.add(simpleConvolutionLayer);
-      if (paddingY != 0 || paddingX != 0) stackableConv.add(new ImgZeroPaddingLayer(-paddingX, -paddingY));
+      if (paddingY != 0 || paddingX != 0) stackableConv.wrap(new ImgZeroPaddingLayer(paddingX, paddingY)).freeRef();
+      stackableConv.add(simpleConvolutionLayer).freeRef();
+      if (paddingY != 0 || paddingX != 0) stackableConv.wrap(new ImgZeroPaddingLayer(-paddingX, -paddingY)).freeRef();
       subKernels.add(simpleConvolutionLayer);
       this.subLayers.add(getTileSubnet(stackableConv, Math.max(filterDimensions[0], filterDimensions[1]), simpleConvolutionLayer.getKernelDimensions(), simpleConvolutionLayer.getPrecision()));
-      simpleConvolutionLayer.freeRef();
+      stackableConv.freeRef();
       //this.subLayers.add(simpleConvolutionLayer);
     }
   }
@@ -122,6 +122,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   @Override
   protected void _free() {
     this.subLayers.forEach(x -> x.freeRef());
+    this.subKernels.forEach(x -> x.freeRef());
     super._free();
   }
   
@@ -224,7 +225,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   /**
    * Read tensor.
    *
-   * @param deltaSet the delta set
+   * @param deltaSet the evalInputDelta set
    * @param remove   the remove
    * @return the tensor
    */

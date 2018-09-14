@@ -113,7 +113,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   public ToleranceStatistics testInterGpu(final NotebookOutput log, @Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     log.h2("Multi-GPU Compatibility");
     log.p("This layer should be able to apply using a GPU context other than the one used to create the inputs.");
-    return log.code(() -> {
+    return log.eval(() -> {
       final TensorList[] heapInput = Arrays.stream(inputPrototype).map(t ->
         TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
           .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
@@ -158,7 +158,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   public ToleranceStatistics testNonstandardBounds(final NotebookOutput log, @Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     log.h2("Irregular Input");
     log.p("This layer should be able to accept non-dense inputs.");
-    return log.code(() -> {
+    return log.eval(() -> {
       Tensor[] randomized = Arrays.stream(inputPrototype).map(x -> x.map(v -> getRandom())).toArray(i -> new Tensor[i]);
       logger.info("Input: " + Arrays.stream(randomized).map(Tensor::prettyPrint).collect(Collectors.toList()));
       Precision precision = Precision.Double;
@@ -209,8 +209,8 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public ToleranceStatistics testNonstandardBoundsBackprop(final NotebookOutput log, @Nullable final Layer layer, @Nonnull final Tensor[] inputPrototype) {
     log.h2("Irregular Backprop");
-    log.p("This layer should accept non-dense tensors as delta input.");
-    return log.code(() -> {
+    log.p("This layer should accept non-dense tensors as evalInputDelta input.");
+    return log.eval(() -> {
       Tensor[] randomized = Arrays.stream(inputPrototype).map(x -> x.map(v -> getRandom())).toArray(i -> new Tensor[i]);
       logger.info("Input: " + Arrays.stream(randomized).map(Tensor::prettyPrint).collect(Collectors.toList()));
       Precision precision = Precision.Double;

@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
- * Reduces the resolution of the input by selecting a centered window. The output image will have the same number of
+ * Reduces the resolution of the input by selecting a centered window. The output png will have the same number of
  * color bands.
  */
 @SuppressWarnings("serial")

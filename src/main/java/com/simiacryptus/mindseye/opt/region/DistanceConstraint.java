@@ -24,7 +24,7 @@ import com.simiacryptus.util.ArrayUtil;
 import javax.annotation.Nonnull;
 
 /**
- * This constraint ensures that the L2 magnitude of the weight delta cannot exceed a simple threshold. A simpler version
+ * This constraint ensures that the L2 magnitude of the weight evalInputDelta cannot exceed a simple threshold. A simpler version
  * of AdaptiveTrustSphere, it places a limit on the step size for a given layer.
  */
 public class DistanceConstraint implements TrustRegion {

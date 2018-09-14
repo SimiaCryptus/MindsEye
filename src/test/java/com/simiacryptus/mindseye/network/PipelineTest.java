@@ -100,7 +100,7 @@ public abstract class PipelineTest {
   public void graphviz(@Nonnull final NotebookOutput log, final Layer layer) {
     if (layer instanceof DAGNetwork) {
       log.p("This is a network apply the following layout:");
-      log.code(() -> {
+      log.eval(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
           .height(400).width(600).render(Format.PNG).toImage();
       });
@@ -133,7 +133,7 @@ public abstract class PipelineTest {
    */
   @Test
   public void test() throws Throwable {
-    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(NotebookReportBase.getTestReportLocation(((Object) this).getClass()), false)) {
+    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(NotebookReportBase.getTestReportLocation(((Object) this).getClass()), Util.AUTO_BROWSE)) {
       test(log);
     }
   }

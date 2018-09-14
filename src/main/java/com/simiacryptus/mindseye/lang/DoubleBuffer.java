@@ -69,7 +69,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    *
    * @param layer  the layer
    * @param target the target
-   * @param delta  the delta
+   * @param delta  the evalInputDelta
    */
   public DoubleBuffer(@Nonnull final K layer, final double[] target, final double[] delta) {
     this.layer = layer;
@@ -94,9 +94,9 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   }
   
   /**
-   * Copy delta.
+   * Copy evalInputDelta.
    *
-   * @return the delta
+   * @return the evalInputDelta
    */
   @Nullable
   public DoubleBuffer<K> copy() {
@@ -134,8 +134,15 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     return Arrays.stream(array).summaryStatistics().getSum();
   }
   
+  @Nullable
+  public double[] getDeltaAndFree() {
+    double[] delta = getDelta();
+    freeRef();
+    return delta;
+  }
+  
   /**
-   * Get delta double [ ].
+   * Get evalInputDelta double [ ].
    *
    * @return the double [ ]
    */
@@ -171,10 +178,10 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   }
   
   /**
-   * Map delta.
+   * Map evalInputDelta.
    *
    * @param mapper the mapper
-   * @return the delta
+   * @return the evalInputDelta
    */
   @Nonnull
   public DoubleBuffer<K> map(@Nonnull final DoubleUnaryOperator mapper) {
@@ -182,10 +189,10 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   }
   
   /**
-   * Set delta.
+   * Set evalInputDelta.
    *
    * @param data the data
-   * @return the delta
+   * @return the evalInputDelta
    */
   @Nonnull
   public DoubleBuffer<K> set(@Nonnull final double[] data) {

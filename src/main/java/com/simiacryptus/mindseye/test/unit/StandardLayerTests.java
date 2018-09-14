@@ -63,6 +63,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
    * The constant seed.
    */
   public static final long seed = 51389; //System.nanoTime();
+  private static final HashMap<String, TreeMap<String, String>> javadocs = loadJavadoc();
   
   static {
     SysOutInterceptor.INSTANCE.init();
@@ -100,6 +101,18 @@ public abstract class StandardLayerTests extends NotebookReportBase {
   public StandardLayerTests() {
     logger.info("Seed: " + seed);
     tolerance = 1e-3;
+  }
+  
+  @Nonnull
+  private static HashMap<String, TreeMap<String, String>> loadJavadoc() {
+    try {
+      HashMap<String, TreeMap<String, String>> javadocData = Javadoc.loadModelSummary();
+      IOUtil.writeJson(new TreeMap<>(javadocData), new File("./javadoc.json"));
+      return javadocData;
+    } catch (Throwable e) {
+      logger.warn("Error loading javadocs", e);
+      return new HashMap<>();
+    }
   }
   
   /**
@@ -352,21 +365,6 @@ public abstract class StandardLayerTests extends NotebookReportBase {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(() -> random())).toArray(i -> new Tensor[i]);
   }
   
-  
-  private static final HashMap<String, TreeMap<String, String>> javadocs = loadJavadoc();
-  
-  @Nonnull
-  private static HashMap<String, TreeMap<String, String>> loadJavadoc() {
-    try {
-      HashMap<String, TreeMap<String, String>> javadocData = Javadoc.loadModelSummary();
-      IOUtil.writeJson(new TreeMap<>(javadocData), new File("./javadoc.json"));
-      return javadocData;
-    } catch (Throwable e) {
-      logger.warn("Error loading javadocs", e);
-      return new HashMap<>();
-    }
-  }
-  
   /**
    * Test.
    *
@@ -393,7 +391,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
         try {
           log.h1("Network Diagram");
           log.p("This is a network apply the following layout:");
-          log.code(() -> {
+          log.eval(() -> {
             return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) smallLayer))
               .height(400).width(600).render(Format.PNG).toImage();
           });
@@ -408,7 +406,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
             log.h1("Exploded Network Diagram");
             log.p("This is a network apply the following layout:");
             @Nonnull DAGNetwork network = (DAGNetwork) explode;
-            log.code(() -> {
+            log.eval(() -> {
               @Nonnull Graphviz graphviz = Graphviz.fromGraph(TestUtil.toGraph(network)).height(400).width(600);
               @Nonnull File file = new File(log.getResourceDir(), log.getName() + "_network.svg");
               graphviz.render(Format.SVG_STANDALONE).toFile(file);
@@ -440,7 +438,7 @@ public abstract class StandardLayerTests extends NotebookReportBase {
           }
         }
       }
-      log.code(() -> {
+      log.run(() -> {
         throwException(exceptions);
       });
     } finally {

@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Similar to the pooling layer, but the pool size is always the image size. The output dimensions are always 1x1xN.
+ * Similar to the pooling layer, but the pool size is always the png size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
 public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<BandAvgReducerLayer> {
@@ -107,7 +107,8 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
     TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
     int length = inputData.length();
-    
+    if (length <= 0) throw new AssertionError();
+    if (Tensor.length(inputData.getDimensions()) <= 0) return input;
     final int bands = inputSize[2];
     CudaTensorList result = CudaSystem.run(gpu -> {
       CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
@@ -142,7 +143,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
         return tensor;
       }).toArray(i -> new Tensor[i]));
 //      passback = CudaSystem.generate(gpu -> {
-//        CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
+//        CudaTensor deltaTensor = gpu.getTensor(evalInputDelta, precision, MemoryType.Device, true);
 //        @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
 //          length, inputSize[2], inputSize[1], inputSize[0]);
 //        @Nonnull final CudaMemory outputPtr = gpu.allocate((long) precision.size * outputDescriptor.nStride * length, MemoryType.Device, true);
@@ -150,7 +151,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
 //        @Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(precision,
 //          1, 1, inputSize[1], inputSize[0]);
 //        for(int batch=0;batch<length;batch++){
-//          Tensor tensor = delta.get(batch);
+//          Tensor tensor = evalInputDelta.get(batch);
 //          for(int band=0;band<bands;band++){
 //            int i = batch * bands + band;
 //            CudaMemory img = outputPtr.withByteOffset(precision.size * i * outputDescriptor.cStride);
@@ -202,19 +203,19 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   }
   
   /**
-   * Gets alpha.
+   * Gets alphaList.
    *
-   * @return the alpha
+   * @return the alphaList
    */
   public double getAlpha() {
     return alpha;
   }
   
   /**
-   * Sets alpha.
+   * Sets alphaList.
    *
-   * @param alpha the alpha
-   * @return the alpha
+   * @param alpha the alphaList
+   * @return the alphaList
    */
   public BandAvgReducerLayer setAlpha(double alpha) {
     this.alpha = alpha;

@@ -54,7 +54,7 @@ public class Research extends OptimizerComparison {
   @Nonnull
   public static OptimizationStrategy recursive_subspace = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Recursive Subspace method:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
@@ -75,7 +75,7 @@ public class Research extends OptimizerComparison {
   @Nonnull
   public static OptimizationStrategy recursive_subspace_2 = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Recursive Subspace method:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
@@ -109,7 +109,7 @@ public class Research extends OptimizerComparison {
   @Nonnull
   public static OptimizationStrategy quadratic_quasi_newton = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Quadratic Quasi-Newton method:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMonitor(monitor);
       trainer.getRegimen().get(0)
@@ -127,7 +127,7 @@ public class Research extends OptimizerComparison {
   @Nonnull
   public static OptimizationStrategy limited_memory_bfgs = (log, trainingSubject, validationSubject, monitor) -> {
     log.p("Optimized via the Limited-Memory BFGS method:");
-    return log.code(() -> {
+    return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
         .setMinTrainingSize(Integer.MAX_VALUE)
         .setMonitor(monitor);
@@ -181,10 +181,10 @@ public class Research extends OptimizerComparison {
       ProblemRun.PlotType.Line);
     
     log.h2("Comparison");
-    log.code(() -> {
+    log.eval(() -> {
       return TestUtil.compare("Convergence Plot", subspace_1, subspace_2, rawlbfgs, lbfgs_1, lbfgs_2, qqn1);
     });
-    log.code(() -> {
+    log.eval(() -> {
       return TestUtil.compareTime("Convergence Plot", subspace_1, subspace_2, rawlbfgs, lbfgs_1, lbfgs_2, qqn1);
     });
   }

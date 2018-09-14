@@ -124,7 +124,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     public Layer getLayer(int[][] inputSize, Random random) {
       @Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
-      network.wrap(new com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer(), input, input);
+      network.wrap(new com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer(), input, input).freeRef();
       return network;
     }
   
@@ -137,7 +137,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     public Layer getReferenceLayer() {
       @Nonnull PipelineNetwork network = new PipelineNetwork();
       DAGNode input = network.getInput(0);
-      network.wrap(new SumInputsLayer(), input, input);
+      network.wrap(new SumInputsLayer(), input, input).freeRef();
       return network;
     }
   

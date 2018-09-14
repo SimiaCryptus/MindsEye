@@ -59,7 +59,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
       getTrainingStream(log).sorted(getShuffleComparator()).collect(Collectors.toList());
     
     log.h3("Categories");
-    log.code(() -> {
+    log.run(() -> {
       testData.stream().collect(Collectors.groupingBy(x -> x.label, Collectors.counting()))
         .forEach((k, v) -> ImageCategoryDatasetDemo.logger.info(String.format("%s -> %d", k, v)));
     });
@@ -69,7 +69,7 @@ public abstract class ImageCategoryDatasetDemo extends NotebookReportBase {
       return testData.stream().map(labeledObj -> {
         @Nullable BufferedImage img = labeledObj.data.get();
         img = TestUtil.resize(img, 224, true);
-        return log.image(img, labeledObj.label);
+        return log.png(img, labeledObj.label);
       }).limit(20).reduce((a, b) -> a + b).get();
     }));
   }

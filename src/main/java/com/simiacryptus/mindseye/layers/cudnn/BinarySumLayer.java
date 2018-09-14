@@ -114,7 +114,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     @Nonnull PipelineNetwork network = new PipelineNetwork(2);
     network.wrap(new SumInputsLayer(),
       network.wrap(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
-      network.wrap(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1)));
+      network.wrap(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1))).freeRef();
     return network;
     
   }

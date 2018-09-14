@@ -45,8 +45,10 @@ class GraphEvaluationContext extends ReferenceCountingBase {
   @Override
   protected synchronized void _free() {
     calculated.entrySet().stream().filter(e -> {
-      Supplier<CountingResult> x = e.getValue();
-      CountingResult countingNNResult = x.get();
+      Object o = e.getValue().get();
+      if (o instanceof RuntimeException) throw (RuntimeException) o;
+      if (o instanceof Throwable) throw new RuntimeException((Throwable) o);
+      CountingResult countingNNResult = (CountingResult) o;
       if (expectedCounts.containsKey(e.getKey())) {
         return expectedCounts.get(e.getKey()) > countingNNResult.getAccumulator().getCount();
       }

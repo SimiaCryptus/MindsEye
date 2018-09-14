@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Reduces the resolution of the input by selecting a centered window. The output image will have the same number of
+ * Reduces the resolution of the input by selecting a centered window. The output png will have the same number of
  * color bands.
  */
 @SuppressWarnings("serial")
@@ -62,7 +62,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   private Precision precision = Precision.Double;
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    */
   private ImgTileSelectLayer() {
   }
@@ -83,7 +83,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   }
   
   /**
-   * Instantiates a new Img concat layer.
+   * Instantiates a new Img eval layer.
    *
    * @param json the json
    * @param rs   the rs
@@ -98,11 +98,11 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   }
   
   /**
-   * From json img concat layer.
+   * From json img eval layer.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img concat layer
+   * @return the img eval layer
    */
   public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSelectLayer(json, rs);

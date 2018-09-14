@@ -62,8 +62,8 @@ public class TargetValueLayer extends DAGNetwork {
    */
   protected TargetValueLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
-    head = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
-    target = nodesById.get(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
+    head = getNodeById(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
+    target = getNodeById(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
   }
   
   /**

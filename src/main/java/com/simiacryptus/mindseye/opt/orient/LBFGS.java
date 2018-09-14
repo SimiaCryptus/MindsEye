@@ -70,7 +70,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   public void addToHistory(@Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
     if (!LBFGS.isFinite(measurement.delta)) {
       if (verbose) {
-        monitor.log("Corrupt delta measurement");
+        monitor.log("Corrupt evalInputDelta measurement");
       }
     }
     else if (!LBFGS.isFinite(measurement.weights)) {
@@ -148,12 +148,12 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   }
   
   /**
-   * Lbfgs delta setBytes.
+   * Lbfgs evalInputDelta setBytes.
    *
    * @param measurement the measurement
    * @param monitor     the monitor
    * @param history     the history
-   * @return the delta setBytes
+   * @return the evalInputDelta setBytes
    */
   @Nullable
   protected DeltaSet<Layer> lbfgs(@Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor, @Nonnull final List<PointSample> history) {
@@ -252,7 +252,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   public SimpleLineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
 
 //    if (getClass().desiredAssertionStatus()) {
-//      double verify = subject.measure(monitor).getMean();
+//      double verify = subject.measureStyle(monitor).getMean();
 //      double input = measurement.getMean();
 //      boolean isDifferent = Math.abs(verify - input) > 1e-2;
 //      if (isDifferent) throw new AssertionError(String.format("Invalid input point: %s != %s", verify, input));
