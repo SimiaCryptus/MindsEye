@@ -31,7 +31,7 @@ import javax.annotation.Nonnull;
  * The type Convolution network apply.
  */
 public abstract class DeepConvolution extends NLayerTest {
-  
+
   /**
    * The Height.
    */
@@ -44,7 +44,7 @@ public abstract class DeepConvolution extends NLayerTest {
    * The Radius.
    */
   int radius;
-  
+
   /**
    * Instantiates a new Linear depth.
    *
@@ -54,10 +54,10 @@ public abstract class DeepConvolution extends NLayerTest {
   public DeepConvolution(int radius, final int[]... dimList) {
     super(dimList);
     this.radius = radius;
-  
+
   }
-  
-  
+
+
   @Override
   public void addLayer(@Nonnull final PipelineNetwork network, final int[] in, final int[] out) {
     assert in[0] == out[0];
@@ -66,7 +66,7 @@ public abstract class DeepConvolution extends NLayerTest {
     network.wrap(new ImgBandBiasLayer(out[2])).freeRef();
     network.wrap(getActivation()).freeRef();
   }
-  
+
   /**
    * Gets activation.
    *
@@ -76,18 +76,18 @@ public abstract class DeepConvolution extends NLayerTest {
   public Layer getActivation() {
     return new ActivationLayer(ActivationLayer.Mode.RELU);
   }
-  
+
   @Nonnull
   @Override
   public int[] getInputDims() {
     return new int[]{width, height, 3};
   }
-  
+
   @Override
   public double random() {
     return 0.1 * Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 500.0;
   }
-  
+
   /**
    * The type Four layer.
    */
@@ -97,15 +97,15 @@ public abstract class DeepConvolution extends NLayerTest {
      */
     public ExpandPipeline() {
       super(3,
-        new int[]{width, height, 9},
-        new int[]{width, height, 12},
-        new int[]{width, height, 48},
-        new int[]{width, height, 48}
+          new int[]{width, height, 9},
+          new int[]{width, height, 12},
+          new int[]{width, height, 48},
+          new int[]{width, height, 48}
       );
     }
-    
+
   }
-  
+
   /**
    * The type Four layer.
    */
@@ -115,15 +115,15 @@ public abstract class DeepConvolution extends NLayerTest {
      */
     public NarrowingPipeline() {
       super(3,
-        new int[]{width, height, 2},
-        new int[]{width, height, 1},
-        new int[]{width, height, 1},
-        new int[]{width, height, 1}
+          new int[]{width, height, 2},
+          new int[]{width, height, 1},
+          new int[]{width, height, 1},
+          new int[]{width, height, 1}
       );
     }
-    
+
   }
-  
+
   /**
    * The type Four layer.
    */
@@ -133,22 +133,22 @@ public abstract class DeepConvolution extends NLayerTest {
      */
     public SigmoidPipeline() {
       super(3,
-        new int[]{width, height, 5},
-        new int[]{width, height, 5},
-        new int[]{width, height, 5},
-        new int[]{width, height, 5},
-        new int[]{width, height, 5}
+          new int[]{width, height, 5},
+          new int[]{width, height, 5},
+          new int[]{width, height, 5},
+          new int[]{width, height, 5},
+          new int[]{width, height, 5}
       );
     }
-  
+
     @Nonnull
     @Override
     public Layer getActivation() {
       return new ActivationLayer(ActivationLayer.Mode.SIGMOID);
     }
-  
+
   }
-  
+
   /**
    * The type Four layer.
    */
@@ -158,13 +158,13 @@ public abstract class DeepConvolution extends NLayerTest {
      */
     public UniformPipeline() {
       super(3,
-        new int[]{width, height, 3},
-        new int[]{width, height, 3},
-        new int[]{width, height, 3},
-        new int[]{width, height, 3}
+          new int[]{width, height, 3},
+          new int[]{width, height, 3},
+          new int[]{width, height, 3},
+          new int[]{width, height, 3}
       );
     }
-  
+
   }
-  
+
 }

@@ -20,15 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,17 +37,17 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class BiasMetaLayer extends LayerBase {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(BiasMetaLayer.class);
-  
+
   /**
    * Instantiates a new Bias meta layer.
    */
   public BiasMetaLayer() {
   }
-  
+
   /**
    * Instantiates a new Bias meta layer.
    *
@@ -64,7 +56,7 @@ public class BiasMetaLayer extends LayerBase {
   protected BiasMetaLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json bias meta layer.
    *
@@ -75,23 +67,23 @@ public class BiasMetaLayer extends LayerBase {
   public static BiasMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BiasMetaLayer(json);
   }
-  
+
   @Nullable
   @Override
   public Result eval(@Nonnull final Result... inObj) {
     final int itemCnt = inObj[0].getData().length();
     Tensor tensor1 = inObj[1].getData().get(0);
     final Tensor[] tensors = IntStream.range(0, itemCnt)
-      .parallel()
-      .mapToObj(dataIndex -> {
-        Tensor tensor = inObj[0].getData().get(dataIndex);
-        Tensor mapIndex = tensor.mapIndex((v, c) -> {
-          return v + tensor1.get(c);
-        });
-        tensor.freeRef();
-        return mapIndex;
-      })
-      .toArray(i -> new Tensor[i]);
+        .parallel()
+        .mapToObj(dataIndex -> {
+          Tensor tensor = inObj[0].getData().get(dataIndex);
+          Tensor mapIndex = tensor.mapIndex((v, c) -> {
+            return v + tensor1.get(c);
+          });
+          tensor.freeRef();
+          return mapIndex;
+        })
+        .toArray(i -> new Tensor[i]);
     tensor1.freeRef();
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
@@ -112,38 +104,38 @@ public class BiasMetaLayer extends LayerBase {
         };
         @Nullable final Tensor passback = tensor0.mapCoords(f);
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, inObj[1].getData().length())
-          .mapToObj(i -> {
-            if (i == 0) return passback;
-            else {
-              @Nullable Tensor map = passback.map(v -> 0);
-              passback.freeRef();
-              return map;
-            }
-          }).toArray(i -> new Tensor[i]));
+            .mapToObj(i -> {
+              if (i == 0) return passback;
+              else {
+                @Nullable Tensor map = passback.map(v -> 0);
+                passback.freeRef();
+                return map;
+              }
+            }).toArray(i -> new Tensor[i]));
         inObj[1].accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         tensor0.freeRef();
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive() || inObj[1].isAlive();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

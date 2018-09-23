@@ -35,23 +35,23 @@ public abstract class HyperbolicActivationLayerTest extends ActivationLayerTestB
   public HyperbolicActivationLayerTest() {
     super(new HyperbolicActivationLayer());
   }
-  
+
   @Override
   protected HashMap<Tensor[], Tensor> getReferenceIO() {
     final HashMap<Tensor[], Tensor> map = super.getReferenceIO();
     map.put(new Tensor[]{new Tensor(0.0)}, new Tensor(0.0));
     return map;
   }
-  
+
   @Override
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
     return new TrainingTester().setRandomizationMode(TrainingTester.RandomizationMode.Random);
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends HyperbolicActivationLayerTest {
   }
-  
+
 }

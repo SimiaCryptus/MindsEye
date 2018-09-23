@@ -30,15 +30,15 @@ import java.util.Random;
  * The type Rascaled subnet layer apply.
  */
 public abstract class ImgTileSubnetLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {6, 6, 1}
+        {6, 6, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
@@ -47,11 +47,11 @@ public abstract class ImgTileSubnetLayerTest extends LayerTestBase {
     subnetwork.freeRef();
     return tileSubnetLayer;
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ImgTileSubnetLayerTest {
   }
-  
+
 }

@@ -21,33 +21,10 @@ package com.simiacryptus.mindseye.layers.cudnn.conv;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.ComponentException;
-import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.util.Util;
-import jcuda.jcudnn.cudnnConvolutionBwdDataAlgo;
-import jcuda.jcudnn.cudnnConvolutionDescriptor;
-import jcuda.jcudnn.cudnnConvolutionMode;
-import jcuda.jcudnn.cudnnFilterDescriptor;
-import jcuda.jcudnn.cudnnTensorFormat;
+import jcuda.jcudnn.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +46,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<SimpleConvolutionLayer> {
-  
+
   /**
    * The Log.
    */
@@ -88,14 +65,14 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   private Precision precision = Precision.Double;
   private int strideX = 1;
   private int strideY = 1;
-  
+
   /**
    * Instantiates a new Convolution layer.
    */
   protected SimpleConvolutionLayer() {
     this(null);
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -109,7 +86,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     assert !false || 0 == (width - 1) % 2 : "Simple kernels must have odd width";
     assert !false || 0 == (height - 1) % 2 : "Simple kernels must have odd height";
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -125,7 +102,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     setPaddingY(json.get("paddingY").getAsInt());
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -142,9 +119,9 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     this.kernel.addRef(this);
     this.setPaddingX((int) Math.ceil((kernelSize[0] - 1) / 2.0));
     this.setPaddingY((int) Math.ceil((kernelSize[1] - 1) / 2.0));
-    
+
   }
-  
+
   /**
    * From json convolution layer.
    *
@@ -155,7 +132,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public static SimpleConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SimpleConvolutionLayer(json, rs);
   }
-  
+
   /**
    * Reverse int [ ].
    *
@@ -171,7 +148,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     }
     return array;
   }
-  
+
   /**
    * Add weights convolution layer.
    *
@@ -183,19 +160,19 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     Util.add(f, kernel.getData());
     return this;
   }
-  
+
   private boolean cmp(final int[] outputSize, @Nonnull final int[] outputDims) {
     if (4 != outputDims.length) return false;
     if (outputSize[0] != outputDims[3]) return false;
     if (outputSize[1] != outputDims[2]) return false;
     return outputSize[2] == outputDims[1];
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().eval(inObj);
-    
+
     final Result input = inObj[0];
     final TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
@@ -208,34 +185,34 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
-        precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+          precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
       final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = gpu.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision,
-        paddingY, paddingX,
-        strideY, strideX,
-        1, 1);
+          paddingY, paddingX,
+          strideY, strideX,
+          1, 1);
       final int[] outputDims = IntStream.of(reverse(CudaSystem.getOutputDims(inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr()))).limit(3).toArray();
       final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
-        outputDims[2], outputDims[1], outputDims[0],
-        outputDims[2] * outputDims[1] * outputDims[0], outputDims[1] * outputDims[0], outputDims[0], 1);
+          outputDims[2], outputDims[1], outputDims[0],
+          outputDims[2] * outputDims[1] * outputDims[0], outputDims[1] * outputDims[0], outputDims[0], 1);
       final int forwardAlgorithm = getForwardAlgorithm(gpu, inputTensor, filterDescriptor, convolutionDescriptor, outputDescriptor);
       final CudaMemory forwardWorkspace = gpu.allocateForwardWorkspace(
-        inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), forwardAlgorithm, 1);
+          inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), outputDescriptor.getPtr(), forwardAlgorithm, 1);
       try {
         assert 0 < kernel.getData().length;
         assert kernelSize[0] * kernelSize[1] * kernelSize[2] == kernel.getData().length;
         @Nonnull CudaMemory filterPtr = getCudaFilter(gpu);
         @Nonnull final CudaMemory outputBuffer = gpu.allocate(
-          (long) Tensor.length(outputDims) * length * precision.size, MemoryType.Managed.normalize(), true);
+            (long) Tensor.length(outputDims) * length * precision.size, MemoryType.Managed.normalize(), true);
         CudaMemory inputTensorMemory = inputTensor.getMemory(gpu);
 //        inputTensorMemory.synchronize();
         CudaSystem.handle(gpu.cudnnConvolutionForward(precision.getPointer(1.0),
-          inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
-          filterDescriptor.getPtr(), filterPtr.getPtr(),
-          convolutionDescriptor.getPtr(),
-          forwardAlgorithm,
-          null == forwardWorkspace ? null : forwardWorkspace.getPtr(),
-          null == forwardWorkspace ? 0 : forwardWorkspace.size,
-          precision.getPointer(0.0), outputDescriptor.getPtr(), outputBuffer.getPtr()));
+            inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
+            filterDescriptor.getPtr(), filterPtr.getPtr(),
+            convolutionDescriptor.getPtr(),
+            forwardAlgorithm,
+            null == forwardWorkspace ? null : forwardWorkspace.getPtr(),
+            null == forwardWorkspace ? 0 : forwardWorkspace.size,
+            precision.getPointer(0.0), outputDescriptor.getPtr(), outputBuffer.getPtr()));
         assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         forwardWorkspace.dirty();
         filterPtr.dirty();
@@ -264,28 +241,28 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
             delta.freeRef();
             @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
             final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
-              precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+                precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
             final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = gpu.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision,
-              paddingY, paddingX,
-              strideY, strideX,
-              1, 1);
+                paddingY, paddingX,
+                strideY, strideX,
+                1, 1);
             final int backwardFilterAlgorithm = getBackwardFilterAlgorithm(gpu, deltaTensor, inputTensor, filterDescriptor, convolutionDescriptor);
             final CudaMemory backwardsFilterWorkSpace = gpu.allocateBackwardFilterWorkspace(
-              inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(),
-              convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), backwardFilterAlgorithm, 1);
+                inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(),
+                convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), backwardFilterAlgorithm, 1);
             @Nonnull CudaMemory filterPtr = gpu.allocate((long) kernel.length() * precision.size, MemoryType.Device, true);
             try {
               CudaMemory inputTensorMemory = inputTensor.getMemory(gpu);
               CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu, MemoryType.Managed.normalize());
 //              inputTensorMemory.synchronize();
               CudaSystem.handle(gpu.cudnnConvolutionBackwardFilter(precision.getPointer(1.0),
-                inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
-                deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
-                convolutionDescriptor.getPtr(),
-                backwardFilterAlgorithm,
-                backwardsFilterWorkSpace.getPtr(),
-                backwardsFilterWorkSpace.size,
-                precision.getPointer(0.0), filterDescriptor.getPtr(), filterPtr.getPtr()));
+                  inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
+                  deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
+                  convolutionDescriptor.getPtr(),
+                  backwardFilterAlgorithm,
+                  backwardsFilterWorkSpace.getPtr(),
+                  backwardsFilterWorkSpace.size,
+                  precision.getPointer(0.0), filterDescriptor.getPtr(), filterPtr.getPtr()));
               filterPtr.dirty();
               deltaTensorMemory.dirty();
               inputTensorMemory.dirty();
@@ -306,8 +283,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
           buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData()).freeRef();
           weightGradient.freeRef();
           clearCudaFilters();
-        }
-        else {
+        } else {
           delta.freeRef();
         }
       };
@@ -316,30 +292,30 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
           final TensorList inputBufferTensors = CudaSystem.run(gpu -> {
             final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(precision, length, inputSize[2], inputSize[1], inputSize[0], inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
             final CudaResource<cudnnFilterDescriptor> filterDescriptor = gpu.newFilterDescriptor(
-              precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
+                precision, cudnnTensorFormat.CUDNN_TENSOR_NCHW, outputSize[2], inputSize[2], kernelSize[1], kernelSize[0]);
             final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor = gpu.newConvolutions2dDescriptor(cudnnConvolutionMode.CUDNN_CONVOLUTION, precision,
-              paddingY, paddingX,
-              strideY, strideX,
-              1, 1);
+                paddingY, paddingX,
+                strideY, strideX,
+                1, 1);
             @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
             delta.freeRef();
             final int backwardDataAlgorithm = getBackwardDataAlgorithm(gpu, inputDescriptor, filterDescriptor, convolutionDescriptor, deltaTensor);
             final CudaMemory backwardsDataWorkSpace = gpu.allocateBackwardDataWorkspace(
-              inputDescriptor.getPtr(), filterDescriptor.getPtr(),
-              convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), backwardDataAlgorithm, 1);
+                inputDescriptor.getPtr(), filterDescriptor.getPtr(),
+                convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), backwardDataAlgorithm, 1);
             @Nonnull final CudaMemory filterPtr = getCudaFilter(gpu);
             try {
               @Nonnull final CudaMemory passbackMemory = gpu.allocate((long) Tensor.length(inputData.getDimensions()) * length * precision.size, MemoryType.Managed.normalize(), true);
               CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
 //              deltaTensorMemory.synchronize();
               CudaSystem.handle(gpu.cudnnConvolutionBackwardData(precision.getPointer(1.0),
-                filterDescriptor.getPtr(), filterPtr.getPtr(),
-                deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
-                convolutionDescriptor.getPtr(),
-                backwardDataAlgorithm,
-                backwardsDataWorkSpace.getPtr(),
-                backwardsDataWorkSpace.size,
-                precision.getPointer(0.0), inputDescriptor.getPtr(), passbackMemory.getPtr()));
+                  filterDescriptor.getPtr(), filterPtr.getPtr(),
+                  deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
+                  convolutionDescriptor.getPtr(),
+                  backwardDataAlgorithm,
+                  backwardsDataWorkSpace.getPtr(),
+                  backwardsDataWorkSpace.size,
+                  precision.getPointer(0.0), inputDescriptor.getPtr(), passbackMemory.getPtr()));
               passbackMemory.dirty();
               backwardsDataWorkSpace.dirty();
               deltaTensorMemory.dirty();
@@ -347,7 +323,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               filterPtr.dirty();
               deltaTensorMemory.freeRef();
               inputDescriptor.addRef();
-  
+
               return CudaTensorList.wrap(CudaTensor.wrap(passbackMemory, inputDescriptor, precision), length, inputSize, precision);
             } catch (@Nonnull final Throwable e) {
               throw new ComponentException(String.format("Error in convolution %s x %s => %s", Arrays.toString(inputSize), Arrays.toString(kernelSize), Arrays.toString(outputSize)), e);
@@ -360,19 +336,18 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
           if (null != inputBufferTensors) {
             input.accumulate(buffer, inputBufferTensors);
           }
-        }
-        else {
+        } else {
           delta.freeRef();
         }
       };
       Stream.of(learnFn, backpropFn).forEach(Runnable::run);
     }) {
-  
+
       @Override
       public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
-  
+
       @Override
       protected void _free() {
         kernel.assertAlive();
@@ -381,14 +356,14 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
         SimpleConvolutionLayer.this.freeRef();
       }
-      
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   /**
    * Gets forward algorithm.
    *
@@ -402,10 +377,10 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public int getForwardAlgorithm(final CudnnHandle gpu, final CudaTensor inputTensor, final CudaResource<cudnnFilterDescriptor> filterDescriptor, final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor, final CudaDevice.CudaTensorDescriptor outputDescriptor) {
 //    return cudnnConvolutionFwdAlgo.CUDNN_CONVOLUTION_FWD_ALGO_FFT;
     return gpu.getForwardAlgorithm(
-      inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(),
-      outputDescriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
+        inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(),
+        outputDescriptor.getPtr(), CudaSettings.INSTANCE().getConvolutionWorkspaceSizeLimit());
   }
-  
+
   /**
    * Gets backward filter algorithm.
    *
@@ -418,9 +393,9 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
    */
   public int getBackwardFilterAlgorithm(final CudnnHandle gpu, final CudaTensor deltaTensor, final CudaTensor inputTensor, final CudaResource<cudnnFilterDescriptor> filterDescriptor, final CudaResource<cudnnConvolutionDescriptor> convolutionDescriptor) {
     return gpu.getBackwardFilterAlgorithm(
-      inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
+        inputTensor.descriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE().getConvolutionWorkspaceSizeLimit());
   }
-  
+
   /**
    * Gets backward data algorithm.
    *
@@ -435,7 +410,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     return cudnnConvolutionBwdDataAlgo.CUDNN_CONVOLUTION_BWD_DATA_ALGO_1;
     //return gpu.getBackwardDataAlgorithm(inputDescriptor.getPtr(), filterDescriptor.getPtr(), convolutionDescriptor.getPtr(), deltaTensor.descriptor.getPtr(), CudaSettings.INSTANCE.getConvolutionWorkspaceSizeLimit());
   }
-  
+
   /**
    * Evict device data long.
    *
@@ -448,36 +423,33 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       if (1 == remove.currentRefCount()) {
         remove.freeRef();
         return remove.size;
-      }
-      else {
+      } else {
         CudaMemory race = gpuFilters.put(deviceId, remove);
         if (race != null) race.freeRef();
         return 0;
       }
-    }
-    else {
+    } else {
       return 0;
     }
   }
-  
+
   @Nonnull
   private synchronized CudaMemory getCudaFilter(final CudaDevice deviceNumber) {
-    return CudaSettings.INSTANCE.isConvolutionCache() ? getCudaFilter_cached(deviceNumber) : getCudaFilter_instance(deviceNumber);
+    return CudaSettings.INSTANCE().isConvolutionCache() ? getCudaFilter_cached(deviceNumber) : getCudaFilter_instance(deviceNumber);
   }
-  
+
   @Nonnull
   private synchronized CudaMemory getCudaFilter_instance(final CudaDevice deviceNumber) {
     double[] data = kernel.getData();
     return deviceNumber.allocate((long) data.length * precision.size, MemoryType.Device, true).write(precision, data);
   }
-  
+
   @Nonnull
   private CudaMemory getCudaFilter_cached(final CudaDevice deviceNumber) {
     CudaMemory cudaMemory;
     if (gpuFilters.containsKey(deviceNumber.getDeviceId())) {
       cudaMemory = gpuFilters.get(deviceNumber.getDeviceId());
-    }
-    else {
+    } else {
       double[] data = kernel.getData();
       cudaMemory = deviceNumber.allocate((long) data.length * precision.size, MemoryType.Device, true).write(precision, data);
       CudaMemory replaced = gpuFilters.put(deviceNumber.getDeviceId(), cudaMemory);
@@ -486,7 +458,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     cudaMemory.addRef();
     return cudaMemory;
   }
-  
+
   @Nonnull
   private void clearCudaFilters() {
     gpuFilters.keySet().stream().collect(Collectors.toList()).stream().forEach(i -> {
@@ -494,14 +466,14 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       if (null != cudaMemory) cudaMemory.freeRef();
     });
   }
-  
+
   @Override
   protected void _free() {
     kernel.freeRef(this);
     clearCudaFilters();
     super._free();
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -531,26 +503,26 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         return new Result(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
           throw new IllegalStateException();
         }) {
-  
-  
+
+
           @Override
           protected void _free() {
             Arrays.stream(array).forEach(x -> x.freeRef());
           }
-  
+
           @Override
           public boolean isAlive() {
             return false;
           }
         };
       }
-  
+
       @Nonnull
       @Override
       public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
-  
+
       @Nonnull
       @Override
       public List<double[]> state() {
@@ -558,7 +530,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -577,7 +549,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   /**
    * Get output size int [ ].
    *
@@ -592,16 +564,13 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
         if (i == kernelSize.length - 1) {
           //assert kernelSize[i] == inputSize[i];
           x = kernelSize[i] / inputSize[i];
-        }
-        else {
+        } else {
           int padding;
           if (i == 0) {
             padding = this.paddingX;
-          }
-          else if (i == 1) {
+          } else if (i == 1) {
             padding = this.paddingY;
-          }
-          else {
+          } else {
             throw new IllegalStateException();
           }
           x = inputSize[i] - (kernelSize[i] - 1) + padding * 2;
@@ -613,12 +582,12 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       throw new RuntimeException(String.format("Error apply convolution %s x %s (%s)", Arrays.toString(inputSize), Arrays.toString(kernelSize), getName()), e);
     }
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public SimpleConvolutionLayer setPrecision(final Precision precision) {
@@ -626,7 +595,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     this.precision = precision;
     return this;
   }
-  
+
   /**
    * The Stride x.
    *
@@ -635,7 +604,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public int getStrideX() {
     return strideX;
   }
-  
+
   /**
    * Sets stride x.
    *
@@ -647,7 +616,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     this.strideX = strideX;
     return this;
   }
-  
+
   /**
    * The Stride y.
    *
@@ -656,7 +625,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public int getStrideY() {
     return strideY;
   }
-  
+
   /**
    * Sets stride y.
    *
@@ -668,7 +637,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     this.strideY = strideY;
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -682,7 +651,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     });
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -696,13 +665,13 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     });
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(kernel.getData());
   }
-  
+
   /**
    * Gets padding x.
    *
@@ -711,7 +680,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public int getPaddingX() {
     return paddingX;
   }
-  
+
   /**
    * Sets padding x.
    *
@@ -723,7 +692,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     this.paddingX = paddingX;
     return this;
   }
-  
+
   /**
    * Gets padding y.
    *
@@ -732,7 +701,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public int getPaddingY() {
     return paddingY;
   }
-  
+
   /**
    * Sets padding y.
    *
@@ -744,7 +713,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     this.paddingY = paddingY;
     return this;
   }
-  
+
   /**
    * Sets padding xy.
    *
@@ -756,7 +725,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public SimpleConvolutionLayer setPaddingXY(int x, int y) {
     return setPaddingX(x).setPaddingY(y);
   }
-  
+
   /**
    * Sets weights log.
    *
@@ -767,7 +736,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public SimpleConvolutionLayer setWeightsLog(double f) {
     return set(() -> Math.pow(10, f) * (Math.random() - 0.5));
   }
-  
+
   /**
    * Set.
    *
@@ -776,7 +745,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public void set(@Nonnull Tensor kernel) {
     this.kernel.set(kernel);
   }
-  
+
   /**
    * Get kernel dimensions int [ ].
    *
@@ -785,7 +754,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   public int[] getKernelDimensions() {
     return kernel.getDimensions();
   }
-  
+
   @Override
   public boolean assertAlive() {
     if (!super.assertAlive()) {

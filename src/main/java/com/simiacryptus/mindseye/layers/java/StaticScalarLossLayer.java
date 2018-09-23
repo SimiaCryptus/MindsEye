@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,18 +36,18 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class StaticScalarLossLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(StaticScalarLossLayer.class);
   private double target = 0.0;
-  
+
   /**
    * Instantiates a new Static scalar loss layer.
    */
   public StaticScalarLossLayer() {
   }
-  
-  
+
+
   /**
    * Instantiates a new Static scalar loss layer.
    *
@@ -63,7 +56,7 @@ public class StaticScalarLossLayer extends LayerBase {
   protected StaticScalarLossLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json static scalar loss layer.
    *
@@ -74,7 +67,7 @@ public class StaticScalarLossLayer extends LayerBase {
   public static StaticScalarLossLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StaticScalarLossLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -102,28 +95,28 @@ public class StaticScalarLossLayer extends LayerBase {
         in0.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         indata.freeRef();
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return in0.isAlive();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   /**
    * Gets target.
    *
@@ -132,7 +125,7 @@ public class StaticScalarLossLayer extends LayerBase {
   public double getTarget() {
     return target;
   }
-  
+
   /**
    * Sets target.
    *
@@ -144,7 +137,7 @@ public class StaticScalarLossLayer extends LayerBase {
     this.target = target;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

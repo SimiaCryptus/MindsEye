@@ -29,25 +29,25 @@ import java.util.Random;
  * The type Dropout noise layer apply.
  */
 public abstract class DropoutNoiseLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new DropoutNoiseLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends DropoutNoiseLayerTest {
   }
-  
+
 }

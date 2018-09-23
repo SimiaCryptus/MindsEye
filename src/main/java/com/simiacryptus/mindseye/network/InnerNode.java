@@ -46,7 +46,7 @@ public final class InnerNode extends LazyResult {
   private final DAGNode[] inputNodes;
   private volatile Layer layer;
   private boolean parallel = true;
-  
+
   /**
    * Instantiates a new Inner node.
    *
@@ -58,7 +58,7 @@ public final class InnerNode extends LazyResult {
   InnerNode(final DAGNetwork dagNetwork, @Nonnull final Layer layer, final DAGNode... inputNodes) {
     this(dagNetwork, layer, UUID.randomUUID(), inputNodes);
   }
-  
+
   /**
    * Instantiates a new Inner node.
    *
@@ -79,7 +79,7 @@ public final class InnerNode extends LazyResult {
       node.addRef();
     }
   }
-  
+
   /**
    * Add dag node.
    *
@@ -89,7 +89,7 @@ public final class InnerNode extends LazyResult {
   public DAGNode add(@Nonnull final Layer nextHead) {
     return dagNetwork.add(nextHead, InnerNode.this);
   }
-  
+
   @Nullable
   @Override
   protected Result eval(final GraphEvaluationContext ctx) {
@@ -97,26 +97,26 @@ public final class InnerNode extends LazyResult {
     @Nonnull final Layer innerLayer = getLayer();
     assert Arrays.stream(inputNodes).allMatch(x -> x != null);
     @Nonnull Stream<DAGNode> stream = Arrays.stream(inputNodes);
-    if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
+    if (!CoreSettings.INSTANCE().isSingleThreaded() && parallel) stream = stream.parallel();
     final Result[] in = stream.map(x -> x == null ? null : x.get(ctx)).toArray(i -> new Result[i]);
     assert Arrays.stream(in).allMatch(x -> x != null);
     @Nullable Result result = innerLayer.evalAndFree(in);
     return result;
   }
-  
+
   @Nonnull
   @Override
   public DAGNode[] getInputs() {
     return inputNodes;
   }
-  
+
   @Nonnull
   @SuppressWarnings("unchecked")
   @Override
   public <T extends Layer> T getLayer() {
     return (T) layer;
   }
-  
+
   @Override
   public synchronized void setLayer(@Nonnull final Layer newLayer) {
     assertAlive();
@@ -130,12 +130,12 @@ public final class InnerNode extends LazyResult {
       dagNetwork.assertConsistent();
     }
   }
-  
+
   @Override
   public DAGNetwork getNetwork() {
     return dagNetwork;
   }
-  
+
   @Override
   protected void _free() {
     super._free();
@@ -143,7 +143,7 @@ public final class InnerNode extends LazyResult {
     this.layer.freeRef();
     this.layer = null;
   }
-  
+
   /**
    * Is parallel boolean.
    *
@@ -152,7 +152,7 @@ public final class InnerNode extends LazyResult {
   public boolean isParallel() {
     return parallel;
   }
-  
+
   /**
    * Sets parallel.
    *

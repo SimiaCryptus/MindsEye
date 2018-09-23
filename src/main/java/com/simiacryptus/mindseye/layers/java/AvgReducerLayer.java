@@ -20,15 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,16 +36,16 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class AvgReducerLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
-  
+
   /**
    * Instantiates a new Avg reducer layer.
    */
   public AvgReducerLayer() {
   }
-  
+
   /**
    * Instantiates a new Avg reducer layer.
    *
@@ -62,7 +54,7 @@ public class AvgReducerLayer extends LayerBase {
   protected AvgReducerLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json avg reducer layer.
    *
@@ -73,7 +65,7 @@ public class AvgReducerLayer extends LayerBase {
   public static AvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AvgReducerLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -109,13 +101,13 @@ public class AvgReducerLayer extends LayerBase {
         }
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
         Arrays.stream(inObj).map(Result::getData).forEach(ReferenceCounting::freeRef);
       }
-      
+
       @Override
       public boolean isAlive() {
         for (@Nonnull final Result element : inObj)
@@ -124,16 +116,16 @@ public class AvgReducerLayer extends LayerBase {
           }
         return false;
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

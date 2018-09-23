@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,16 +36,16 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ProductLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ProductLayer.class);
-  
+
   /**
    * Instantiates a new Product layer.
    */
   public ProductLayer() {
   }
-  
+
   /**
    * Instantiates a new Product layer.
    *
@@ -61,7 +54,7 @@ public class ProductLayer extends LayerBase {
   protected ProductLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json product layer.
    *
@@ -72,7 +65,7 @@ public class ProductLayer extends LayerBase {
   public static ProductLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ProductLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -111,14 +104,14 @@ public class ProductLayer extends LayerBase {
         }
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         for (@Nonnull final Result element : inObj)
@@ -127,16 +120,16 @@ public class ProductLayer extends LayerBase {
           }
         return false;
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

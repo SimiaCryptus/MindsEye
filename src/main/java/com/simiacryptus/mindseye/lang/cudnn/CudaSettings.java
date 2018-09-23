@@ -21,15 +21,24 @@ package com.simiacryptus.mindseye.lang.cudnn;
 
 import com.simiacryptus.mindseye.lang.PersistanceMode;
 import com.simiacryptus.mindseye.lang.Settings;
+import com.simiacryptus.util.CodeUtil;
+import com.simiacryptus.util.JsonUtil;
+import com.simiacryptus.util.LocalAppSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.HashMap;
 
 /**
  * The type Cuda settings.
  */
 public class CudaSettings implements Settings {
-  /**
-   * The constant INSTANCE.
-   */
-  public static final CudaSettings INSTANCE = new CudaSettings();
+
+  private static final Logger logger = LoggerFactory.getLogger(CudaSettings.class);
+
+  private static transient CudaSettings INSTANCE = null;
+  public final String defaultDevices;
   /**
    * The Memory cacheLocal mode.
    */
@@ -52,8 +61,26 @@ public class CudaSettings implements Settings {
   private final boolean syncBeforeFree;
   private final int memoryCacheTTL;
   private final boolean convolutionCache;
-  
+
+  public static CudaSettings INSTANCE() {
+    if(null==INSTANCE) {
+      synchronized (CudaSettings.class) {
+        if(null==INSTANCE) {
+          INSTANCE = new CudaSettings();
+          logger.info(String.format("Initialized %s = %s", INSTANCE.getClass().getSimpleName(), JsonUtil.toJson(INSTANCE)));
+        }
+      }
+    }
+    return INSTANCE;
+  }
+
+
   private CudaSettings() {
+    HashMap<String, String> appSettings = LocalAppSettings.read();
+    String spark_home = System.getenv("SPARK_HOME");
+    File sparkHomeFile = new File(spark_home==null?".":spark_home);
+    if(sparkHomeFile.exists()) appSettings.putAll(LocalAppSettings.read(sparkHomeFile));
+    if(appSettings.containsKey("worker.index")) System.setProperty("CUDA_DEVICES", appSettings.get("worker.index"));
     maxTotalMemory = Settings.get("MAX_TOTAL_MEMORY", 14 * CudaMemory.GiB);
     maxDeviceMemory = Settings.get("MAX_DEVICE_MEMORY", 14 * CudaMemory.GiB);
     maxAllocSize = Settings.get("MAX_ALLOC_SIZE", Precision.Double.size * (Integer.MAX_VALUE - 1L));
@@ -73,8 +100,9 @@ public class CudaSettings implements Settings {
     syncBeforeFree = true;
     memoryCacheTTL = 5;
     convolutionCache = true;
+    defaultDevices = Settings.get("CUDA_DEVICES", "");
   }
-  
+
   /**
    * The Max total memory.
    *
@@ -83,7 +111,7 @@ public class CudaSettings implements Settings {
   public double getMaxTotalMemory() {
     return maxTotalMemory;
   }
-  
+
   /**
    * The Max.
    *
@@ -92,7 +120,7 @@ public class CudaSettings implements Settings {
   public double getMaxAllocSize() {
     return maxAllocSize;
   }
-  
+
   /**
    * The constant MAX_IO_ELEMENTS.
    *
@@ -101,7 +129,7 @@ public class CudaSettings implements Settings {
   public double getMaxIoElements() {
     return maxIoElements;
   }
-  
+
   /**
    * The constant CONVOLUTION_WORKSPACE_SIZE_LIMIT.
    *
@@ -110,7 +138,7 @@ public class CudaSettings implements Settings {
   public long getConvolutionWorkspaceSizeLimit() {
     return convolutionWorkspaceSizeLimit;
   }
-  
+
   /**
    * The constant gpuContexts.
    *
@@ -119,7 +147,7 @@ public class CudaSettings implements Settings {
   public boolean isDisable() {
     return disable;
   }
-  
+
   /**
    * The constant FORCE_SINGLE_GPU.
    *
@@ -128,7 +156,7 @@ public class CudaSettings implements Settings {
   public boolean isForceSingleGpu() {
     return forceSingleGpu;
   }
-  
+
   /**
    * Gets max filter elements.
    *
@@ -137,7 +165,7 @@ public class CudaSettings implements Settings {
   public long getMaxFilterElements() {
     return maxFilterElements;
   }
-  
+
   /**
    * Is conv para 2 boolean.
    *
@@ -146,7 +174,7 @@ public class CudaSettings implements Settings {
   public boolean isConv_para_2() {
     return conv_para_2;
   }
-  
+
   /**
    * Is conv para 1 boolean.
    *
@@ -155,7 +183,7 @@ public class CudaSettings implements Settings {
   public boolean isConv_para_1() {
     return conv_para_1;
   }
-  
+
   /**
    * Is conv para 3 boolean.
    *
@@ -164,7 +192,7 @@ public class CudaSettings implements Settings {
   public boolean isConv_para_3() {
     return conv_para_3;
   }
-  
+
   /**
    * Gets max device memory.
    *
@@ -173,7 +201,7 @@ public class CudaSettings implements Settings {
   public double getMaxDeviceMemory() {
     return maxDeviceMemory;
   }
-  
+
   /**
    * Is log stack boolean.
    *
@@ -182,7 +210,7 @@ public class CudaSettings implements Settings {
   public boolean isLogStack() {
     return logStack;
   }
-  
+
   /**
    * Is profile memory io boolean.
    *
@@ -191,7 +219,7 @@ public class CudaSettings implements Settings {
   public boolean isProfileMemoryIO() {
     return profileMemoryIO;
   }
-  
+
   /**
    * Is async free boolean.
    *
@@ -200,7 +228,7 @@ public class CudaSettings implements Settings {
   public boolean isAsyncFree() {
     return asyncFree;
   }
-  
+
   /**
    * Is enable managed boolean.
    *
@@ -209,7 +237,7 @@ public class CudaSettings implements Settings {
   public boolean isEnableManaged() {
     return enableManaged;
   }
-  
+
   /**
    * The Sync before free.
    *
@@ -218,7 +246,7 @@ public class CudaSettings implements Settings {
   public boolean isSyncBeforeFree() {
     return syncBeforeFree;
   }
-  
+
   /**
    * Gets memory cacheLocal ttl.
    *
@@ -227,7 +255,7 @@ public class CudaSettings implements Settings {
   public int getMemoryCacheTTL() {
     return memoryCacheTTL;
   }
-  
+
   /**
    * Is convolution cacheLocal boolean.
    *
@@ -236,5 +264,5 @@ public class CudaSettings implements Settings {
   public boolean isConvolutionCache() {
     return convolutionCache;
   }
-  
+
 }

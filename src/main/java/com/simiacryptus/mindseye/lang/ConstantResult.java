@@ -27,25 +27,27 @@ import java.util.stream.IntStream;
  * A special type of Result which ignores backpropigation; it has a constant value.
  */
 public final class ConstantResult extends Result {
-  
+
   /**
    * Instantiates a new Nn constant.
    *
    * @param data the data
    */
   public ConstantResult(final Tensor... data) {
-    super(TensorArray.create(data), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList tensorList) -> {});
+    super(TensorArray.create(data), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList tensorList) -> {
+    });
   }
-  
+
   /**
    * Instantiates a new Nn constant.
    *
    * @param tensorList the tensor array
    */
   public ConstantResult(final TensorList tensorList) {
-    super(tensorList, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {});
+    super(tensorList, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    });
   }
-  
+
   /**
    * Batch result array nn result [ ].
    *
@@ -55,13 +57,13 @@ public final class ConstantResult extends Result {
   public static Result[] batchResultArray(@Nonnull final Tensor[]... input) {
     if (null == input) throw new IllegalArgumentException();
     return IntStream.range(0, input[0].length).mapToObj(index -> IntStream.range(0, input.length)
-      .mapToObj(id -> input[id][index])
-      .toArray(i -> new Tensor[i]))
-      .map(tensors -> TensorArray.create(tensors))
-      .map(tensorArray -> new ConstantResult(tensorArray))
-      .toArray(x -> new Result[x]);
+        .mapToObj(id -> input[id][index])
+        .toArray(i -> new Tensor[i]))
+        .map(tensors -> TensorArray.create(tensors))
+        .map(tensorArray -> new ConstantResult(tensorArray))
+        .toArray(x -> new Result[x]);
   }
-  
+
   /**
    * Single result array nn result [ ].
    *
@@ -71,7 +73,7 @@ public final class ConstantResult extends Result {
   public static Result[] singleResultArray(@Nonnull final Tensor[] input) {
     return Arrays.stream(input).map((@Nonnull final Tensor x) -> new ConstantResult(TensorArray.create(x))).toArray(i -> new Result[i]);
   }
-  
+
   /**
    * Single result array nn result [ ].
    *
@@ -81,11 +83,11 @@ public final class ConstantResult extends Result {
   public static Result[] singleResultArray(@Nonnull final Tensor[][] input) {
     return Arrays.stream(input).map((@Nonnull final Tensor[] x) -> new ConstantResult(TensorArray.create(x))).toArray(i -> new Result[i]);
   }
-  
+
   @Override
   public boolean isAlive() {
     return false;
   }
-  
-  
+
+
 }

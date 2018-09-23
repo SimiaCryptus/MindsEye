@@ -21,22 +21,8 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,19 +41,19 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<ImgLinearSubnetLayer> {
-  
+
   private static final Logger logger = LoggerFactory.getLogger(ImgLinearSubnetLayer.class);
   private final List<SubnetLeg> legs = new ArrayList<>();
   private Precision precision = Precision.Double;
   private boolean parallel = true;
-  
+
   /**
    * Instantiates a new Rescaled subnet layer.
    */
   public ImgLinearSubnetLayer() {
     super();
   }
-  
+
   /**
    * Instantiates a new Rescaled subnet layer.
    *
@@ -83,7 +69,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       legs.add(new SubnetLeg(jsonArray.get(i).getAsJsonObject(), rs));
     }
   }
-  
+
   /**
    * From json rescaled subnet layer.
    *
@@ -94,7 +80,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
   public static ImgLinearSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgLinearSubnetLayer(json, rs);
   }
-  
+
   /**
    * Gets legs.
    *
@@ -103,7 +89,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
   public List<SubnetLeg> getLegs() {
     return legs;
   }
-  
+
   /**
    * Add img linear subnet layer.
    *
@@ -116,13 +102,13 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     getLegs().add(new SubnetLeg(layer, from, to));
     return this;
   }
-  
+
   @Override
   protected void _free() {
     super._free();
     legs.stream().forEach(ReferenceCounting::freeRef);
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -135,12 +121,12 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     int maxBand = legs.stream().mapToInt(x -> x.toBand).max().getAsInt();
     assert maxBand == inputDims[2] : maxBand + " != " + inputDims[2];
     assert IntStream.range(0, maxBand).allMatch(i ->
-      1 == legs.stream().filter(x -> x.fromBand <= i && x.toBand > i).count()
+        1 == legs.stream().filter(x -> x.fromBand <= i && x.toBand > i).count()
     );
     CudaTensor passback = CudaSystem.run(gpu -> {
       return CudaTensor.wrap(
-        gpu.allocate(inputData.getElements() * precision.size, MemoryType.Device, true),
-        gpu.newTensorDescriptor(precision, length, inputDims[2], inputDims[1], inputDims[0]), precision);
+          gpu.allocate(inputData.getElements() * precision.size, MemoryType.Device, true),
+          gpu.newTensorDescriptor(precision, length, inputDims[2], inputDims[1], inputDims[0]), precision);
     });
     try {
       AtomicInteger counter = new AtomicInteger(0);
@@ -158,11 +144,11 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
             synchronized (passback) {
               CudaSystem.run(gpu -> {
                 @Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
-                  precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
-                  inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
-                  inputDimensions[1] * inputDimensions[0], //
-                  inputDimensions[0], //
-                  1);
+                    precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
+                    inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
+                    inputDimensions[1] * inputDimensions[0], //
+                    inputDimensions[0], //
+                    1);
                 final int byteOffset = viewDescriptor.cStride * leg.fromBand * precision.size;
                 assert delta.length() == inputData.length();
                 assert passback.getDeviceId() == gpu.getDeviceId();
@@ -172,8 +158,8 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
                 CudaMemory errorPtrMemory = deltaTensor.getMemory(gpu);
                 passbackBuffer.synchronize();
                 gpu.cudnnTransformTensor(
-                  precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), errorPtrMemory.getPtr(),
-                  precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
+                    precision.getPointer(1.0), deltaTensor.descriptor.getPtr(), errorPtrMemory.getPtr(),
+                    precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
                 );
                 errorPtrMemory.dirty();
                 passbackBuffer.dirty();
@@ -202,7 +188,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       passback.freeRef();
     }
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -214,32 +200,32 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     json.add("legs", jsonArray);
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public ImgLinearSubnetLayer setPrecision(Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public Layer setFrozen(final boolean frozen) {
     legs.stream().map(x -> x.inner).forEach(x -> x.setFrozen(frozen));
     return super.setFrozen(frozen);
   }
-  
+
   /**
    * Is parallel boolean.
    *
@@ -248,7 +234,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
   public boolean isParallel() {
     return parallel;
   }
-  
+
   /**
    * Sets parallel.
    *
@@ -259,16 +245,16 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     this.parallel = parallel;
     return this;
   }
-  
+
   /**
    * The type Subnet leg.
    */
   public static class SubnetLeg extends ReferenceCountingBase {
-    
+
     private final Layer inner;
     private final int fromBand;
     private final int toBand;
-  
+
     /**
      * Instantiates a new Subnet leg.
      *
@@ -282,7 +268,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       this.toBand = toBand;
       this.inner.addRef();
     }
-  
+
     /**
      * Instantiates a new Rescaled subnet layer.
      *
@@ -294,13 +280,13 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       toBand = json.getAsJsonPrimitive("toBand").getAsInt();
       inner = Layer.fromJson(json.getAsJsonObject("network"), rs);
     }
-  
+
     @Override
     protected void _free() {
       super._free();
       inner.freeRef();
     }
-  
+
     /**
      * Gets json.
      *
@@ -316,6 +302,6 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
       json.add("network", inner.getJson(resources, dataSerializer));
       return json;
     }
-    
+
   }
 }

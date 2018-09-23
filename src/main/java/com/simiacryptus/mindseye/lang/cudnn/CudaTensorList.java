@@ -19,13 +19,9 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.simiacryptus.mindseye.lang.RegisteredObjectBase;
-import com.simiacryptus.mindseye.lang.ReshapedTensorList;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.lang.TimedResult;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.lang.TimedResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +39,12 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
    * The constant logger.
    */
   public static final Logger logger = LoggerFactory.getLogger(CudaTensorList.class);
-  
-  
+
+
   /**
    * The Created by.
    */
-  public final StackTraceElement[] createdBy = CudaSettings.INSTANCE.isProfileMemoryIO() ? TestUtil.getStackTrace() : new StackTraceElement[]{};
+  public final StackTraceElement[] createdBy = CudaSettings.INSTANCE().isProfileMemoryIO() ? TestUtil.getStackTrace() : new StackTraceElement[]{};
   @Nonnull
   private final int[] dimensions;
   private final int length;
@@ -62,7 +58,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
    */
   @Nullable
   volatile TensorArray heapCopy = null;
-  
+
   /**
    * Instantiates a new Cu dnn double tensor list.
    *
@@ -88,7 +84,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     assert ptr.memory.getPtr() != null;
     //assert this.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
   }
-  
+
   /**
    * Evict to heap.
    *
@@ -98,13 +94,13 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   public static long evictToHeap(int deviceId) {
     return CudaSystem.withDevice(deviceId, gpu -> {
       long size = RegisteredObjectBase.getLivingInstances(CudaTensorList.class)
-        .filter(x -> x.gpuCopy != null && (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
-        .mapToLong(CudaTensorList::evictToHeap).sum();
+          .filter(x -> x.gpuCopy != null && (x.getDeviceId() == deviceId || deviceId < 0 || x.getDeviceId() < 0))
+          .mapToLong(CudaTensorList::evictToHeap).sum();
       logger.info(String.format("Cleared %s bytes from GpuTensorLists for device %s", size, deviceId));
       return size;
     });
   }
-  
+
   /**
    * Wrap gpu tensor list.
    *
@@ -120,7 +116,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     ptr.freeRef();
     return cudaTensorList;
   }
-  
+
   /**
    * Create gpu tensor list.
    *
@@ -133,7 +129,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   public static CudaTensorList create(final CudaTensor ptr, final int length, @Nonnull final int[] dimensions, @Nonnull final Precision precision) {
     return new CudaTensorList(ptr, length, dimensions, precision);
   }
-  
+
   /**
    * Create cuda tensor list.
    *
@@ -150,12 +146,12 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     cudaTensor.freeRef();
     return cudaTensorList;
   }
-  
+
   public int getDeviceId() {
     CudaTensor gpuCopy = this.gpuCopy;
     return null == gpuCopy ? -1 : gpuCopy.memory.getDeviceId();
   }
-  
+
   @Override
   public TensorList addAndFree(@Nonnull final TensorList right) {
     assertAlive();
@@ -178,8 +174,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
             if (null != leftMem && null != rightMem) return CudaSystem.run(gpu -> {
               if (gpu.getDeviceId() == leftMem.getDeviceId()) {
                 return gpu.addInPlace(this, nativeRight);
-              }
-              else {
+              } else {
                 assertAlive();
                 right.assertAlive();
                 TensorList add = add(right);
@@ -202,7 +197,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
       return r;
     }).toArray(i -> new Tensor[i]));
   }
-  
+
   @Override
   public TensorList add(@Nonnull final TensorList right) {
     assertAlive();
@@ -232,7 +227,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
       return r;
     }).toArray(i -> new Tensor[i]));
   }
-  
+
   @Override
   @Nonnull
   public Tensor get(final int i) {
@@ -247,21 +242,20 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
           CudaMemory memory = gpuCopy.getMemory(gpu);
           memory.read(getPrecision(), t.getData(), i * Tensor.length(getDimensions()));
           memory.freeRef();
-        }
-        else {
+        } else {
           gpuCopy.read(gpu, i, t, false);
         }
         return t;
       });
       CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from Tensor %s, GPU at %s, created by %s",
-        gpuCopy.size(), timedResult.seconds(), Integer.toHexString(System.identityHashCode(timedResult.result)),
-        TestUtil.toString(TestUtil.getStackTrace()).replaceAll("\n", "\n\t"),
-        TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
+          gpuCopy.size(), timedResult.seconds(), Integer.toHexString(System.identityHashCode(timedResult.result)),
+          TestUtil.toString(TestUtil.getStackTrace()).replaceAll("\n", "\n\t"),
+          TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
       Tensor tensor = timedResult.result;
       return tensor;
     }, CudaTensorList.this);
   }
-  
+
   /**
    * The Dimensions.
    */
@@ -270,7 +264,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
   public int[] getDimensions() {
     return Arrays.copyOf(dimensions, dimensions.length);
   }
-  
+
   /**
    * The Precision.
    */
@@ -284,15 +278,17 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     CudaTensor gpuCopy = this.gpuCopy;
     return null == gpuCopy ? Precision.Double : gpuCopy.getPrecision();
   }
-  
+
   /**
    * Inner tensor list.
    *
    * @return the tensor list
    */
   @Nullable
-  private TensorArray heapCopy() {return heapCopy(false);}
-  
+  private TensorArray heapCopy() {
+    return heapCopy(false);
+  }
+
   /**
    * Inner tensor list.
    *
@@ -312,8 +308,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
           prev = this.heapCopy;
           this.heapCopy = copy;
           heapCopy = copy;
-        }
-        else {
+        } else {
           prev = null;
         }
       }
@@ -321,7 +316,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     }
     return heapCopy;
   }
-  
+
   private TensorArray toHeap(final boolean avoidAllocations) {
     CudaTensor gpuCopy = this.gpuCopy;
     TimedResult<TensorArray> timedResult = TimedResult.time(() -> CudaDevice.run(gpu -> {
@@ -329,8 +324,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
       if (null == gpuCopy) {
         if (null == heapCopy) {
           throw new IllegalStateException("No data");
-        }
-        else if (heapCopy.isFinalized()) {
+        } else if (heapCopy.isFinalized()) {
           throw new IllegalStateException("Local data has been freed");
         }
       }
@@ -341,8 +335,8 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
         assert getPrecision() == gpuCopy.descriptor.dataType;
         assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         final Tensor[] output = IntStream.range(0, getLength())
-          .mapToObj(dataIndex -> new Tensor(getDimensions()))
-          .toArray(i -> new Tensor[i]);
+            .mapToObj(dataIndex -> new Tensor(getDimensions()))
+            .toArray(i -> new Tensor[i]);
         assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         for (int i = 0; i < getLength(); i++) {
           assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
@@ -355,23 +349,23 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
       }
     }, this));
     CudaTensorList.logger.debug(String.format("Read %s bytes in %.4f from Tensor %s on GPU at %s, created by %s",
-      gpuCopy.size(), timedResult.seconds(), Integer.toHexString(System.identityHashCode(timedResult.result)),
-      TestUtil.toString(TestUtil.getStackTrace()).replaceAll("\n", "\n\t"),
-      TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
+        gpuCopy.size(), timedResult.seconds(), Integer.toHexString(System.identityHashCode(timedResult.result)),
+        TestUtil.toString(TestUtil.getStackTrace()).replaceAll("\n", "\n\t"),
+        TestUtil.toString(createdBy).replaceAll("\n", "\n\t")));
     return timedResult.result;
   }
-  
-  
+
+
   @Override
   public int length() {
     return getLength();
   }
-  
+
   @Override
   public Stream<Tensor> stream() {
     return heapCopy().stream();
   }
-  
+
   /**
    * Gets heap copy.
    *
@@ -383,7 +377,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
     tensorList.addRef();
     return tensorList;
   }
-  
+
   @Override
   public TensorList copy() {
     return CudaSystem.run(gpu -> {
@@ -404,7 +398,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
       }
     }, this);
   }
-  
+
   @Override
   protected void _free() {
     synchronized (this) {
@@ -418,7 +412,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
       }
     }
   }
-  
+
   /**
    * Evict to heap.
    *
@@ -439,8 +433,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
       assert 0 < elements : Arrays.toString(dimensions);
       ptr.freeRef();
       return elements * getPrecision().size;
-    }
-    else {
+    } else {
       synchronized (this) {
         if (null != this.gpuCopy) this.gpuCopy.freeRef();
         this.gpuCopy = ptr;
@@ -448,7 +441,7 @@ public class CudaTensorList extends RegisteredObjectBase implements TensorList, 
       return 0;
     }
   }
-  
+
   /**
    * The Length.
    *

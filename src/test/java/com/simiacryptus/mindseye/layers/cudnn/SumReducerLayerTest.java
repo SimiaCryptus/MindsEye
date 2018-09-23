@@ -30,12 +30,12 @@ import java.util.Random;
  * The type Img band bias layer apply.
  */
 public abstract class SumReducerLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Precision.
    */
   final Precision precision;
-  
+
   /**
    * Instantiates a new Img band bias layer apply.
    *
@@ -44,29 +44,29 @@ public abstract class SumReducerLayerTest extends CudaLayerTestBase {
   public SumReducerLayerTest(final Precision precision) {
     this.precision = precision;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+        {8, 8, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new SumReducerLayer().setPrecision(precision);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+        {1200, 1200, 3}
     };
   }
-  
+
   /**
    * Basic apply in double (64-bit) precision
    */
@@ -78,7 +78,7 @@ public abstract class SumReducerLayerTest extends CudaLayerTestBase {
       super(Precision.Double);
     }
   }
-  
+
   /**
    * Inputs asymmetric (height != width) images
    */
@@ -89,25 +89,25 @@ public abstract class SumReducerLayerTest extends CudaLayerTestBase {
     public Asymmetric() {
       super(Precision.Double);
     }
-    
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {3, 5, 2}
+          {3, 5, 2}
       };
     }
-    
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {1000, 600, 3}
+          {1000, 600, 3}
       };
     }
-    
+
   }
-  
+
   /**
    * Basic apply using float (32-bit) precision.
    */
@@ -118,7 +118,7 @@ public abstract class SumReducerLayerTest extends CudaLayerTestBase {
     public Float() {
       super(Precision.Float);
     }
-    
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);

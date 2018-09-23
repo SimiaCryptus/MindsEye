@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +37,8 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class GaussianNoiseLayer extends LayerBase {
-  
-  
+
+
   /**
    * The constant randomize.
    */
@@ -59,7 +52,7 @@ public class GaussianNoiseLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(GaussianNoiseLayer.class);
   private long seed = GaussianNoiseLayer.random.get().nextLong();
   private double value;
-  
+
   /**
    * Instantiates a new Gaussian noise layer.
    */
@@ -67,7 +60,7 @@ public class GaussianNoiseLayer extends LayerBase {
     super();
     setValue(1.0);
   }
-  
+
   /**
    * Instantiates a new Gaussian noise layer.
    *
@@ -77,7 +70,7 @@ public class GaussianNoiseLayer extends LayerBase {
     super(json);
     value = json.get("value").getAsDouble();
   }
-  
+
   /**
    * From json gaussian noise layer.
    *
@@ -88,7 +81,7 @@ public class GaussianNoiseLayer extends LayerBase {
   public static GaussianNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GaussianNoiseLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
@@ -121,21 +114,21 @@ public class GaussianNoiseLayer extends LayerBase {
         in0.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         inputData.freeRef();
         in0.freeRef();
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return in0.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -143,7 +136,7 @@ public class GaussianNoiseLayer extends LayerBase {
     json.addProperty("value", value);
     return json;
   }
-  
+
   /**
    * Gets value.
    *
@@ -152,7 +145,7 @@ public class GaussianNoiseLayer extends LayerBase {
   public double getValue() {
     return value;
   }
-  
+
   /**
    * Sets value.
    *
@@ -164,18 +157,18 @@ public class GaussianNoiseLayer extends LayerBase {
     this.value = value;
     return this;
   }
-  
+
   /**
    * Shuffle.
    */
   public void shuffle() {
     seed = GaussianNoiseLayer.random.get().nextLong();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
 }

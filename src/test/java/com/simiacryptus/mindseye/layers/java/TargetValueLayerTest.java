@@ -33,20 +33,20 @@ public class TargetValueLayerTest {
    * Basic apply.
    */
   public static class Normal extends LayerTestBase {
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {3}
+          {3}
       };
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new TargetValueLayer(0.0, 0.1, 0.2);
     }
   }
-  
+
 }

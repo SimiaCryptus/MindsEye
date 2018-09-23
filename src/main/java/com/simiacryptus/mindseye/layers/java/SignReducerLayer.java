@@ -35,11 +35,11 @@ import java.util.UUID;
  */
 @SuppressWarnings("serial")
 public class SignReducerLayer extends DAGNetwork {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SignReducerLayer.class);
   private final DAGNode head;
-  
+
   /**
    * Instantiates a new Sign reducer layer.
    */
@@ -47,16 +47,16 @@ public class SignReducerLayer extends DAGNetwork {
     super(1);
     final DAGNode avgInput = wrap(new AvgReducerLayer(), getInput(0));
     final DAGNode stdDevInput = wrap(new NthPowerActivationLayer().setPower(0.5),
-      wrap(new SumInputsLayer(),
-        wrap(new AvgReducerLayer(), wrap(new SqActivationLayer(), getInput(0))),
-        wrap(new LinearActivationLayer().setScale(-1), wrap(new SqActivationLayer(), avgInput))
-      ));
+        wrap(new SumInputsLayer(),
+            wrap(new AvgReducerLayer(), wrap(new SqActivationLayer(), getInput(0))),
+            wrap(new LinearActivationLayer().setScale(-1), wrap(new SqActivationLayer(), avgInput))
+        ));
     head = wrap(new SigmoidActivationLayer().setBalanced(false),
-      wrap(new ProductInputsLayer(),
-        avgInput,
-        wrap(new NthPowerActivationLayer().setPower(-1), stdDevInput)));
+        wrap(new ProductInputsLayer(),
+            avgInput,
+            wrap(new NthPowerActivationLayer().setPower(-1), stdDevInput)));
   }
-  
+
   /**
    * Instantiates a new Sign reducer layer.
    *
@@ -67,7 +67,7 @@ public class SignReducerLayer extends DAGNetwork {
     super(json, rs);
     head = getNodeById(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
   }
-  
+
   /**
    * From json nn layer.
    *
@@ -78,7 +78,7 @@ public class SignReducerLayer extends DAGNetwork {
   public static Layer fromJson(@Nonnull final JsonObject inner, Map<CharSequence, byte[]> rs) {
     return new SignReducerLayer(inner, rs);
   }
-  
+
   @Override
   public DAGNode getHead() {
     return head;

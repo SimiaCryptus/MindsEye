@@ -33,18 +33,18 @@ import java.util.stream.Stream;
  * Caltech 101 Image Dataset.
  */
 public class CaltechProblemData implements ImageProblemData {
-  
+
   private final int imageSize;
   @Nullable
   private List<CharSequence> labels = null;
-  
+
   /**
    * Instantiates a new Caltech problem data.
    */
   public CaltechProblemData() {
     this(256);
   }
-  
+
   /**
    * Instantiates a new Caltech problem data.
    *
@@ -53,17 +53,17 @@ public class CaltechProblemData implements ImageProblemData {
   public CaltechProblemData(int imageSize) {
     this.imageSize = imageSize;
   }
-  
+
   @Override
   public Stream<LabeledObject<Tensor>> trainingData() {
     return Caltech101.trainingDataStream().parallel().map(x -> x.map(y -> Tensor.fromRGB(TestUtil.resize(y.get(), getImageSize()))));
   }
-  
+
   @Override
   public Stream<LabeledObject<Tensor>> validationData() {
     return trainingData();
   }
-  
+
   /**
    * Gets png size.
    *
@@ -72,7 +72,7 @@ public class CaltechProblemData implements ImageProblemData {
   public int getImageSize() {
     return imageSize;
   }
-  
+
   /**
    * Gets labels.
    *
@@ -89,5 +89,5 @@ public class CaltechProblemData implements ImageProblemData {
     }
     return labels;
   }
-  
+
 }

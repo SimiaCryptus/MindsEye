@@ -34,7 +34,7 @@ public interface DataTrainable extends Trainable {
    * @return the tensor [ ] [ ]
    */
   Tensor[][] getData();
-  
+
   /**
    * Sets data.
    *

@@ -68,7 +68,7 @@ public enum PersistanceMode {
       return () -> null;
     }
   };
-  
+
   /**
    * Wrap supplier.
    *

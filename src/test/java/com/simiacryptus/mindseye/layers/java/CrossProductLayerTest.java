@@ -29,25 +29,25 @@ import java.util.Random;
  * The type Cross product layer apply.
  */
 public abstract class CrossProductLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {4}
+        {4}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new CrossProductLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends CrossProductLayerTest {
   }
-  
+
 }

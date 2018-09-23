@@ -30,7 +30,7 @@ import java.util.List;
  * The type Problem apply.
  */
 public class ProblemRun {
-  
+
   /**
    * The Color.
    */
@@ -47,7 +47,7 @@ public class ProblemRun {
    * The Type.
    */
   public final PlotType type;
-  
+
   /**
    * Instantiates a new Problem apply.
    *
@@ -62,7 +62,7 @@ public class ProblemRun {
     this.color = color;
     this.type = type;
   }
-  
+
   /**
    * Plot plot.
    *
@@ -86,7 +86,7 @@ public class ProblemRun {
         throw new IllegalStateException(type.toString());
     }
   }
-  
+
   /**
    * The enum Plot type.
    */

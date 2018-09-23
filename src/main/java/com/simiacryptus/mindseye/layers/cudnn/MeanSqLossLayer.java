@@ -35,12 +35,12 @@ import java.util.UUID;
  */
 @SuppressWarnings("serial")
 public class MeanSqLossLayer extends PipelineNetwork {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
   private final InnerNode binaryNode;
   private double alpha = 1.0;
-  
+
   /**
    * Instantiates a new Mean sq loss layer.
    */
@@ -50,7 +50,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
     wrap(new SquareActivationLayer()).freeRef();
     wrap(new AvgReducerLayer()).freeRef();
   }
-  
+
   /**
    * Instantiates a new Mean sq loss layer.
    *
@@ -62,7 +62,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
     alpha = id.get("alpha").getAsDouble();
     binaryNode = (InnerNode) getNodeById(UUID.fromString(id.get("binaryNode").getAsString()));
   }
-  
+
   /**
    * From json mean sq loss layer.
    *
@@ -73,7 +73,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
   public static MeanSqLossLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MeanSqLossLayer(json, rs);
   }
-  
+
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     JsonObject json = super.getJson(resources, dataSerializer);
@@ -81,7 +81,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
     json.addProperty("binaryNode", binaryNode.id.toString());
     return json;
   }
-  
+
   /**
    * Gets alphaList.
    *
@@ -90,7 +90,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
   public double getAlpha() {
     return alpha;
   }
-  
+
   /**
    * Sets alphaList.
    *

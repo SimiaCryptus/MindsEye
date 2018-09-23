@@ -30,27 +30,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.UUID;
-import java.util.function.DoubleBinaryOperator;
-import java.util.function.DoubleConsumer;
-import java.util.function.DoubleSupplier;
-import java.util.function.DoubleUnaryOperator;
-import java.util.function.IntToDoubleFunction;
-import java.util.function.ToDoubleFunction;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 /**
  * A multi-dimensional array of data. Represented internally as a single double[] array. This class is central to data
@@ -58,7 +40,7 @@ import java.util.stream.StreamSupport;
  */
 @SuppressWarnings("serial")
 public final class Tensor extends ReferenceCountingBase implements Serializable {
-  
+
   /**
    * The constant json_precision.
    */
@@ -79,7 +61,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    */
   @Nullable
   protected volatile double[] data;
-  
+
   /**
    * Instantiates a new Tensor.
    */
@@ -89,7 +71,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     strides = null;
     dimensions = null;
   }
-  
+
   /**
    * Instantiates a new Tensor.
    *
@@ -98,7 +80,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public Tensor(@Nonnull final double... ds) {
     this(ds, ds.length);
   }
-  
+
   /**
    * Instantiates a new Tensor.
    *
@@ -118,11 +100,11 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert isValid();
     //assert (null == data || Tensor.length(dims) == data.length);
   }
-  
+
   private Tensor(int[] dims, @Nullable double[] data) {
     this(dims, Tensor.getSkips(dims), data);
   }
-  
+
   private Tensor(int[] dimensions, int[] strides, @Nullable double[] data) {
     if (Tensor.length(dimensions) >= Integer.MAX_VALUE) throw new IllegalArgumentException();
     assert null == data || data.length == Tensor.length(dimensions);
@@ -131,7 +113,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     this.data = data;
     assert isValid();
   }
-  
+
   /**
    * Instantiates a new Tensor.
    *
@@ -153,7 +135,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert isValid();
     //assert (null == data || Tensor.length(dims) == data.length);
   }
-  
+
   /**
    * Instantiates a new Tensor.
    *
@@ -163,7 +145,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     this((double[]) null, dims);
     assert dims.length > 0;
   }
-  
+
   /**
    * From json tensor.
    *
@@ -186,8 +168,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
         @Nonnull Tensor tensor = new Tensor(doubles);
         assert tensor.isValid();
         return tensor;
-      }
-      else {
+      } else {
         final List<Tensor> elements = IntStream.range(0, size).mapToObj(i -> {
           return array.get(i);
         }).map(element -> {
@@ -211,8 +192,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
         assert tensor.isValid();
         return tensor;
       }
-    }
-    else if (json.isJsonObject()) {
+    } else if (json.isJsonObject()) {
       JsonObject jsonObject = json.getAsJsonObject();
       @Nonnull int[] dims = fromJsonArray(jsonObject.getAsJsonArray("length"));
       @Nonnull Tensor tensor = new Tensor(dims);
@@ -222,32 +202,30 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
         if (null == resources) throw new IllegalArgumentException("No Data Resources");
         CharSequence resourceId = jsonObject.getAsJsonPrimitive("resource").getAsString();
         tensor.setBytes(resources.get(resourceId), precision);
-      }
-      else {
+      } else {
         tensor.setBytes(Base64.getDecoder().decode(base64.getAsString()), precision);
       }
       assert tensor.isValid();
       return tensor;
-    }
-    else {
+    } else {
       @Nonnull Tensor tensor = new Tensor(json.getAsJsonPrimitive().getAsDouble());
       assert tensor.isValid();
       return tensor;
     }
   }
-  
+
   private static double bound8bit(final double value) {
     final int max = 0xFF;
     final int min = 0;
     return value < min ? min : value > max ? max : value;
   }
-  
+
   private static int bound8bit(final int value) {
     final int max = 0xFF;
     final int min = 0;
     return value < min ? min : value > max ? max : value;
   }
-  
+
   /**
    * Dim l long.
    *
@@ -261,7 +239,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return (int) total;
   }
-  
+
   /**
    * From rgb tensor.
    *
@@ -288,7 +266,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     });
     return a;
   }
-  
+
   /**
    * Get doubles double [ ].
    *
@@ -300,7 +278,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     final double[] doubles = RecycleBin.DOUBLES.obtain(dim);
     stream.forEach(new DoubleConsumer() {
       int j = 0;
-      
+
       @Override
       public void accept(final double value) {
         doubles[j++] = value;
@@ -308,21 +286,20 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     });
     return doubles;
   }
-  
+
   @Nonnull
   private static int[] getSkips(@Nonnull final int[] dims) {
     @Nonnull final int[] skips = new int[dims.length];
     for (int i = 0; i < skips.length; i++) {
       if (i == 0) {
         skips[0] = 1;
-      }
-      else {
+      } else {
         skips[i] = skips[i - 1] * dims[i - 1];
       }
     }
     return skips;
   }
-  
+
   /**
    * Product tensor.
    *
@@ -345,7 +322,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return result;
   }
-  
+
   /**
    * To doubles double [ ].
    *
@@ -359,7 +336,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return buffer;
   }
-  
+
   /**
    * To floats float [ ].
    *
@@ -374,7 +351,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return buffer;
   }
-  
+
   /**
    * To json array json array.
    *
@@ -389,7 +366,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return dim;
   }
-  
+
   /**
    * From json array int [ ].
    *
@@ -404,7 +381,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return array;
   }
-  
+
   /**
    * Reverse dimensions tensor.
    *
@@ -415,7 +392,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public static Tensor reverseDimensions(@Nonnull Tensor tensor) {
     return tensor.rearrange(Tensor::reverse);
   }
-  
+
   /**
    * Permute int [ ].
    *
@@ -431,17 +408,15 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       int k = key[i];
       if (k == Integer.MAX_VALUE) {
         copy[i] = dimensions[0] - data[0] - 1;
-      }
-      else if (k < 0) {
+      } else if (k < 0) {
         copy[i] = dimensions[-k] - data[-k] - 1;
-      }
-      else {
+      } else {
         copy[i] = data[k];
       }
     }
     return copy;
   }
-  
+
   /**
    * Reverse int [ ].
    *
@@ -454,7 +429,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     ArrayUtils.reverse(copy);
     return copy;
   }
-  
+
   /**
    * Pretty print string.
    *
@@ -467,7 +442,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     t.freeRef();
     return prettyPrint;
   }
-  
+
   /**
    * Get pixel double [ ].
    *
@@ -480,7 +455,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public static double[] getPixel(final Tensor tensor, final int x, final int y, final int bands) {
     return IntStream.range(0, bands).mapToDouble(band -> tensor.get(x, y, band)).toArray();
   }
-  
+
   /**
    * Reduce tensor.
    *
@@ -495,7 +470,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       return IntStream.range(0, dimensions[2]).mapToDouble(j -> self.get(coords[0], coords[1], j)).sum();
     });
   }
-  
+
   /**
    * Gets pixel stream.
    *
@@ -513,7 +488,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       });
     });
   }
-  
+
   /**
    * Rescale rms tensor.
    *
@@ -523,7 +498,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public Tensor rescaleRms(final double rms) {
     return scale(rms / rms());
   }
-  
+
   /**
    * Normalize distribution tensor.
    *
@@ -534,7 +509,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     Tensor result = map(v -> Math.abs(((double) Arrays.binarySearch(sortedValues, v)) / ((double) sortedValues.length)));
     return result;
   }
-  
+
   /**
    * Reorder dimensions tensor.
    *
@@ -542,8 +517,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the tensor
    */
   @Nonnull
-  public Tensor rearrange(@Nonnull UnaryOperator<int[]> fn) {return rearrange(fn, fn.apply(getDimensions()));}
-  
+  public Tensor rearrange(@Nonnull UnaryOperator<int[]> fn) {
+    return rearrange(fn, fn.apply(getDimensions()));
+  }
+
   /**
    * Reorder dimensions tensor.
    *
@@ -561,7 +538,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     });
     return result;
   }
-  
+
   /**
    * Is valid boolean.
    *
@@ -570,7 +547,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public boolean isValid() {
     return !isFinalized() && (null == this.data || this.data.length == Tensor.length(dimensions));
   }
-  
+
   /**
    * Accum.
    *
@@ -580,7 +557,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert Arrays.equals(getDimensions(), tensor.getDimensions()) : Arrays.toString(getDimensions()) + " != " + Arrays.toString(tensor.getDimensions());
     setParallelByIndex(c -> get(c) + tensor.get(c));
   }
-  
+
   /**
    * Add.
    *
@@ -590,7 +567,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public void add(@Nonnull final Coordinate coords, final double value) {
     add(coords.getIndex(), value);
   }
-  
+
   /**
    * Add tensor.
    *
@@ -603,7 +580,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     getData()[index] += value;
     return this;
   }
-  
+
   /**
    * Add.
    *
@@ -613,7 +590,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public void add(@Nonnull final int[] coords, final double value) {
     add(index(coords), value);
   }
-  
+
   /**
    * Add right.
    *
@@ -625,7 +602,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert Arrays.equals(getDimensions(), right.getDimensions());
     return mapCoords((c) -> get(c) + right.get(c));
   }
-  
+
   /**
    * Add and free tensor.
    *
@@ -639,13 +616,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     if (1 == currentRefCount()) {
       addInPlace(right);
       return this;
-    }
-    else {
+    } else {
       assert Arrays.equals(getDimensions(), right.getDimensions());
       return mapCoordsAndFree((c) -> get(c) + right.get(c));
     }
   }
-  
+
   /**
    * Coord stream stream.
    *
@@ -657,7 +633,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     //ConcurrentHashSet<Object> distinctBuffer = new ConcurrentHashSet<>();
     //assert distinctBuffer.add(coordinate.copy()) : String.format("Duplicate: %s in %s", coordinate, distinctBuffer);
     return StreamSupport.stream(Spliterators.spliterator(new Iterator<Coordinate>() {
-      
+
       int cnt = 0;
       @Nonnull
       Coordinate coordinate = new Coordinate();
@@ -665,12 +641,12 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       int[] val = new int[dimensions.length];
       @Nonnull
       int[] safeCopy = new int[dimensions.length];
-      
+
       @Override
       public boolean hasNext() {
         return cnt < length();
       }
-  
+
       @Nonnull
       @Override
       public synchronized Coordinate next() {
@@ -678,8 +654,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
           for (int i = 0; i < val.length; i++) {
             if (++val[i] >= dimensions[i]) {
               val[i] = 0;
-            }
-            else {
+            } else {
               break;
             }
           }
@@ -691,7 +666,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       }
     }, length(), Spliterator.ORDERED), parallel);
   }
-  
+
   /**
    * Dim int.
    *
@@ -701,12 +676,11 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assertAlive();
     if (null != data) {
       return data.length;
-    }
-    else {
+    } else {
       return Tensor.length(dimensions);
     }
   }
-  
+
   /**
    * Copy tensor.
    *
@@ -717,7 +691,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assertAlive();
     return new Tensor(RecycleBin.DOUBLES.copyOf(getData(), getData().length), Arrays.copyOf(dimensions, dimensions.length));
   }
-  
+
   @Override
   protected void _free() {
     if (null != data) {
@@ -727,7 +701,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       data = null;
     }
   }
-  
+
   @Override
   public boolean equals(@Nullable final Object obj) {
     if (this == obj) {
@@ -747,7 +721,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return Arrays.equals(dimensions, other.dimensions);
   }
-  
+
   /**
    * Get double.
    *
@@ -758,7 +732,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     final double v = getData()[coords.getIndex()];
     return v;
   }
-  
+
   /**
    * Get double.
    *
@@ -768,7 +742,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public double get(final int index) {
     return getData()[index];
   }
-  
+
   /**
    * Get double.
    *
@@ -779,7 +753,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public double get(final int c1, final int c2) {
     return getData()[index(c1, c2)];
   }
-  
+
   /**
    * Get double.
    *
@@ -791,7 +765,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public double get(final int c1, final int c2, final int c3) {
     return getData()[index(c1, c2, c3)];
   }
-  
+
   /**
    * Get double.
    *
@@ -805,7 +779,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public double get(final int c1, final int c2, final int c3, final int c4, final int... coords) {
     return getData()[index(c1, c2, c3, c4, coords)];
   }
-  
+
   /**
    * Get.
    *
@@ -814,7 +788,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public void get(@Nonnull final double[] bufferArray) {
     System.arraycopy(getData(), 0, bufferArray, 0, length());
   }
-  
+
   /**
    * Get double.
    *
@@ -824,7 +798,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public double get(@Nonnull final int[] coords) {
     return getData()[index(coords)];
   }
-  
+
   /**
    * Get data double [ ].
    *
@@ -847,7 +821,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert null != data;
     return data;
   }
-  
+
   /**
    * Get dimensions int [ ].
    *
@@ -857,7 +831,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public final int[] getDimensions() {
     return Arrays.copyOf(dimensions, dimensions.length);
   }
-  
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -866,7 +840,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     result = prime * result + Arrays.hashCode(dimensions);
     return result;
   }
-  
+
   /**
    * Get data as floats float [ ].
    *
@@ -876,7 +850,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public float[] getDataAsFloats() {
     return Tensor.toFloats(getData());
   }
-  
+
   /**
    * Index int.
    *
@@ -889,7 +863,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return v;
     // return IntStream.range(0, strides.length).mapCoords(i->strides[i]*coords[i]).sum();
   }
-  
+
   /**
    * Index int.
    *
@@ -904,7 +878,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return v;
     // return IntStream.range(0, strides.length).mapCoords(i->strides[i]*coords[i]).sum();
   }
-  
+
   /**
    * Index int.
    *
@@ -921,7 +895,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return v;
     // return IntStream.range(0, strides.length).mapCoords(i->strides[i]*coords[i]).sum();
   }
-  
+
   /**
    * Index int.
    *
@@ -931,7 +905,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public int index(@Nonnull final Coordinate coords) {
     return coords.getIndex();
   }
-  
+
   /**
    * Index int.
    *
@@ -956,7 +930,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return v;
     // return IntStream.range(0, strides.length).mapCoords(i->strides[i]*coords[i]).sum();
   }
-  
+
   /**
    * L 1 double.
    *
@@ -965,7 +939,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public double l1() {
     return Arrays.stream(getData()).sum();
   }
-  
+
   /**
    * L 2 double.
    *
@@ -974,7 +948,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public double l2() {
     return Math.sqrt(Arrays.stream(getData()).map(x -> x * x).sum());
   }
-  
+
   /**
    * Index int.
    *
@@ -989,7 +963,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return v;
     // return IntStream.range(0, strides.length).mapCoords(i->strides[i]*coords[i]).sum();
   }
-  
+
   /**
    * Map tensor.
    *
@@ -1004,7 +978,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     IntStream.range(0, data.length).parallel().forEach(i -> cpy[i] = f.applyAsDouble(data[i]));
     return tensor;
   }
-  
+
   /**
    * Map and free tensor.
    *
@@ -1026,7 +1000,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     this.freeRef();
     return tensor;
   }
-  
+
   /**
    * Map coords tensor.
    *
@@ -1034,8 +1008,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the tensor
    */
   @Nullable
-  public Tensor mapCoords(@Nonnull final ToDoubleFunction<Coordinate> f) {return mapCoords(f, false);}
-  
+  public Tensor mapCoords(@Nonnull final ToDoubleFunction<Coordinate> f) {
+    return mapCoords(f, false);
+  }
+
   /**
    * Map coords and free tensor.
    *
@@ -1043,8 +1019,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the tensor
    */
   @Nullable
-  public Tensor mapCoordsAndFree(@Nonnull final ToDoubleFunction<Coordinate> f) {return mapCoordsAndFree(f, false);}
-  
+  public Tensor mapCoordsAndFree(@Nonnull final ToDoubleFunction<Coordinate> f) {
+    return mapCoordsAndFree(f, false);
+  }
+
   /**
    * Map coords tensor.
    *
@@ -1056,7 +1034,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public Tensor mapCoords(@Nonnull final ToDoubleFunction<Coordinate> f, boolean parallel) {
     return new Tensor(Tensor.getDoubles(coordStream(parallel).mapToDouble(i -> f.applyAsDouble(i)), length()), dimensions);
   }
-  
+
   /**
    * Map coords and free tensor.
    *
@@ -1070,7 +1048,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     freeRef();
     return tensor;
   }
-  
+
   /**
    * Map index tensor.
    *
@@ -1081,7 +1059,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public Tensor mapIndex(@Nonnull final TupleOperator f) {
     return new Tensor(Tensor.getDoubles(IntStream.range(0, length()).mapToDouble(i -> f.eval(get(i), i)), length()), dimensions);
   }
-  
+
   /**
    * Mean double.
    *
@@ -1090,7 +1068,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public double mean() {
     return sum() / length();
   }
-  
+
   /**
    * Map parallel tensor.
    *
@@ -1102,7 +1080,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     @Nullable final double[] data = getData();
     return new Tensor(Tensor.getDoubles(IntStream.range(0, length()).mapToDouble(i -> f.applyAsDouble(data[i])), length()), dimensions);
   }
-  
+
   /**
    * Minus tensor.
    *
@@ -1120,7 +1098,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     Arrays.parallelSetAll(copy.getData(), i -> thisData[i] - rightData[i]);
     return copy;
   }
-  
+
   /**
    * Pretty printGroups string.
    *
@@ -1129,13 +1107,13 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public String prettyPrint() {
     return toString(true);
   }
-  
+
   public String prettyPrintAndFree() {
     String prettyPrint = prettyPrint();
     freeRef();
     return prettyPrint;
   }
-  
+
   /**
    * Multiply tensor.
    *
@@ -1152,7 +1130,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return tensor;
   }
-  
+
   /**
    * Rms double.
    *
@@ -1161,7 +1139,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public double rms() {
     return Math.sqrt(sumSq() / length());
   }
-  
+
   /**
    * Reduce parallel tensor.
    *
@@ -1178,7 +1156,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     @Nullable final double[] dataR = right.getData();
     return new Tensor(Tensor.getDoubles(IntStream.range(0, length()).mapToDouble(i -> f.applyAsDouble(dataL[i], dataR[i])), length()), dimensions);
   }
-  
+
   /**
    * Round tensor.
    *
@@ -1191,7 +1169,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     if (precision < 1) throw new IllegalArgumentException();
     return round(precision, 10);
   }
-  
+
   /**
    * Round tensor.
    *
@@ -1206,7 +1184,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       return Math.round(v / units) * units;
     });
   }
-  
+
   /**
    * Scale tensor.
    *
@@ -1217,7 +1195,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public Tensor scale(final double d) {
     return map(v -> v * d);
   }
-  
+
   /**
    * Scale tensor.
    *
@@ -1232,7 +1210,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return this;
   }
-  
+
   /**
    * Set.
    *
@@ -1242,7 +1220,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public void set(@Nonnull final Coordinate coords, final double value) {
     if (Double.isFinite(value)) set(coords.getIndex(), value);
   }
-  
+
   /**
    * Set tensor.
    *
@@ -1256,7 +1234,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return this;
   }
-  
+
   /**
    * Fill tensor.
    *
@@ -1268,7 +1246,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     Arrays.setAll(getData(), i -> f.getAsDouble());
     return this;
   }
-  
+
   /**
    * Set.
    *
@@ -1280,7 +1258,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert Double.isFinite(value);
     set(index(coord1, coord2), value);
   }
-  
+
   /**
    * Set.
    *
@@ -1293,7 +1271,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert Double.isFinite(value);
     set(index(coord1, coord2, coord3), value);
   }
-  
+
   /**
    * Set.
    *
@@ -1307,7 +1285,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert Double.isFinite(value);
     set(index(coord1, coord2, coord3, coord4), value);
   }
-  
+
   /**
    * Set tensor.
    *
@@ -1321,7 +1299,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     getData()[index] = value;
     return this;
   }
-  
+
   /**
    * Set.
    *
@@ -1332,7 +1310,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     assert Double.isFinite(value);
     set(index(coords), value);
   }
-  
+
   /**
    * Set tensor.
    *
@@ -1344,7 +1322,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     Arrays.parallelSetAll(getData(), f);
     return this;
   }
-  
+
   /**
    * Set.
    *
@@ -1358,7 +1336,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     Arrays.parallelSetAll(getData(), i -> rightData[i]);
     return this;
   }
-  
+
   /**
    * Sets all.
    *
@@ -1372,7 +1350,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return this;
   }
-  
+
   /**
    * Fill by coord tensor.
    *
@@ -1380,8 +1358,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the tensor
    */
   @Nonnull
-  public Tensor setByCoord(@Nonnull final ToDoubleFunction<Coordinate> f) {return setByCoord(f, true);}
-  
+  public Tensor setByCoord(@Nonnull final ToDoubleFunction<Coordinate> f) {
+    return setByCoord(f, true);
+  }
+
   /**
    * Fill by coord tensor.
    *
@@ -1394,7 +1374,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     coordStream(parallel).forEach(c -> set(c, f.applyAsDouble(c)));
     return this;
   }
-  
+
   /**
    * Sum double.
    *
@@ -1408,7 +1388,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     // assert Double.isFinite(v);
     return v;
   }
-  
+
   /**
    * Sum sq double.
    *
@@ -1422,7 +1402,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     // assert Double.isFinite(v);
     return v;
   }
-  
+
   /**
    * Sets parallel by index.
    *
@@ -1431,7 +1411,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public void setParallelByIndex(@Nonnull final IntToDoubleFunction f) {
     IntStream.range(0, length()).parallel().forEach(c -> set(c, f.applyAsDouble(c)));
   }
-  
+
   /**
    * To gray png buffered png.
    *
@@ -1441,7 +1421,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public BufferedImage toGrayImage() {
     return toGrayImage(0);
   }
-  
+
   /**
    * To gray png buffered png.
    *
@@ -1461,7 +1441,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return image;
   }
-  
+
   /**
    * To png buffered png.
    *
@@ -1473,18 +1453,16 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     if (3 == dims.length) {
       if (3 == dims[2]) {
         return toRgbImage();
-      }
-      else {
+      } else {
         assert 1 == dims[2];
         return toGrayImage();
       }
-    }
-    else {
+    } else {
       assert 2 == dims.length;
       return toGrayImage();
     }
   }
-  
+
   /**
    * To images list.
    *
@@ -1496,31 +1474,27 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     if (3 == dims.length) {
       if (3 == dims[2]) {
         return Arrays.asList(toRgbImage());
-      }
-      else if (0 == dims[2] % 3) {
+      } else if (0 == dims[2] % 3) {
         @Nonnull final ArrayList<BufferedImage> list = new ArrayList<>();
         for (int i = 0; i < dims[2]; i += 3) {
           list.add(toRgbImage(i, i + 1, i + 2));
         }
         return list;
-      }
-      else if (1 == dims[2]) {
+      } else if (1 == dims[2]) {
         return Arrays.asList(toGrayImage());
-      }
-      else {
+      } else {
         @Nonnull final ArrayList<BufferedImage> list = new ArrayList<>();
         for (int i = 0; i < dims[2]; i++) {
           list.add(toGrayImage(i));
         }
         return list;
       }
-    }
-    else {
+    } else {
       assert 2 == dims.length : "order: " + dims.length;
       return Arrays.asList(toGrayImage());
     }
   }
-  
+
   /**
    * To json json element.
    *
@@ -1540,17 +1514,15 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
         @Nonnull String id = UUID.randomUUID().toString();
         obj.addProperty("resource", id);
         resources.put(id, bytes);
-      }
-      else {
+      } else {
         obj.addProperty("base64", Base64.getEncoder().encodeToString(bytes));
       }
       return obj;
-    }
-    else {
+    } else {
       return toJson(new int[]{});
     }
   }
-  
+
   /**
    * Sets bytes.
    *
@@ -1558,8 +1530,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
    * @return the bytes
    */
   @Nonnull
-  public Tensor setBytes(byte[] bytes) {return setBytes(bytes, json_precision);}
-  
+  public Tensor setBytes(byte[] bytes) {
+    return setBytes(bytes, json_precision);
+  }
+
   /**
    * Get bytes byte [ ].
    *
@@ -1570,7 +1544,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public byte[] getBytes(@Nonnull DataSerializer precision) {
     return precision.toBytes(getData());
   }
-  
+
   /**
    * Sets bytes.
    *
@@ -1583,14 +1557,13 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     precision.copy(bytes, getData());
     return this;
   }
-  
+
   @Nonnull
   private JsonElement toJson(@Nonnull final int[] coords) {
     if (coords.length == dimensions.length) {
       final double d = get(coords);
       return new JsonPrimitive(d);
-    }
-    else {
+    } else {
       @Nonnull final JsonArray jsonArray = new JsonArray();
       IntStream.range(0, dimensions[dimensions.length - (coords.length + 1)]).mapToObj(i -> {
         @Nonnull final int[] newCoord = new int[coords.length + 1];
@@ -1601,7 +1574,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       return jsonArray;
     }
   }
-  
+
   /**
    * To rgb png buffered png.
    *
@@ -1611,7 +1584,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public BufferedImage toRgbImage() {
     return toRgbImage(0, 1, 2);
   }
-  
+
   /**
    * To rgb png buffered png.
    *
@@ -1630,8 +1603,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
         if (getDimensions()[2] == 1) {
           final double value = this.get(x, y, 0);
           img.setRGB(x, y, Tensor.bound8bit((int) value) * 0x010101);
-        }
-        else {
+        } else {
           final double red = Tensor.bound8bit(this.get(x, y, redBand));
           final double green = Tensor.bound8bit(this.get(x, y, greenBand));
           final double blue = Tensor.bound8bit(this.get(x, y, blueBand));
@@ -1641,7 +1613,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return img;
   }
-  
+
   /**
    * To rgb png buffered png.
    *
@@ -1668,18 +1640,17 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return img;
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return (null == data ? "0" : Integer.toHexString(System.identityHashCode(data))) + "@" + toString(false);
   }
-  
+
   private String toString(final boolean prettyPrint, @Nonnull final int... coords) {
     if (coords.length == dimensions.length) {
       return Double.toString(get(coords));
-    }
-    else {
+    } else {
       List<CharSequence> list = IntStream.range(0, dimensions[coords.length]).mapToObj(i -> {
         @Nonnull final int[] newCoord = Arrays.copyOf(coords, coords.length + 1);
         newCoord[coords.length] = i;
@@ -1692,22 +1663,20 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       if (prettyPrint) {
         if (coords.length < dimensions.length - 2) {
           final CharSequence str = list.stream().limit(10)
-            .map(s -> "\t" + s.toString().replaceAll("\n", "\n\t"))
-            .reduce((a, b) -> a + ",\n" + b).orElse("");
+              .map(s -> "\t" + s.toString().replaceAll("\n", "\n\t"))
+              .reduce((a, b) -> a + ",\n" + b).orElse("");
           return "[\n" + str + "\n]";
-        }
-        else {
+        } else {
           final CharSequence str = list.stream().reduce((a, b) -> a + ", " + b).orElse("");
           return "[ " + str + " ]";
         }
-      }
-      else {
+      } else {
         final CharSequence str = list.stream().reduce((a, b) -> a + "," + b).orElse("");
         return "[ " + str + " ]";
       }
     }
   }
-  
+
   /**
    * Reverse dimensions tensor.
    *
@@ -1717,7 +1686,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public Tensor reverseDimensions() {
     return reverseDimensions(this);
   }
-  
+
   /**
    * Permute dimensions tensor.
    *
@@ -1732,7 +1701,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     int[] outputDims = permute(absKey, inputDims, inputDims);
     return rearrange(in -> permute(key, in, inputDims), outputDims);
   }
-  
+
   /**
    * Permute dimensions and free tensor.
    *
@@ -1744,7 +1713,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     this.freeRef();
     return result;
   }
-  
+
   /**
    * Reshape cast tensor.
    *
@@ -1758,7 +1727,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     double[] data = getData();
     return new Tensor(dims, null == data ? null : RecycleBin.DOUBLES.copyOf(data, data.length));
   }
-  
+
   /**
    * Reshape cast and free tensor.
    *
@@ -1771,7 +1740,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     freeRef();
     return tensor;
   }
-  
+
   /**
    * For each.
    *
@@ -1783,7 +1752,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       fn.eval(get(c), c);
     });
   }
-  
+
   /**
    * Dot double.
    *
@@ -1799,7 +1768,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return v;
   }
-  
+
   /**
    * Unit tensor.
    *
@@ -1808,7 +1777,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   public Tensor unit() {
     return scale(1.0 / Math.sqrt(sumSq()));
   }
-  
+
   /**
    * Select band tensor.
    *
@@ -1825,20 +1794,20 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       return get(coords[0], coords[1], band);
     });
   }
-  
+
   public BufferedImage toImageAndFree() {
     BufferedImage image = toImage();
     freeRef();
     return image;
   }
-  
+
   public Tensor copyAndFree() {
     if (currentRefCount() == 1) return this;
     Tensor copy = copy();
     freeRef();
     return copy;
   }
-  
+
   public Tensor resizeAsImg(final int width, final int height) {
     if (getDimensions()[0] == width && getDimensions()[1] == height) {
       addRef();
@@ -1846,7 +1815,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     }
     return Tensor.fromRGB(TestUtil.resize(toImage(), width, height));
   }
-  
+
   /**
    * The interface Coord operator.
    */
@@ -1859,8 +1828,8 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
      */
     void eval(double value, Coordinate index);
   }
-  
-  
+
+
   /**
    * The interface Tuple operator.
    */

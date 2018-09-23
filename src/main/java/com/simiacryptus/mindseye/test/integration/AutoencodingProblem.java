@@ -32,8 +32,8 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.TableOutput;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
@@ -51,9 +51,9 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressWarnings("FieldCanBeLocal")
 public class AutoencodingProblem implements Problem {
-  
+
   private static int modelNo = 0;
-  
+
   private final int batchSize = 10000;
   private final ImageProblemData data;
   private final double dropout;
@@ -64,7 +64,7 @@ public class AutoencodingProblem implements Problem {
   private final OptimizationStrategy optimizer;
   private final RevNetworkFactory revFactory;
   private int timeoutMinutes = 1;
-  
+
   /**
    * Instantiates a new Autoencoding problem.
    *
@@ -83,13 +83,13 @@ public class AutoencodingProblem implements Problem {
     this.features = features;
     this.dropout = dropout;
   }
-  
+
   @Nonnull
   @Override
   public List<StepRecord> getHistory() {
     return history;
   }
-  
+
   /**
    * Gets timeout minutes.
    *
@@ -98,7 +98,7 @@ public class AutoencodingProblem implements Problem {
   public int getTimeoutMinutes() {
     return timeoutMinutes;
   }
-  
+
   /**
    * Sets timeout minutes.
    *
@@ -110,7 +110,7 @@ public class AutoencodingProblem implements Problem {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
-  
+
   /**
    * Get training data tensor [ ] [ ].
    *
@@ -126,7 +126,7 @@ public class AutoencodingProblem implements Problem {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Parse int.
    *
@@ -136,67 +136,67 @@ public class AutoencodingProblem implements Problem {
   public int parse(@Nonnull final String label) {
     return Integer.parseInt(label.replaceAll("[^\\d]", ""));
   }
-  
+
   @Nonnull
   @Override
   public AutoencodingProblem run(@Nonnull final NotebookOutput log) {
-    
+
     @Nonnull final DAGNetwork fwdNetwork = fwdFactory.imageToVector(log, features);
     @Nonnull final DAGNetwork revNetwork = revFactory.vectorToImage(log, features);
-    
+
     @Nonnull final PipelineNetwork echoNetwork = new PipelineNetwork(1);
     echoNetwork.add(fwdNetwork).freeRef();
     echoNetwork.add(revNetwork).freeRef();
-    
+
     @Nonnull final PipelineNetwork supervisedNetwork = new PipelineNetwork(1);
     supervisedNetwork.add(fwdNetwork).freeRef();
     @Nonnull final DropoutNoiseLayer dropoutNoiseLayer = new DropoutNoiseLayer().setValue(dropout);
     supervisedNetwork.add(dropoutNoiseLayer).freeRef();
     supervisedNetwork.add(revNetwork).freeRef();
     supervisedNetwork.wrap(new MeanSqLossLayer(),
-      supervisedNetwork.getHead(),
-      supervisedNetwork.getInput(0)).freeRef();
-    
+        supervisedNetwork.getHead(),
+        supervisedNetwork.getInput(0)).freeRef();
+
     log.h3("Network Diagrams");
     log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(fwdNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
+          .height(400).width(600).render(Format.PNG).toImage();
     });
     log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(revNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
+          .height(400).width(600).render(Format.PNG).toImage();
     });
     log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph(supervisedNetwork))
-        .height(400).width(600).render(Format.PNG).toImage();
+          .height(400).width(600).render(Format.PNG).toImage();
     });
-    
+
     @Nonnull final TrainingMonitor monitor = new TrainingMonitor() {
       @Nonnull
       TrainingMonitor inner = TestUtil.getMonitor(history);
-      
+
       @Override
       public void log(final String msg) {
         inner.log(msg);
       }
-      
+
       @Override
       public void onStepComplete(final Step currentPoint) {
         dropoutNoiseLayer.shuffle(StochasticComponent.random.get().nextLong());
         inner.onStepComplete(currentPoint);
       }
     };
-    
+
     final Tensor[][] trainingData = getTrainingData(log);
-    
+
     //MonitoredObject monitoringRoot = new MonitoredObject();
     //TestUtil.addMonitoring(supervisedNetwork, monitoringRoot);
-    
+
     log.h3("Training");
     TestUtil.instrumentPerformance(supervisedNetwork);
     @Nonnull final ValidatingTrainer trainer = optimizer.train(log,
-      new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
-      new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
+        new SampledArrayTrainable(trainingData, supervisedNetwork, trainingData.length / 2, batchSize),
+        new ArrayTrainable(trainingData, supervisedNetwork, batchSize), monitor);
     log.run(() -> {
       trainer.setTimeout(timeoutMinutes, TimeUnit.MINUTES).setMaxIterations(10000).run();
     });
@@ -209,12 +209,12 @@ public class AutoencodingProblem implements Problem {
       });
     }
     TestUtil.extractPerformance(log, supervisedNetwork);
-    
+
     {
       @Nonnull final String modelName = "encoder_model" + AutoencodingProblem.modelNo++ + ".json";
       log.p("Saved model as " + log.file(fwdNetwork.getJson().toString(), modelName, modelName));
     }
-    
+
     @Nonnull final String modelName = "decoder_model" + AutoencodingProblem.modelNo++ + ".json";
     log.p("Saved model as " + log.file(revNetwork.getJson().toString(), modelName, modelName));
 
@@ -222,9 +222,9 @@ public class AutoencodingProblem implements Problem {
 //    log.run(() -> {
 //      return TestUtil.toFormattedJson(monitoringRoot.getMetrics());
 //    });
-    
+
     log.h3("Validation");
-    
+
     log.p("Here are some re-encoded examples:");
     log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
@@ -233,7 +233,7 @@ public class AutoencodingProblem implements Problem {
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
       return table;
     });
-    
+
     log.p("Some rendered unit vectors:");
     for (int featureNumber = 0; featureNumber < features; featureNumber++) {
       @Nonnull final Tensor input = new Tensor(features).set(featureNumber, 1);
@@ -242,7 +242,7 @@ public class AutoencodingProblem implements Problem {
     }
     return this;
   }
-  
+
   /**
    * To row linked hash buildMap.
    *

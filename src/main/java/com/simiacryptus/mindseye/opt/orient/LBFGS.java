@@ -20,11 +20,7 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.DoubleBufferSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
@@ -33,11 +29,7 @@ import com.simiacryptus.util.ArrayUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +37,7 @@ import java.util.stream.Collectors;
  * https://en.m.wikipedia.org/wiki/Limited-memory_BFGS
  */
 public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
-  
+
   /**
    * The History.
    */
@@ -56,11 +48,11 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   protected boolean verbose = true;
   private int maxHistory = 30;
   private int minHistory = 3;
-  
+
   private static boolean isFinite(@Nonnull final DoubleBufferSet<?, ?> delta) {
     return delta.stream().parallel().flatMapToDouble(y -> Arrays.stream(y.getDelta())).allMatch(d -> Double.isFinite(d));
   }
-  
+
   /**
    * Add to history.
    *
@@ -72,13 +64,11 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
       if (verbose) {
         monitor.log("Corrupt evalInputDelta measurement");
       }
-    }
-    else if (!LBFGS.isFinite(measurement.weights)) {
+    } else if (!LBFGS.isFinite(measurement.weights)) {
       if (verbose) {
         monitor.log("Corrupt weights measurement");
       }
-    }
-    else {
+    } else {
       boolean isFound = history.stream().filter(x -> x.sum <= measurement.sum).findAny().isPresent();
       if (!isFound) {
         @Nonnull final PointSample copyFull = measurement.copyFull();
@@ -86,13 +76,12 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
           monitor.log(String.format("Adding measurement %s to history. Total: %s", Long.toHexString(System.identityHashCode(copyFull)), history.size()));
         }
         history.add(copyFull);
-      }
-      else if (verbose) {
+      } else if (verbose) {
         monitor.log(String.format("Non-optimal measurement %s < %s. Total: %s", measurement.sum, history.stream().mapToDouble(x -> x.sum).min().orElse(Double.POSITIVE_INFINITY), history.size()));
       }
     }
   }
-  
+
   @Nonnull
   private SimpleLineSearchCursor cursor(final Trainable subject, @Nonnull final PointSample measurement, final String type, final DeltaSet<Layer> result) {
     return new SimpleLineSearchCursor(subject, measurement, result) {
@@ -104,7 +93,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
       }
     }.setDirectionType(type);
   }
-  
+
   /**
    * Gets max history.
    *
@@ -113,7 +102,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   public int getMaxHistory() {
     return maxHistory;
   }
-  
+
   /**
    * Sets max history.
    *
@@ -125,7 +114,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     this.maxHistory = maxHistory;
     return this;
   }
-  
+
   /**
    * Gets min history.
    *
@@ -134,7 +123,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   public int getMinHistory() {
     return minHistory;
   }
-  
+
   /**
    * Sets min history.
    *
@@ -146,7 +135,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     this.minHistory = minHistory;
     return this;
   }
-  
+
   /**
    * Lbfgs evalInputDelta setBytes.
    *
@@ -162,20 +151,18 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
       if (lbfgs(measurement, monitor, history, result)) {
         setHistory(monitor, history);
         return result;
-      }
-      else {
+      } else {
         result.freeRef();
         monitor.log("Orientation rejected. Popping history element from " + history.stream().map(x -> String.format("%s", x.getMean())).reduce((a, b) -> a + ", " + b).get());
         return lbfgs(measurement, monitor, history.subList(0, history.size() - 1));
       }
-    }
-    else {
+    } else {
       result.freeRef();
       monitor.log(String.format("LBFGS Accumulation History: %s points", history.size()));
       return null;
     }
   }
-  
+
   private LBFGS setHistory(@Nonnull final TrainingMonitor monitor, @Nonnull final List<PointSample> history) {
     if (history.size() == this.history.size() && history.stream().filter(x -> !this.history.contains(x)).count() == 0)
       return this;
@@ -190,7 +177,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
     return this;
   }
-  
+
   private boolean lbfgs(@Nonnull PointSample measurement, @Nonnull TrainingMonitor monitor, @Nonnull List<PointSample> history, @Nonnull DeltaSet<Layer> direction) {
     try {
       @Nonnull DeltaSet<Layer> p = measurement.delta.copy();
@@ -230,8 +217,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
       if (accept) {
         monitor.log("Accepted: " + new Stats(direction, p));
         copy(p, direction);
-      }
-      else {
+      } else {
         monitor.log("Rejected: " + new Stats(direction, p));
       }
       return accept;
@@ -240,14 +226,14 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
       return false;
     }
   }
-  
+
   private void copy(@Nonnull DeltaSet<Layer> from, @Nonnull DeltaSet<Layer> to) {
     for (@Nonnull final Map.Entry<Layer, Delta<Layer>> e : to.getMap().entrySet()) {
       @Nullable final double[] delta = from.getMap().get(e.getKey()).getDelta();
       Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
     }
   }
-  
+
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
 
@@ -258,7 +244,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
 //      if (isDifferent) throw new AssertionError(String.format("Invalid input point: %s != %s", verify, input));
 //      monitor.log(String.format("Verified input point: %s == %s", verify, input));
 //    }
-    
+
     addToHistory(measurement, monitor);
     @Nonnull final List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
     @Nullable final DeltaSet<Layer> result = lbfgs(measurement, monitor, history);
@@ -267,8 +253,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
       @Nonnull DeltaSet<Layer> scale = measurement.delta.scale(-1);
       returnValue = cursor(subject, measurement, "GD", scale);
       scale.freeRef();
-    }
-    else {
+    } else {
       returnValue = cursor(subject, measurement, "LBFGS", result);
       result.freeRef();
     }
@@ -287,29 +272,29 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
 //      if (isDifferent) throw new AssertionError(String.format("Invalid lfbgs cursor: %s != %s", verify, input));
 //      monitor.log(String.format("Verified lfbgs cursor: %s == %s", verify, input));
 //    }
-  
+
     return returnValue;
   }
-  
+
   @Override
   public synchronized void reset() {
     history.forEach(x -> x.freeRef());
     history.clear();
   }
-  
+
   @Override
   protected void _free() {
     for (@Nonnull PointSample pointSample : history) {
       pointSample.freeRef();
     }
   }
-  
+
   private class Stats {
     private final double mag;
     private final double magGrad;
     private final double dot;
     private final List<CharSequence> anglesPerLayer;
-  
+
     /**
      * Instantiates a new Stats.
      *
@@ -321,37 +306,36 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
       magGrad = Math.sqrt(gradient.dot(gradient));
       dot = gradient.dot(quasinewton) / (mag * magGrad);
       anglesPerLayer = gradient.getMap().entrySet().stream()
-        .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
-        .map((@Nonnull final Map.Entry<Layer, Delta<Layer>> e) -> {
-          @Nullable final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
-          for (int index = 0; index < lbfgsVector.length; index++) {
-            lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
-          }
-          @Nullable final double[] gradientVector = gradient.getMap().get(e.getKey()).getDelta();
-          for (int index = 0; index < gradientVector.length; index++) {
-            gradientVector[index] = Double.isFinite(gradientVector[index]) ? gradientVector[index] : 0;
-          }
-          final double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
-          final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
-          if (!Double.isFinite(gradientMagnitude)) throw new IllegalStateException();
-          if (!Double.isFinite(lbfgsMagnitude)) throw new IllegalStateException();
-          final CharSequence layerName = gradient.getMap().get(e.getKey()).layer.getName();
-          if (gradientMagnitude == 0.0) {
-            return String.format("%s = %.3e", layerName, lbfgsMagnitude);
-          }
-          else {
-            final double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
-            return String.format("%s = %.3f/%.3e", layerName, dotP, lbfgsMagnitude / gradientMagnitude);
-          }
-        }).collect(Collectors.toList());
+          .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
+          .map((@Nonnull final Map.Entry<Layer, Delta<Layer>> e) -> {
+            @Nullable final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
+            for (int index = 0; index < lbfgsVector.length; index++) {
+              lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
+            }
+            @Nullable final double[] gradientVector = gradient.getMap().get(e.getKey()).getDelta();
+            for (int index = 0; index < gradientVector.length; index++) {
+              gradientVector[index] = Double.isFinite(gradientVector[index]) ? gradientVector[index] : 0;
+            }
+            final double lbfgsMagnitude = ArrayUtil.magnitude(lbfgsVector);
+            final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
+            if (!Double.isFinite(gradientMagnitude)) throw new IllegalStateException();
+            if (!Double.isFinite(lbfgsMagnitude)) throw new IllegalStateException();
+            final CharSequence layerName = gradient.getMap().get(e.getKey()).layer.getName();
+            if (gradientMagnitude == 0.0) {
+              return String.format("%s = %.3e", layerName, lbfgsMagnitude);
+            } else {
+              final double dotP = ArrayUtil.dot(lbfgsVector, gradientVector) / (lbfgsMagnitude * gradientMagnitude);
+              return String.format("%s = %.3f/%.3e", layerName, dotP, lbfgsMagnitude / gradientMagnitude);
+            }
+          }).collect(Collectors.toList());
     }
-    
+
     @Override
     public String toString() {
       return String.format("LBFGS Orientation magnitude: %.3e, gradient %.3e, dot %.3f; %s",
-        getMag(), getMagGrad(), getDot(), getAnglesPerLayer());
+          getMag(), getMagGrad(), getDot(), getAnglesPerLayer());
     }
-  
+
     /**
      * Gets mag.
      *
@@ -360,7 +344,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     public double getMag() {
       return mag;
     }
-  
+
     /**
      * Gets mag grad.
      *
@@ -369,7 +353,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     public double getMagGrad() {
       return magGrad;
     }
-  
+
     /**
      * Gets dot.
      *
@@ -378,7 +362,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     public double getDot() {
       return dot;
     }
-  
+
     /**
      * Gets angles per layer.
      *

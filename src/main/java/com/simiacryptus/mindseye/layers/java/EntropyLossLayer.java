@@ -20,15 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,16 +37,16 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class EntropyLossLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EntropyLossLayer.class);
-  
+
   /**
    * Instantiates a new Entropy loss layer.
    */
   public EntropyLossLayer() {
   }
-  
+
   /**
    * Instantiates a new Entropy loss layer.
    *
@@ -63,7 +55,7 @@ public class EntropyLossLayer extends LayerBase {
   protected EntropyLossLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json entropy loss layer.
    *
@@ -74,7 +66,7 @@ public class EntropyLossLayer extends LayerBase {
   public static EntropyLossLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new EntropyLossLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -100,8 +92,7 @@ public class EntropyLossLayer extends LayerBase {
         if (rv > 0) {
           gradientData[i] = -rv / lv;
           total += -rv * Math.log(lv);
-        }
-        else {
+        } else {
           gradientData[i] = 0;
         }
       }
@@ -140,28 +131,28 @@ public class EntropyLossLayer extends LayerBase {
         in0.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         indata.freeRef();
         Arrays.stream(gradient).forEach(ReferenceCounting::freeRef);
         Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
       }
-      
+
       @Override
       public boolean isAlive() {
         return in0.isAlive() || in0.isAlive();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

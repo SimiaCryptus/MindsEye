@@ -29,11 +29,11 @@ public abstract class GaussianActivationLayerTest extends ActivationLayerTestBas
   public GaussianActivationLayerTest() {
     super(new GaussianActivationLayer(0, 1));
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends GaussianActivationLayerTest {
   }
-  
+
 }

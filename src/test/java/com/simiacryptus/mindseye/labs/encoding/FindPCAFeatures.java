@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.labs.encoding;
 
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.PCAUtil;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import javax.annotation.Nonnull;
@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  * The type Find feature space.
  */
 abstract class FindPCAFeatures extends FindFeatureSpace {
-  
+
   /**
    * Instantiates a new Find feature space.
    *
@@ -43,8 +43,8 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
   public FindPCAFeatures(final NotebookOutput log, final int inputBands) {
     super(log, inputBands);
   }
-  
-  
+
+
   /**
    * Find band bias double [ ].
    *
@@ -58,7 +58,7 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
       }).average().getAsDouble();
     }).toArray();
   }
-  
+
   /**
    * Find feature space tensor [ ].
    *
@@ -76,8 +76,8 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
       return PCAUtil.pcaFeatures(covariance, components, dimensions, -1);
     });
   }
-  
-  
+
+
   /**
    * Invoke find feature space.
    *
@@ -92,5 +92,5 @@ abstract class FindPCAFeatures extends FindFeatureSpace {
     }), inputBands);
     return this;
   }
-  
+
 }

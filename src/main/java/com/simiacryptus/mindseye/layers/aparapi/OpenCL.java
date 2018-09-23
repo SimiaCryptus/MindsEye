@@ -21,13 +21,13 @@ package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.aparapi.device.Device;
 import com.aparapi.internal.kernel.KernelManager;
-import com.simiacryptus.util.lang.ResourcePool;
+import com.simiacryptus.lang.ResourcePool;
 
 /**
  * The type Open cl.
  */
 public final class OpenCL {
-  
+
   /**
    * The constant devicePool.
    */

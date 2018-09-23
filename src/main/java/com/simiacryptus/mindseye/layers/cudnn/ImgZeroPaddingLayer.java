@@ -48,13 +48,13 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   private int sizeX;
   private int sizeY;
   private Precision precision = Precision.Double;
-  
+
   /**
    * Instantiates a new Img eval layer.
    */
   private ImgZeroPaddingLayer() {
   }
-  
+
   /**
    * Instantiates a new Img zero padding layer.
    *
@@ -66,7 +66,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     this.sizeY = sizeY;
     assert sizeY != 0 || sizeX != 0;
   }
-  
+
   /**
    * Instantiates a new Img eval layer.
    *
@@ -80,7 +80,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
     assert sizeY != 0 || sizeX != 0;
   }
-  
+
   /**
    * From json img eval layer.
    *
@@ -91,7 +91,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   public static ImgZeroPaddingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgZeroPaddingLayer(json, rs);
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -105,7 +105,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     imgCropLayer.freeRef();
     return eval;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -115,23 +115,23 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public ImgZeroPaddingLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
 }

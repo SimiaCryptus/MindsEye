@@ -34,8 +34,8 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
   private final int[] inputDims;
   @Nonnull
   private final FullyConnectedReferenceLayer layer;
-  
-  
+
+
   /**
    * Instantiates a new Fully connected reference layer allocationOverflow.
    *
@@ -47,22 +47,22 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
     this.inputDims = inputDims;
     this.layer = new FullyConnectedReferenceLayer(getSmallDims(new Random())[0], outputDims).set(i -> random());
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      inputDims
+        inputDims
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
-  
+
   /**
    * Basic Test
    */
@@ -74,7 +74,7 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
       super(new int[]{2}, new int[]{2});
     }
   }
-  
+
   /**
    * Basic Test
    */
@@ -86,5 +86,5 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
       super(new int[]{3, 3, 3}, new int[]{2, 2, 4});
     }
   }
-  
+
 }

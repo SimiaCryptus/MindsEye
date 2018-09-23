@@ -30,12 +30,12 @@ import java.util.Random;
  * The type Product layer apply.
  */
 public abstract class NProductLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Precision.
    */
   final Precision precision;
-  
+
   /**
    * Instantiates a new Product layer apply.
    *
@@ -44,28 +44,28 @@ public abstract class NProductLayerTest extends CudaLayerTestBase {
   public NProductLayerTest(final Precision precision) {
     this.precision = precision;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}, {8, 8, 1}
+        {8, 8, 1}, {8, 8, 1}
     };
   }
-  
+
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {1200, 1200, 3}, {1200, 1200, 3}
+        {1200, 1200, 3}, {1200, 1200, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new NProductLayer().setPrecision(precision);
   }
-  
+
   /**
    * Multiplication of 2 inputs using 64-bit precision
    */
@@ -77,7 +77,7 @@ public abstract class NProductLayerTest extends CudaLayerTestBase {
       super(Precision.Double);
     }
   }
-  
+
   /**
    * Multiplication of 3 inputs using 64-bit precision
    */
@@ -88,24 +88,24 @@ public abstract class NProductLayerTest extends CudaLayerTestBase {
     public Double3() {
       super(Precision.Double);
     }
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {8, 8, 1}, {8, 8, 1}, {8, 8, 1}
+          {8, 8, 1}, {8, 8, 1}, {8, 8, 1}
       };
     }
-  
+
     @Override
     public int[][] getLargeDims(final Random random) {
       return new int[][]{
-        {1200, 1200, 3}, {1200, 1200, 3}, {1200, 1200, 3}
+          {1200, 1200, 3}, {1200, 1200, 3}, {1200, 1200, 3}
       };
     }
-  
+
   }
-  
+
   /**
    * Multiplication of 2 inputs using 32-bit precision
    */
@@ -116,11 +116,11 @@ public abstract class NProductLayerTest extends CudaLayerTestBase {
     public Float() {
       super(Precision.Float);
     }
-    
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-    
+
   }
 }

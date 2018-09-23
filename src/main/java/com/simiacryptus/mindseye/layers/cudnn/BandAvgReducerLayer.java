@@ -20,29 +20,9 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import jcuda.jcudnn.cudnnIndicesType;
-import jcuda.jcudnn.cudnnNanPropagation;
-import jcuda.jcudnn.cudnnReduceTensorDescriptor;
-import jcuda.jcudnn.cudnnReduceTensorIndices;
-import jcuda.jcudnn.cudnnReduceTensorOp;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
+import jcuda.jcudnn.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,17 +36,17 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<BandAvgReducerLayer> {
-  
+
   private Precision precision = Precision.Double;
   private double alpha = 1.0;
-  
+
   /**
    * Instantiates a new Pooling layer.
    */
   public BandAvgReducerLayer() {
     super();
   }
-  
+
   /**
    * Instantiates a new Pooling layer.
    *
@@ -77,7 +57,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
     precision = Precision.valueOf(json.get("precision").getAsString());
     alpha = json.get("alpha").getAsDouble();
   }
-  
+
   /**
    * From json pooling layer.
    *
@@ -88,7 +68,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   public static BandAvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BandAvgReducerLayer(json);
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -98,7 +78,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   public Layer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(final Result... inObj) {
@@ -116,20 +96,20 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
       long size = (long) precision.size * outputDescriptor.nStride * length;
       @Nonnull final CudaMemory outputPtr = gpu.allocate(size, MemoryType.Managed, true);
       CudaResource<cudnnReduceTensorDescriptor> reduceTensorDescriptor = gpu.cudnnCreateReduceTensorDescriptor(
-        cudnnReduceTensorOp.CUDNN_REDUCE_TENSOR_AVG, precision.code, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN,
-        cudnnReduceTensorIndices.CUDNN_REDUCE_TENSOR_NO_INDICES, cudnnIndicesType.CUDNN_32BIT_INDICES);
-      
+          cudnnReduceTensorOp.CUDNN_REDUCE_TENSOR_AVG, precision.code, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN,
+          cudnnReduceTensorIndices.CUDNN_REDUCE_TENSOR_NO_INDICES, cudnnIndicesType.CUDNN_32BIT_INDICES);
+
       CudaMemory inputMemory = inputTensor.getMemory(gpu);
       @Nonnull final CudaMemory workspacePtr = gpu.allocate(inputMemory.size, MemoryType.Device, true);
       @Nonnull final CudaMemory indexPtr = gpu.allocate(12 * length, MemoryType.Device, false);
-      
+
       gpu.cudnnReduceTensor(reduceTensorDescriptor.getPtr(),
-        indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
-        precision.getPointer(alpha), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
-        precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
+          indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
+          precision.getPointer(alpha), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
+          precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
       outputPtr.dirty();
       inputMemory.dirty();
-  
+
       Stream.of(inputMemory, inputTensor, reduceTensorDescriptor, workspacePtr, indexPtr, inputData).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, new int[]{1, 1, bands}, precision);
     });
@@ -138,7 +118,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
       TensorList passback;
       passback = TensorArray.wrap(delta.stream().map(x -> {
         Tensor tensor = new Tensor(inputSize[0], inputSize[1], inputSize[2])
-          .setByCoord(c -> x.get(c.getCoords()[2]) * alpha / pixels);
+            .setByCoord(c -> x.get(c.getCoords()[2]) * alpha / pixels);
         x.freeRef();
         return tensor;
       }).toArray(i -> new Tensor[i]));
@@ -174,7 +154,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -183,25 +163,25 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public BandAvgReducerLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   /**
    * Gets alphaList.
    *
@@ -210,7 +190,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   public double getAlpha() {
     return alpha;
   }
-  
+
   /**
    * Sets alphaList.
    *

@@ -36,9 +36,9 @@ import javax.annotation.Nonnull;
  * should agree apply the programmatic derivatives to an appropriate degree.
  */
 public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSearchCursor> {
-  
+
   private final OrientationStrategy<? extends LineSearchCursor> inner;
-  
+
   /**
    * Instantiates a new Validating orientation strategy.
    *
@@ -47,27 +47,27 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
   public ValidatingOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
   }
-  
+
   @Override
   protected void _free() {
     this.inner.freeRef();
   }
-  
+
   @Nonnull
   @Override
   public LineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     return new ValidatingLineSearchCursor(cursor);
   }
-  
+
   @Override
   public void reset() {
     inner.reset();
   }
-  
+
   private static class ValidatingLineSearchCursor extends LineSearchCursorBase {
     private final LineSearchCursor cursor;
-  
+
     /**
      * Instantiates a new Validating line search cursor.
      *
@@ -77,22 +77,22 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
       this.cursor = cursor;
       this.cursor.addRef();
     }
-  
+
     @Override
     public CharSequence getDirectionType() {
       return cursor.getDirectionType();
     }
-  
+
     @Override
     public DeltaSet<Layer> position(final double alpha) {
       return cursor.position(alpha);
     }
-  
+
     @Override
     public void reset() {
       cursor.reset();
     }
-  
+
     @Override
     public LineSearchPoint step(final double alpha, @Nonnull final TrainingMonitor monitor) {
       final LineSearchPoint primaryPoint = cursor.step(alpha, monitor);
@@ -102,7 +102,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
       test(monitor, primaryPoint, 1e-6);
       return primaryPoint;
     }
-  
+
     /**
      * Test.
      *
@@ -122,7 +122,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
       final double measuredDerivative = dy / dx;
       monitor.log(String.format("%s vs (%s, %s); probe=%s", measuredDerivative, primaryPoint.derivative, probePoint.derivative, probeSize));
     }
-    
+
     @Override
     protected void _free() {
       cursor.freeRef();

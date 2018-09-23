@@ -37,10 +37,10 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public final class PlaceholderLayer<T> extends LayerBase {
-  
+
   @Nullable
   private final T key;
-  
+
   /**
    * Instantiates a new Placeholder layer.
    *
@@ -54,31 +54,31 @@ public final class PlaceholderLayer<T> extends LayerBase {
     }
     setName(getClass().getSimpleName() + "/" + getId());
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... array) {
     throw new UnsupportedOperationException();
   }
-  
+
   @Nullable
   @Override
   public Object getId() {
     return this.getKey();
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     throw new UnsupportedOperationException();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     throw new UnsupportedOperationException();
   }
-  
+
   @Override
   protected void _free() {
     if (this.getKey() instanceof ReferenceCounting) {
@@ -86,7 +86,7 @@ public final class PlaceholderLayer<T> extends LayerBase {
     }
     super._free();
   }
-  
+
   /**
    * Gets key.
    *

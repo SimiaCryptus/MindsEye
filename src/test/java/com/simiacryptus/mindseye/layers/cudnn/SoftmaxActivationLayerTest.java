@@ -28,10 +28,10 @@ import java.util.Random;
  * The type Softmax activation layer apply.
  */
 public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
-  
+
   private final SoftmaxActivationLayer.SoftmaxAlgorithm algorithm;
   private final SoftmaxActivationLayer.SoftmaxMode mode;
-  
+
   /**
    * Instantiates a new Softmax activation layer test.
    *
@@ -42,30 +42,30 @@ public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
     this.algorithm = algorithm;
     this.mode = mode;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{{2, 2, 3}};
   }
-  
+
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{{1200, 1200, 3}};
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new SoftmaxActivationLayer().setMode(mode).setAlgorithm(algorithm);
   }
-  
+
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return null;
     //return com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer.class;
   }
-  
+
   /**
    * Basic Test
    */
@@ -73,9 +73,11 @@ public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
     /**
      * Instantiates a new Basic.
      */
-    public Basic() {super(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE, SoftmaxActivationLayer.SoftmaxMode.INSTANCE);}
+    public Basic() {
+      super(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE, SoftmaxActivationLayer.SoftmaxMode.INSTANCE);
+    }
   }
-  
+
   /**
    * Basic Test
    */
@@ -83,9 +85,11 @@ public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
     /**
      * Instantiates a new Pixel.
      */
-    public Pixel() {super(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE, SoftmaxActivationLayer.SoftmaxMode.CHANNEL);}
+    public Pixel() {
+      super(SoftmaxActivationLayer.SoftmaxAlgorithm.ACCURATE, SoftmaxActivationLayer.SoftmaxMode.CHANNEL);
+    }
   }
-  
+
   /**
    * The type Pixel log.
    */
@@ -93,6 +97,8 @@ public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
     /**
      * Instantiates a new Pixel log.
      */
-    public PixelLog() {super(SoftmaxActivationLayer.SoftmaxAlgorithm.LOG, SoftmaxActivationLayer.SoftmaxMode.CHANNEL);}
+    public PixelLog() {
+      super(SoftmaxActivationLayer.SoftmaxAlgorithm.LOG, SoftmaxActivationLayer.SoftmaxMode.CHANNEL);
+    }
   }
 }

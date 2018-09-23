@@ -30,13 +30,13 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivationLayer> {
-  
+
   /**
    * Instantiates a new Abs activation layer.
    */
   public AbsActivationLayer() {
   }
-  
+
   /**
    * Instantiates a new Abs activation layer.
    *
@@ -45,7 +45,7 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
   protected AbsActivationLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json abs activation layer.
    *
@@ -56,7 +56,7 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
   public static AbsActivationLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AbsActivationLayer(json);
   }
-  
+
   @Override
   protected final void eval(final double x, final double[] results) {
     final double minDeriv = 0;
@@ -67,11 +67,11 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
     results[0] = f;
     results[1] = d;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
 }

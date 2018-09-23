@@ -40,7 +40,7 @@ public class CVPipe_VGG16 implements CVPipe<CVPipe_VGG16.Layer> {
   private final Map<Layer, UUID> nodes = new HashMap<>();
   private final Map<Layer, PipelineNetwork> prototypes = new HashMap<>();
   private PipelineNetwork network = new PipelineNetwork();
-  
+
   private static CVPipe_VGG16 build() {
     CVPipe_VGG16 obj = new CVPipe_VGG16();
     try {
@@ -51,63 +51,63 @@ public class CVPipe_VGG16 implements CVPipe<CVPipe_VGG16.Layer> {
           obj.nodes.put(Layer.Layer_0, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_0, pipeline.copy());
         }
-        
+
         @Override
         protected void phase1a() {
           super.phase1a();
           obj.nodes.put(Layer.Layer_1a, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1a, pipeline.copy());
         }
-        
+
         @Override
         protected void phase1b() {
           super.phase1b();
           obj.nodes.put(Layer.Layer_1b, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1b, pipeline.copy());
         }
-        
+
         @Override
         protected void phase1c() {
           super.phase1c();
           obj.nodes.put(Layer.Layer_1c, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1c, pipeline.copy());
         }
-        
+
         @Override
         protected void phase1d() {
           super.phase1d();
           obj.nodes.put(Layer.Layer_1d, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1d, pipeline.copy());
         }
-        
+
         @Override
         protected void phase1e() {
           super.phase1e();
           obj.nodes.put(Layer.Layer_1e, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_1e, pipeline.copy());
         }
-  
+
         @Override
         protected void phase2a() {
           super.phase2a();
           obj.nodes.put(Layer.Layer_2a, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_2a, pipeline.copy());
         }
-  
+
         @Override
         protected void phase2b() {
           super.phase2b();
           obj.nodes.put(Layer.Layer_2b, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_2b, pipeline.copy());
         }
-  
+
         @Override
         protected void phase3a() {
           super.phase3a();
           obj.nodes.put(Layer.Layer_3a, pipeline.getHeadId());
           obj.prototypes.put(Layer.Layer_3a, pipeline.copy());
         }
-  
+
         @Override
         protected void phase3b() {
           super.phase3b();
@@ -123,22 +123,22 @@ public class CVPipe_VGG16 implements CVPipe<CVPipe_VGG16.Layer> {
     }
     return obj;
   }
-  
+
   @Override
   public Map<Layer, UUID> getNodes() {
     return Collections.unmodifiableMap(nodes);
   }
-  
+
   @Override
   public Map<Layer, PipelineNetwork> getPrototypes() {
     return Collections.unmodifiableMap(prototypes);
   }
-  
+
   @Override
   public PipelineNetwork getNetwork() {
     return network.copy();
   }
-  
+
   /**
    * The enum Layer type.
    */
@@ -179,7 +179,7 @@ public class CVPipe_VGG16 implements CVPipe<CVPipe_VGG16.Layer> {
      * Layer 3 b layer type.
      */
     Layer_3b;
-    
+
     /**
      * Texture pipeline network.
      *

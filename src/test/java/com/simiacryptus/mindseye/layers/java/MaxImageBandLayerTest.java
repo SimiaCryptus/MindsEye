@@ -29,25 +29,25 @@ import java.util.Random;
  * The type Max png band layer apply.
  */
 public abstract class MaxImageBandLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {2, 2, 3}
+        {2, 2, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new MaxImageBandLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends MaxImageBandLayerTest {
   }
-  
+
 }

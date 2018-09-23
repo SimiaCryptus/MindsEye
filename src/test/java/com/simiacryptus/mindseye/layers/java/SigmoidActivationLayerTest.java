@@ -29,11 +29,11 @@ public abstract class SigmoidActivationLayerTest extends ActivationLayerTestBase
   public SigmoidActivationLayerTest() {
     super(new SigmoidActivationLayer());
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends SigmoidActivationLayerTest {
   }
-  
+
 }

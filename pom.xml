@@ -24,12 +24,11 @@
     <parent>
         <groupId>com.simiacryptus</groupId>
         <artifactId>java-parent</artifactId>
-        <version>1.2.0</version>
-        <relativePath></relativePath>
+        <version>1.5.0</version>
+        <relativePath>../java-parent</relativePath>
     </parent>
 
     <artifactId>mindseye</artifactId>
-    <version>1.5.0</version>
     <description>Neural Networks with Java 8 and CuDNN</description>
     <scm>
         <url>https://github.com/SimiaCryptus/MindsEye/</url>
@@ -51,125 +50,15 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Java Libraries: -->
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.12</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-math3</artifactId>
-                <version>3.6.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.code.gson</groupId>
-                <artifactId>gson</artifactId>
-                <version>2.3.1</version>
-            </dependency>
-            <dependency>
-                <groupId>de.javakaffee</groupId>
-                <artifactId>kryo-serializers</artifactId>
-                <version>0.33</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>2.5</version>
-            </dependency>
-            <!-- Native Libraries: -->
-            <dependency>
-                <groupId>org.jcuda</groupId>
-                <artifactId>jcudnn</artifactId>
-                <version>0.9.0d</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jblas</groupId>
-                <artifactId>jblas</artifactId>
-                <version>1.2.4</version>
-            </dependency>
-            <dependency>
-                <groupId>com.aparapi</groupId>
-                <artifactId>aparapi</artifactId>
-                <version>1.3.4</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jcuda</groupId>
-                <artifactId>jcuda</artifactId>
-                <version>0.9.0d</version>
-            </dependency>
-            <!-- Optional Libraries: -->
-            <dependency>
-                <groupId>com.github.haifengl</groupId>
-                <artifactId>smile-plot</artifactId>
-                <version>1.3.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.nanohttpd</groupId>
-                <artifactId>nanohttpd</artifactId>
-                <version>2.2.0</version>
-            </dependency>
-            <dependency>
-                <groupId>guru.nidi</groupId>
-                <artifactId>graphviz-java</artifactId>
-                <version>0.2.2</version>
-                <optional>true</optional>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.spark</groupId>
-                <artifactId>spark-core_2.11</artifactId>
-                <version>2.3.1</version>
-                <optional>true</optional>
-            </dependency>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>1.0.13</version>
-                <optional>true</optional>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>1.7.5</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>RELEASE</version>
-            </dependency>
             <dependency>
                 <groupId>com.simiacryptus</groupId>
-                <artifactId>hadoop-jgit-fs</artifactId>
-                <version>1.5.0</version>
-                <scope>compile</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jgit</groupId>
-                <artifactId>org.eclipse.jgit</artifactId>
-                <version>4.8.0.201706111038-r</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>log4j</groupId>
-                        <artifactId>log4j</artifactId>
-                    </exclusion>
-                </exclusions>
-                <optional>true</optional>
+                <artifactId>java-parent</artifactId>
+                <version>${project.parent.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
-        <!-- JCuDNN Library - Public version is older than current source-built -->
-        <dependency>
-            <groupId>org.jcuda</groupId>
-            <artifactId>jcudnn</artifactId>
-        </dependency>
-        <!-- Java Libraries: -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -178,7 +67,6 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <!--<scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -187,27 +75,6 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.javakaffee</groupId>
-            <artifactId>kryo-serializers</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>23.6-jre</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -230,7 +97,6 @@
             <version>1.5.0</version>
             <optional>true</optional>
         </dependency>
-        <!-- Native Libraries: -->
         <dependency>
             <groupId>org.jblas</groupId>
             <artifactId>jblas</artifactId>
@@ -244,99 +110,41 @@
             <artifactId>jcuda</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.11</artifactId>
-            <scope>compile</scope>
-            <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.jcuda</groupId>
+            <artifactId>jcudnn</artifactId>
         </dependency>
-        <!-- Optional Libraries: -->
         <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-plot</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.nanohttpd</groupId>
-            <artifactId>nanohttpd</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>guru.nidi</groupId>
             <artifactId>graphviz-java</artifactId>
             <optional>true</optional>
         </dependency>
-        <!-- Needed for Keras Import: -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.bytedeco</groupId>
             <artifactId>javacpp</artifactId>
-            <version>1.3.3</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.bytedeco.javacpp-presets</groupId>
             <artifactId>hdf5-platform</artifactId>
-            <version>1.10.1-1.3</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.bytedeco.javacpp-presets</groupId>
             <artifactId>hdf5</artifactId>
-            <version>1.10.1-1.3</version>
             <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>com.vladsch.flexmark</groupId>
-            <artifactId>flexmark-all</artifactId>
-            <version>0.32.18</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.simiacryptus</groupId>
-            <artifactId>hadoop-jgit-fs</artifactId>
-            <version>1.5.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jgit</groupId>
-            <artifactId>org.eclipse.jgit</artifactId>
-            <version>4.8.0.201706111038-r</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>2.9.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-httpclient</groupId>
-                    <artifactId>commons-httpclient</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 
@@ -362,106 +170,7 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.4</version>
-                <configuration>
-                    <nohelp>true</nohelp>
-                    <detectLinks>true</detectLinks>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>3.6</version>
-                <configuration>
-                    <reportPlugins>
-                        <plugin>
-                            <artifactId>maven-project-info-reports-plugin</artifactId>
-                            <version>2.9</version>
-                        </plugin>
-                        <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-surefire-report-plugin</artifactId>
-                            <version>2.19.1</version>
-                        </plugin>
-                        <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-javadoc-plugin</artifactId>
-                            <version>2.10.4</version>
-                            <reportSets>
-                                <reportSet>
-                                    <id>default</id>
-                                    <reports>
-                                        <report>javadoc</report>
-                                    </reports>
-                                </reportSet>
-                                <reportSet>
-                                    <id>aggregate</id>
-                                    <reports>
-                                        <report>aggregate</report>
-                                    </reports>
-                                </reportSet>
-                            </reportSets>
-                        </plugin>
-                    </reportPlugins>
-                </configuration>
-            </plugin>
-            -->
-
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>all-libs</id>
-            <dependencies>
-                <dependency>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                    <optional>false</optional>
-                </dependency>
-                <dependency>
-                    <groupId>com.github.haifengl</groupId>
-                    <artifactId>smile-plot</artifactId>
-                    <optional>false</optional>
-                </dependency>
-                <dependency>
-                    <groupId>org.nanohttpd</groupId>
-                    <artifactId>nanohttpd</artifactId>
-                    <optional>false</optional>
-                </dependency>
-                <dependency>
-                    <groupId>guru.nidi</groupId>
-                    <artifactId>graphviz-java</artifactId>
-                    <optional>false</optional>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-core_2.11</artifactId>
-                    <optional>false</optional>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>log4j</groupId>
-                            <artifactId>log4j</artifactId>
-                        </exclusion>
-                        <exclusion>
-                            <groupId>org.slf4j</groupId>
-                            <artifactId>slf4j-log4j12</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.eclipse.jgit</groupId>
-                    <artifactId>org.eclipse.jgit</artifactId>
-                    <optional>false</optional>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
 </project>

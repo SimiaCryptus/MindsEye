@@ -29,13 +29,13 @@ import java.util.Random;
  * The type Rascaled subnet layer apply.
  */
 public abstract class ImgLinearSubnetLayerTest extends CudaLayerTestBase {
-  
+
   private final Layer layer1 = new ActivationLayer(ActivationLayer.Mode.RELU);
   private final Layer layer2 = new ActivationLayer(ActivationLayer.Mode.RELU);
   private final Layer layer3 = new ActivationLayer(ActivationLayer.Mode.RELU);
   private final int smallSize;
   private final int largeSize;
-  
+
   /**
    * Instantiates a new Img linear subnet layer test.
    */
@@ -44,42 +44,42 @@ public abstract class ImgLinearSubnetLayerTest extends CudaLayerTestBase {
     smallSize = 2;
     largeSize = 100;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {smallSize, smallSize, 3}
+        {smallSize, smallSize, 3}
     };
   }
-  
+
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {largeSize, largeSize, 3}
+        {largeSize, largeSize, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgLinearSubnetLayer()
-      .add(0, 1, layer1)
-      .add(1, 2, layer2)
-      .add(2, 3, layer3);
+        .add(0, 1, layer1)
+        .add(1, 2, layer2)
+        .add(2, 3, layer3);
   }
-  
+
   @Nullable
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return null;
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ImgLinearSubnetLayerTest {
-  
+
   }
-  
+
 }

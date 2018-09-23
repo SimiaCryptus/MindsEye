@@ -19,19 +19,14 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.ConstantResult;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.lang.TimedResult;
+import com.simiacryptus.lang.Tuple2;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.data.DoubleStatistics;
-import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.lang.TimedResult;
-import com.simiacryptus.util.lang.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,19 +46,19 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
    * The Logger.
    */
   static final Logger log = LoggerFactory.getLogger(PerformanceTester.class);
-  
+
   private int batches = 100;
   private int samples = 5;
   private boolean testEvaluation = true;
   private boolean testLearning = true;
-  
+
   /**
    * Instantiates a new Performance tester.
    */
   public PerformanceTester() {
-  
+
   }
-  
+
   /**
    * Gets batches.
    *
@@ -72,7 +67,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   public int getBatches() {
     return batches;
   }
-  
+
   /**
    * Sets batches.
    *
@@ -84,7 +79,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     this.batches = batches;
     return this;
   }
-  
+
   /**
    * Gets samples.
    *
@@ -93,7 +88,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   public int getSamples() {
     return samples;
   }
-  
+
   /**
    * Sets samples.
    *
@@ -105,7 +100,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     this.samples = samples;
     return this;
   }
-  
+
   /**
    * Is apply evaluation boolean.
    *
@@ -114,7 +109,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   public boolean isTestEvaluation() {
     return testEvaluation;
   }
-  
+
   /**
    * Sets apply evaluation.
    *
@@ -126,7 +121,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     this.testEvaluation = testEvaluation;
     return this;
   }
-  
+
   /**
    * Is apply learning boolean.
    *
@@ -135,7 +130,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
   public boolean isTestLearning() {
     return testLearning;
   }
-  
+
   /**
    * Sets apply learning.
    *
@@ -147,7 +142,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     this.testLearning = testLearning;
     return this;
   }
-  
+
   /**
    * Test.
    *
@@ -165,17 +160,17 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     if (isTestEvaluation()) {
       @Nonnull final DoubleStatistics statistics = new DoubleStatistics().accept(performance.stream().mapToDouble(x -> x._1).toArray());
       log.info(String.format("\tEvaluation performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-        statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+          statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
     }
     if (isTestLearning()) {
       @Nonnull final DoubleStatistics statistics = new DoubleStatistics().accept(performance.stream().mapToDouble(x -> x._2).toArray());
       if (null != statistics) {
         log.info(String.format("\tLearning performance: %.6fs +- %.6fs [%.6fs - %.6fs]",
-          statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
+            statistics.getAverage(), statistics.getStandardDeviation(), statistics.getMin(), statistics.getMax()));
       }
     }
   }
-  
+
   /**
    * Test.
    *
@@ -199,7 +194,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
     }
     return null;
   }
-  
+
   /**
    * Test learning performance double statistics.
    *
@@ -241,15 +236,15 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
       result.getData().freeRef();
     }
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "PerformanceTester{" +
-      "batches=" + batches +
-      ", samples=" + samples +
-      ", testEvaluation=" + testEvaluation +
-      ", testLearning=" + testLearning +
-      '}';
+        "batches=" + batches +
+        ", samples=" + samples +
+        ", testEvaluation=" + testEvaluation +
+        ", testLearning=" + testLearning +
+        '}';
   }
 }

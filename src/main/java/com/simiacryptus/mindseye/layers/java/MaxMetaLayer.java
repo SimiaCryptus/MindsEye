@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,17 +37,17 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class MaxMetaLayer extends LayerBase {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxMetaLayer.class);
-  
+
   /**
    * Instantiates a new Max meta layer.
    */
   public MaxMetaLayer() {
   }
-  
+
   /**
    * Instantiates a new Max meta layer.
    *
@@ -63,7 +56,7 @@ public class MaxMetaLayer extends LayerBase {
   protected MaxMetaLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json max meta layer.
    *
@@ -74,7 +67,7 @@ public class MaxMetaLayer extends LayerBase {
   public static MaxMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxMetaLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
@@ -87,12 +80,12 @@ public class MaxMetaLayer extends LayerBase {
     for (int i = 0; i < vectorSize; i++) {
       final int itemNumber = i;
       indicies[i] = IntStream.range(0, itemCnt)
-        .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> {
-          Tensor tensor = input.getData().get(dataIndex);
-          double v = tensor.getData()[itemNumber];
-          tensor.freeRef();
-          return v;
-        })).get();
+          .mapToObj(x -> x).max(Comparator.comparing(dataIndex -> {
+            Tensor tensor = input.getData().get(dataIndex);
+            double v = tensor.getData()[itemNumber];
+            tensor.freeRef();
+            return v;
+          })).get();
     }
     return new Result(TensorArray.wrap(input0Tensor.mapIndex((v, c) -> {
       Tensor tensor = input.getData().get(indicies[c]);
@@ -112,27 +105,27 @@ public class MaxMetaLayer extends LayerBase {
         delta.freeRef();
       }
     }) {
-      
+
       @Override
       public boolean isAlive() {
         return input.isAlive();
       }
-      
+
       @Override
       protected void _free() {
         input.freeRef();
         input0Tensor.freeRef();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

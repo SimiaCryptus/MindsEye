@@ -29,7 +29,7 @@ import java.util.function.BiConsumer;
  * The type Mutable result.
  */
 public class MutableResult extends Result {
-  
+
   /**
    * Instantiates a new Mutable result.
    *
@@ -38,7 +38,7 @@ public class MutableResult extends Result {
   public MutableResult(final Tensor... tensors) {
     super(TensorArray.create(tensors), handler(tensors));
   }
-  
+
   private static BiConsumer<DeltaSet<Layer>, TensorList> handler(final Tensor[] tensors) {
     return (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       for (int index = 0; index < delta.length(); index++) {
@@ -51,7 +51,7 @@ public class MutableResult extends Result {
       }
     };
   }
-  
+
   @Override
   public boolean isAlive() {
     return true;

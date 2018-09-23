@@ -29,32 +29,32 @@ import java.util.Random;
  * The type Scale meta layer apply.
  */
 public abstract class ScaleMetaLayerTest extends LayerTestBase {
-  
+
   /**
    * Instantiates a new Scale meta layer apply.
    */
   public ScaleMetaLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}, {3}
+        {3}, {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ScaleMetaLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ScaleMetaLayerTest {
   }
-  
+
 }

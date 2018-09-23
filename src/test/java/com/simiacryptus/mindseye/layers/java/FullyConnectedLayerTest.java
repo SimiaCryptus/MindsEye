@@ -30,12 +30,12 @@ import java.util.Random;
  * The type Fully connected layer apply.
  */
 public abstract class FullyConnectedLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   private final FullyConnectedLayer fullyConnectedLayer;
   private final int inputs;
   private final int outputs;
-  
+
   /**
    * Instantiates a new Fully connected layer test.
    *
@@ -47,28 +47,28 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
     this.inputs = inputs;
     this.outputs = outputs;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {inputs}
+        {inputs}
     };
   }
-  
+
   @Nullable
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return FullyConnectedReferenceLayer.class;
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     fullyConnectedLayer.addRef();
     return fullyConnectedLayer;
   }
-  
+
   /**
    * Basic Test
    */
@@ -76,7 +76,9 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
     /**
      * Instantiates a new Basic.
      */
-    public Basic() {super(3, 3);}
+    public Basic() {
+      super(3, 3);
+    }
   }
 
 //  /**
@@ -97,6 +99,6 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
 //    }
 //
 //  }
-  
-  
+
+
 }

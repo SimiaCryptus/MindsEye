@@ -39,13 +39,13 @@ import javax.annotation.Nonnull;
  * both methods.
  */
 public class QQN extends OrientationStrategyBase<LineSearchCursor> {
-  
+
   /**
    * The constant CURSOR_NAME.
    */
   public static final String CURSOR_NAME = "QQN";
   private final LBFGS inner = new LBFGS();
-  
+
   /**
    * Gets max history.
    *
@@ -54,7 +54,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
   public int getMaxHistory() {
     return inner.getMaxHistory();
   }
-  
+
   /**
    * Sets max history.
    *
@@ -66,7 +66,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
     inner.setMaxHistory(maxHistory);
     return this;
   }
-  
+
   /**
    * Gets min history.
    *
@@ -75,7 +75,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
   public int getMinHistory() {
     return inner.getMinHistory();
   }
-  
+
   /**
    * Sets min history.
    *
@@ -87,7 +87,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
     inner.setMinHistory(minHistory);
     return this;
   }
-  
+
   @Override
   public LineSearchCursor orient(@Nonnull final Trainable subject, @Nonnull final PointSample origin, @Nonnull final TrainingMonitor monitor) {
     inner.addToHistory(origin, monitor);
@@ -101,24 +101,24 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
       monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
       gd.freeRef();
       return new LineSearchCursorBase() {
-  
+
         @Nonnull
         @Override
         public CharSequence getDirectionType() {
           return CURSOR_NAME;
         }
-  
+
         @Override
         public DeltaSet<Layer> position(final double t) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();
           return scaledGradient.scale(t - t * t).add(lbfgs.scale(t * t));
         }
-  
+
         @Override
         public void reset() {
           lbfgsCursor.reset();
         }
-  
+
         @Nonnull
         @Override
         public LineSearchPoint step(final double t, @Nonnull final TrainingMonitor monitor) {
@@ -131,29 +131,28 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
           @Nonnull final DeltaSet<Layer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, tangent.dot(sample.delta));
         }
-  
+
         @Override
         public void _free() {
           scaledGradient.freeRef();
           lbfgsCursor.freeRef();
         }
       };
-    }
-    else {
+    } else {
       gd.freeRef();
       return lbfgsCursor;
     }
   }
-  
+
   @Override
   public void reset() {
     inner.reset();
   }
-  
-  
+
+
   @Override
   protected void _free() {
     this.inner.freeRef();
   }
-  
+
 }

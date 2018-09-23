@@ -20,20 +20,8 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -46,10 +34,10 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class ValueLayer extends LayerBase {
-  
+
   private final Precision precision;
   private final CudaTensorList tensorList;
-  
+
   /**
    * Instantiates a new Const nn layer.
    *
@@ -63,7 +51,7 @@ public class ValueLayer extends LayerBase {
     this.tensorList = toDevice(value, precision);
     value.freeRef();
   }
-  
+
   /**
    * Instantiates a new Const nn layer.
    *
@@ -76,7 +64,7 @@ public class ValueLayer extends LayerBase {
     data.addRef();
     this.frozen = true;
   }
-  
+
   /**
    * From json const nn layer.
    *
@@ -87,7 +75,7 @@ public class ValueLayer extends LayerBase {
   public static ValueLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ValueLayer(json, rs);
   }
-  
+
   /**
    * To device cuda tensor list.
    *
@@ -105,30 +93,31 @@ public class ValueLayer extends LayerBase {
       return CudaTensorList.wrap(CudaTensor.wrap(cudaMemory, tensorDescriptor, precision), 1, dimensions, precision);
     });
   }
-  
+
   @Nonnull
   @Override
   public Result evalAndFree(@Nonnull final Result... array) {
     assert 0 == array.length;
     ValueLayer.this.tensorList.addRef();
-    return new Result(tensorList, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> { }) {
-      
+    return new Result(tensorList, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    }) {
+
       @Override
       protected void _free() {
       }
-      
+
       @Override
       public boolean isAlive() {
         return false;
       }
     };
   }
-  
+
   @Override
   protected void _free() {
     tensorList.freeRef();
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -139,7 +128,7 @@ public class ValueLayer extends LayerBase {
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

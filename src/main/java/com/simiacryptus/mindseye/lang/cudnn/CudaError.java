@@ -29,7 +29,7 @@ public class CudaError extends RuntimeException {
    */
   public CudaError() {
   }
-  
+
   /**
    * Instantiates a new Gpu error.
    *
@@ -38,7 +38,7 @@ public class CudaError extends RuntimeException {
   public CudaError(final String message) {
     super(message);
   }
-  
+
   /**
    * Instantiates a new Gpu error.
    *
@@ -48,7 +48,7 @@ public class CudaError extends RuntimeException {
   public CudaError(final String message, final Throwable cause) {
     super(message, cause);
   }
-  
+
   /**
    * Instantiates a new Gpu error.
    *
@@ -60,7 +60,7 @@ public class CudaError extends RuntimeException {
   public CudaError(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
-  
+
   /**
    * Instantiates a new Gpu error.
    *

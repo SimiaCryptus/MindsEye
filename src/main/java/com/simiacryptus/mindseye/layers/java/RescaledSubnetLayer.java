@@ -20,11 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayer;
 import com.simiacryptus.mindseye.network.DAGNode;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -42,11 +38,11 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class RescaledSubnetLayer extends LayerBase {
-  
+
   private final int scale;
   @Nullable
   private final Layer subnetwork;
-  
+
   /**
    * Instantiates a new Rescaled subnet layer.
    *
@@ -59,7 +55,7 @@ public class RescaledSubnetLayer extends LayerBase {
     this.subnetwork = subnetwork;
     this.subnetwork.addRef();
   }
-  
+
   /**
    * Instantiates a new Rescaled subnet layer.
    *
@@ -72,7 +68,7 @@ public class RescaledSubnetLayer extends LayerBase {
     JsonObject subnetwork = json.getAsJsonObject("subnetwork");
     this.subnetwork = subnetwork == null ? null : Layer.fromJson(subnetwork, rs);
   }
-  
+
   /**
    * From json rescaled subnet layer.
    *
@@ -83,13 +79,13 @@ public class RescaledSubnetLayer extends LayerBase {
   public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);
   }
-  
+
   @Override
   protected void _free() {
     this.subnetwork.freeRef();
     super._free();
   }
-  
+
   @Nullable
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -98,7 +94,7 @@ public class RescaledSubnetLayer extends LayerBase {
     @Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
     if (1 == scale) return subnetwork.eval(inObj);
-    
+
     @Nonnull final PipelineNetwork network = new PipelineNetwork();
     @Nullable final DAGNode condensed = network.wrap(new ImgReshapeLayer(scale, scale, false));
     network.wrap(new ImgConcatLayer(), IntStream.range(0, scale * scale).mapToObj(subband -> {
@@ -109,12 +105,12 @@ public class RescaledSubnetLayer extends LayerBase {
       return network.add(subnetwork, network.wrap(new ImgBandSelectLayer(select), condensed));
     }).toArray(i -> new DAGNode[i])).freeRef();
     network.wrap(new ImgReshapeLayer(scale, scale, true)).freeRef();
-    
+
     Result eval = network.eval(inObj);
     network.freeRef();
     return eval;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -123,13 +119,13 @@ public class RescaledSubnetLayer extends LayerBase {
     json.add("subnetwork", subnetwork.getJson(resources, dataSerializer));
     return json;
   }
-  
-  
+
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();
   }
-  
-  
+
+
 }

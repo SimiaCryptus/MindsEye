@@ -32,12 +32,12 @@ public abstract class BinaryEntropyActivationLayerTest extends ActivationLayerTe
   public BinaryEntropyActivationLayerTest() {
     super(new BinaryEntropyActivationLayer());
   }
-  
+
   @Override
   public double random() {
     return 0.1 * Math.random() + 1.0;
   }
-  
+
   @Override
   public DoubleStream scan() {
     return IntStream.range(50, 450).mapToDouble(x -> x * 1.0 / 500.0);
@@ -48,5 +48,5 @@ public abstract class BinaryEntropyActivationLayerTest extends ActivationLayerTe
 //   */
 //  public static class Basic extends BinaryEntropyActivationLayerTest {
 //  }
-  
+
 }

@@ -29,11 +29,11 @@ public abstract class ReLuActivationLayerTest extends ActivationLayerTestBase {
   public ReLuActivationLayerTest() {
     super(new ReLuActivationLayer());
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ReLuActivationLayerTest {
   }
-  
+
 }

@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.eval;
 
 import com.google.common.collect.Lists;
+import com.simiacryptus.lang.TimedResult;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.lang.TimedResult;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -35,13 +35,13 @@ import java.util.List;
  * memory requirements.
  */
 public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> implements DataTrainable {
-  
+
   /**
    * The Batch size.
    */
   protected final int batchSize;
   private boolean verbose = false;
-  
+
   /**
    * Instantiates a new Batched trainable.
    *
@@ -52,7 +52,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
     super(inner);
     this.batchSize = batchSize;
   }
-  
+
   /**
    * Instantiates a new Batched trainable.
    *
@@ -63,7 +63,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
     this(new BasicTrainable(network), batchSize);
     getInner().freeRef();
   }
-  
+
   /**
    * Gets batch size.
    *
@@ -72,8 +72,8 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   public int getBatchSize() {
     return batchSize;
   }
-  
-  
+
+
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     @Nonnull final List<Tensor[]> tensors = Arrays.asList(getData());
@@ -89,8 +89,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
           getInner().setData(trainingData);
           return super.measure(monitor);
         }).reduce((a, b) -> a.add(b)).get();
-      }
-      else {
+      } else {
         getInner().setData(tensors);
         return super.measure(monitor);
       }
@@ -100,7 +99,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
     }
     return timedResult.result;
   }
-  
+
   /**
    * Is verbose boolean.
    *
@@ -109,7 +108,7 @@ public abstract class BatchedTrainable extends TrainableWrapper<DataTrainable> i
   public boolean isVerbose() {
     return verbose;
   }
-  
+
   /**
    * Sets verbose.
    *

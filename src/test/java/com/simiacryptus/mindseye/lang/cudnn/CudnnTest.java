@@ -19,17 +19,14 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.*;
+import com.simiacryptus.lang.TimedResult;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.FastRandom;
-import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.lang.TimedResult;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -52,7 +49,7 @@ import java.util.stream.IntStream;
  * The type Cudnn layer apply base.
  */
 public class CudnnTest extends NotebookReportBase {
-  
+
   /**
    * Test.
    */
@@ -61,7 +58,7 @@ public class CudnnTest extends NotebookReportBase {
   public void allocationOverflow() {
     run(this::allocationOverflow, "allocationOverflow");
   }
-  
+
   private void allocationOverflow(@Nonnull NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + ".log";
 //    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
@@ -92,7 +89,7 @@ public class CudnnTest extends NotebookReportBase {
     });
 //    CudaSystem.removeLog(apiLog);
   }
-  
+
   /**
    * Memory transfer.
    */
@@ -100,7 +97,7 @@ public class CudnnTest extends NotebookReportBase {
   public void memoryTransfer() {
     run(this::memoryTransfer, "memoryTransfer");
   }
-  
+
   private void memoryTransfer(@Nonnull NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + ".log";
 //    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
@@ -116,7 +113,7 @@ public class CudnnTest extends NotebookReportBase {
     }
 //    CudaSystem.removeLog(apiLog);
   }
-  
+
   private void memoryTransfer(@Nonnull NotebookOutput log, int... size) {
     @Nonnull Supplier<TensorList> factory = () -> TensorArray.wrap(IntStream.range(0, 1).mapToObj(j -> {
       @Nonnull Tensor tensor = new Tensor(size);
@@ -149,7 +146,7 @@ public class CudnnTest extends NotebookReportBase {
         });
         int deviceNumber = gpu.getDeviceId();
         logger.info(String.format("Read %s bytes in %.4f seconds and verified in %.4fs using device %d: %s",
-          Arrays.toString(size), timedResult.seconds(), timedVerify.seconds(), deviceNumber, CudaDevice.getDeviceName(deviceNumber)));
+            Arrays.toString(size), timedResult.seconds(), timedVerify.seconds(), deviceNumber, CudaDevice.getDeviceName(deviceNumber)));
         if (!timedVerify.result)
           Assert.assertTrue(original.prettyPrint() + " != " + readCopy.prettyPrint(), timedVerify.result);
         readCopy.freeRef();
@@ -158,7 +155,7 @@ public class CudnnTest extends NotebookReportBase {
     });
     original.freeRef();
   }
-  
+
   /**
    * Tensor lists.
    */
@@ -166,7 +163,7 @@ public class CudnnTest extends NotebookReportBase {
   public void tensorLists() {
     run(this::tensorLists, "tensorLists");
   }
-  
+
   private void tensorLists(@Nonnull NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + ".log";
 //    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
@@ -185,7 +182,7 @@ public class CudnnTest extends NotebookReportBase {
     }
 //    CudaSystem.removeLog(apiLog);
   }
-  
+
   private void testTensorList(@Nonnull NotebookOutput log, @Nonnull int[] dimensions, int length, double tolerance, int accumulations) {
     @Nonnull Supplier<TensorList> factory = () -> TensorArray.wrap(IntStream.range(0, length).mapToObj(j -> {
       @Nonnull Tensor tensor = new Tensor(dimensions);
@@ -208,12 +205,12 @@ public class CudnnTest extends NotebookReportBase {
         @Nonnull TimedResult<Boolean> timedVerify = TimedResult.time(() -> {
           @Nonnull TensorList minus = original.minus(timedResult.result);
           double variance = minus.stream().mapToDouble(x -> Arrays.stream(x.getData()).map(Math::abs).max().getAsDouble())
-            .max().getAsDouble();
+              .max().getAsDouble();
           minus.freeRef();
           return variance < tolerance;
         });
         logger.info(String.format("Read %s in %.4f seconds and verified in %.4fs using device %d: %s",
-          Arrays.toString(dimensions), timedResult.seconds(), timedVerify.seconds(), ctx.getDeviceId(), CudaDevice.getDeviceName(ctx.getDeviceId())));
+            Arrays.toString(dimensions), timedResult.seconds(), timedVerify.seconds(), ctx.getDeviceId(), CudaDevice.getDeviceName(ctx.getDeviceId())));
         if (!timedVerify.result)
           Assert.assertTrue(original.prettyPrint() + " != " + timedResult.result.prettyPrint(), timedVerify.result);
         timedResult.result.freeRef();
@@ -231,7 +228,7 @@ public class CudnnTest extends NotebookReportBase {
             timedWrite.result.freeRef();
           });
           logger.info(String.format("Wrote in %.4f seconds and accumulated %s in %.4f seconds, Device %d: %s",
-            timedAccumulation.seconds(), Arrays.toString(dimensions), timedWrite.seconds(), gpu.getDeviceId(), CudaDevice.getDeviceName(gpu.getDeviceId())));
+              timedAccumulation.seconds(), Arrays.toString(dimensions), timedWrite.seconds(), gpu.getDeviceId(), CudaDevice.getDeviceName(gpu.getDeviceId())));
         }, accumulant);
       });
       @Nonnull TimedResult<TensorList> finalResultTiming = TimedResult.time(() -> {
@@ -263,7 +260,7 @@ public class CudnnTest extends NotebookReportBase {
           return diffVal < tolerance;
         });
         logger.info(String.format("Read %s and verified in %.4fs using device %d: %s",
-          Arrays.toString(dimensions), timedVerify.seconds(), ctx.getDeviceId(), CudaDevice.getDeviceName(ctx.getDeviceId())));
+            Arrays.toString(dimensions), timedVerify.seconds(), ctx.getDeviceId(), CudaDevice.getDeviceName(ctx.getDeviceId())));
         if (!timedVerify.result)
           Assert.assertTrue(finalResult.prettyPrint() + " != " + mutableGpuData.get().prettyPrint(), timedVerify.result);
       });
@@ -271,7 +268,7 @@ public class CudnnTest extends NotebookReportBase {
       finalResult.freeRef();
     });
   }
-  
+
   /**
    * Tensor lists multithreaded.
    */
@@ -279,7 +276,7 @@ public class CudnnTest extends NotebookReportBase {
   public void tensorLists_multithreaded() {
     run(this::tensorLists_multithreaded, "tensorLists_multithreaded");
   }
-  
+
   private void tensorLists_multithreaded(@Nonnull NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + ".log";
 //    @Nonnull PrintStream apiLog = new PrintStream(log.file(logName));
@@ -298,7 +295,7 @@ public class CudnnTest extends NotebookReportBase {
     }
 //    CudaSystem.removeLog(apiLog);
   }
-  
+
   private void testTensorListMT(@Nonnull NotebookOutput log, @Nonnull int[] dimensions, int length, double tolerance, int accumulations) {
     @Nonnull Supplier<TensorList> factory = () -> TensorArray.wrap(IntStream.range(0, length).mapToObj(j -> {
       @Nonnull Tensor tensor = new Tensor(dimensions);
@@ -306,7 +303,7 @@ public class CudnnTest extends NotebookReportBase {
       return tensor;
     }).toArray(j -> new Tensor[j]));
     log.run(() -> {
-      @Nonnull ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(5));
+      @Nonnull ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(5, new ThreadFactoryBuilder().setDaemon(true).build()));
       PrintStream out = SysOutInterceptor.INSTANCE.currentHandler();
       try {
         List<ListenableFuture<Object>> collect = IntStream.range(0, 16).mapToObj(workerNumber -> {
@@ -324,7 +321,7 @@ public class CudnnTest extends NotebookReportBase {
           }, original));
           @Nonnull TimedResult<List<TensorList>> accumulantTiming = TimedResult.time(() -> IntStream.range(0, accumulations).mapToObj(x -> factory.get()).collect(Collectors.toList()));
           List<TensorList> accumulants = accumulantTiming.result;
-  
+
           @Nonnull TimedResult<TensorList> finalResultTiming = TimedResult.time(() -> {
             return accumulants.stream().map(x -> {
               x.addRef();
@@ -342,7 +339,7 @@ public class CudnnTest extends NotebookReportBase {
               return original;
             });
           });
-          
+
           logger.info(String.format("[%s] Calculated accumulant in %.4fsec", workerNumber, accumulantTiming.seconds()));
           @Nonnull ListenableFuture<TensorList> accumulated = Futures.transform(mutableDataFuture, (x) -> {
             PrintStream oldHandler = SysOutInterceptor.INSTANCE.setCurrentHandler(out);
@@ -365,7 +362,7 @@ public class CudnnTest extends NotebookReportBase {
                   timedWrite.result.freeRef();
                 });
                 logger.info(String.format("[%s] Wrote in %.4f seconds and accumulated %s in %.4f seconds, Device %d: %s", workerNumber,
-                  timedAccumulation.seconds(), Arrays.toString(dimensions), timedWrite.seconds(), gpu.getDeviceId(), CudaDevice.getDeviceName(gpu.getDeviceId())));
+                    timedAccumulation.seconds(), Arrays.toString(dimensions), timedWrite.seconds(), gpu.getDeviceId(), CudaDevice.getDeviceName(gpu.getDeviceId())));
               }, delta);
             });
             SysOutInterceptor.INSTANCE.setCurrentHandler(oldHandler);
@@ -388,7 +385,7 @@ public class CudnnTest extends NotebookReportBase {
                 return diffVal < tolerance;
               });
               logger.info(String.format("[%s] Read %s and verified in %.4fs using device %d: %s", workerNumber,
-                Arrays.toString(dimensions), timedVerify.seconds(), gpu.getDeviceId(), CudaDevice.getDeviceName(gpu.getDeviceId())));
+                  Arrays.toString(dimensions), timedVerify.seconds(), gpu.getDeviceId(), CudaDevice.getDeviceName(gpu.getDeviceId())));
               if (!timedVerify.result)
                 Assert.assertTrue(finalResult.prettyPrint() + " != " + write.prettyPrint(), timedVerify.result);
               write.freeRef();
@@ -406,17 +403,17 @@ public class CudnnTest extends NotebookReportBase {
       }
     });
   }
-  
+
   private double random(double v) {
     return FastRandom.INSTANCE.random();
   }
-  
+
   @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Components;
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {

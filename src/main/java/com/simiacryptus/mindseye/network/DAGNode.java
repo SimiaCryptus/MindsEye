@@ -34,7 +34,7 @@ import java.util.UUID;
  * node can be updated, which can be useful for adding/removing instrumentation wrappers.
  */
 public interface DAGNode extends Serializable, ReferenceCounting {
-  
+
   /**
    * Get nn result.
    *
@@ -43,14 +43,14 @@ public interface DAGNode extends Serializable, ReferenceCounting {
    */
   @Nullable
   Result get(GraphEvaluationContext buildExeCtx);
-  
+
   /**
    * Gets id.
    *
    * @return the id
    */
   UUID getId();
-  
+
   /**
    * Get inputs dag node [ ].
    *
@@ -60,7 +60,7 @@ public interface DAGNode extends Serializable, ReferenceCounting {
   default DAGNode[] getInputs() {
     return new DAGNode[]{};
   }
-  
+
   /**
    * Gets layer.
    *
@@ -69,20 +69,20 @@ public interface DAGNode extends Serializable, ReferenceCounting {
    */
   @Nullable
   <T extends Layer> T getLayer();
-  
-  
+
+
   /**
    * Sets layer.
    *
    * @param layer the layer
    */
   void setLayer(Layer layer);
-  
+
   /**
    * Gets network.
    *
    * @return the network
    */
   DAGNetwork getNetwork();
-  
+
 }

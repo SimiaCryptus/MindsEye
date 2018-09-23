@@ -30,13 +30,13 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<BinaryEntropyActivationLayer> {
-  
+
   /**
    * Instantiates a new Binary entropy activation layer.
    */
   public BinaryEntropyActivationLayer() {
   }
-  
+
   /**
    * Instantiates a new Binary entropy activation layer.
    *
@@ -45,7 +45,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
   protected BinaryEntropyActivationLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json binary entropy activation layer.
    *
@@ -56,7 +56,7 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
   public static BinaryEntropyActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BinaryEntropyActivationLayer(json);
   }
-  
+
   @Override
   protected final void eval(final double x, final double[] results) {
     final double minDeriv = 0;
@@ -67,11 +67,11 @@ public final class BinaryEntropyActivationLayer extends SimpleActivationLayer<Bi
     results[0] = f;
     results[1] = d;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
 }

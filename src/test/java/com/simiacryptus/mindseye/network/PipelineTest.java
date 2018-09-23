@@ -25,9 +25,9 @@ import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.unit.SerializationTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
+import com.simiacryptus.notebook.MarkdownNotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
-import com.simiacryptus.util.io.NotebookOutput;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import org.junit.Test;
@@ -43,13 +43,13 @@ import java.util.List;
  * The type N layer apply.
  */
 public abstract class PipelineTest {
-  
+
   /**
    * The Dim list.
    */
   final List<Layer> pipeline;
-  
-  
+
+
   /**
    * Instantiates a new N layer apply.
    *
@@ -58,7 +58,7 @@ public abstract class PipelineTest {
   public PipelineTest(final List<Layer> pipeline) {
     this.pipeline = pipeline;
   }
-  
+
   /**
    * Instantiates a new Pipeline apply.
    *
@@ -67,7 +67,7 @@ public abstract class PipelineTest {
   public PipelineTest(final Layer... pipeline) {
     this(Arrays.asList(pipeline));
   }
-  
+
   /**
    * Build network nn layer.
    *
@@ -82,7 +82,7 @@ public abstract class PipelineTest {
     }
     return network;
   }
-  
+
   /**
    * Get input dims int [ ] [ ].
    *
@@ -90,7 +90,7 @@ public abstract class PipelineTest {
    */
   @Nonnull
   public abstract int[] getInputDims();
-  
+
   /**
    * Graphviz.
    *
@@ -102,11 +102,11 @@ public abstract class PipelineTest {
       log.p("This is a network apply the following layout:");
       log.eval(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
-          .height(400).width(600).render(Format.PNG).toImage();
+            .height(400).width(600).render(Format.PNG).toImage();
       });
     }
   }
-  
+
   /**
    * Random double.
    *
@@ -115,7 +115,7 @@ public abstract class PipelineTest {
   public double random() {
     return Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
   }
-  
+
   /**
    * Random tensor [ ].
    *
@@ -125,7 +125,7 @@ public abstract class PipelineTest {
   public Tensor[] randomize(@Nonnull final int[][] inputDims) {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(this::random)).toArray(i -> new Tensor[i]);
   }
-  
+
   /**
    * Test.
    *
@@ -137,7 +137,7 @@ public abstract class PipelineTest {
       test(log);
     }
   }
-  
+
   /**
    * Test.
    *
@@ -153,7 +153,7 @@ public abstract class PipelineTest {
       test(log, networkHead, String.format("Pipeline Network apply %d Layers", layerIndex++), getInputDims());
     }
   }
-  
+
   /**
    * Test double.
    *
@@ -175,5 +175,5 @@ public abstract class PipelineTest {
       }
     }.test(log, component, randomize);
   }
-  
+
 }

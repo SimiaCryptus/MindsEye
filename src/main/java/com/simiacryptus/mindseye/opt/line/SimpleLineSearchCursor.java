@@ -45,7 +45,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
    */
   public final Trainable subject;
   private String type = "";
-  
+
   /**
    * Instantiates a new Simple line search cursor.
    *
@@ -60,12 +60,12 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
     this.subject = subject;
     this.subject.addRef();
   }
-  
+
   @Override
   public CharSequence getDirectionType() {
     return type;
   }
-  
+
   /**
    * Sets direction type.
    *
@@ -77,18 +77,18 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
     this.type = type;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public DeltaSet<Layer> position(final double alpha) {
     return direction.scale(alpha);
   }
-  
+
   @Override
   public void reset() {
     origin.restore();
   }
-  
+
   @Override
   public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
     if (!Double.isFinite(alpha)) throw new IllegalArgumentException();
@@ -102,7 +102,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
     sample.freeRef();
     return lineSearchPoint;
   }
-  
+
   @Override
   protected void _free() {
     this.origin.freeRef();

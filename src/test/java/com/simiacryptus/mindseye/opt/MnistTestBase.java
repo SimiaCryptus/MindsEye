@@ -29,10 +29,10 @@ import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.data.MNIST;
+import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.notebook.TableOutput;
+import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.MonitoredObject;
-import com.simiacryptus.util.TableOutput;
-import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Test;
@@ -46,11 +46,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -58,12 +54,12 @@ import java.util.stream.IntStream;
  */
 public abstract class MnistTestBase extends NotebookReportBase {
   private static final Logger log = LoggerFactory.getLogger(MnistTestBase.class);
-  
+
   /**
    * The Model no.
    */
   int modelNo = 0;
-  
+
   /**
    * Test.
    *
@@ -74,13 +70,13 @@ public abstract class MnistTestBase extends NotebookReportBase {
   public void test() {
     run(this::run);
   }
-  
+
   @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Optimizers;
   }
-  
+
   /**
    * Run.
    *
@@ -99,7 +95,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
     validate(log, network);
     removeMonitoring(network);
   }
-  
+
   /**
    * Add monitoring.
    *
@@ -113,7 +109,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
       }
     });
   }
-  
+
   /**
    * Build model dag network.
    *
@@ -123,17 +119,17 @@ public abstract class MnistTestBase extends NotebookReportBase {
   public DAGNetwork buildModel(@Nonnull final NotebookOutput log) {
     log.h1("Model");
     log.p("This is a very simple model that performs basic logistic regression. " +
-      "It is expected to be trainable to about 91% accuracy on MNIST.");
+        "It is expected to be trainable to about 91% accuracy on MNIST.");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.wrap(new BiasLayer(28, 28, 1)).freeRef();
       network.wrap(new FullyConnectedLayer(new int[]{28, 28, 1}, new int[]{10})
-        .set(() -> 0.001 * (Math.random() - 0.45))).freeRef();
+          .set(() -> 0.001 * (Math.random() - 0.45))).freeRef();
       network.wrap(new SoftmaxActivationLayer()).freeRef();
       return network;
     });
   }
-  
+
   /**
    * Get training data tensor [ ] [ ].
    *
@@ -149,7 +145,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
     }).toArray(i -> new Tensor[i][]);
     return tensors;
   }
-  
+
   /**
    * Parse int.
    *
@@ -159,7 +155,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
   public int parse(@Nonnull final String label) {
     return Integer.parseInt(label.replaceAll("[^\\d]", ""));
   }
-  
+
   /**
    * Predict int [ ].
    *
@@ -171,7 +167,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
     @Nullable final double[] predictionSignal = network.eval(labeledObject.data).getData().get(0).getData();
     return IntStream.range(0, 10).mapToObj(x -> x).sorted(Comparator.comparing(i -> -predictionSignal[i])).mapToInt(x -> x).toArray();
   }
-  
+
   /**
    * Remove monitoring.
    *
@@ -184,7 +180,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
       }
     });
   }
-  
+
   /**
    * Report.
    *
@@ -194,7 +190,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @param network        the network
    */
   public void report(@Nonnull final NotebookOutput log, @Nonnull final MonitoredObject monitoringRoot, @Nonnull final List<Step> history, @Nonnull final Layer network) {
-    
+
     if (!history.isEmpty()) {
       log.eval(() -> {
         @Nonnull final PlotCanvas plot = ScatterPlot.plot(history.stream().map(step -> new double[]{step.iteration, Math.log10(step.point.getMean())}).toArray(i -> new double[i][]));
@@ -204,10 +200,10 @@ public abstract class MnistTestBase extends NotebookReportBase {
         return plot;
       });
     }
-  
+
     @Nonnull final String modelName = "model" + modelNo++ + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
-  
+
     log.h1("Metrics");
     log.eval(() -> {
       try {
@@ -219,7 +215,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
       }
     });
   }
-  
+
   /**
    * Gets monitor.
    *
@@ -233,13 +229,13 @@ public abstract class MnistTestBase extends NotebookReportBase {
       public void clear() {
         super.clear();
       }
-      
+
       @Override
       public void log(final String msg) {
         log.info(msg);
         super.log(msg);
       }
-      
+
       @Override
       public void onStepComplete(final Step currentPoint) {
         history.add(currentPoint);
@@ -247,7 +243,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
       }
     };
   }
-  
+
   /**
    * Train.
    *
@@ -257,7 +253,7 @@ public abstract class MnistTestBase extends NotebookReportBase {
    * @param monitor      the monitor
    */
   public abstract void train(NotebookOutput log, Layer network, Tensor[][] trainingData, TrainingMonitor monitor);
-  
+
   /**
    * Validate.
    *
@@ -269,10 +265,10 @@ public abstract class MnistTestBase extends NotebookReportBase {
     log.p("If we apply our model against the entire validation dataset, we get this accuracy:");
     log.eval(() -> {
       return MNIST.validationDataStream().mapToDouble(labeledObject ->
-        predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
-        .average().getAsDouble() * 100;
+          predict(network, labeledObject)[0] == parse(labeledObject.label) ? 1 : 0)
+          .average().getAsDouble() * 100;
     });
-    
+
     log.p("Let's examine some incorrectly predicted results in more detail:");
     log.eval(() -> {
       @Nonnull final TableOutput table = new TableOutput();
@@ -284,8 +280,8 @@ public abstract class MnistTestBase extends NotebookReportBase {
         @Nonnull final LinkedHashMap<CharSequence, Object> row = new LinkedHashMap<>();
         row.put("Image", log.png(labeledObject.data.toGrayImage(), labeledObject.label));
         row.put("Prediction", Arrays.stream(predictionList).limit(3)
-          .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
-          .reduce((a, b) -> a + ", " + b).get());
+            .mapToObj(i -> String.format("%d (%.1f%%)", i, 100.0 * predictionSignal[i]))
+            .reduce((a, b) -> a + ", " + b).get());
         return row;
       }).filter(x -> null != x).limit(10).forEach(table::putRow);
       return table;

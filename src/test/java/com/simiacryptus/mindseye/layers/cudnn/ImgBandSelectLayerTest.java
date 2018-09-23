@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.Random;
@@ -30,7 +30,7 @@ import java.util.Random;
  * The type Img eval layer apply.
  */
 public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Precision.
    */
@@ -45,7 +45,7 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
    * The Input bands.
    */
   int inputBands;
-  
+
   /**
    * Instantiates a new Img eval layer apply.
    *
@@ -62,7 +62,7 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
     largeSize = 1000;
     testingBatchSize = 1;
   }
-  
+
   @Override
   public void run(NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
@@ -73,34 +73,34 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
 //    apiLog.close();
 //    CudaSystem.apiLog.remove(apiLog);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {smallSize, smallSize, inputBands}
+        {smallSize, smallSize, inputBands}
     };
   }
-  
+
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {largeSize, largeSize, inputBands}
+        {largeSize, largeSize, inputBands}
     };
   }
-  
+
   @Override
   public Layer getReferenceLayer() {
     return layer.getCompatibilityLayer();
   }
-  
+
   /**
    * Basic 64-bit apply
    */
@@ -124,7 +124,7 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
 //      super(Precision.Double, 1024, 0, 256);
 //    }
 //  }
-  
+
   /**
    * Basic 32-bit apply
    */
@@ -136,5 +136,5 @@ public abstract class ImgBandSelectLayerTest extends CudaLayerTestBase {
       super(Precision.Float, 2, 0, 1);
     }
   }
-  
+
 }

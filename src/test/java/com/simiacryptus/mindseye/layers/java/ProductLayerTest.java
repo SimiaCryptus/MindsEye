@@ -29,25 +29,25 @@ import java.util.Random;
  * The type Product layer apply.
  */
 public abstract class ProductLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ProductLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ProductLayerTest {
   }
-  
+
 }

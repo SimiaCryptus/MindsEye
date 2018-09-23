@@ -30,12 +30,12 @@ import java.util.Random;
  * The type Pooling layer apply.
  */
 public abstract class PoolingLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Precision.
    */
   final Precision precision;
-  
+
   /**
    * Instantiates a new Pooling layer apply.
    *
@@ -44,29 +44,29 @@ public abstract class PoolingLayerTest extends CudaLayerTestBase {
   public PoolingLayerTest(final Precision precision) {
     this.precision = precision;
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new PoolingLayer().setPrecision(precision);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+        {8, 8, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+        {1200, 1200, 3}
     };
   }
-  
+
   /**
    * Basic 64-bit apply.
    */
@@ -78,7 +78,7 @@ public abstract class PoolingLayerTest extends CudaLayerTestBase {
       super(Precision.Double);
     }
   }
-  
+
   /**
    * Test using an asymmetric window size.
    */
@@ -89,15 +89,15 @@ public abstract class PoolingLayerTest extends CudaLayerTestBase {
     public Asymmetric() {
       super(Precision.Double);
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new PoolingLayer().setPrecision(precision).setWindowY(4);
     }
-    
+
   }
-  
+
   /**
    * Basic 32-bit apply.
    */
@@ -108,11 +108,11 @@ public abstract class PoolingLayerTest extends CudaLayerTestBase {
     public Float() {
       super(Precision.Float);
     }
-  
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-  
+
   }
 }

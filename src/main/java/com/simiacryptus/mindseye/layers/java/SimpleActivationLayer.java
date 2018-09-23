@@ -20,13 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +37,10 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
-  
+
   /**
    * Instantiates a new Simple activation layer.
    */
@@ -54,7 +48,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
     super();
     this.frozen = true;
   }
-  
+
   /**
    * Instantiates a new Simple activation layer.
    *
@@ -63,7 +57,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   protected SimpleActivationLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * Eval.
    *
@@ -71,7 +65,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
    * @param results the results
    */
   protected abstract void eval(final double x, double[] results);
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -112,7 +106,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
         inObj[0].accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
@@ -121,18 +115,18 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
           tensor.freeRef();
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
 }

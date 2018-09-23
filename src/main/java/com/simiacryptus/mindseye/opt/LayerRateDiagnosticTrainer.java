@@ -20,11 +20,7 @@
 package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.DoubleBuffer;
-import com.simiacryptus.mindseye.lang.IterativeStopException;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -48,8 +44,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * phase. This can indicate how balanced a network is, and how to trainCjGD it.
  */
 public class LayerRateDiagnosticTrainer {
-  
-  
+
+
   private final Map<Layer, LayerStats> layerRates = new HashMap<>();
   private final Trainable subject;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -60,7 +56,7 @@ public class LayerRateDiagnosticTrainer {
   private boolean strict = false;
   private double terminateThreshold;
   private Duration timeout;
-  
+
   /**
    * Instantiates a new LayerBase rate diagnostic trainer.
    *
@@ -72,7 +68,7 @@ public class LayerRateDiagnosticTrainer {
     terminateThreshold = Double.NEGATIVE_INFINITY;
     setOrientation(new GradientDescent());
   }
-  
+
   @Nonnull
   private DeltaSet<Layer> filterDirection(@Nonnull final DeltaSet<Layer> direction, @Nonnull final Layer layer) {
     @Nonnull final DeltaSet<Layer> maskedDelta = new DeltaSet<Layer>();
@@ -80,7 +76,7 @@ public class LayerRateDiagnosticTrainer {
     maskedDelta.get(layer, layer.state().get(0)).addInPlace(direction.get(layer, (double[]) null).getDelta());
     return maskedDelta;
   }
-  
+
   /**
    * Gets current iteration.
    *
@@ -89,7 +85,7 @@ public class LayerRateDiagnosticTrainer {
   public AtomicInteger getCurrentIteration() {
     return currentIteration;
   }
-  
+
   /**
    * Sets current iteration.
    *
@@ -101,7 +97,7 @@ public class LayerRateDiagnosticTrainer {
     this.currentIteration = currentIteration;
     return this;
   }
-  
+
   /**
    * Gets iterations per sample.
    *
@@ -110,7 +106,7 @@ public class LayerRateDiagnosticTrainer {
   public int getIterationsPerSample() {
     return iterationsPerSample;
   }
-  
+
   /**
    * Sets iterations per sample.
    *
@@ -122,7 +118,7 @@ public class LayerRateDiagnosticTrainer {
     this.iterationsPerSample = iterationsPerSample;
     return this;
   }
-  
+
   /**
    * Gets layer rates.
    *
@@ -132,7 +128,7 @@ public class LayerRateDiagnosticTrainer {
   public Map<Layer, LayerStats> getLayerRates() {
     return layerRates;
   }
-  
+
   /**
    * Gets line search strategy.
    *
@@ -142,7 +138,7 @@ public class LayerRateDiagnosticTrainer {
   protected LineSearchStrategy getLineSearchStrategy() {
     return new QuadraticSearch();
   }
-  
+
   /**
    * Gets max iterations.
    *
@@ -151,7 +147,7 @@ public class LayerRateDiagnosticTrainer {
   public int getMaxIterations() {
     return maxIterations;
   }
-  
+
   /**
    * Sets max iterations.
    *
@@ -163,7 +159,7 @@ public class LayerRateDiagnosticTrainer {
     this.maxIterations = maxIterations;
     return this;
   }
-  
+
   /**
    * Gets monitor.
    *
@@ -172,7 +168,7 @@ public class LayerRateDiagnosticTrainer {
   public TrainingMonitor getMonitor() {
     return monitor;
   }
-  
+
   /**
    * Sets monitor.
    *
@@ -184,7 +180,7 @@ public class LayerRateDiagnosticTrainer {
     this.monitor = monitor;
     return this;
   }
-  
+
   /**
    * Gets orientation.
    *
@@ -193,7 +189,7 @@ public class LayerRateDiagnosticTrainer {
   public OrientationStrategy<?> getOrientation() {
     return orientation;
   }
-  
+
   /**
    * Sets orientation.
    *
@@ -205,7 +201,7 @@ public class LayerRateDiagnosticTrainer {
     this.orientation = orientation;
     return this;
   }
-  
+
   /**
    * Gets terminate threshold.
    *
@@ -214,7 +210,7 @@ public class LayerRateDiagnosticTrainer {
   public double getTerminateThreshold() {
     return terminateThreshold;
   }
-  
+
   /**
    * Sets terminate threshold.
    *
@@ -226,7 +222,7 @@ public class LayerRateDiagnosticTrainer {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
-  
+
   /**
    * Gets timeout.
    *
@@ -235,7 +231,7 @@ public class LayerRateDiagnosticTrainer {
   public Duration getTimeout() {
     return timeout;
   }
-  
+
   /**
    * Sets timeout.
    *
@@ -247,7 +243,7 @@ public class LayerRateDiagnosticTrainer {
     this.timeout = timeout;
     return this;
   }
-  
+
   /**
    * Is strict boolean.
    *
@@ -256,7 +252,7 @@ public class LayerRateDiagnosticTrainer {
   public boolean isStrict() {
     return strict;
   }
-  
+
   /**
    * Sets strict.
    *
@@ -268,7 +264,7 @@ public class LayerRateDiagnosticTrainer {
     this.strict = strict;
     return this;
   }
-  
+
   /**
    * Measure point sample.
    *
@@ -285,7 +281,7 @@ public class LayerRateDiagnosticTrainer {
     assert Double.isFinite(currentPoint.sum);
     return currentPoint;
   }
-  
+
   /**
    * Run buildMap.
    *
@@ -301,13 +297,13 @@ public class LayerRateDiagnosticTrainer {
         break;
       }
       final PointSample initialPhasePoint = measure();
-  
+
       measure = initialPhasePoint;
       for (int subiteration = 0; subiteration < iterationsPerSample; subiteration++) {
         if (currentIteration.incrementAndGet() > maxIterations) {
           break;
         }
-  
+
         {
           @Nonnull final SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           final double stepSize = 1e-12 * orient.origin.sum;
@@ -329,11 +325,11 @@ public class LayerRateDiagnosticTrainer {
           }
           monitor.log(String.format("Estimated ideal rates for layers: %s (%s overall; probed at %s)", steps, overallStepEstimate, stepSize));
         }
-  
-  
+
+
         @Nullable SimpleLineSearchCursor bestOrient = null;
         @Nullable PointSample bestPoint = null;
-        layerLoop:
+layerLoop:
         for (@Nonnull final Layer layer : layers) {
           @Nonnull SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           @Nonnull final DeltaSet<Layer> direction = filterDirection(orient.direction, layer);
@@ -354,11 +350,9 @@ public class LayerRateDiagnosticTrainer {
             getLayerRates().put(layer, new LayerStats(measure.getRate(), initialPhasePoint.sum - measure.sum));
             orient.step(0, monitor);
             measure = previous;
-          }
-          else if (previous.sum == measure.sum) {
+          } else if (previous.sum == measure.sum) {
             monitor.log(String.format("Iteration %s failed. Error: %s", currentIteration.get(), measure.sum));
-          }
-          else {
+          } else {
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), measure.sum));
             monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
             getLayerRates().put(layer, new LayerStats(measure.getRate(), initialPhasePoint.sum - measure.sum));
@@ -373,7 +367,7 @@ public class LayerRateDiagnosticTrainer {
     }
     return getLayerRates();
   }
-  
+
   /**
    * Sets timeout.
    *
@@ -386,7 +380,7 @@ public class LayerRateDiagnosticTrainer {
     timeout = Duration.of(number, units);
     return this;
   }
-  
+
   /**
    * Sets timeout.
    *
@@ -398,7 +392,7 @@ public class LayerRateDiagnosticTrainer {
   public LayerRateDiagnosticTrainer setTimeout(final int number, @Nonnull final TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
-  
+
   /**
    * The type LayerBase stats.
    */
@@ -411,7 +405,7 @@ public class LayerRateDiagnosticTrainer {
      * The Rate.
      */
     public final double rate;
-  
+
     /**
      * Instantiates a new LayerBase stats.
      *
@@ -422,7 +416,7 @@ public class LayerRateDiagnosticTrainer {
       this.rate = rate;
       this.delta = delta;
     }
-  
+
     @Nonnull
     @Override
     public String toString() {

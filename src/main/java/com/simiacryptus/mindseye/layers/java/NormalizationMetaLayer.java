@@ -32,10 +32,10 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class NormalizationMetaLayer extends PipelineNetwork {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(NormalizationMetaLayer.class);
-  
+
   /**
    * Instantiates a new Normalization meta layer.
    */
@@ -48,7 +48,7 @@ public class NormalizationMetaLayer extends PipelineNetwork {
     wrap(new NthPowerActivationLayer().setPower(-0.5)).freeRef();
     wrap(new ProductInputsLayer(), getHead(), getInput(0)).freeRef();
   }
-  
+
   /**
    * Instantiates a new Normalization meta layer.
    *
@@ -58,7 +58,7 @@ public class NormalizationMetaLayer extends PipelineNetwork {
   protected NormalizationMetaLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
   }
-  
+
   /**
    * From json normalization meta layer.
    *
@@ -69,5 +69,5 @@ public class NormalizationMetaLayer extends PipelineNetwork {
   public static NormalizationMetaLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new NormalizationMetaLayer(json, rs);
   }
-  
+
 }

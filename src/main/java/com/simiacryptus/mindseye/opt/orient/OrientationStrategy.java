@@ -33,7 +33,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
  * @param <T> the type parameter
  */
 public interface OrientationStrategy<T extends LineSearchCursor> extends ReferenceCounting {
-  
+
   /**
    * Orient line search cursor.
    *
@@ -43,7 +43,7 @@ public interface OrientationStrategy<T extends LineSearchCursor> extends Referen
    * @return the line search cursor
    */
   T orient(Trainable subject, PointSample measurement, TrainingMonitor monitor);
-  
+
   /**
    * Reset.
    */

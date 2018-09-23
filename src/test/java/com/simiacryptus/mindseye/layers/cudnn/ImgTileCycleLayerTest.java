@@ -29,51 +29,52 @@ import java.util.Random;
  * The type Img crop layer apply.
  */
 public abstract class ImgTileCycleLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * Instantiates a new Img crop layer apply.
    */
   public ImgTileCycleLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+        {8, 8, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+        {1200, 1200, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgTileCycleLayer();
   }
-  
+
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return null;
   }
-  
-  
+
+
   public static class OneThird extends ImgTileCycleLayerTest {
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new ImgTileCycleLayer().setXPos(0.3).setYPos(0.3);
     }
-    
+
   }
+
   /**
    * Basic Test
    */

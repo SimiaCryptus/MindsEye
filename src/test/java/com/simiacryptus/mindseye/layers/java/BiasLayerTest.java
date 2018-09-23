@@ -29,9 +29,9 @@ import java.util.Random;
  * The type Bias layer apply.
  */
 public abstract class BiasLayerTest extends LayerTestBase {
-  
+
   private final int dimension;
-  
+
   /**
    * Instantiates a new Bias layer apply.
    *
@@ -40,21 +40,21 @@ public abstract class BiasLayerTest extends LayerTestBase {
   public BiasLayerTest(int dimension) {
     this.dimension = dimension;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {dimension}
+        {dimension}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new BiasLayer(dimension).addWeights(this::random);
   }
-  
+
   /**
    * Basic Test
    */
@@ -66,25 +66,25 @@ public abstract class BiasLayerTest extends LayerTestBase {
       super(5);
     }
   }
-  
+
   /**
    * Tests applying a single bias value on all inputs.
    */
   public static class Reducing extends BiasLayerTest {
-  
+
     /**
      * Instantiates a new Reducing.
      */
     public Reducing() {
       super(5);
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new BiasLayer(1).addWeights(this::random);
     }
-  
+
   }
-  
+
 }

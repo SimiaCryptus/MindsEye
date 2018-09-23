@@ -29,7 +29,7 @@ import java.util.Random;
  * The type Sum meta layer apply.
  */
 public abstract class SumMetaLayerTest extends MetaLayerTestBase {
-  
+
   /**
    * Instantiates a new Sum meta layer apply.
    */
@@ -37,33 +37,33 @@ public abstract class SumMetaLayerTest extends MetaLayerTestBase {
     super();
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new SumMetaLayer().setMinBatches(0);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {100}
+        {100}
     };
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends SumMetaLayerTest {
   }
-  
+
 }

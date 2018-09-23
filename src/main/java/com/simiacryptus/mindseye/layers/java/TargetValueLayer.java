@@ -37,12 +37,12 @@ import java.util.UUID;
  */
 @SuppressWarnings("serial")
 public class TargetValueLayer extends DAGNetwork {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(TargetValueLayer.class);
   private final DAGNode head;
   private final DAGNode target;
-  
+
   /**
    * Instantiates a new Target value layer.
    *
@@ -53,7 +53,7 @@ public class TargetValueLayer extends DAGNetwork {
     target = add(new ValueLayer(new Tensor(values)));
     head = add(new MeanSqLossLayer(), getInput(0), target);
   }
-  
+
   /**
    * Instantiates a new Target value layer.
    *
@@ -65,7 +65,7 @@ public class TargetValueLayer extends DAGNetwork {
     head = getNodeById(UUID.fromString(json.getAsJsonPrimitive("head").getAsString()));
     target = getNodeById(UUID.fromString(json.getAsJsonPrimitive("target").getAsString()));
   }
-  
+
   /**
    * From json nn layer.
    *
@@ -76,19 +76,19 @@ public class TargetValueLayer extends DAGNetwork {
   public static Layer fromJson(@Nonnull final JsonObject inner, Map<CharSequence, byte[]> rs) {
     return new TargetValueLayer(inner, rs);
   }
-  
+
   @Override
   public DAGNode getHead() {
     return head;
   }
-  
+
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJson(resources, dataSerializer);
     json.addProperty("target", target.getId().toString());
     return json;
   }
-  
+
   /**
    * Sets target.
    *

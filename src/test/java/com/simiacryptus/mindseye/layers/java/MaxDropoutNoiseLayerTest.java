@@ -32,19 +32,19 @@ public abstract class MaxDropoutNoiseLayerTest extends ActivationLayerTestBase {
   public MaxDropoutNoiseLayerTest() {
     super(new MaxDropoutNoiseLayer(2, 2, 1));
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+        {8, 8, 1}
     };
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends MaxDropoutNoiseLayerTest {
   }
-  
+
 }

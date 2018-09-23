@@ -34,7 +34,7 @@ public interface TrainableDataMask extends Trainable {
    */
   @Nullable
   boolean[] getMask();
-  
+
   /**
    * Sets mask.
    *

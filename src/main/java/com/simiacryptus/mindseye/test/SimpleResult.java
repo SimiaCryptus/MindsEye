@@ -34,15 +34,15 @@ public interface SimpleResult extends ReferenceCounting {
    * @return the tensor list [ ]
    */
   TensorList[] getInputDerivative();
-  
+
   /**
    * Gets layer derivative.
    *
    * @return the layer derivative
    */
   DeltaSet<Layer> getLayerDerivative();
-  
-  
+
+
   /**
    * Gets output.
    *

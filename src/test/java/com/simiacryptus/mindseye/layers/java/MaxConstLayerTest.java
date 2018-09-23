@@ -29,11 +29,11 @@ public abstract class MaxConstLayerTest extends ActivationLayerTestBase {
   public MaxConstLayerTest() {
     super(new MaxConstLayer());
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends MaxConstLayerTest {
   }
-  
+
 }

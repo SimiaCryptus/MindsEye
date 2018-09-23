@@ -21,21 +21,11 @@ package com.simiacryptus.mindseye.labs.matrix;
 
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
-import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.java.ImgCropLayer;
-import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
-import com.simiacryptus.mindseye.layers.java.NormalizationMetaLayer;
-import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.data.Caltech101;
-import com.simiacryptus.mindseye.test.integration.CaltechProblemData;
-import com.simiacryptus.mindseye.test.integration.FwdNetworkFactory;
-import com.simiacryptus.mindseye.test.integration.ImageProblemData;
-import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
-import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.mindseye.test.integration.*;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.function.IntToDoubleFunction;
@@ -44,7 +34,7 @@ import java.util.function.IntToDoubleFunction;
  * The type Mnist apply base.
  */
 public class CaltechTests {
-  
+
   /**
    * The constant fwd_conv_1.
    */
@@ -53,40 +43,40 @@ public class CaltechTests {
     log.p("The png-to-vector network is a single layer convolutional:");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
-  
+
       @Nonnull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.wrap(new ConvolutionLayer(3, 3, 3, 10).set(weights)).freeRef();
       network.wrap(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max)).freeRef();
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new ImgCropLayer(126, 126)).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(3, 3, 10, 20).set(weights)).freeRef();
       network.wrap(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max)).freeRef();
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new ImgCropLayer(62, 62)).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(5, 5, 20, 30).set(weights)).freeRef();
       network.wrap(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max)).freeRef();
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new ImgCropLayer(18, 18)).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(3, 3, 30, 40).set(weights)).freeRef();
       network.wrap(new PoolingLayer().setWindowX(4).setWindowY(4).setMode(PoolingLayer.PoolingMode.Avg)).freeRef();
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new ImgCropLayer(4, 4)).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ImgBandBiasLayer(40)).freeRef();
       network.wrap(new FullyConnectedLayer(new int[]{4, 4, 40}, new int[]{features}).set(weights)).freeRef();
       network.wrap(new SoftmaxActivationLayer()).freeRef();
-      
+
       return network;
     });
   };
-  
+
   /**
    * The constant rev_conv_1.
    */
@@ -95,51 +85,51 @@ public class CaltechTests {
     log.p("The vector-to-png network uses a fully connected layer then a single convolutional layer:");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
-  
+
       @Nonnull IntToDoubleFunction weights = i -> 1e-8 * (Math.random() - 0.5);
       network.wrap(new FullyConnectedLayer(new int[]{features}, new int[]{4, 4, 40}).set(weights)).freeRef();
       network.wrap(new ImgBandBiasLayer(40)).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(3, 3, 40, 160).set(weights)).freeRef();
       network.wrap(new ImgReshapeLayer(2, 2, true)).freeRef(); // 8x8x40
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(3, 3, 40, 160).set(weights)).freeRef();
       network.wrap(new ImgReshapeLayer(2, 2, true)).freeRef(); // 16x16x40
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(3, 3, 40, 160).set(weights)).freeRef();
       network.wrap(new ImgReshapeLayer(2, 2, true)).freeRef(); // 32x32x40
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(3, 3, 40, 160).set(weights)).freeRef();
       network.wrap(new ImgReshapeLayer(2, 2, true)).freeRef(); // 64x64x40
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(3, 3, 40, 160).set(weights)).freeRef();
       network.wrap(new ImgReshapeLayer(2, 2, true)).freeRef(); // 128x128x40
       network.wrap(new ReLuActivationLayer()).freeRef();
       network.wrap(new NormalizationMetaLayer()).freeRef();
-  
+
       network.wrap(new ConvolutionLayer(3, 3, 40, 12).set(weights)).freeRef();
       network.wrap(new ImgReshapeLayer(2, 2, true)).freeRef(); // 256x256x3
       network.wrap(new ReLuActivationLayer()).freeRef();
-      
+
       return network;
     });
   };
-  
+
   /**
    * Basic demonstratin problems involving the Caltech101 png dataset.
    */
   public abstract static class All_Caltech_Tests extends AllTrainingTests {
-  
-  
+
+
     /**
      * Instantiates a new All tests.
      *
@@ -151,33 +141,33 @@ public class CaltechTests {
       super(fwdFactory, revFactory, optimizationStrategy);
       batchSize = 10;
     }
-  
+
     @Nonnull
     @Override
     protected Class<?> getTargetClass() {
       return Caltech101.class;
     }
-  
+
     @Nonnull
     @Override
     public ImageProblemData getData() {
       return new CaltechProblemData();
     }
-  
+
     @Nonnull
     @Override
     public CharSequence getDatasetName() {
       return "Caltech101";
     }
-  
+
     @Nonnull
     @Override
     public ReportType getReportType() {
       return ReportType.Experiments;
     }
-  
+
   }
-  
+
   /**
    * Basic demonstration problems involving the Caltech101 png dataset and Quadratic Quasi-Newton optimizer
    */
@@ -188,12 +178,12 @@ public class CaltechTests {
     public QQN() {
       super(Research.quadratic_quasi_newton, CaltechTests.rev_conv_1, CaltechTests.fwd_conv_1);
     }
-    
+
     @Override
     protected void intro(@Nonnull final NotebookOutput log) {
       log.p("");
     }
-    
+
   }
-  
+
 }

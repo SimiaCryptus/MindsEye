@@ -20,23 +20,8 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.ComponentException;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import jcuda.jcudnn.cudnnActivationDescriptor;
@@ -58,15 +43,15 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class ActivationLayer extends LayerBase implements MultiPrecision<ActivationLayer> {
   private static final Logger logger = LoggerFactory.getLogger(ActivationLayer.class);
-  
+
   /**
    * The Mode.
    */
   final int mode;
   private double alpha = 1.0;
   private Precision precision = Precision.Double;
-  
-  
+
+
   /**
    * Instantiates a new Activation layer.
    *
@@ -75,7 +60,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   public ActivationLayer(final int id) {
     mode = id;
   }
-  
+
   /**
    * Instantiates a new Activation layer.
    *
@@ -87,7 +72,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     setAlpha(json.getAsJsonPrimitive("alpha").getAsDouble());
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
-  
+
   /**
    * Instantiates a new Activation layer.
    *
@@ -96,7 +81,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   public ActivationLayer(@Nonnull final Mode mode) {
     this(mode.id);
   }
-  
+
   /**
    * From json activation layer.
    *
@@ -107,7 +92,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   public static ActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ActivationLayer(json);
   }
-  
+
   /**
    * Same strides boolean.
    *
@@ -121,7 +106,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     if (a.hStride != b.hStride) return false;
     return a.wStride == b.wStride;
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -131,15 +116,13 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   public Layer getCompatibilityLayer() {
     if (mode == Mode.SIGMOID.id) {
       return new SigmoidActivationLayer().setBalanced(false);
-    }
-    else if (mode == Mode.RELU.id) {
+    } else if (mode == Mode.RELU.id) {
       return new ReLuActivationLayer();
-    }
-    else {
+    } else {
       throw new RuntimeException("Not Implemented");
     }
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -158,23 +141,22 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
         if (1 == inputData.currentRefCount() && 1 == inputTensor.currentRefCount() && (!inputResult.isAlive() || mode == Mode.RELU.id)) {
           inputTensor.addRef();
           outputTensor = inputTensor;
-        }
-        else {
+        } else {
           @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision,
-            length, inputSize[2], inputSize[1], inputSize[0],
-            inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
+              length, inputSize[2], inputSize[1], inputSize[0],
+              inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
           @Nonnull final CudaMemory outputData =
-            gpu.allocate((long) precision.size * inputDims * length, MemoryType.Managed.normalize(), true);
+              gpu.allocate((long) precision.size * inputDims * length, MemoryType.Managed.normalize(), true);
           outputTensor = CudaTensor.wrap(outputData, outputDescriptor, precision);
         }
-  
+
         @Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
         try {
           CudaMemory memory = inputTensor.getMemory(gpu);
           CudaMemory tensorMemory = outputTensor.getMemory(gpu);
           CudaSystem.handle(gpu.cudnnActivationForward(activationDesc.getPtr(),
-            precision.getPointer(getAlpha()), inputTensor.descriptor.getPtr(), memory.getPtr(),
-            precision.getPointer(0.0), outputTensor.descriptor.getPtr(), tensorMemory.getPtr()));
+              precision.getPointer(getAlpha()), inputTensor.descriptor.getPtr(), memory.getPtr(),
+              precision.getPointer(0.0), outputTensor.descriptor.getPtr(), tensorMemory.getPtr()));
           assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
           memory.dirty();
           tensorMemory.dirty();
@@ -189,15 +171,15 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
         }
       }, inputData);
       return new Result(CudaTensorList.create(outPtr, length, outputSize, precision),
-        (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
-          if (inputResult.isAlive()) {
-            final TensorList data = CudaSystem.run(gpu -> {
-              @Nullable CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
-              @Nullable CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
-              assert length == delta.length();
-              CudaTensor localOut = outPtr.getDense(gpu);
-              delta.freeRef();
-              CudaTensor passbackTensor;
+          (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+            if (inputResult.isAlive()) {
+              final TensorList data = CudaSystem.run(gpu -> {
+                @Nullable CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
+                @Nullable CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, true);
+                assert length == delta.length();
+                CudaTensor localOut = outPtr.getDense(gpu);
+                delta.freeRef();
+                CudaTensor passbackTensor;
 //            if (sameStrides(deltaTensor.descriptor, inputTensor.descriptor)) {
 //              passbackTensor = deltaTensor;
 //              passbackTensor.addRef();
@@ -206,68 +188,67 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
 //              passbackTensor = deltaTensor.getDense(gpu);
 //              inputTensor = inputTensor.getDenseAndFree(gpu);
 //            }
-              passbackTensor = CudaTensor.wrap(
-                gpu.allocate((long) Tensor.length(inputSize) * length * precision.size, MemoryType.Managed.normalize(), false),
-                gpu.newTensorDescriptor(precision,
-                  length, inputSize[2], inputSize[1], inputSize[0],
-                  inputSize[2] * inputSize[1] * inputSize[0],
-                  inputSize[1] * inputSize[0],
-                  inputSize[0],
-                  1), precision);
-  
-              @Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode,
-                cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
-              try {
-                CudaMemory localOutMemory = localOut.getMemory(gpu);
-                CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
-                CudaMemory inputTensorMemory = inputTensor.getMemory(gpu);
-                CudaMemory passbackTensorMemory = passbackTensor.getMemory(gpu);
-                CudaSystem.handle(gpu.cudnnActivationBackward(activationDesc.getPtr(),
-                  precision.getPointer(getAlpha()),
-                  localOut.descriptor.getPtr(), localOutMemory.getPtr(),
-                  deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
-                  inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
-                  precision.getPointer(0.0),
-                  passbackTensor.descriptor.getPtr(), passbackTensorMemory.getPtr()));
-                assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
-                localOutMemory.dirty();
-                deltaTensorMemory.dirty();
-                inputTensorMemory.dirty();
-                passbackTensorMemory.dirty();
-                localOutMemory.freeRef();
-                deltaTensorMemory.freeRef();
-                inputTensorMemory.freeRef();
-                passbackTensorMemory.freeRef();
-              } catch (@Nonnull final Throwable e) {
-                throw new ComponentException("Error apply " + Arrays.toString(inputSize), e);
-              } finally {
-                localOut.freeRef();
-                inputTensor.freeRef();
-                deltaTensor.freeRef();
-                activationDesc.freeRef();
-              }
-              return CudaTensorList.wrap(passbackTensor, length, inputSize, precision);
-            }, delta);
-            inputResult.accumulate(buffer, data);
-          }
-          else {
-            delta.freeRef();
-          }
-        }) {
-  
+                passbackTensor = CudaTensor.wrap(
+                    gpu.allocate((long) Tensor.length(inputSize) * length * precision.size, MemoryType.Managed.normalize(), false),
+                    gpu.newTensorDescriptor(precision,
+                        length, inputSize[2], inputSize[1], inputSize[0],
+                        inputSize[2] * inputSize[1] * inputSize[0],
+                        inputSize[1] * inputSize[0],
+                        inputSize[0],
+                        1), precision);
+
+                @Nonnull final CudaResource<cudnnActivationDescriptor> activationDesc = gpu.newActivationDescriptor(mode,
+                    cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, 0);
+                try {
+                  CudaMemory localOutMemory = localOut.getMemory(gpu);
+                  CudaMemory deltaTensorMemory = deltaTensor.getMemory(gpu);
+                  CudaMemory inputTensorMemory = inputTensor.getMemory(gpu);
+                  CudaMemory passbackTensorMemory = passbackTensor.getMemory(gpu);
+                  CudaSystem.handle(gpu.cudnnActivationBackward(activationDesc.getPtr(),
+                      precision.getPointer(getAlpha()),
+                      localOut.descriptor.getPtr(), localOutMemory.getPtr(),
+                      deltaTensor.descriptor.getPtr(), deltaTensorMemory.getPtr(),
+                      inputTensor.descriptor.getPtr(), inputTensorMemory.getPtr(),
+                      precision.getPointer(0.0),
+                      passbackTensor.descriptor.getPtr(), passbackTensorMemory.getPtr()));
+                  assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
+                  localOutMemory.dirty();
+                  deltaTensorMemory.dirty();
+                  inputTensorMemory.dirty();
+                  passbackTensorMemory.dirty();
+                  localOutMemory.freeRef();
+                  deltaTensorMemory.freeRef();
+                  inputTensorMemory.freeRef();
+                  passbackTensorMemory.freeRef();
+                } catch (@Nonnull final Throwable e) {
+                  throw new ComponentException("Error apply " + Arrays.toString(inputSize), e);
+                } finally {
+                  localOut.freeRef();
+                  inputTensor.freeRef();
+                  deltaTensor.freeRef();
+                  activationDesc.freeRef();
+                }
+                return CudaTensorList.wrap(passbackTensor, length, inputSize, precision);
+              }, delta);
+              inputResult.accumulate(buffer, data);
+            } else {
+              delta.freeRef();
+            }
+          }) {
+
         @Override
         public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
           getAccumulator().accept(buffer, delta);
         }
-  
+
         @Override
         protected void _free() {
           inputData.freeRef();
           outPtr.freeRef();
           inputResult.freeRef();
         }
-        
-        
+
+
         @Override
         public boolean isAlive() {
           return inputResult.isAlive() || !isFrozen();
@@ -277,7 +258,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
       throw new ComponentException("Error apply png res " + Arrays.toString(inputSize), e);
     }
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -287,25 +268,25 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public ActivationLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   /**
    * Gets alpha.
    *
@@ -314,7 +295,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   public double getAlpha() {
     return alpha;
   }
-  
+
   /**
    * Sets alpha.
    *
@@ -325,8 +306,8 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
     this.alpha = alpha;
     return this;
   }
-  
-  
+
+
   /**
    * The enum Mode.
    */
@@ -343,10 +324,10 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
      * The Id.
      */
     public final int id;
-  
+
     Mode(final int id) {
       this.id = id;
     }
   }
-  
+
 }

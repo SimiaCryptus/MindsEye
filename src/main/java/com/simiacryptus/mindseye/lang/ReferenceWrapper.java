@@ -40,7 +40,7 @@ public class ReferenceWrapper<T> {
    * The Is finalized.
    */
   final AtomicBoolean isFinalized = new AtomicBoolean(false);
-  
+
   /**
    * Instantiates a new Reference wrapper.
    *
@@ -51,13 +51,13 @@ public class ReferenceWrapper<T> {
     this.obj = obj;
     this.destructor = destructor;
   }
-  
+
   @Override
   protected void finalize() throws Throwable {
     destroy();
     super.finalize();
   }
-  
+
   /**
    * Destroy.
    */
@@ -66,7 +66,7 @@ public class ReferenceWrapper<T> {
       destructor.accept(obj);
     }
   }
-  
+
   /**
    * Unwrap t.
    *
@@ -78,7 +78,7 @@ public class ReferenceWrapper<T> {
     }
     return obj;
   }
-  
+
   /**
    * Peek t.
    *

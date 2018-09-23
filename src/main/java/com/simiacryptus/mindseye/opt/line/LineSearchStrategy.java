@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  * Base interface for providing a solver for line search problems.
  */
 public interface LineSearchStrategy {
-  
+
   /**
    * Step point sample.
    *

@@ -20,20 +20,10 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.RecycleBin;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.FastRandom;
+import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import org.jblas.DoubleMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +46,8 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class FullyConnectedLayer extends LayerBase {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(FullyConnectedLayer.class);
   /**
@@ -72,7 +62,7 @@ public class FullyConnectedLayer extends LayerBase {
   public final int[] outputDims;
   @Nullable
   private final Tensor weights;
-  
+
   /**
    * Instantiates a new Fully connected layer.
    */
@@ -82,7 +72,7 @@ public class FullyConnectedLayer extends LayerBase {
     weights = null;
     inputDims = null;
   }
-  
+
   /**
    * Instantiates a new Fully connected layer.
    *
@@ -102,7 +92,7 @@ public class FullyConnectedLayer extends LayerBase {
       return v;
     });
   }
-  
+
   /**
    * Instantiates a new Fully connected layer.
    *
@@ -115,7 +105,7 @@ public class FullyConnectedLayer extends LayerBase {
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
-  
+
   /**
    * Cross multiply.
    *
@@ -131,7 +121,7 @@ public class FullyConnectedLayer extends LayerBase {
       }
     }
   }
-  
+
   /**
    * Cross multiply t.
    *
@@ -147,7 +137,7 @@ public class FullyConnectedLayer extends LayerBase {
       }
     }
   }
-  
+
   /**
    * From json fully connected layer.
    *
@@ -158,7 +148,7 @@ public class FullyConnectedLayer extends LayerBase {
   public static FullyConnectedLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new FullyConnectedLayer(json, rs);
   }
-  
+
   /**
    * Multiply.
    *
@@ -170,7 +160,7 @@ public class FullyConnectedLayer extends LayerBase {
     @Nonnull final DoubleMatrix matrixObj = new DoubleMatrix(out.length, in.length, matrix);
     matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
   }
-  
+
   /**
    * Multiply t.
    *
@@ -184,7 +174,7 @@ public class FullyConnectedLayer extends LayerBase {
     matrixObj.mmuli(new DoubleMatrix(in.length, 1, in), new DoubleMatrix(out.length, 1, out));
     RecycleBin.DOUBLES.recycle(matrixObj.data, matrixObj.data.length);
   }
-  
+
   /**
    * Transpose double matrix.
    *
@@ -201,13 +191,13 @@ public class FullyConnectedLayer extends LayerBase {
     }
     return result;
   }
-  
+
   @Override
   protected void _free() {
     weights.freeRef();
     super._free();
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -266,7 +256,7 @@ public class FullyConnectedLayer extends LayerBase {
         inObj[0].accumulate(buffer, tensorList);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         indata.freeRef();
@@ -276,15 +266,15 @@ public class FullyConnectedLayer extends LayerBase {
         }
         FullyConnectedLayer.this.weights.freeRef();
       }
-      
+
       @Override
       public boolean isAlive() {
         return !isFrozen() || Arrays.stream(inObj).anyMatch(x -> x.isAlive());
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -294,7 +284,7 @@ public class FullyConnectedLayer extends LayerBase {
     json.add("weights", getWeights().toJson(resources, dataSerializer));
     return json;
   }
-  
+
   /**
    * Gets transpose.
    *
@@ -304,7 +294,7 @@ public class FullyConnectedLayer extends LayerBase {
   public Layer getTranspose() {
     throw new RuntimeException("Not Implemented");
   }
-  
+
   /**
    * The Weights.
    */
@@ -317,7 +307,7 @@ public class FullyConnectedLayer extends LayerBase {
   public Tensor getWeights() {
     return weights;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -329,7 +319,7 @@ public class FullyConnectedLayer extends LayerBase {
     Arrays.parallelSetAll(getWeights().getData(), i -> f.getAsDouble());
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -341,7 +331,7 @@ public class FullyConnectedLayer extends LayerBase {
     getWeights().set(f);
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -355,7 +345,7 @@ public class FullyConnectedLayer extends LayerBase {
     });
     return this;
   }
-  
+
   /**
    * Init spacial.
    *
@@ -375,7 +365,7 @@ public class FullyConnectedLayer extends LayerBase {
       return peak * factor;
     });
   }
-  
+
   /**
    * Sets weights.
    *
@@ -387,7 +377,7 @@ public class FullyConnectedLayer extends LayerBase {
     getWeights().set(data);
     return this;
   }
-  
+
   /**
    * Set fully connected layer.
    *
@@ -399,7 +389,7 @@ public class FullyConnectedLayer extends LayerBase {
     getWeights().set(data);
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -415,7 +405,7 @@ public class FullyConnectedLayer extends LayerBase {
     });
     return this;
   }
-  
+
   /**
    * Sets weights log.
    *
@@ -429,12 +419,12 @@ public class FullyConnectedLayer extends LayerBase {
     });
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(getWeights().getData());
   }
-  
-  
+
+
 }

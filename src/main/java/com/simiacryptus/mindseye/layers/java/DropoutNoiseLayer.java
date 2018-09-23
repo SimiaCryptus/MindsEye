@@ -20,15 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.StochasticComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +38,8 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class DropoutNoiseLayer extends LayerBase implements StochasticComponent {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DropoutNoiseLayer.class);
   /**
@@ -55,14 +47,14 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
    */
   long seed = StochasticComponent.random.get().nextLong();
   private double value;
-  
+
   /**
    * Instantiates a new Dropout noise layer.
    */
   public DropoutNoiseLayer() {
     this(0.5);
   }
-  
+
   /**
    * Instantiates a new Dropout noise layer.
    *
@@ -72,7 +64,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
     super();
     setValue(value);
   }
-  
+
   /**
    * Instantiates a new Dropout noise layer.
    *
@@ -82,7 +74,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
     super(json);
     value = json.get("value").getAsDouble();
   }
-  
+
   /**
    * From json dropout noise layer.
    *
@@ -93,7 +85,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
   public static DropoutNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new DropoutNoiseLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
@@ -138,21 +130,21 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
         inputResult.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         inputResult.freeRef();
         Arrays.stream(mask).forEach(ReferenceCounting::freeRef);
       }
-      
+
       @Override
       public boolean isAlive() {
         return inputResult.isAlive() || !isFrozen();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -160,7 +152,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
     json.addProperty("value", value);
     return json;
   }
-  
+
   /**
    * Gets value.
    *
@@ -169,7 +161,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
   public double getValue() {
     return value;
   }
-  
+
   /**
    * Sets value.
    *
@@ -181,22 +173,22 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
     this.value = value;
     return this;
   }
-  
+
   @Override
   public void shuffle(final long seed) {
     this.seed = StochasticComponent.random.get().nextLong();
   }
-  
+
   @Override
   public void clearNoise() {
     seed = -1;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
-  
+
+
 }

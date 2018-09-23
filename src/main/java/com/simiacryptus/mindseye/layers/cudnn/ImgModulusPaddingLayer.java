@@ -41,19 +41,19 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<ImgModulusPaddingLayer> {
   private static final Logger log = LoggerFactory.getLogger(ImgModulusPaddingLayer.class);
-  
+
   private int sizeX;
   private int sizeY;
   private int offsetX;
   private int offsetY;
   private Precision precision = Precision.Double;
-  
+
   /**
    * Instantiates a new Img eval layer.
    */
   private ImgModulusPaddingLayer() {
   }
-  
+
   /**
    * Instantiates a new Img zero padding layer.
    *
@@ -68,7 +68,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
     this.offsetX = offsetX;
     this.offsetY = offsetY;
   }
-  
+
   /**
    * Instantiates a new Img modulus padding layer.
    *
@@ -78,7 +78,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   public ImgModulusPaddingLayer(int sizeX, int sizeY) {
     this(sizeX, sizeY, 0, 0);
   }
-  
+
   /**
    * Instantiates a new Img eval layer.
    *
@@ -93,7 +93,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
     offsetY = json.get("offsetY").getAsInt();
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
-  
+
   /**
    * From json img eval layer.
    *
@@ -104,7 +104,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   public static ImgModulusPaddingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgModulusPaddingLayer(json, rs);
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -112,19 +112,19 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
     @Nonnull int[] dimensions = inObj[0].getData().getDimensions();
     int inputWidth = dimensions[0];
     int inputHeight = dimensions[1];
-  
+
     int sizeX = Math.abs(this.sizeX);
     int paddingX = sizeX - ((inputWidth - offsetX) % sizeX);
     while (paddingX < 0) paddingX += sizeX;
     while (paddingX >= sizeX) paddingX -= sizeX;
     if (this.sizeX < 0 && (paddingX + inputWidth) > sizeX) paddingX -= sizeX;
-  
+
     int sizeY = Math.abs(this.sizeY);
     int paddingY = sizeY - ((inputHeight - offsetY) % sizeY);
     while (paddingY < 0) paddingY += sizeY;
     while (paddingY >= sizeY) paddingY -= sizeY;
     if (this.sizeY < 0 && (paddingY + inputHeight) > sizeY) paddingY -= sizeY;
-    
+
     int ouputWidth = inputWidth + paddingX;
     int outputHeight = inputHeight + paddingY;
     assert ouputWidth > 0;
@@ -134,13 +134,13 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
         return inObj[0];
       }
     }
-    
+
     @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(ouputWidth, outputHeight).setPrecision(precision);
     @Nullable Result eval = imgCropLayer.evalAndFree(inObj);
     imgCropLayer.freeRef();
     return eval;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -152,25 +152,25 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public ImgModulusPaddingLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   /**
    * Gets offset x.
    *
@@ -179,7 +179,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   public int getOffsetX() {
     return offsetX;
   }
-  
+
   /**
    * Sets offset x.
    *

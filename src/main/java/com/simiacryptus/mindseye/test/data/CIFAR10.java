@@ -47,7 +47,7 @@ import java.util.zip.GZIPInputStream;
  * Learning Multiple Layers of Features from Tiny Images, Alex Krizhevsky, 2009. https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf
  */
 public class CIFAR10 {
-  
+
   @Nullable
   private static final DataLoader<LabeledObject<Tensor>> training = new DataLoader<LabeledObject<Tensor>>() {
     @Override
@@ -82,14 +82,14 @@ public class CIFAR10 {
       }
     }
   };
-  
+
   /**
    * Halt.
    */
   public static void halt() {
     CIFAR10.training.stop();
   }
-  
+
   private static LabeledObject<BufferedImage> toImage(final byte[] b) {
     @Nonnull final BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
     for (int x = 0; x < img.getWidth(); x++) {
@@ -103,7 +103,7 @@ public class CIFAR10 {
     }
     return new LabeledObject<>(img, Arrays.toString(new byte[]{b[0]}));
   }
-  
+
   /**
    * Training data stream stream.
    *
@@ -112,6 +112,6 @@ public class CIFAR10 {
   public static Stream<LabeledObject<Tensor>> trainingDataStream() {
     return CIFAR10.training.stream();
   }
-  
-  
+
+
 }

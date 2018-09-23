@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.cudnn;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -34,20 +34,20 @@ import java.util.Random;
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudaLayerTestBase
 {
-  
+
   /**
    * The Convolution layer.
    */
   @Nonnull
   ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1);
-  
+
   /**
    * Instantiates a new Rescaled subnet layer allocationOverflow.
    */
   public RescaledSubnetLayerTest() {
-  
+
   }
-  
+
   @Override
   public void run(NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
@@ -58,33 +58,33 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudaLayer
 //    apiLog.close();
 //    CudaSystem.apiLog.remove(apiLog);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+        {8, 8, 1}
     };
   }
-  
+
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+        {1200, 1200, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new RescaledSubnetLayer(2, convolutionLayer.set(() -> this.random()));
   }
-  
+
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer.class;
   }
-  
+
   /**
    * Basic Test
    */
@@ -96,5 +96,5 @@ public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudaLayer
       super.test();
     }
   }
-  
+
 }

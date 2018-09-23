@@ -23,8 +23,8 @@ import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
-import com.simiacryptus.util.TableOutput;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.notebook.TableOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,7 +38,7 @@ import java.util.List;
  * The type Image classification base.
  */
 public abstract class ImageClassificationBase extends ArtistryAppBase {
-  
+
   /**
    * Test.
    *
@@ -48,22 +48,22 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
     log.h1("Model");
     log.p("In this demonstration, we will show how to load an png recognition network and use it to identify object in images.");
     log.p(
-      "We start by loading the VGG16 pretrained model using the HD5 importer. This downloads, if needed, the weights from a file in S3 and re-constructs the network architecture by custom run.");
+        "We start by loading the VGG16 pretrained model using the HD5 importer. This downloads, if needed, the weights from a file in S3 and re-constructs the network architecture by custom run.");
     log.p("Next, we need an example png to analyze:");
     log.p(
-      "We pass this png to the categorization network, and get the following top-10 results. Note that multiple objects may be detected, and the total percentage may be greater than 100%.");
+        "We pass this png to the categorization network, and get the following top-10 results. Note that multiple objects may be detected, and the total percentage may be greater than 100%.");
     log.p(
-      "Once we have categories identified, we can attempt to localize each object category within the png. We do this via a pipeline starting with the backpropagated input signal evalInputDelta and applying several filters e.g. blurring and normalization to produce an alphaList channel. When applied to the input png, we highlight the png areas related to the object type in question. Note that this produces a fuzzy blob, which does indicate object location but is a poor indicator of object boundaries. Below we perform this task for the top 5 object categories:");
+        "Once we have categories identified, we can attempt to localize each object category within the png. We do this via a pipeline starting with the backpropagated input signal evalInputDelta and applying several filters e.g. blurring and normalization to produce an alphaList channel. When applied to the input png, we highlight the png areas related to the object type in question. Note that this produces a fuzzy blob, which does indicate object location but is a poor indicator of object boundaries. Below we perform this task for the top 5 object categories:");
     ImageClassifier vgg16 = loadModel(log);
-    
+
     log.h1("Data");
     Tensor[] images = loadData(log);
-    
+
     log.h1("Prediction");
     List<LinkedHashMap<CharSequence, Double>> predictions = log.eval(() -> {
       return vgg16.predict(5, images);
     });
-    
+
     log.h1("Results");
     log.out(() -> {
       @Nonnull TableOutput tableOutput = new TableOutput();
@@ -71,15 +71,15 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
         @Nonnull HashMap<CharSequence, Object> row = new HashMap<>();
         row.put("Image", log.png(images[i].toImage(), ""));
         row.put("Prediction", predictions.get(i).entrySet().stream()
-          .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
-          .reduce((a, b) -> a + "<br/>" + b).get());
+            .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
+            .reduce((a, b) -> a + "<br/>" + b).get());
         tableOutput.putRow(row);
       }
       return tableOutput;
     });
     log.setFrontMatterProperty("status", "OK");
   }
-  
+
   /**
    * Load data tensor [ ].
    *
@@ -95,7 +95,7 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
       }).limit(10).toArray(i1 -> new Tensor[i1]);
     });
   }
-  
+
   /**
    * Load model png classifier.
    *
@@ -103,7 +103,7 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
    * @return the png classifier
    */
   public abstract ImageClassifier loadModel(@Nonnull NotebookOutput log);
-  
+
   /**
    * Gets shuffle comparator.
    *
@@ -114,7 +114,7 @@ public abstract class ImageClassificationBase extends ArtistryAppBase {
     final int seed = (int) ((System.nanoTime() >>> 8) % (Integer.MAX_VALUE - 84));
     return Comparator.comparingInt(a1 -> System.identityHashCode(a1) ^ seed);
   }
-  
+
   @Nonnull
   @Override
   public ReportType getReportType() {

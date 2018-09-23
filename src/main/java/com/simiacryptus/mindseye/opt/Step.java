@@ -37,7 +37,7 @@ public class Step {
    * The Time.
    */
   public final long time = System.currentTimeMillis();
-  
+
   /**
    * Instantiates a new Step.
    *

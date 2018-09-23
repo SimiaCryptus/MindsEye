@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,7 +40,7 @@ import java.util.stream.Stream;
  * The type Convolution layer apply.
  */
 public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Input bands.
    */
@@ -65,7 +65,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    * The Large size.
    */
   int largeSize;
-  
+
   /**
    * Instantiates a new Convolution layer apply.
    *
@@ -91,7 +91,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     this.largeSize = largeSize;
     this.testingBatchSize = 2;
   }
-  
+
   @Override
   public void run(NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
@@ -102,7 +102,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
 //    apiLog.close();
 //    CudaSystem.apiLog.remove(apiLog);
   }
-  
+
   /**
    * Verify weights.
    */
@@ -123,144 +123,144 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     echo.freeRef();
     testData.freeRef();
   }
-  
+
   private void print(final Stream<CharSequence> stream) {
     stream.forEach(x -> System.out.println("Zero: " + x));
     //System.out.println("Zeros: " + stream.sumChannels((a,b)->a+","+b).get());
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {smallSize, smallSize, inputBands}
+        {smallSize, smallSize, inputBands}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return convolutionLayer.explode();
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {largeSize, largeSize, inputBands}
+        {largeSize, largeSize, inputBands}
     };
   }
-  
+
   @Nullable
   @Override
   public Layer getReferenceLayer() {
     return convolutionLayer.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return ConvolutionLayer.class;
   }
-  
+
   /**
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class BandExpand extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new Asymmetric apply.
      */
     public BandExpand() {
       super(1, 3, 6, Precision.Double, 16, 1, 3, 600);
     }
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {1, 1, inputBands}
+          {1, 1, inputBands}
       };
     }
-  
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(random);
     }
-    
+
   }
-  
+
   /**
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class BandLimit extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new Asymmetric apply.
      */
     public BandLimit() {
       super(1, 3, 2, Precision.Double, 16, 1, 3, 600);
     }
-  
+
   }
-  
+
   /**
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class SqGrid extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new Asymmetric apply.
      */
     public SqGrid() {
       super(3, 4, 4, Precision.Double, 2, 1, 3, 600);
     }
-    
+
   }
-  
+
   /**
    * Increases the number of color bands from 3 to 6 (radius 3; 64-bit precision)
    */
   public static class IrregularGrid extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new Asymmetric apply.
      */
     public IrregularGrid() {
       super(3, 5, 3, Precision.Double, 2, 1, 3, 600);
     }
-    
+
   }
-  
+
   /**
    * Reduces the number of color bands from 6 to 3 (radius 3; 64-bit precision)
    */
   public static class BandReduceTest extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new Asymmetric apply.
      */
     public BandReduceTest() {
       super(3, 6, 3, Precision.Double, 16, 1, 3, 600);
     }
-    
+
   }
-  
+
   /**
    * Test using 64-bit precision apply a radius of 1
    */
   public static class Double extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new Double.
      */
     public Double() {
       super(3, 4, 4, Precision.Double, 16, 1, 3, 600);
     }
-    
+
   }
-  
+
   /**
    * Tests apply no zero-padding; the output will be radius-1 smaller than the input. This currently tests a workaround
    * where CudaSystem does not seem to support convolutions that change resolution.
@@ -273,9 +273,9 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       super(3, 3, 3, Precision.Double, 16, 1, 3, 600);
       convolutionLayer.setPaddingXY(0, 0);
     }
-  
+
   }
-  
+
   /**
    * Test using 32-bit precision apply a radius of 1
    */
@@ -287,12 +287,12 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       super(1, 2, 2, Precision.Float, 16, 1, 3, 600);
     }
   }
-  
+
   /**
    * Convert from 7 bands to 5; this is meant to not divide evenly for testing. (64-bit)
    */
   public static class IrregularTest extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new Irregular apply.
      */
@@ -300,19 +300,19 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       super(3, 7, 5, Precision.Double, 16, 1, 3, 600);
     }
   }
-  
+
   /**
    * Convert from 7 bands to 5; this is meant to not divide evenly for testing. (32-bit)
    */
   public static class IrregularTest_Float extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new Irregular apply float.
      */
     public IrregularTest_Float() {
       super(3, 7, 5, Precision.Float, 16, 1, 3, 600);
     }
-  
+
     @Override
     public ComponentTest<ToleranceStatistics> getDerivativeTester() {
       if (!validateDifferentials) return null;
@@ -339,7 +339,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
 //    }
 //
 //  }
-  
+
   /**
    * The type Big 1.
    */
@@ -347,8 +347,10 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     /**
      * Instantiates a new BigTests.
      */
-    public Big1() {this(1024);}
-    
+    public Big1() {
+      this(1024);
+    }
+
     /**
      * Instantiates a new BigTests.
      *
@@ -357,21 +359,21 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     private Big1(int size) {
       super(1, size, size, Precision.Float, size);
     }
-    
+
     @Nonnull
     @Override
     public int[][] getLargeDims(final Random random) {
       return new int[][]{
-        {256, 128, inputBands}
+          {256, 128, inputBands}
       };
     }
   }
-  
+
   /**
    * Basic Test
    */
   public abstract static class VeryBigTest extends Big {
-  
+
     /**
      * Instantiates a new V big.
      *
@@ -384,29 +386,29 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
     protected VeryBigTest(final int radius, final int inputBands, final int outputBands, final Precision precision, final int batchBands) {
       super(radius, inputBands, outputBands, precision, batchBands);
     }
-    
+
     @Nonnull
     @Override
     public int[][] getSmallDims(final Random random) {
       return new int[][]{
-        {1, 1, inputBands}
+          {1, 1, inputBands}
       };
     }
-    
+
     @Nonnull
     @Override
     public int[][] getLargeDims(final Random random) {
       return new int[][]{
-        {100, 100, inputBands}
+          {100, 100, inputBands}
       };
     }
   }
-  
+
   /**
    * Basic Test
    */
   public abstract static class Big extends ConvolutionLayerTest {
-  
+
     /**
      * Instantiates a new BigTests.
      *
@@ -420,13 +422,13 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       super(radius, inputBands, outputBands, precision, batchBands, 1, 3, 600);
       validateDifferentials = false;
     }
-    
+
     @Nullable
     @Override
     public Layer getReferenceLayer() {
       return null;
     }
-    
+
     @Override
     public ComponentTest<ToleranceStatistics> getBatchingTester() {
       if (!validateBatchExecution) return null;
@@ -437,7 +439,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
         }
       }).setBatchSize(5);
     }
-    
+
     @Nullable
     @Override
     protected ComponentTest<ToleranceStatistics> getJsonTester() {
@@ -445,7 +447,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       return null;
       //return super.getJsonTester();
     }
-    
+
     @Nullable
     @Override
     public ComponentTest<ToleranceStatistics> getPerformanceTester() {
@@ -454,5 +456,5 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
       //return super.getPerformanceTester();
     }
   }
-  
+
 }

@@ -30,14 +30,14 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
-  
+
   /**
    * Instantiates a new Entropy layer.
    */
   public EntropyLayer() {
     super();
   }
-  
+
   /**
    * Instantiates a new Entropy layer.
    *
@@ -46,7 +46,7 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
   protected EntropyLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json entropy layer.
    *
@@ -57,7 +57,7 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
   public static EntropyLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new EntropyLayer(json);
   }
-  
+
   @Override
   protected void eval(final double x, final double[] results) {
     final double minDeriv = 0;
@@ -66,8 +66,7 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
     if (0. == x) {
       d = 0;
       f = 0;
-    }
-    else {
+    } else {
       final double log = Math.log(Math.abs(x));
       d = -(1 + log);
       f = -x * log;
@@ -77,7 +76,7 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
     results[0] = f;
     results[1] = d;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {

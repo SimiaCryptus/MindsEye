@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.applications.std.vgg19;
 import com.simiacryptus.mindseye.applications.ImageClassificationBase;
 import com.simiacryptus.mindseye.models.ImageClassifier;
 import com.simiacryptus.mindseye.models.VGG19;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 
@@ -31,7 +31,7 @@ import javax.annotation.Nonnull;
  * demonstration of Image Recognition.
  */
 public abstract class ImageClassification extends ImageClassificationBase {
-  
+
   /**
    * Gets target class.
    *
@@ -41,12 +41,12 @@ public abstract class ImageClassification extends ImageClassificationBase {
   protected Class<?> getTargetClass() {
     return VGG19.class;
   }
-  
+
   /**
    * The type HDF5_JBLAS.
    */
   public static class HFD5 extends ImageClassification {
-    
+
     /**
      * Load model png classifier.
      *
@@ -61,7 +61,7 @@ public abstract class ImageClassification extends ImageClassificationBase {
         return classifier;
       });
     }
-    
+
   }
-  
+
 }

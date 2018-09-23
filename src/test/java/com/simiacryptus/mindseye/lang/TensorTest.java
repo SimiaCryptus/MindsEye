@@ -42,7 +42,7 @@ import java.util.stream.IntStream;
  */
 public class TensorTest {
   private static final Logger log = LoggerFactory.getLogger(TensorTest.class);
-  
+
   /**
    * Parse tensor.
    *
@@ -56,7 +56,7 @@ public class TensorTest {
     Assert.assertEquals(json, tensor.toJson(null, Tensor.json_precision));
     return tensor;
   }
-  
+
   /**
    * Test.
    *
@@ -67,7 +67,7 @@ public class TensorTest {
     Assert.assertEquals(Tensor.fromJson(json, null), t);
     parse(json.toString());
   }
-  
+
   /**
    * Test coord stream.
    *
@@ -77,12 +77,12 @@ public class TensorTest {
   @Category(TestCategories.UnitTest.class)
   public void testCoordStream() {
     final List<CharSequence> coordinates = new Tensor(2, 2, 2).coordStream(true)
-      .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
+        .map(c -> String.format("%s - %s", c.getIndex(), Arrays.toString(c.getCoords()))).collect(Collectors.toList());
     for (final CharSequence c : coordinates) {
       log.info(c.toString());
     }
   }
-  
+
   /**
    * Test shuffle stream.
    *
@@ -98,7 +98,7 @@ public class TensorTest {
       if (!ids.add(i)) throw new AssertionError(i);
     });
   }
-  
+
   /**
    * Test to json.
    *
@@ -110,5 +110,5 @@ public class TensorTest {
     test(new Tensor(3, 3, 1).map(v -> Math.random()));
     test(new Tensor(1, 3, 3).map(v -> Math.random()));
   }
-  
+
 }

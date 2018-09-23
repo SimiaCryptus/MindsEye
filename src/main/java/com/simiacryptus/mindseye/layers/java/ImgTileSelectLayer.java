@@ -20,15 +20,8 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,14 +37,14 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ImgTileSelectLayer extends LayerBase {
-  
-  
+
+
   private final boolean toroidal;
   private final int sizeX;
   private final int sizeY;
   private final int positionX;
   private final int positionY;
-  
+
   /**
    * Instantiates a new Img crop layer.
    *
@@ -62,14 +55,14 @@ public class ImgTileSelectLayer extends LayerBase {
    */
   public ImgTileSelectLayer(final int sizeX, final int sizeY, final int positionX, final int positionY) {
     this(
-      sizeX,
-      sizeY,
-      positionX,
-      positionY,
-      false
+        sizeX,
+        sizeY,
+        positionX,
+        positionY,
+        false
     );
   }
-  
+
   /**
    * Instantiates a new Img crop layer.
    *
@@ -87,7 +80,7 @@ public class ImgTileSelectLayer extends LayerBase {
     this.positionY = positionY;
     this.toroidal = toroidal;
   }
-  
+
   /**
    * Instantiates a new Img crop layer.
    *
@@ -101,7 +94,7 @@ public class ImgTileSelectLayer extends LayerBase {
     positionY = json.getAsJsonPrimitive("positionY").getAsInt();
     toroidal = json.getAsJsonPrimitive("toroidal").getAsBoolean();
   }
-  
+
   /**
    * Copy condense tensor.
    *
@@ -114,13 +107,12 @@ public class ImgTileSelectLayer extends LayerBase {
    */
   @Nonnull
   public static Tensor copy(
-    @Nonnull final Tensor inputData,
-    @Nonnull final Tensor outputData,
-    final int posX,
-    final int posY,
-    final boolean toroidal
-  )
-  {
+      @Nonnull final Tensor inputData,
+      @Nonnull final Tensor outputData,
+      final int posX,
+      final int posY,
+      final boolean toroidal
+  ) {
     @Nonnull final int[] inDim = inputData.getDimensions();
     @Nonnull final int[] outDim = outputData.getDimensions();
     assert 3 == inDim.length;
@@ -139,16 +131,22 @@ public class ImgTileSelectLayer extends LayerBase {
         y %= height;
       }
       double value;
-      if (x < 0) { value = 0.0; }
-      else if (x >= width) { value = 0.0; }
-      else if (y < 0) { value = 0.0; }
-      else if (y >= height) { value = 0.0; }
-      else { value = inputData.get(x, y, z); }
+      if (x < 0) {
+        value = 0.0;
+      } else if (x >= width) {
+        value = 0.0;
+      } else if (y < 0) {
+        value = 0.0;
+      } else if (y >= height) {
+        value = 0.0;
+      } else {
+        value = inputData.get(x, y, z);
+      }
       outputData.set(c, value);
     });
     return outputData;
   }
-  
+
   /**
    * From json img crop layer.
    *
@@ -159,7 +157,7 @@ public class ImgTileSelectLayer extends LayerBase {
   public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSelectLayer(json);
   }
-  
+
   /**
    * To tiles tensor [ ].
    *
@@ -172,32 +170,31 @@ public class ImgTileSelectLayer extends LayerBase {
    */
   @Nonnull
   public static Tensor[] toTiles(
-    final NotebookOutput log,
-    final Tensor canvas,
-    final int width,
-    final int height,
-    final int strideX,
-    final int strideY,
-    final int offsetX,
-    final int offsetY
-  )
-  {
-    
+      final NotebookOutput log,
+      final Tensor canvas,
+      final int width,
+      final int height,
+      final int strideX,
+      final int strideY,
+      final int offsetX,
+      final int offsetY
+  ) {
+
     @Nonnull final int[] inputDims = canvas.getDimensions();
     int cols = (int) (Math.ceil((inputDims[0] - width - offsetX) * 1.0 / strideX) + 1);
     int rows = (int) (Math.ceil((inputDims[1] - height - offsetY) * 1.0 / strideY) + 1);
     log.p(String.format(
-      "Partition %s x %s png with %s x %s tile size into %s x %s grid with stride %s x %s offset %s x %s",
-      inputDims[0],
-      inputDims[1],
-      width,
-      height,
-      cols,
-      rows,
-      strideX,
-      strideY,
-      offsetX,
-      offsetY
+        "Partition %s x %s png with %s x %s tile size into %s x %s grid with stride %s x %s offset %s x %s",
+        inputDims[0],
+        inputDims[1],
+        width,
+        height,
+        cols,
+        rows,
+        strideX,
+        strideY,
+        offsetX,
+        offsetY
     ));
     Tensor[] tiles = new Tensor[rows * cols];
     int index = 0;
@@ -212,7 +209,7 @@ public class ImgTileSelectLayer extends LayerBase {
     }
     return tiles;
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -223,39 +220,39 @@ public class ImgTileSelectLayer extends LayerBase {
     assert 3 == inputDims.length;
     @Nonnull final int[] dimOut = getViewDimensions(inputDims, new int[]{sizeX, sizeY, inputDims[2]}, new int[]{positionX, positionY, 0});
     return new Result(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
-      .mapToObj(dataIndex -> {
-        @Nonnull final Tensor outputData = new Tensor(dimOut);
-        Tensor inputData = batch.get(dataIndex);
-        copy(inputData, outputData, positionX, positionY, toroidal);
-        inputData.freeRef();
-        return outputData;
-      })
-      .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+        .mapToObj(dataIndex -> {
+          @Nonnull final Tensor outputData = new Tensor(dimOut);
+          Tensor inputData = batch.get(dataIndex);
+          copy(inputData, outputData, positionX, positionY, toroidal);
+          inputData.freeRef();
+          return outputData;
+        })
+        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
-          .mapToObj(dataIndex -> {
-            @Nullable final Tensor err = error.get(dataIndex);
-            @Nonnull final Tensor passback = new Tensor(inputDims);
-            copy(err, passback, -positionX, -positionY, toroidal);
-            err.freeRef();
-            return passback;
-          }).toArray(i -> new Tensor[i]));
+            .mapToObj(dataIndex -> {
+              @Nullable final Tensor err = error.get(dataIndex);
+              @Nonnull final Tensor passback = new Tensor(inputDims);
+              copy(err, passback, -positionX, -positionY, toroidal);
+              err.freeRef();
+              return passback;
+            }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   /**
    * Get view dimensions int [ ].
    *
@@ -268,12 +265,12 @@ public class ImgTileSelectLayer extends LayerBase {
   public int[] getViewDimensions(int[] sourceDimensions, int[] destinationDimensions, int[] offset) {
     @Nonnull final int[] viewDim = new int[3];
     Arrays.parallelSetAll(viewDim, i -> toroidal ? (destinationDimensions[i]) : (Math.min(
-      sourceDimensions[i],
-      destinationDimensions[i] + offset[i]
+        sourceDimensions[i],
+        destinationDimensions[i] + offset[i]
     ) - Math.max(offset[i], 0)));
     return viewDim;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -285,12 +282,12 @@ public class ImgTileSelectLayer extends LayerBase {
     json.addProperty("toroidal", toroidal);
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();
   }
-  
-  
+
+
 }

@@ -20,11 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.StochasticComponent;
 import com.simiacryptus.mindseye.layers.cudnn.ProductLayer;
 import com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer;
@@ -35,11 +31,7 @@ import com.simiacryptus.mindseye.network.PipelineNetwork;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -48,13 +40,13 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class StochasticSamplingSubnetLayer extends LayerBase implements StochasticComponent {
-  
+
   private final int samples;
   @Nullable
   private final Layer subnetwork;
   private long seed = System.nanoTime();
   private long layerSeed = System.nanoTime();
-  
+
   /**
    * Instantiates a new Rescaled subnet layer.
    *
@@ -67,7 +59,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
     this.subnetwork = subnetwork;
     this.subnetwork.addRef();
   }
-  
+
   /**
    * Instantiates a new Rescaled subnet layer.
    *
@@ -82,7 +74,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
     JsonObject subnetwork = json.getAsJsonObject("subnetwork");
     this.subnetwork = subnetwork == null ? null : Layer.fromJson(subnetwork, rs);
   }
-  
+
   /**
    * From json rescaled subnet layer.
    *
@@ -93,7 +85,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
   public static StochasticSamplingSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StochasticSamplingSubnetLayer(json, rs);
   }
-  
+
   /**
    * Average result.
    *
@@ -103,8 +95,8 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
   public static Result average(final Result[] samples) {
     PipelineNetwork gateNetwork = new PipelineNetwork(1);
     gateNetwork.wrap(new ProductLayer(),
-      gateNetwork.getInput(0),
-      gateNetwork.wrap(new ValueLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{})).freeRef();
+        gateNetwork.getInput(0),
+        gateNetwork.wrap(new ValueLayer(new Tensor(1, 1, 1).mapAndFree(v -> 1.0 / samples.length)), new DAGNode[]{})).freeRef();
     SumInputsLayer sumInputsLayer = new SumInputsLayer();
     try {
       return gateNetwork.evalAndFree(sumInputsLayer.evalAndFree(samples));
@@ -113,13 +105,13 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
       gateNetwork.freeRef();
     }
   }
-  
+
   @Override
   protected void _free() {
     this.subnetwork.freeRef();
     super._free();
   }
-  
+
   @Nullable
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -141,7 +133,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
       return subnetwork.eval(counting);
     }).toArray(i -> new Result[i]));
   }
-  
+
   /**
    * Get seeds long [ ].
    *
@@ -151,7 +143,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
     Random random = new Random(seed + layerSeed);
     return IntStream.range(0, this.samples).mapToLong(i -> random.nextLong()).toArray();
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -162,29 +154,29 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
     json.add("subnetwork", subnetwork.getJson(resources, dataSerializer));
     return json;
   }
-  
-  
+
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();
   }
-  
+
   @Nonnull
   @Override
   public Layer setFrozen(final boolean frozen) {
     subnetwork.setFrozen(frozen);
     return super.setFrozen(frozen);
   }
-  
+
   @Override
   public void shuffle(final long seed) {
     this.seed = seed;
   }
-  
+
   @Override
   public void clearNoise() {
     seed = 0;
   }
-  
+
 }

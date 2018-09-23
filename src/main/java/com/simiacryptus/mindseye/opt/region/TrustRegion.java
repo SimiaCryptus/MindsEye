@@ -19,7 +19,7 @@
 
 package com.simiacryptus.mindseye.opt.region;
 
-import com.simiacryptus.util.lang.NotImplementedException;
+import com.simiacryptus.lang.NotImplementedException;
 
 /**
  * The base class for the component representing the trust region volumes used for optimization. This interface provides
@@ -40,7 +40,7 @@ public interface TrustRegion {
   default double[] project(final double[] state, final double[] point) {
     throw new NotImplementedException();
   }
-  
+
   /**
    * Project double [ ].
    *

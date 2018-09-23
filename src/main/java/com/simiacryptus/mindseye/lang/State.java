@@ -31,8 +31,8 @@ import java.util.function.DoubleUnaryOperator;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
-  
-  
+
+
   /**
    * Instantiates a new State.
    *
@@ -42,7 +42,7 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
   public State(@Nonnull final K layer, final double[] target) {
     super(layer, target);
   }
-  
+
   /**
    * Instantiates a new Delta.
    *
@@ -53,7 +53,7 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
   public State(@Nonnull final K layer, final double[] target, final double[] delta) {
     super(layer, target, delta);
   }
-  
+
   /**
    * Are equal boolean.
    *
@@ -62,7 +62,7 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
   public boolean areEqual() {
     return DoubleBuffer.areEqual(getDelta(), target);
   }
-  
+
   /**
    * Backup double buffer.
    *
@@ -73,14 +73,14 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
     System.arraycopy(target, 0, getDelta(), 0, target.length);
     return this;
   }
-  
+
   @Nonnull
   @Override
   public State<K> copy() {
     assertAlive();
     return new State(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()));
   }
-  
+
   /**
    * Backup copy state.
    *
@@ -90,13 +90,13 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
   public State<K> backupCopy() {
     return new State(layer, target, RecycleBin.DOUBLES.copyOf(target, length()));
   }
-  
+
   @Nonnull
   @Override
   public State<K> map(@Nonnull final DoubleUnaryOperator mapper) {
     return new State(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
-  
+
   /**
    * Overwrite.
    *
@@ -107,5 +107,5 @@ public class State<K extends ReferenceCounting> extends DoubleBuffer<K> {
     System.arraycopy(getDelta(), 0, target, 0, target.length);
     return this;
   }
-  
+
 }

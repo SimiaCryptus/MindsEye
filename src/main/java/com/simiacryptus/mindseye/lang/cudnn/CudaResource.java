@@ -35,13 +35,13 @@ public class CudaResource<T> extends CudaResourceBase<T> {
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(CudaResource.class);
-  
+
   /**
    * The Device id.
    */
   public final int deviceId;
   private final ToIntFunction<T> destructor;
-  
+
   /**
    * Instantiates a new Cuda resource.
    *
@@ -54,7 +54,7 @@ public class CudaResource<T> extends CudaResourceBase<T> {
     this.destructor = destructor;
     this.deviceId = deviceId;
   }
-  
+
   /**
    * Free.
    */
@@ -63,7 +63,7 @@ public class CudaResource<T> extends CudaResourceBase<T> {
     if (null != threadHandle) threadHandle.cleanupNative.add(this);
     else release();
   }
-  
+
   public void release() {
     try {
       if (isActiveObj()) {
@@ -75,8 +75,8 @@ public class CudaResource<T> extends CudaResourceBase<T> {
       CudaResource.logger.debug("Error freeing resource " + this, e);
     }
   }
-  
-  
+
+
   @Override
   public int getDeviceId() {
     return deviceId;

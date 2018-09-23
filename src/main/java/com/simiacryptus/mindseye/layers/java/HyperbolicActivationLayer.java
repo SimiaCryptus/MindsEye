@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,14 +37,14 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class HyperbolicActivationLayer extends LayerBase {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(HyperbolicActivationLayer.class);
   @Nullable
   private final Tensor weights;
   private int negativeMode = 1;
-  
+
   /**
    * Instantiates a new Hyperbolic activation layer.
    */
@@ -61,7 +54,7 @@ public class HyperbolicActivationLayer extends LayerBase {
     weights.set(0, 1.);
     weights.set(1, 1.);
   }
-  
+
   /**
    * Instantiates a new Hyperbolic activation layer.
    *
@@ -73,7 +66,7 @@ public class HyperbolicActivationLayer extends LayerBase {
     weights = Tensor.fromJson(json.get("weights"), resources);
     negativeMode = json.getAsJsonPrimitive("negativeMode").getAsInt();
   }
-  
+
   /**
    * From json hyperbolic activation layer.
    *
@@ -84,13 +77,13 @@ public class HyperbolicActivationLayer extends LayerBase {
   public static HyperbolicActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new HyperbolicActivationLayer(json, rs);
   }
-  
+
   @Override
   protected void _free() {
     weights.freeRef();
     super._free();
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
@@ -151,7 +144,7 @@ public class HyperbolicActivationLayer extends LayerBase {
         inObj[0].accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         indata.freeRef();
@@ -159,16 +152,16 @@ public class HyperbolicActivationLayer extends LayerBase {
         weights.freeRef();
         HyperbolicActivationLayer.this.freeRef();
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive() || !isFrozen();
       }
     };
-    
+
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -177,7 +170,7 @@ public class HyperbolicActivationLayer extends LayerBase {
     json.addProperty("negativeMode", negativeMode);
     return json;
   }
-  
+
   /**
    * Gets scale l.
    *
@@ -186,7 +179,7 @@ public class HyperbolicActivationLayer extends LayerBase {
   public double getScaleL() {
     return 1 / weights.get(1);
   }
-  
+
   /**
    * Gets scale r.
    *
@@ -195,7 +188,7 @@ public class HyperbolicActivationLayer extends LayerBase {
   public double getScaleR() {
     return 1 / weights.get(0);
   }
-  
+
   /**
    * Sets mode asymetric.
    *
@@ -206,7 +199,7 @@ public class HyperbolicActivationLayer extends LayerBase {
     negativeMode = 0;
     return this;
   }
-  
+
   /**
    * Sets mode even.
    *
@@ -217,7 +210,7 @@ public class HyperbolicActivationLayer extends LayerBase {
     negativeMode = 1;
     return this;
   }
-  
+
   /**
    * Sets mode odd.
    *
@@ -228,7 +221,7 @@ public class HyperbolicActivationLayer extends LayerBase {
     negativeMode = -1;
     return this;
   }
-  
+
   /**
    * Sets scale.
    *
@@ -241,11 +234,11 @@ public class HyperbolicActivationLayer extends LayerBase {
     weights.set(1, 1 / scale);
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(weights.getData());
   }
-  
+
 }

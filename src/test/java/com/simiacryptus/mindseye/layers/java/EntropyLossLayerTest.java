@@ -31,35 +31,35 @@ import java.util.Random;
  * The type Entropy loss layer apply.
  */
 public abstract class EntropyLossLayerTest extends LayerTestBase {
-  
+
   @Override
   public SingleDerivativeTester getDerivativeTester() {
     return new SingleDerivativeTester(1e-4, 1e-8);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {4}, {4}
+        {4}, {4}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new EntropyLossLayer();
   }
-  
+
   @Override
   public double random() {
     return Util.R.get().nextDouble();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends EntropyLossLayerTest {
   }
-  
+
 }

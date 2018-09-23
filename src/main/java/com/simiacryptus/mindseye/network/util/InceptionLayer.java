@@ -38,7 +38,7 @@ import java.util.function.DoubleSupplier;
  */
 @SuppressWarnings("serial")
 public class InceptionLayer extends DAGNetwork {
-  
+
   /**
    * The Kernels.
    */
@@ -49,7 +49,7 @@ public class InceptionLayer extends DAGNetwork {
    */
   @Nonnull
   List<ConvolutionLayer> convolutionLayers = new ArrayList<>();
-  
+
   /**
    * Instantiates a new Inception layer.
    *
@@ -71,20 +71,20 @@ public class InceptionLayer extends DAGNetwork {
     assert 0 < pipelines.size();
     head = add(new ImgConcatLayer(), pipelines.toArray(new DAGNode[]{}));
   }
-  
+
   @Override
   public DAGNode getHead() {
     assert null != head;
     return head;
   }
-  
+
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     final JsonObject json = super.getJson(resources, dataSerializer);
     json.add("root", getHead().getLayer().getJson(resources, dataSerializer));
     return json;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -96,5 +96,5 @@ public class InceptionLayer extends DAGNetwork {
     convolutionLayers.forEach(x -> x.setWeights(f));
     return this;
   }
-  
+
 }

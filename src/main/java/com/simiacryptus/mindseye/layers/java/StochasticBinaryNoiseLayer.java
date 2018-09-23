@@ -20,11 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.StochasticComponent;
 import com.simiacryptus.util.FastRandom;
 import org.slf4j.Logger;
@@ -32,19 +28,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.WeakHashMap;
+import java.util.*;
 
 /**
  * The type Binary noise layer.
  */
 @SuppressWarnings("serial")
 public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticComponent {
-  
-  
+
+
   /**
    * The constant randomize.
    */
@@ -70,12 +62,14 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   private double density;
   private long seed = System.nanoTime();
   private long layerSeed = System.nanoTime();
-  
+
   /**
    * Instantiates a new Binary noise layer.
    */
-  public StochasticBinaryNoiseLayer() {this(new int[]{});}
-  
+  public StochasticBinaryNoiseLayer() {
+    this(new int[]{});
+  }
+
   /**
    * Instantiates a new Binary noise layer.
    *
@@ -84,7 +78,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   public StochasticBinaryNoiseLayer(final int... dimensions) {
     this(0.5, 1.0, dimensions);
   }
-  
+
   /**
    * Instantiates a new Binary noise layer.
    *
@@ -98,7 +92,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
     this.amplitude = amplitude;
     this.dimensions = dimensions;
   }
-  
+
   /**
    * Instantiates a new Binary noise layer.
    *
@@ -112,7 +106,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
     seed = json.get("seed").getAsLong();
     layerSeed = json.get("layerSeed").getAsLong();
   }
-  
+
   /**
    * From json binary noise layer.
    *
@@ -123,7 +117,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   public static StochasticBinaryNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StochasticBinaryNoiseLayer(json);
   }
-  
+
   @Override
   public Result eval(@Nonnull final Result... inObj) {
     assert null == inObj || 0 == inObj.length;
@@ -138,7 +132,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
     });
     return new Result(TensorArray.create(mask), null);
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -150,7 +144,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
     json.add("dimensions", Tensor.toJsonArray(dimensions));
     return json;
   }
-  
+
   /**
    * Gets value.
    *
@@ -159,7 +153,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   public double getDensity() {
     return density;
   }
-  
+
   /**
    * Sets value.
    *
@@ -172,22 +166,22 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
     shuffle(StochasticComponent.random.get().nextLong());
     return this;
   }
-  
+
   @Override
   public void shuffle(final long seed) {
     this.seed = seed;
   }
-  
+
   @Override
   public void clearNoise() {
     seed = 0;
     masks.clear();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
 }

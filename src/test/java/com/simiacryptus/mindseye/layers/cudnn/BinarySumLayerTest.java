@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * The type BinarySumLayerTest layer apply.
  */
 public abstract class BinarySumLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Precision.
    */
@@ -47,7 +47,7 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
    * The Small size.
    */
   int smallSize;
-  
+
   /**
    * Instantiates a new Product layer apply.
    *
@@ -58,27 +58,27 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     smallSize = 2;
     largeSize = 1200;
   }
-  
+
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {smallSize, smallSize, 1}, {smallSize, smallSize, 1}
+        {smallSize, smallSize, 1}, {smallSize, smallSize, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new BinarySumLayer().setPrecision(precision);
   }
-  
+
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {largeSize, largeSize, 1}, {largeSize, largeSize, 1}
+        {largeSize, largeSize, 1}, {largeSize, largeSize, 1}
     };
   }
-  
+
   /**
    * The type Double list.
    */
@@ -89,32 +89,32 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     public Double_List() {
       super(Precision.Double);
     }
-    
+
     @Override
     public int[][] getSmallDims(Random random) {
       return IntStream.range(0, 5).mapToObj(i -> new int[]{smallSize, smallSize, 2}).toArray(i -> new int[i][]);
     }
-    
+
     @Override
     public int[][] getLargeDims(Random random) {
       return IntStream.range(0, 5).mapToObj(i -> new int[]{largeSize, largeSize, 3}).toArray(i -> new int[i][]);
     }
-    
+
   }
-  
+
   /**
    * Ensures addition can be used to implement a doubling (x2) function
    */
   public static class OnePlusOne extends CudaLayerTestBase {
-  
+
     /**
      * Instantiates a new Asymmetric apply.
      */
     public OnePlusOne() {
       super();
     }
-  
-  
+
+
     @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {
@@ -123,7 +123,7 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
       network.wrap(new BinarySumLayer(), input, input).freeRef();
       return network;
     }
-    
+
     @Override
     public Layer getReferenceLayer() {
       @Nonnull PipelineNetwork network = new PipelineNetwork();
@@ -131,30 +131,30 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
       network.wrap(new SumInputsLayer(), input, input).freeRef();
       return network;
     }
-  
+
     @Override
     protected Class<?> getTargetClass() {
       return BinarySumLayer.class;
     }
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {4, 4, 1}
+          {4, 4, 1}
       };
     }
-  
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {1200, 800, 1}
+          {1200, 800, 1}
       };
     }
-    
+
   }
-  
+
   /**
    * Adds using double (64-bit) precision, C = A + B
    */
@@ -166,7 +166,7 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
       super(Precision.Double);
     }
   }
-  
+
   /**
    * Subtracts using double (64-bit) precision, C = A - B
    */
@@ -177,15 +177,15 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     public Double_Subtract() {
       super(Precision.Double);
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new BinarySumLayer(1.0, -1.0).setPrecision(precision);
     }
-  
+
   }
-  
+
   /**
    * Adds using float (32-bit) precision, C = A + B
    */
@@ -196,14 +196,14 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     public Float_Add() {
       super(Precision.Float);
     }
-  
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-  
+
   }
-  
+
   /**
    * Binary averaging using float (32-bit) precision, C = (A + B) / 2
    */
@@ -214,17 +214,17 @@ public abstract class BinarySumLayerTest extends CudaLayerTestBase {
     public Float_Avg() {
       super(Precision.Float);
     }
-  
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new BinarySumLayer(0.5, 0.5).setPrecision(precision);
     }
-  
+
   }
 }

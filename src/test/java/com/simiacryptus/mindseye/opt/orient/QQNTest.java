@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
@@ -37,25 +37,25 @@ import java.util.concurrent.TimeUnit;
  * The type Qqn apply.
  */
 public class QQNTest extends MnistTestBase {
-  
+
   @Override
   public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.eval(() -> {
       @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       //return new IterativeTrainer(new SampledArrayTrainable(trainingData, supervisedNetwork, 10000))
       @Nonnull ValidatingTrainer trainer = new ValidatingTrainer(
-        new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
-        new ArrayTrainable(trainingData, supervisedNetwork)
+          new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
+          new ArrayTrainable(trainingData, supervisedNetwork)
       )
-        .setMonitor(monitor);
+          .setMonitor(monitor);
       trainer.getRegimen().get(0).setOrientation(new QQN());
       return trainer
-        .setTimeout(5, TimeUnit.MINUTES)
-        .setMaxIterations(500)
-        .run();
+          .setTimeout(5, TimeUnit.MINUTES)
+          .setMaxIterations(500)
+          .run();
     });
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {

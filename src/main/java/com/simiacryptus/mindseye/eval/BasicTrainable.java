@@ -19,19 +19,9 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.ConstantResult;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.MutableResult;
-import com.simiacryptus.mindseye.lang.PointSample;
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.StateSet;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.lang.TimedResult;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.lang.TimedResult;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,7 +35,7 @@ import java.util.stream.IntStream;
  * the main class the handles actual execution for training purposes.
  */
 public class BasicTrainable extends ReferenceCountingBase implements DataTrainable, TrainableDataMask {
-  
+
   /**
    * The Network.
    */
@@ -55,14 +45,14 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
    */
   @Nullable
   protected List<Tensor[]> data;
-  
+
   /**
    * The Mask.
    */
   @Nullable
   boolean[] mask = null;
   private int verbosity = 0;
-  
+
   /**
    * Instantiates a new Gpu trainable.
    *
@@ -73,7 +63,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     this.network.addRef(this);
     data = null;
   }
-  
+
   /**
    * Get nn context nn result [ ].
    *
@@ -89,13 +79,12 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
       final Tensor[] tensors = IntStream.range(0, data.size()).mapToObj(row -> data.get(row)[col]).toArray(i -> new Tensor[i]);
       if (null == mask || col >= mask.length || !mask[col]) {
         return new ConstantResult(TensorArray.create(tensors));
-      }
-      else {
+      } else {
         return getFeedbackResult(tensors);
       }
     }).toArray(x1 -> new Result[x1]);
   }
-  
+
   /**
    * Gets feedback result.
    *
@@ -106,7 +95,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   public static Result getFeedbackResult(final Tensor[] tensors) {
     return new MutableResult(tensors);
   }
-  
+
   /**
    * Eval point sample.
    *
@@ -128,11 +117,11 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
       @Nonnull StateSet<Layer> stateSet = null;
       try {
         final DoubleSummaryStatistics statistics = resultData.stream()
-          .flatMapToDouble(x -> {
-            double[] array = Arrays.stream(x.getData()).toArray();
-            x.freeRef();
-            return Arrays.stream(array);
-          }).summaryStatistics();
+            .flatMapToDouble(x -> {
+              double[] array = Arrays.stream(x.getData()).toArray();
+              x.freeRef();
+              return Arrays.stream(array);
+            }).summaryStatistics();
         final double sum = statistics.getSum();
         result.accumulate(deltaSet, 1.0);
         stateSet = new StateSet<>(deltaSet);
@@ -152,24 +141,24 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     timedResult.result.freeRef();
     return normalize;
   }
-  
+
   @Nonnull
   @Override
   public Tensor[][] getData() {
     return data.toArray(new Tensor[][]{});
   }
-  
+
   @Nullable
   @Override
   public boolean[] getMask() {
     return mask;
   }
-  
+
   @Override
   public Layer getLayer() {
     return network;
   }
-  
+
   /**
    * Measure point sample.
    *
@@ -187,7 +176,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     assert null != timedResult.result;
     return timedResult.result;
   }
-  
+
   @Nonnull
   @Override
   public synchronized Trainable setData(@Nonnull final List<Tensor[]> data) {
@@ -197,14 +186,14 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     this.data = data;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public TrainableDataMask setMask(final boolean... mask) {
     this.mask = mask;
     return this;
   }
-  
+
   /**
    * Sets verbose.
    *
@@ -216,7 +205,7 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
     verbosity = verbose;
     return this;
   }
-  
+
   /**
    * Is verbose boolean.
    *
@@ -225,11 +214,11 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
   public int verbosity() {
     return verbosity;
   }
-  
+
   @Override
   protected void _free() {
     this.network.freeRef();
     if (null != this.data) this.data.stream().flatMap(x -> Arrays.stream(x)).forEach(x -> x.freeRef());
   }
-  
+
 }

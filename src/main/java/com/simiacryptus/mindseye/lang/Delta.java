@@ -36,7 +36,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
    */
   @Nullable
   protected double[] deltaCompensation;
-  
+
   /**
    * Instantiates a new Delta.
    *
@@ -46,7 +46,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   public Delta(@Nonnull final K layer, @Nullable final double[] target) {
     this(layer, target, null == target ? null : RecycleBin.DOUBLES.obtain(target.length));
   }
-  
+
   /**
    * Instantiates a new Delta.
    *
@@ -57,7 +57,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   public Delta(@Nonnull final K layer, final double[] target, @Nonnull final double[] delta) {
     this(layer, target, delta, RecycleBin.DOUBLES.obtain(delta.length));
   }
-  
+
   /**
    * Instantiates a new Delta.
    *
@@ -73,7 +73,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
     //if(null == array) throw new IllegalArgumentException();
     this.deltaCompensation = deltaCompensation;
   }
-  
+
   /**
    * Accumulate.
    *
@@ -95,8 +95,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
           if (null != dataCompensation) {
             dataCompensation[i] = c;
           }
-        }
-        else {
+        } else {
           final double y = input - c;
           final double t = sum + y;
           c = t - sum - y;
@@ -109,7 +108,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
       }
     }
   }
-  
+
   /**
    * Accumulate.
    *
@@ -126,7 +125,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
       assert Arrays.stream(target).allMatch(Double::isFinite);
     }
   }
-  
+
   /**
    * Add in place evalInputDelta.
    *
@@ -138,7 +137,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
     assertAlive();
     return addInPlace(buffer.delta).addInPlace(buffer.deltaCompensation);
   }
-  
+
   /**
    * Accumulate evalInputDelta.
    *
@@ -153,15 +152,15 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
     //assert Arrays.stream(read()).allMatch(Double::isFinite);
     return this;
   }
-  
-  
+
+
   @Nonnull
   @Override
   public Delta<K> copy() {
     assertAlive();
     return new Delta<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()), RecycleBin.DOUBLES.copyOf(deltaCompensation, length()));
   }
-  
+
   @Override
   protected void _free() {
     super._free();
@@ -172,13 +171,13 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
       deltaCompensation = null;
     }
   }
-  
+
   @Nonnull
   @Override
   public Delta<K> map(@Nonnull final DoubleUnaryOperator mapper) {
     return new Delta<K>(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
-  
+
   /**
    * Scale evalInputDelta.
    *
@@ -189,7 +188,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   public Delta<K> scale(final double f) {
     return map(x -> x * f);
   }
-  
+
   @Nonnull
   @Override
   public Delta<K> set(final double[] data) {

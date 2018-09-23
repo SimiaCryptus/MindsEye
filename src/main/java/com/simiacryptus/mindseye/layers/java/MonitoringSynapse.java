@@ -20,12 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.data.PercentileStatistics;
@@ -42,19 +37,19 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public final class MonitoringSynapse extends LayerBase implements MonitoredItem {
-  
+
   private final ScalarStatistics backpropStatistics = new PercentileStatistics();
   private final ScalarStatistics forwardStatistics = new PercentileStatistics();
   private int totalBatches = 0;
   private int totalItems = 0;
-  
+
   /**
    * Instantiates a new Monitoring synapse.
    */
   public MonitoringSynapse() {
     super();
   }
-  
+
   /**
    * Instantiates a new Monitoring synapse.
    *
@@ -63,7 +58,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
   protected MonitoringSynapse(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json monitoring synapse.
    *
@@ -80,7 +75,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
     obj.forwardStatistics.readJson(json.getAsJsonObject("forwardStatistics"));
     return obj;
   }
-  
+
   /**
    * Add to monitoring synapse.
    *
@@ -91,7 +86,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
   public MonitoringSynapse addTo(@Nonnull final MonitoredObject obj) {
     return addTo(obj, getName());
   }
-  
+
   /**
    * Add to monitoring synapse.
    *
@@ -105,7 +100,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
     obj.addObj(getName(), this);
     return this;
   }
-  
+
   @Override
   public Result eval(@Nonnull final Result... inObj) {
     assert 1 == inObj.length;
@@ -131,20 +126,20 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
         t.freeRef();
       });
     }) {
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return input.isAlive();
       }
-  
+
       @Override
       protected void _free() {
         input.freeRef();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -153,7 +148,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
     json.addProperty("totalItems", totalItems);
     return json;
   }
-  
+
   @Nonnull
   @Override
   public Map<CharSequence, Object> getMetrics() {
@@ -164,7 +159,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
     map.put("backprop", backpropStatistics.getMetrics());
     return map;
   }
-  
+
   @Override
   public List<double[]> state() {
     return Arrays.asList();

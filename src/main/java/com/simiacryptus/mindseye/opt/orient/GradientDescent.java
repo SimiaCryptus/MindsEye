@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
  * The most basic type of orientation, which uses the raw function gradient.
  */
 public class GradientDescent extends OrientationStrategyBase<SimpleLineSearchCursor> {
-  
+
   @Nonnull
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
@@ -40,22 +40,21 @@ public class GradientDescent extends OrientationStrategyBase<SimpleLineSearchCur
     final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
       monitor.log(String.format("Zero gradient: %s", magnitude));
-    }
-    else if (Math.abs(magnitude) < 1e-5) {
+    } else if (Math.abs(magnitude) < 1e-5) {
       monitor.log(String.format("Low gradient: %s", magnitude));
     }
     @Nonnull SimpleLineSearchCursor gd = new SimpleLineSearchCursor(subject, measurement, direction).setDirectionType("GD");
     direction.freeRef();
     return gd;
   }
-  
+
   @Override
   public void reset() {
-  
+
   }
-  
+
   @Override
   protected void _free() {
-  
+
   }
 }

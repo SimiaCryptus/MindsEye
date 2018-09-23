@@ -20,15 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,15 +35,15 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public final class NthPowerActivationLayer extends LayerBase {
-  
+
   private double power = 1.0;
-  
+
   /**
    * Instantiates a new Nth power activation layer.
    */
   public NthPowerActivationLayer() {
   }
-  
+
   /**
    * Instantiates a new Nth power activation layer.
    *
@@ -61,7 +53,7 @@ public final class NthPowerActivationLayer extends LayerBase {
     super(id);
     power = id.get("power").getAsDouble();
   }
-  
+
   /**
    * From json nth power activation layer.
    *
@@ -72,7 +64,7 @@ public final class NthPowerActivationLayer extends LayerBase {
   public static NthPowerActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new NthPowerActivationLayer(json);
   }
-  
+
   private static void nthPower(final double power, @Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.length(); i++) {
       final double x = inputData[i];
@@ -89,7 +81,7 @@ public final class NthPowerActivationLayer extends LayerBase {
       outputData[i] = f;
     }
   }
-  
+
   private static void square(@Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.length(); i++) {
       final double x = inputData[i];
@@ -97,7 +89,7 @@ public final class NthPowerActivationLayer extends LayerBase {
       outputData[i] = x * x;
     }
   }
-  
+
   private static void squareRoot(@Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.length(); i++) {
       final double x = inputData[i];
@@ -116,14 +108,14 @@ public final class NthPowerActivationLayer extends LayerBase {
       outputData[i] = f;
     }
   }
-  
+
   private static void unity(@Nonnull final Tensor input, final double[] inputData, final double[] gradientData, final double[] outputData) {
     for (int i = 0; i < input.length(); i++) {
       gradientData[i] = 0;
       outputData[i] = 1;
     }
   }
-  
+
   @Override
   public Result eval(@Nonnull final Result... inObj) {
     final int itemCnt = inObj[0].getData().length();
@@ -140,14 +132,11 @@ public final class NthPowerActivationLayer extends LayerBase {
       inputGradientA[dataIndex] = gradient;
       if (power == 2) {
         NthPowerActivationLayer.square(input, inputData, gradientData, outputData);
-      }
-      else if (power == 0.5) {
+      } else if (power == 0.5) {
         NthPowerActivationLayer.squareRoot(input, inputData, gradientData, outputData);
-      }
-      else if (power == 0.0) {
+      } else if (power == 0.0) {
         NthPowerActivationLayer.unity(input, inputData, gradientData, outputData);
-      }
-      else {
+      } else {
         NthPowerActivationLayer.nthPower(power, input, inputData, gradientData, outputData);
       }
       input.freeRef();
@@ -171,20 +160,20 @@ public final class NthPowerActivationLayer extends LayerBase {
         inObj[0].accumulate(buffer, tensorArray);
       }
     }) {
-  
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
         Arrays.stream(inputGradientA).forEach(ReferenceCounting::freeRef);
       }
-      
+
       @Override
       public boolean isAlive() {
         return 0.0 != power && inObj[0].isAlive();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -192,7 +181,7 @@ public final class NthPowerActivationLayer extends LayerBase {
     json.addProperty("power", power);
     return json;
   }
-  
+
   /**
    * Gets power.
    *
@@ -201,7 +190,7 @@ public final class NthPowerActivationLayer extends LayerBase {
   public double getPower() {
     return power;
   }
-  
+
   /**
    * Sets power.
    *
@@ -213,10 +202,10 @@ public final class NthPowerActivationLayer extends LayerBase {
     this.power = power;
     return this;
   }
-  
+
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
 }

@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.LayerTestBase;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import smile.plot.PlotCanvas;
 import smile.plot.ScatterPlot;
 
@@ -42,9 +42,9 @@ import java.util.stream.IntStream;
  * The type Activation layer apply base.
  */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
-  
+
   private final Layer layer;
-  
+
   /**
    * Instantiates a new Activation layer apply base.
    *
@@ -53,7 +53,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   public ActivationLayerTestBase(final Layer layer) {
     this.layer = layer;
   }
-  
+
   /**
    * Plot plot canvas.
    *
@@ -69,7 +69,7 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     plot.setSize(600, 400);
     return plot;
   }
-  
+
   /**
    * Plot plot canvas.
    *
@@ -83,29 +83,29 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
     final double[][] data = plotData.stream().map(function).toArray(i -> new double[i][]);
     return ActivationLayerTestBase.plot(title, data);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {2, 3, 1}
+        {2, 3, 1}
     };
   }
-  
+
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {100, 100, 1}
+        {100, 100, 1}
     };
   }
-  
+
   /**
    * Scan double stream.
    *
@@ -114,11 +114,11 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
   public DoubleStream scan() {
     return IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0);
   }
-  
+
   @Override
   public void run(final NotebookOutput log) {
     super.run(log);
-    
+
     log.h3("Function Plots");
     final Layer layer = getLayer(new int[][]{{1}}, new Random());
     final List<double[]> plotData = scan().mapToObj(x -> {
@@ -129,17 +129,17 @@ public abstract class ActivationLayerTestBase extends LayerTestBase {
       eval.freeRef();
       return doubles;
     }).collect(Collectors.toList());
-  
+
     log.eval(() -> {
       return ActivationLayerTestBase.plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
     });
-  
+
     log.eval(() -> {
       return ActivationLayerTestBase.plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
     });
-    
+
   }
-  
+
   @Nullable
   @Override
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {

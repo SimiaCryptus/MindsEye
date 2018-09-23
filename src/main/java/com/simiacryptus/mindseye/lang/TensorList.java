@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * can operate apply minimal CPU-GPU data transfer.
  */
 public interface TensorList extends ReferenceCounting {
-  
+
   /**
    * Add tensor list.
    *
@@ -44,15 +44,15 @@ public interface TensorList extends ReferenceCounting {
     if (length() == 0) throw new IllegalArgumentException();
     assert length() == right.length();
     return TensorArray.wrap(IntStream.range(0, length())
-      .mapToObj(i -> {
-        Tensor b = right.get(i);
-        @Nullable Tensor sum = get(i).addAndFree(b);
-        b.freeRef();
-        return sum;
-      })
-      .toArray(i -> new Tensor[i]));
+        .mapToObj(i -> {
+          Tensor b = right.get(i);
+          @Nullable Tensor sum = get(i).addAndFree(b);
+          b.freeRef();
+          return sum;
+        })
+        .toArray(i -> new Tensor[i]));
   }
-  
+
   /**
    * Add and free tensor list.
    *
@@ -66,7 +66,7 @@ public interface TensorList extends ReferenceCounting {
     freeRef();
     return add;
   }
-  
+
   /**
    * Minus tensor list.
    *
@@ -87,7 +87,7 @@ public interface TensorList extends ReferenceCounting {
       return r;
     }).toArray(i -> new Tensor[i]));
   }
-  
+
   /**
    * Copy tensor list.
    *
@@ -95,15 +95,15 @@ public interface TensorList extends ReferenceCounting {
    */
   default TensorList copy() {
     return TensorArray.wrap(
-      IntStream.range(0, length()).mapToObj(i -> {
-        @Nullable Tensor element = get(i);
-        @Nonnull Tensor copy = element.copy();
-        element.freeRef();
-        return copy;
-      }).toArray(i -> new Tensor[i])
+        IntStream.range(0, length()).mapToObj(i -> {
+          @Nullable Tensor element = get(i);
+          @Nonnull Tensor copy = element.copy();
+          element.freeRef();
+          return copy;
+        }).toArray(i -> new Tensor[i])
     );
   }
-  
+
   /**
    * Get tensor.
    *
@@ -112,7 +112,7 @@ public interface TensorList extends ReferenceCounting {
    */
   @Nonnull
   Tensor get(int i);
-  
+
   /**
    * Get dimensions int [ ].
    *
@@ -120,21 +120,21 @@ public interface TensorList extends ReferenceCounting {
    */
   @Nonnull
   int[] getDimensions();
-  
+
   /**
    * Length int.
    *
    * @return the int
    */
   int length();
-  
+
   /**
    * Stream stream.
    *
    * @return the stream
    */
   Stream<Tensor> stream();
-  
+
   /**
    * Pretty print string.
    *
@@ -148,7 +148,7 @@ public interface TensorList extends ReferenceCounting {
       return str;
     }).reduce((a, b) -> a + "\n" + b).get();
   }
-  
+
   /**
    * Gets and free.
    *
@@ -161,7 +161,7 @@ public interface TensorList extends ReferenceCounting {
     freeRef();
     return tensor;
   }
-  
+
   /**
    * Gets elements.
    *
@@ -170,7 +170,7 @@ public interface TensorList extends ReferenceCounting {
   default int getElements() {
     return length() * Tensor.length(getDimensions());
   }
-  
+
   /**
    * Gets bytes.
    *

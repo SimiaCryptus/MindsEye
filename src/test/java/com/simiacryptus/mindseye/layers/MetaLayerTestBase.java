@@ -28,19 +28,19 @@ import javax.annotation.Nullable;
  * The type Meta layer apply base.
  */
 public abstract class MetaLayerTestBase extends LayerTestBase {
-  
+
   /**
    * Instantiates a new Meta layer apply base.
    */
   public MetaLayerTestBase() {
     validateBatchExecution = false;
   }
-  
+
   @Nullable
   @Override
   public ComponentTest<ToleranceStatistics> getDerivativeTester() {
     return null;
     //return new BatchDerivativeTester(1e-3, 1e-4, 10);
   }
-  
+
 }

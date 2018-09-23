@@ -20,17 +20,10 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.lang.Tuple2;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
-import com.simiacryptus.util.lang.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,30 +42,30 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class MaxPoolingLayer extends LayerBase {
-  
+
   private static final Function<MaxPoolingLayer.CalcRegionsParameter, List<Tuple2<Integer, int[]>>> calcRegionsCache = Util.cache(MaxPoolingLayer::calcRegions);
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MaxPoolingLayer.class);
   private int[] kernelDims;
-  
-  
+
+
   /**
    * Instantiates a new Max subsample layer.
    */
   protected MaxPoolingLayer() {
     super();
   }
-  
+
   /**
    * Instantiates a new Max subsample layer.
    *
    * @param kernelDims the kernel dims
    */
   public MaxPoolingLayer(@Nonnull final int... kernelDims) {
-    
+
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
-  
+
   /**
    * Instantiates a new Max subsample layer.
    *
@@ -83,7 +76,7 @@ public class MaxPoolingLayer extends LayerBase {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
-  
+
   private static List<Tuple2<Integer, int[]>> calcRegions(@Nonnull final MaxPoolingLayer.CalcRegionsParameter p) {
     @Nonnull final Tensor input = new Tensor(p.inputDims);
     final int[] newDims = IntStream.range(0, p.inputDims.length).map(i -> {
@@ -91,7 +84,7 @@ public class MaxPoolingLayer extends LayerBase {
       return (int) Math.ceil(p.inputDims[i] * 1.0 / p.kernelDims[i]);
     }).toArray();
     @Nonnull final Tensor output = new Tensor(newDims);
-    
+
     List<Tuple2<Integer, int[]>> tuple2s = output.coordStream(true).map(o -> {
       Tensor tensor = new Tensor(p.kernelDims);
       final int[] inCoords = tensor.coordStream(true).mapToInt(kernelCoord -> {
@@ -112,7 +105,7 @@ public class MaxPoolingLayer extends LayerBase {
     output.freeRef();
     return tuple2s;
   }
-  
+
   /**
    * From json max subsample layer.
    *
@@ -122,18 +115,18 @@ public class MaxPoolingLayer extends LayerBase {
    */
   public static MaxPoolingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxPoolingLayer(json,
-      JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
+        JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
-    
+
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    
+
     final Result in = inObj[0];
     in.getData().length();
-    
+
     @Nonnull final int[] inputDims = in.getData().getDimensions();
     final List<Tuple2<Integer, int[]>> regions = MaxPoolingLayer.calcRegionsCache.apply(new MaxPoolingLayer.CalcRegionsParameter(inputDims, kernelDims));
     final Tensor[] outputA = IntStream.range(0, in.getData().length()).mapToObj(dataIndex -> {
@@ -183,19 +176,19 @@ public class MaxPoolingLayer extends LayerBase {
         in.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         return in.isAlive();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -203,13 +196,13 @@ public class MaxPoolingLayer extends LayerBase {
     json.add("heapCopy", JsonUtil.getJson(kernelDims));
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   /**
    * The type Calc regions parameter.
    */
@@ -222,7 +215,7 @@ public class MaxPoolingLayer extends LayerBase {
      * The Kernel dims.
      */
     public int[] kernelDims;
-  
+
     /**
      * Instantiates a new Calc regions parameter.
      *
@@ -233,7 +226,7 @@ public class MaxPoolingLayer extends LayerBase {
       this.inputDims = inputDims;
       this.kernelDims = kernelDims;
     }
-    
+
     @Override
     public boolean equals(@Nullable final Object obj) {
       if (this == obj) {
@@ -251,7 +244,7 @@ public class MaxPoolingLayer extends LayerBase {
       }
       return Arrays.equals(kernelDims, other.kernelDims);
     }
-    
+
     @Override
     public int hashCode() {
       final int prime = 31;
@@ -260,6 +253,6 @@ public class MaxPoolingLayer extends LayerBase {
       result = prime * result + Arrays.hashCode(kernelDims);
       return result;
     }
-    
+
   }
 }

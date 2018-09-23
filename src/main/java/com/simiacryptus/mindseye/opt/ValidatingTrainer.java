@@ -19,16 +19,9 @@
 
 package com.simiacryptus.mindseye.opt;
 
-import com.simiacryptus.mindseye.eval.SampledCachedTrainable;
-import com.simiacryptus.mindseye.eval.SampledTrainable;
-import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.eval.TrainableBase;
-import com.simiacryptus.mindseye.eval.TrainableWrapper;
-import com.simiacryptus.mindseye.lang.DoubleBuffer;
-import com.simiacryptus.mindseye.lang.IterativeStopException;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.PointSample;
-import com.simiacryptus.mindseye.lang.StateSet;
+import com.simiacryptus.lang.TimedResult;
+import com.simiacryptus.mindseye.eval.*;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.StochasticComponent;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.line.ArmijoWolfeSearch;
@@ -40,18 +33,13 @@ import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.util.FastRandom;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.data.DoubleStatistics;
-import com.simiacryptus.util.lang.TimedResult;
 
 import javax.annotation.Nonnull;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -66,8 +54,8 @@ import java.util.stream.IntStream;
  * layerwise training.
  */
 public class ValidatingTrainer {
-  
-  
+
+
   private final AtomicInteger disappointments = new AtomicInteger(0);
   @Nonnull
   private final List<TrainingPhase> regimen;
@@ -93,7 +81,7 @@ public class ValidatingTrainer {
   private Duration timeout;
   private int trainingSize = 10000;
   private double trainingTarget = 0.7;
-  
+
   /**
    * Instantiates a new Validating trainer.
    *
@@ -108,21 +96,21 @@ public class ValidatingTrainer {
       protected void _free() {
         validationSubject.freeRef();
       }
-  
+
       @Override
       public PointSample measure(final TrainingMonitor monitor) {
         @Nonnull final TimedResult<PointSample> time = TimedResult.time(() ->
-          validationSubject.measure(monitor)
+            validationSubject.measure(monitor)
         );
         validatingMeasurementTime.addAndGet(time.timeNanos);
         return time.result;
       }
-  
+
       @Override
       public boolean reseed(final long seed) {
         return validationSubject.reseed(seed);
       }
-  
+
       @Override
       public Layer getLayer() {
         return validationSubject.getLayer();
@@ -132,32 +120,32 @@ public class ValidatingTrainer {
     timeout = Duration.of(5, ChronoUnit.MINUTES);
     terminateThreshold = Double.NEGATIVE_INFINITY;
   }
-  
+
   @Nonnull
   private static CharSequence getId(@Nonnull final DoubleBuffer<Layer> x) {
     final String name = x.layer.getName();
     @Nonnull final CharSequence className = x.layer.getClass().getSimpleName();
     return name.contains(className) ? className : name;
   }
-  
+
   private String compare(@Nonnull final PointSample previousPoint, @Nonnull final PointSample nextPoint) {
     @Nonnull final StateSet<Layer> nextWeights = nextPoint.weights;
     @Nonnull final StateSet<Layer> prevWeights = previousPoint.weights;
     return String.format("Overall network state change: %s", prevWeights.stream()
-      .collect(Collectors.groupingBy(x -> ValidatingTrainer.getId(x), Collectors.toList())).entrySet().stream()
-      .collect(Collectors.toMap(x -> x.getKey(), list -> {
-        final List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
-          final DoubleBuffer<Layer> dirDelta = nextWeights.getMap().get(prevWeight.layer);
-          final double numerator = prevWeight.deltaStatistics().rms();
-          final double denominator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
-          return numerator / (0 == denominator ? 1 : denominator);
-        }).collect(Collectors.toList());
-        if (1 == doubleList.size())
-          return Double.toString(doubleList.get(0));
-        return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
-      })));
+        .collect(Collectors.groupingBy(x -> ValidatingTrainer.getId(x), Collectors.toList())).entrySet().stream()
+        .collect(Collectors.toMap(x -> x.getKey(), list -> {
+          final List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
+            final DoubleBuffer<Layer> dirDelta = nextWeights.getMap().get(prevWeight.layer);
+            final double numerator = prevWeight.deltaStatistics().rms();
+            final double denominator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
+            return numerator / (0 == denominator ? 1 : denominator);
+          }).collect(Collectors.toList());
+          if (1 == doubleList.size())
+            return Double.toString(doubleList.get(0));
+          return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
+        })));
   }
-  
+
   /**
    * Gets adjustment factor.
    *
@@ -166,7 +154,7 @@ public class ValidatingTrainer {
   public double getAdjustmentFactor() {
     return adjustmentFactor;
   }
-  
+
   /**
    * Sets adjustment factor.
    *
@@ -178,7 +166,7 @@ public class ValidatingTrainer {
     this.adjustmentFactor = adjustmentFactor;
     return this;
   }
-  
+
   /**
    * Gets adjustment tolerance.
    *
@@ -187,7 +175,7 @@ public class ValidatingTrainer {
   public double getAdjustmentTolerance() {
     return adjustmentTolerance;
   }
-  
+
   /**
    * Sets adjustment tolerance.
    *
@@ -199,7 +187,7 @@ public class ValidatingTrainer {
     this.adjustmentTolerance = adjustmentTolerance;
     return this;
   }
-  
+
   /**
    * Gets current iteration.
    *
@@ -208,7 +196,7 @@ public class ValidatingTrainer {
   public AtomicInteger getCurrentIteration() {
     return currentIteration;
   }
-  
+
   /**
    * Sets current iteration.
    *
@@ -220,7 +208,7 @@ public class ValidatingTrainer {
     this.currentIteration = currentIteration;
     return this;
   }
-  
+
   /**
    * Gets disappointment threshold.
    *
@@ -229,7 +217,7 @@ public class ValidatingTrainer {
   public int getDisappointmentThreshold() {
     return disappointmentThreshold;
   }
-  
+
   /**
    * Sets disappointment threshold.
    *
@@ -238,7 +226,7 @@ public class ValidatingTrainer {
   public void setDisappointmentThreshold(final int disappointmentThreshold) {
     this.disappointmentThreshold = disappointmentThreshold;
   }
-  
+
   /**
    * Gets runPhase iterations.
    *
@@ -247,7 +235,7 @@ public class ValidatingTrainer {
   public int getEpochIterations() {
     return epochIterations;
   }
-  
+
   /**
    * Sets runPhase iterations.
    *
@@ -259,7 +247,7 @@ public class ValidatingTrainer {
     this.epochIterations = epochIterations;
     return this;
   }
-  
+
   /**
    * Gets improvment stale threshold.
    *
@@ -268,7 +256,7 @@ public class ValidatingTrainer {
   public int getImprovmentStaleThreshold() {
     return improvmentStaleThreshold;
   }
-  
+
   /**
    * Sets improvment stale threshold.
    *
@@ -277,7 +265,7 @@ public class ValidatingTrainer {
   public void setImprovmentStaleThreshold(final int improvmentStaleThreshold) {
     this.improvmentStaleThreshold = improvmentStaleThreshold;
   }
-  
+
   /**
    * Gets max runPhase iterations.
    *
@@ -286,7 +274,7 @@ public class ValidatingTrainer {
   public int getMaxEpochIterations() {
     return maxEpochIterations;
   }
-  
+
   /**
    * Sets max runPhase iterations.
    *
@@ -298,7 +286,7 @@ public class ValidatingTrainer {
     this.maxEpochIterations = maxEpochIterations;
     return this;
   }
-  
+
   /**
    * Gets max iterations.
    *
@@ -307,7 +295,7 @@ public class ValidatingTrainer {
   public int getMaxIterations() {
     return maxIterations;
   }
-  
+
   /**
    * Sets max iterations.
    *
@@ -319,7 +307,7 @@ public class ValidatingTrainer {
     this.maxIterations = maxIterations;
     return this;
   }
-  
+
   /**
    * Gets max training size.
    *
@@ -328,7 +316,7 @@ public class ValidatingTrainer {
   public int getMaxTrainingSize() {
     return maxTrainingSize;
   }
-  
+
   /**
    * Sets max training size.
    *
@@ -340,7 +328,7 @@ public class ValidatingTrainer {
     this.maxTrainingSize = maxTrainingSize;
     return this;
   }
-  
+
   /**
    * Gets min runPhase iterations.
    *
@@ -349,7 +337,7 @@ public class ValidatingTrainer {
   public int getMinEpochIterations() {
     return minEpochIterations;
   }
-  
+
   /**
    * Sets min runPhase iterations.
    *
@@ -361,7 +349,7 @@ public class ValidatingTrainer {
     this.minEpochIterations = minEpochIterations;
     return this;
   }
-  
+
   /**
    * Gets min training size.
    *
@@ -370,7 +358,7 @@ public class ValidatingTrainer {
   public int getMinTrainingSize() {
     return minTrainingSize;
   }
-  
+
   /**
    * Sets min training size.
    *
@@ -382,7 +370,7 @@ public class ValidatingTrainer {
     this.minTrainingSize = minTrainingSize;
     return this;
   }
-  
+
   /**
    * Gets monitor.
    *
@@ -391,7 +379,7 @@ public class ValidatingTrainer {
   public TrainingMonitor getMonitor() {
     return monitor;
   }
-  
+
   /**
    * Sets monitor.
    *
@@ -403,7 +391,7 @@ public class ValidatingTrainer {
     this.monitor = monitor;
     return this;
   }
-  
+
   /**
    * Gets overtraining target.
    *
@@ -412,7 +400,7 @@ public class ValidatingTrainer {
   public double getOvertrainingTarget() {
     return overtrainingTarget;
   }
-  
+
   /**
    * Sets overtraining target.
    *
@@ -424,7 +412,7 @@ public class ValidatingTrainer {
     this.overtrainingTarget = overtrainingTarget;
     return this;
   }
-  
+
   /**
    * Gets pessimism.
    *
@@ -433,7 +421,7 @@ public class ValidatingTrainer {
   public double getPessimism() {
     return pessimism;
   }
-  
+
   /**
    * Sets pessimism.
    *
@@ -445,7 +433,7 @@ public class ValidatingTrainer {
     this.pessimism = pessimism;
     return this;
   }
-  
+
   /**
    * Gets regimen.
    *
@@ -455,7 +443,7 @@ public class ValidatingTrainer {
   public List<TrainingPhase> getRegimen() {
     return regimen;
   }
-  
+
   /**
    * Gets terminate threshold.
    *
@@ -464,7 +452,7 @@ public class ValidatingTrainer {
   public double getTerminateThreshold() {
     return terminateThreshold;
   }
-  
+
   /**
    * Sets terminate threshold.
    *
@@ -476,7 +464,7 @@ public class ValidatingTrainer {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
-  
+
   /**
    * Gets timeout.
    *
@@ -485,7 +473,7 @@ public class ValidatingTrainer {
   public Duration getTimeout() {
     return timeout;
   }
-  
+
   /**
    * Sets timeout.
    *
@@ -497,7 +485,7 @@ public class ValidatingTrainer {
     this.timeout = timeout;
     return this;
   }
-  
+
   /**
    * Gets training size.
    *
@@ -506,7 +494,7 @@ public class ValidatingTrainer {
   public int getTrainingSize() {
     return trainingSize;
   }
-  
+
   /**
    * Sets training size.
    *
@@ -518,7 +506,7 @@ public class ValidatingTrainer {
     this.trainingSize = trainingSize;
     return this;
   }
-  
+
   /**
    * Gets training target.
    *
@@ -527,7 +515,7 @@ public class ValidatingTrainer {
   public double getTrainingTarget() {
     return trainingTarget;
   }
-  
+
   /**
    * Sets training target.
    *
@@ -539,7 +527,7 @@ public class ValidatingTrainer {
     this.trainingTarget = trainingTarget;
     return this;
   }
-  
+
   /**
    * Gets validation subject.
    *
@@ -549,7 +537,7 @@ public class ValidatingTrainer {
   public Trainable getValidationSubject() {
     return validationSubject;
   }
-  
+
   private PointSample measure(@Nonnull final TrainingPhase phase) {
     int retries = 0;
     do {
@@ -559,7 +547,7 @@ public class ValidatingTrainer {
       phase.orientation.reset();
     } while (true);
   }
-  
+
   @Nonnull
   private ValidatingTrainer reset(@Nonnull final TrainingPhase phase, final long seed) {
     if (!phase.trainingSubject.reseed(seed)) throw new IterativeStopException();
@@ -573,7 +561,7 @@ public class ValidatingTrainer {
     }
     return this;
   }
-  
+
   /**
    * Run double.
    *
@@ -623,10 +611,10 @@ public class ValidatingTrainer {
           lastImprovement = iterationNumber;
         }
         monitor.log(String.format("Epoch %d result apply %s iterations, %s/%s samples: {validation *= 2^%.5f; training *= 2^%.3f; Overtraining = %.2f}, {itr*=%.2f, len*=%.2f} %s since improvement; %.4f validation time",
-          ++epochNumber, primaryPhase.iterations, epochParams.trainingSize, getMaxTrainingSize(),
-          Math.log(validationDelta) / Math.log(2), Math.log(trainingDelta) / Math.log(2),
-          overtraining, adj1, adj2, iterationNumber - lastImprovement,
-          validatingMeasurementTime.getAndSet(0) / 1e9));
+            ++epochNumber, primaryPhase.iterations, epochParams.trainingSize, getMaxTrainingSize(),
+            Math.log(validationDelta) / Math.log(2), Math.log(trainingDelta) / Math.log(2),
+            overtraining, adj1, adj2, iterationNumber - lastImprovement,
+            validatingMeasurementTime.getAndSet(0) / 1e9));
         if (!primaryPhase.continueTraining) {
           monitor.log(String.format("Training %d runPhase halted", epochNumber));
           break;
@@ -636,18 +624,15 @@ public class ValidatingTrainer {
           if (roll > Math.pow(2 - validationDelta, pessimism)) {
             monitor.log(String.format("Training randomly converged: %3f", roll));
             break;
-          }
-          else {
+          } else {
             if (iterationNumber - lastImprovement > improvmentStaleThreshold) {
               if (disappointments.incrementAndGet() > getDisappointmentThreshold()) {
                 monitor.log(String.format("Training converged after %s iterations", iterationNumber - lastImprovement));
                 break;
-              }
-              else {
+              } else {
                 monitor.log(String.format("Training failed to converged on %s attempt after %s iterations", disappointments.get(), iterationNumber - lastImprovement));
               }
-            }
-            else {
+            } else {
               disappointments.set(0);
             }
           }
@@ -659,8 +644,7 @@ public class ValidatingTrainer {
           if (adj2 < 1 + adjustmentTolerance || adj2 > 1 - adjustmentTolerance) {
             epochParams.trainingSize = Math.max(0, Math.min(Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), (int) (epochParams.trainingSize * adj2))), epochParams.trainingSize));
           }
-        }
-        else {
+        } else {
           epochParams.trainingSize = Math.max(0, Math.min(Math.max(getMinTrainingSize(), Math.min(getMaxTrainingSize(), epochParams.trainingSize * 5)), epochParams.trainingSize));
           epochParams.iterations = 1;
         }
@@ -676,7 +660,7 @@ public class ValidatingTrainer {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Epoch runPhase result.
    *
@@ -705,26 +689,25 @@ public class ValidatingTrainer {
       final long newGcTime = ManagementFactory.getGarbageCollectorMXBeans().stream().mapToLong(x -> x.getCollectionTime()).sum();
       final long endTime = System.nanoTime();
       final CharSequence performance = String.format("%s in %.3f seconds; %.3f in orientation, %.3f in gc, %.3f in line search; %.3f trainAll time",
-        epochParams.trainingSize, (endTime - startTime) / 1e9,
-        epoch.performance[0],
-        (newGcTime - prevGcTime) / 1e3,
-        epoch.performance[1],
-        trainingMeasurementTime.getAndSet(0) / 1e9
+          epochParams.trainingSize, (endTime - startTime) / 1e9,
+          epoch.performance[0],
+          (newGcTime - prevGcTime) / 1e3,
+          epoch.performance[1],
+          trainingMeasurementTime.getAndSet(0) / 1e9
       );
       currentPoint = epoch.currentPoint.setRate(0.0);
       if (epoch.previous.getMean() <= epoch.currentPoint.getMean()) {
         monitor.log(String.format("Iteration %s failed, aborting. Error: %s (%s)",
-          currentIteration.get(), epoch.currentPoint.getMean(), performance));
+            currentIteration.get(), epoch.currentPoint.getMean(), performance));
         return new EpochResult(false, pointMean, currentPoint, step);
-      }
-      else {
+      } else {
         monitor.log(String.format("Iteration %s complete. Error: %s (%s)", currentIteration.get(), epoch.currentPoint.getMean(), performance));
       }
       monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
     }
     return new EpochResult(true, pointMean, currentPoint, step);
   }
-  
+
   /**
    * Step runStep result.
    *
@@ -741,8 +724,7 @@ public class ValidatingTrainer {
     LineSearchStrategy lineSearchStrategy;
     if (phase.lineSearchStrategyMap.containsKey(directionType)) {
       lineSearchStrategy = phase.lineSearchStrategyMap.get(directionType);
-    }
-    else {
+    } else {
       monitor.log(String.format("Constructing line search parameters: %s", directionType));
       lineSearchStrategy = phase.lineSearchFactory.apply(direction.getDirectionType());
       phase.lineSearchStrategyMap.put(directionType, lineSearchStrategy);
@@ -761,7 +743,7 @@ public class ValidatingTrainer {
     monitor.log(compare(previousPoint, bestPoint));
     return new StepResult(previousPoint, bestPoint, new double[]{timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9});
   }
-  
+
   /**
    * Sets line search factory.
    *
@@ -774,7 +756,7 @@ public class ValidatingTrainer {
     getRegimen().get(0).setLineSearchFactory(lineSearchFactory);
     return this;
   }
-  
+
   /**
    * Sets orientation.
    *
@@ -787,7 +769,7 @@ public class ValidatingTrainer {
     getRegimen().get(0).setOrientation(orientation);
     return this;
   }
-  
+
   /**
    * Sets timeout.
    *
@@ -800,7 +782,7 @@ public class ValidatingTrainer {
     timeout = Duration.of(number, units);
     return this;
   }
-  
+
   /**
    * Sets timeout.
    *
@@ -812,7 +794,7 @@ public class ValidatingTrainer {
   public ValidatingTrainer setTimeout(final int number, @Nonnull final TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
-  
+
   /**
    * Should halt boolean.
    *
@@ -825,16 +807,14 @@ public class ValidatingTrainer {
     if (timeoutMs < System.currentTimeMillis()) {
       monitor.log("Training timeout");
       return true;
-    }
-    else if (currentIteration.get() > maxIterations) {
+    } else if (currentIteration.get() > maxIterations) {
       monitor.log("Training iteration overflow");
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
-  
+
   private static class EpochParams {
     /**
      * The Iterations.
@@ -852,18 +832,18 @@ public class ValidatingTrainer {
      * The Validation.
      */
     PointSample validation;
-  
+
     private EpochParams(final long timeoutMs, final int iterations, final int trainingSize, final PointSample validation) {
       this.timeoutMs = timeoutMs;
       this.iterations = iterations;
       this.trainingSize = trainingSize;
       this.validation = validation;
     }
-  
+
   }
-  
+
   private static class EpochResult {
-  
+
     /**
      * The Continue training.
      */
@@ -880,7 +860,7 @@ public class ValidatingTrainer {
      * The Prior point.
      */
     double priorMean;
-  
+
     /**
      * Instantiates a new Epoch result.
      *
@@ -895,9 +875,9 @@ public class ValidatingTrainer {
       this.continueTraining = continueTraining;
       this.iterations = iterations;
     }
-  
+
   }
-  
+
   /**
    * The type Training phase.
    */
@@ -906,7 +886,7 @@ public class ValidatingTrainer {
     private Map<CharSequence, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
     private OrientationStrategy<?> orientation = new QQN();
     private SampledTrainable trainingSubject;
-  
+
     /**
      * Instantiates a new Training phase.
      *
@@ -915,8 +895,8 @@ public class ValidatingTrainer {
     public TrainingPhase(final SampledTrainable trainingSubject) {
       setTrainingSubject(trainingSubject);
     }
-  
-  
+
+
     /**
      * Gets line search factory.
      *
@@ -925,7 +905,7 @@ public class ValidatingTrainer {
     public Function<CharSequence, LineSearchStrategy> getLineSearchFactory() {
       return lineSearchFactory;
     }
-  
+
     /**
      * Sets line search factory.
      *
@@ -937,7 +917,7 @@ public class ValidatingTrainer {
       this.lineSearchFactory = lineSearchFactory;
       return this;
     }
-  
+
     /**
      * Gets line search strategy buildMap.
      *
@@ -946,7 +926,7 @@ public class ValidatingTrainer {
     public Map<CharSequence, LineSearchStrategy> getLineSearchStrategyMap() {
       return lineSearchStrategyMap;
     }
-  
+
     /**
      * Sets line search strategy buildMap.
      *
@@ -958,7 +938,7 @@ public class ValidatingTrainer {
       this.lineSearchStrategyMap = lineSearchStrategyMap;
       return this;
     }
-  
+
     /**
      * Gets orientation.
      *
@@ -967,7 +947,7 @@ public class ValidatingTrainer {
     public OrientationStrategy<?> getOrientation() {
       return orientation;
     }
-  
+
     /**
      * Sets orientation.
      *
@@ -979,7 +959,7 @@ public class ValidatingTrainer {
       this.orientation = orientation;
       return this;
     }
-  
+
     /**
      * Gets training subject.
      *
@@ -988,7 +968,7 @@ public class ValidatingTrainer {
     public SampledTrainable getTrainingSubject() {
       return trainingSubject;
     }
-  
+
     /**
      * Sets training subject.
      *
@@ -1000,19 +980,19 @@ public class ValidatingTrainer {
       this.trainingSubject = trainingSubject;
       return this;
     }
-  
+
     @Nonnull
     @Override
     public String toString() {
       return "TrainingPhase{" +
-        "trainingSubject=" + trainingSubject +
-        ", orientation=" + orientation +
-        '}';
+          "trainingSubject=" + trainingSubject +
+          ", orientation=" + orientation +
+          '}';
     }
   }
-  
+
   private class PerformanceWrapper extends TrainableWrapper<SampledTrainable> implements SampledTrainable {
-  
+
     /**
      * Instantiates a new Performance wrapper.
      *
@@ -1021,36 +1001,36 @@ public class ValidatingTrainer {
     public PerformanceWrapper(final SampledTrainable trainingSubject) {
       super(trainingSubject);
     }
-  
+
     @Nonnull
     @Override
     public SampledCachedTrainable<? extends SampledTrainable> cached() {
       return new SampledCachedTrainable<>(this);
     }
-    
+
     @Override
     public int getTrainingSize() {
       return getInner().getTrainingSize();
     }
-    
+
     @Override
     public PointSample measure(final TrainingMonitor monitor) {
       @Nonnull final TimedResult<PointSample> time = TimedResult.time(() ->
-        getInner().measure(monitor)
+          getInner().measure(monitor)
       );
       trainingMeasurementTime.addAndGet(time.timeNanos);
       return time.result;
     }
-  
+
     @Nonnull
     @Override
     public SampledTrainable setTrainingSize(final int trainingSize) {
       getInner().setTrainingSize(trainingSize);
       return this;
     }
-    
+
   }
-  
+
   private class StepResult {
     /**
      * The Current point.
@@ -1064,7 +1044,7 @@ public class ValidatingTrainer {
      * The Previous.
      */
     final PointSample previous;
-  
+
     /**
      * Instantiates a new Step result.
      *
@@ -1077,7 +1057,7 @@ public class ValidatingTrainer {
       this.previous = previous;
       this.performance = performance;
     }
-  
+
   }
 }
 

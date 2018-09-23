@@ -24,13 +24,13 @@ package com.simiacryptus.mindseye.lang;
  */
 @SuppressWarnings("serial")
 public class IterativeStopException extends RuntimeException {
-  
+
   /**
    * Instantiates a new Iterative stop exception.
    */
   public IterativeStopException() {
   }
-  
+
   /**
    * Instantiates a new Iterative stop exception.
    *
@@ -39,7 +39,7 @@ public class IterativeStopException extends RuntimeException {
   public IterativeStopException(final String message) {
     super(message);
   }
-  
+
   /**
    * Instantiates a new Iterative stop exception.
    *
@@ -49,7 +49,7 @@ public class IterativeStopException extends RuntimeException {
   public IterativeStopException(final String message, final Throwable cause) {
     super(message, cause);
   }
-  
+
   /**
    * Instantiates a new Iterative stop exception.
    *
@@ -61,7 +61,7 @@ public class IterativeStopException extends RuntimeException {
   public IterativeStopException(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
-  
+
   /**
    * Instantiates a new Iterative stop exception.
    *

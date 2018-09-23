@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.test.StepRecord;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -36,7 +36,7 @@ public interface Problem {
    */
   @Nonnull
   List<StepRecord> getHistory();
-  
+
   /**
    * Run problem.
    *

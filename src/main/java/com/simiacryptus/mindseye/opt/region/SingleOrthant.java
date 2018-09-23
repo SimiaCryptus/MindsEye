@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
  */
 public class SingleOrthant implements TrustRegion {
   private double zeroTol = 1e-20;
-  
+
   /**
    * Gets zero tol.
    *
@@ -36,7 +36,7 @@ public class SingleOrthant implements TrustRegion {
   public double getZeroTol() {
     return zeroTol;
   }
-  
+
   /**
    * Sets zero tol.
    *
@@ -45,7 +45,7 @@ public class SingleOrthant implements TrustRegion {
   public void setZeroTol(double zeroTol) {
     this.zeroTol = zeroTol;
   }
-  
+
   @Nonnull
   @Override
   public double[] project(final double[] weights, @Nonnull final double[] point) {
@@ -57,7 +57,7 @@ public class SingleOrthant implements TrustRegion {
     }
     return returnValue;
   }
-  
+
   /**
    * Sign int.
    *
@@ -67,13 +67,11 @@ public class SingleOrthant implements TrustRegion {
   public int sign(final double weight) {
     if (weight > zeroTol) {
       return 1;
-    }
-    else if (weight < -zeroTol) {
-    }
-    else {
+    } else if (weight < -zeroTol) {
+    } else {
       return -1;
     }
     return 0;
   }
-  
+
 }

@@ -30,16 +30,16 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
-  
+
   private double value = 0;
-  
+
   /**
    * Instantiates a new Max const layer.
    */
   public MaxConstLayer() {
     super();
   }
-  
+
   /**
    * Instantiates a new Max const layer.
    *
@@ -48,7 +48,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   protected MaxConstLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json max const layer.
    *
@@ -62,7 +62,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
     obj.value = json.get("value").getAsDouble();
     return obj;
   }
-  
+
   @Override
   protected void eval(final double x, final double[] results) {
     final double d = x < value ? 0 : 1;
@@ -71,7 +71,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
     results[0] = f;
     results[1] = d;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -79,7 +79,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
     json.addProperty("value", value);
     return json;
   }
-  
+
   /**
    * Gets value.
    *
@@ -88,7 +88,7 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   public double getValue() {
     return value;
   }
-  
+
   /**
    * Sets value.
    *

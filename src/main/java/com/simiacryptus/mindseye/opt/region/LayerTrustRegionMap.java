@@ -36,7 +36,7 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
   private final Map<Layer, TrustRegion> regionPolicies = new HashMap<>();
   @Nullable
   private TrustRegion defaultRegionPolicy = null;
-  
+
   /**
    * Gets default region policy.
    *
@@ -46,7 +46,7 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
   public TrustRegion getDefaultRegionPolicy() {
     return defaultRegionPolicy;
   }
-  
+
   /**
    * Gets region policies.
    *
@@ -56,17 +56,17 @@ public class LayerTrustRegionMap extends TrustRegionStrategy {
   public Map<Layer, TrustRegion> getRegionPolicies() {
     return regionPolicies;
   }
-  
+
   @Override
   public TrustRegion getRegionPolicy(final Layer layer) {
     return regionPolicies.getOrDefault(layer, defaultRegionPolicy);
   }
-  
+
   @Override
   public void reset() {
     inner.reset();
   }
-  
+
   /**
    * Sets default region policy.
    *

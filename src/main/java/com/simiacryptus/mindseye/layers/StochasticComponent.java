@@ -36,14 +36,14 @@ public interface StochasticComponent {
       return new Random();
     }
   };
-  
+
   /**
    * Shuffle.
    *
    * @param seed the seed
    */
   void shuffle(final long seed);
-  
+
   /**
    * Clear noise.
    */

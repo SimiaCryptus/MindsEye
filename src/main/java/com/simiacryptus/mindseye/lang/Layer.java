@@ -28,20 +28,10 @@ import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Serializable;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -50,7 +40,7 @@ import java.util.zip.ZipOutputStream;
  * The interface Layer.
  */
 public interface Layer extends ReferenceCounting, Serializable {
-  
+
   /**
    * From json nn layer.
    *
@@ -58,8 +48,10 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @return the nn layer
    */
   @Nonnull
-  static Layer fromJson(@Nonnull final JsonObject json) { return fromJson(json, null);}
-  
+  static Layer fromJson(@Nonnull final JsonObject json) {
+    return fromJson(json, null);
+  }
+
   /**
    * From zip nn layer.
    *
@@ -78,8 +70,7 @@ public interface Layer extends ReferenceCounting, Serializable {
         InputStream inputStream = zipfile.getInputStream(zipEntry);
         if (name.equals("model.json")) {
           json = new GsonBuilder().create().fromJson(new InputStreamReader(inputStream), JsonObject.class);
-        }
-        else {
+        } else {
           resources.put(name, IOUtils.readFully(inputStream, (int) zipEntry.getSize()));
         }
       } catch (IOException e) {
@@ -88,8 +79,8 @@ public interface Layer extends ReferenceCounting, Serializable {
     }
     return fromJson(json, resources);
   }
-  
-  
+
+
   /**
    * From json nn layer.
    *
@@ -116,7 +107,7 @@ public interface Layer extends ReferenceCounting, Serializable {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * And then layer.
    *
@@ -125,37 +116,37 @@ public interface Layer extends ReferenceCounting, Serializable {
    */
   default PipelineNetwork andThen(Layer append) {
     return PipelineNetwork.build(1,
-      this,
-      append
+        this,
+        append
     );
   }
-  
+
   default PipelineNetwork freeAndThen(Layer append) {
     PipelineNetwork build = andThen(append);
     this.freeRef();
     return build;
   }
-  
+
   default PipelineNetwork andThenWrap(Layer append) {
     assert append.assertAlive();
     assert assertAlive();
     PipelineNetwork wrap = PipelineNetwork.build(1,
-      this,
-      append
+        this,
+        append
     );
     append.freeRef();
     return wrap;
   }
-  
+
   default PipelineNetwork freeAndThenWrap(Layer append) {
     assert append.assertAlive();
     PipelineNetwork build = PipelineNetwork.wrap(1,
-      this,
-      append
+        this,
+        append
     );
     return build;
   }
-  
+
   /**
    * As t.
    *
@@ -172,15 +163,17 @@ public interface Layer extends ReferenceCounting, Serializable {
     json.addProperty("class", targetClass.getCanonicalName());
     return (T) fromJson(json, resources);
   }
-  
+
   /**
    * Copy nn layer.
    *
    * @return the nn layer
    */
   @Nonnull
-  default Layer copy() {return copy(SerialPrecision.Double);}
-  
+  default Layer copy() {
+    return copy(SerialPrecision.Double);
+  }
+
   /**
    * Copy nn layer.
    *
@@ -194,7 +187,7 @@ public interface Layer extends ReferenceCounting, Serializable {
     final JsonObject json = getJson(resources, precision);
     return Layer.fromJson(json, resources);
   }
-  
+
   /**
    * Eval nn result.
    *
@@ -207,7 +200,7 @@ public interface Layer extends ReferenceCounting, Serializable {
     Arrays.stream(array).map(Result::getData).forEach(ReferenceCounting::addRef);
     return evalAndFree(array);
   }
-  
+
   /**
    * Eval and free nn result.
    *
@@ -221,7 +214,7 @@ public interface Layer extends ReferenceCounting, Serializable {
     Arrays.stream(array).forEach(ReferenceCounting::freeRef);
     return result;
   }
-  
+
   /**
    * Eval nn result.
    *
@@ -236,7 +229,7 @@ public interface Layer extends ReferenceCounting, Serializable {
     Arrays.stream(input).map(Result::getData).forEach(ReferenceCounting::freeRef);
     return eval;
   }
-  
+
   /**
    * Eval nn result.
    *
@@ -251,7 +244,7 @@ public interface Layer extends ReferenceCounting, Serializable {
     Arrays.stream(input).map(Result::getData).forEach(ReferenceCounting::freeRef);
     return eval;
   }
-  
+
   /**
    * Freeze nn layer.
    *
@@ -261,14 +254,14 @@ public interface Layer extends ReferenceCounting, Serializable {
   default Layer freeze() {
     return setFrozen(true);
   }
-  
+
   /**
    * The Id.
    *
    * @return the children
    */
   List<Layer> getChildren();
-  
+
   /**
    * Gets id.
    *
@@ -276,7 +269,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    */
   @Nullable
   Object getId();
-  
+
   /**
    * Gets json.
    *
@@ -285,7 +278,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @return the json
    */
   JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer);
-  
+
   /**
    * Gets json.
    *
@@ -294,14 +287,16 @@ public interface Layer extends ReferenceCounting, Serializable {
   default JsonObject getJson() {
     return getJson(null, SerialPrecision.Double);
   }
-  
+
   /**
    * Write zip.
    *
    * @param out the out
    */
-  default void writeZip(@Nonnull File out) {writeZip(out, SerialPrecision.Double);}
-  
+  default void writeZip(@Nonnull File out) {
+    writeZip(out, SerialPrecision.Double);
+  }
+
   /**
    * Write zip.
    *
@@ -315,14 +310,16 @@ public interface Layer extends ReferenceCounting, Serializable {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Write zip.
    *
    * @param out the out
    */
-  default void writeZip(@Nonnull ZipOutputStream out) {writeZip(out, SerialPrecision.Double);}
-  
+  default void writeZip(@Nonnull ZipOutputStream out) {
+    writeZip(out, SerialPrecision.Double);
+  }
+
   /**
    * Write zip.
    *
@@ -355,7 +352,7 @@ public interface Layer extends ReferenceCounting, Serializable {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Gets json string.
    *
@@ -364,7 +361,7 @@ public interface Layer extends ReferenceCounting, Serializable {
   default CharSequence getJsonString() {
     return new GsonBuilder().setPrettyPrinting().create().toJson(getJson());
   }
-  
+
   /**
    * Gets json stub.
    *
@@ -380,7 +377,7 @@ public interface Layer extends ReferenceCounting, Serializable {
     json.addProperty("name", getName());
     return json;
   }
-  
+
   /**
    * Gets name.
    *
@@ -388,7 +385,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    */
   @Nullable
   String getName();
-  
+
   /**
    * Sets name.
    *
@@ -397,14 +394,14 @@ public interface Layer extends ReferenceCounting, Serializable {
    */
   @Nonnull
   Layer setName(final String name);
-  
+
   /**
    * Is frozen boolean.
    *
    * @return the boolean
    */
   boolean isFrozen();
-  
+
   /**
    * Sets frozen.
    *
@@ -413,7 +410,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    */
   @Nonnull
   Layer setFrozen(final boolean frozen);
-  
+
   /**
    * State list.
    *
@@ -421,7 +418,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    */
   @Nullable
   List<double[]> state();
-  
+
   default Layer copyAndFree() {
     Layer copy = copy();
     freeRef();

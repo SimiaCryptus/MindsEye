@@ -37,20 +37,20 @@ import java.util.function.Supplier;
 @SuppressWarnings("serial")
 abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
   private static final Logger log = LoggerFactory.getLogger(LazyResult.class);
-  
+
   /**
    * The Id.
    */
   public final UUID id;
-  
-  
+
+
   /**
    * Instantiates a new Lazy result.
    */
   public LazyResult() {
     this(UUID.randomUUID());
   }
-  
+
   /**
    * Instantiates a new Lazy result.
    *
@@ -60,7 +60,7 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
     super();
     this.id = id;
   }
-  
+
   /**
    * Eval nn result.
    *
@@ -69,7 +69,7 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
    */
   @Nullable
   protected abstract Result eval(GraphEvaluationContext t);
-  
+
   @Nullable
   @Override
   public CountingResult get(@Nonnull final GraphEvaluationContext context) {
@@ -109,16 +109,15 @@ abstract class LazyResult extends ReferenceCountingBase implements DAGNode {
     if (expectedCount <= 0 || references < expectedCount) {
       nnResult.addRef();
       nnResult.getData().addRef();
-    }
-    else {
+    } else {
       context.calculated.remove(id);
     }
     return nnResult;
   }
-  
+
   @Override
   public final UUID getId() {
     return id;
   }
-  
+
 }

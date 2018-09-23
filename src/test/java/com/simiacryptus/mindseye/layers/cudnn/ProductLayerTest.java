@@ -30,12 +30,12 @@ import java.util.Random;
  * The type Product layer apply.
  */
 public abstract class ProductLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Precision.
    */
   final Precision precision;
-  
+
   /**
    * Instantiates a new Product layer apply.
    *
@@ -44,28 +44,28 @@ public abstract class ProductLayerTest extends CudaLayerTestBase {
   public ProductLayerTest(final Precision precision) {
     this.precision = precision;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {4, 4, 3}, {1, 1, 3}
+        {4, 4, 3}, {1, 1, 3}
     };
   }
-  
+
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {400, 400, 30}, {1, 1, 30}
+        {400, 400, 30}, {1, 1, 30}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ProductLayer().setPrecision(precision);
   }
-  
+
   /**
    * Multiplication of 2 inputs using 64-bit precision
    */
@@ -77,7 +77,7 @@ public abstract class ProductLayerTest extends CudaLayerTestBase {
       super(Precision.Double);
     }
   }
-  
+
   /**
    * Multiplication of 2 inputs using 32-bit precision
    */
@@ -88,11 +88,11 @@ public abstract class ProductLayerTest extends CudaLayerTestBase {
     public Float() {
       super(Precision.Float);
     }
-    
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-    
+
   }
 }

@@ -32,7 +32,7 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
   @Nonnull
   private final TensorList inner;
   private final int[] dims;
-  
+
   /**
    * Instantiates a new Reshaped tensor list.
    *
@@ -46,7 +46,7 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
     this.inner.addRef(this);
     this.dims = toDim;
   }
-  
+
   @Nonnull
   @Override
   public Tensor get(int i) {
@@ -56,18 +56,18 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
     tensor.freeRef();
     return reshapeCast;
   }
-  
+
   @Nonnull
   @Override
   public int[] getDimensions() {
     return Arrays.copyOf(dims, dims.length);
   }
-  
+
   @Override
   public int length() {
     return inner.length();
   }
-  
+
   @Override
   public Stream<Tensor> stream() {
     return inner.stream().map(t -> {
@@ -76,12 +76,12 @@ public class ReshapedTensorList extends ReferenceCountingBase implements TensorL
       return tensor;
     });
   }
-  
+
   @Override
   protected void _free() {
     inner.freeRef();
   }
-  
+
   /**
    * Gets inner.
    *

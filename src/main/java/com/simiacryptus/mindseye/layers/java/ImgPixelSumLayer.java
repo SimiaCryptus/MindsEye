@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,18 +35,18 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ImgPixelSumLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgPixelSumLayer.class);
-  
+
   /**
    * Instantiates a new Img band scale layer.
    */
   public ImgPixelSumLayer() {
     super();
   }
-  
-  
+
+
   /**
    * Instantiates a new Img band scale layer.
    *
@@ -62,7 +55,7 @@ public class ImgPixelSumLayer extends LayerBase {
   protected ImgPixelSumLayer(@Nonnull final JsonObject json) {
     super(json);
   }
-  
+
   /**
    * From json img band scale layer.
    *
@@ -73,14 +66,14 @@ public class ImgPixelSumLayer extends LayerBase {
   public static ImgPixelSumLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgPixelSumLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result evalAndFree(final Result... inObj) {
     assert 1 == inObj.length;
     return evalAndFree(inObj[0]);
   }
-  
+
   /**
    * Eval nn result.
    *
@@ -106,38 +99,38 @@ public class ImgPixelSumLayer extends LayerBase {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(delta.stream().map(deltaTensor -> {
           int[] deltaDims = deltaTensor.getDimensions();
           Tensor result = new Tensor(deltaDims[0], deltaDims[1], inputDims[2])
-            .setByCoord(c -> {
-              int[] coords = c.getCoords();
-              return deltaTensor.get(coords[0], coords[1], 0);
-            });
+              .setByCoord(c -> {
+                int[] coords = c.getCoords();
+                return deltaTensor.get(coords[0], coords[1], 0);
+              });
           deltaTensor.freeRef();
           return result;
         }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         inputData.freeRef();
         input.freeRef();
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

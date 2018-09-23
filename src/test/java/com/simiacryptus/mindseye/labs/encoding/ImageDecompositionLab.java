@@ -39,9 +39,9 @@ import com.simiacryptus.mindseye.opt.orient.GradientDescent;
 import com.simiacryptus.mindseye.opt.orient.QQN;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.notebook.MarkdownNotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
-import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -61,7 +61,7 @@ import java.util.stream.Stream;
  * The type Image encoding pca apply.
  */
 public class ImageDecompositionLab {
-  
+
   /**
    * The MnistProblemData pipeline.
    */
@@ -75,7 +75,7 @@ public class ImageDecompositionLab {
    * The Model no.
    */
   int modelNo = 0;
-  
+
   /**
    * Test.
    *
@@ -88,7 +88,7 @@ public class ImageDecompositionLab {
       lab.run(log);
     }
   }
-  
+
   /**
    * Initialize.
    *
@@ -116,7 +116,7 @@ public class ImageDecompositionLab {
     }.invoke();
     EncodingUtil.setInitialFeatureSpace(convolutionLayer, biasLayer, findFeatureSpace);
   }
-  
+
   /**
    * Gets log.
    *
@@ -134,7 +134,7 @@ public class ImageDecompositionLab {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Run.
    *
@@ -147,57 +147,57 @@ public class ImageDecompositionLab {
     final int size = 400;
     @Nonnull String source = "H:\\SimiaCryptus\\photos";
     displayImage = images;
-  
+
     final Tensor[][] trainingImages = null == source ? EncodingUtil.getImages(log, size, images, "kangaroo") :
-      Arrays.stream(new File(source).listFiles()).map(input -> {
-        try {
-          return ImageIO.read(input);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }).map(img -> new Tensor[]{
-        new Tensor(1.0),
-        Tensor.fromRGB(TestUtil.resize(img, size))
-      }).toArray(i -> new Tensor[i][]);
-  
+        Arrays.stream(new File(source).listFiles()).map(input -> {
+          try {
+            return ImageIO.read(input);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }).map(img -> new Tensor[]{
+            new Tensor(1.0),
+            Tensor.fromRGB(TestUtil.resize(img, size))
+        }).toArray(i -> new Tensor[i][]);
+
     Arrays.stream(trainingImages).map(x -> x[1]).map(x -> x.toImage()).map(x -> {
       return log.png(x, "example");
     }).forEach(str -> log.p(str));
-  
+
     log.h1("First LayerBase");
     @Nonnull final InitializationStep step0 = log.eval(() -> {
       return new InitializationStep(log, trainingImages,
-        size, pretrainMinutes, timeoutMinutes, 3, 9, 5);
+          size, pretrainMinutes, timeoutMinutes, 3, 9, 5);
     }).invoke(); // output: 260
-  
+
     log.h1("Second LayerBase");
     @Nonnull final AddLayerStep step1 = log.eval(() -> {
       return new AddLayerStep(log, step0.trainingData, step0.model,
-        2, step0.toSize, pretrainMinutes * 2, timeoutMinutes,
-        step0.band1, 18, 3, 4);
+          2, step0.toSize, pretrainMinutes * 2, timeoutMinutes,
+          step0.band1, 18, 3, 4);
     }).invoke(); // output: 274
-  
+
     log.h1("Third LayerBase");
     @Nonnull final AddLayerStep step2 = log.eval(() -> {
       return new AddLayerStep(log, step1.trainingData, step1.integrationModel,
-        3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
-        step1.band2, 48, 3, 1);
+          3, step1.toSize, pretrainMinutes * 3, timeoutMinutes,
+          step1.band2, 48, 3, 1);
     }).invoke(); // 276
-  
+
     log.h1("Fourth LayerBase");
     @Nonnull final AddLayerStep step3 = log.eval(() -> {
       return new AddLayerStep(log, step2.trainingData, step2.integrationModel,
-        4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
-        step2.band2, 48, 5, 4);
+          4, step2.toSize, pretrainMinutes * 4, timeoutMinutes,
+          step2.band2, 48, 5, 4);
     }).invoke(); // 278
-    
+
     log.h1("Transcoding Different Category");
     log.eval(() -> {
       return new TranscodeStep(log, "yin_yang",
-        images, size, timeoutMinutes * 5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
+          images, size, timeoutMinutes * 5, step3.integrationModel, step3.toSize, step3.toSize, step3.band2);
     }).invoke();
   }
-  
+
   /**
    * Train.
    *
@@ -214,21 +214,21 @@ public class ImageDecompositionLab {
       @Nonnull SampledTrainable trainingSubject = new SampledArrayTrainable(data, network, data.length);
       trainingSubject = (SampledTrainable) ((TrainableDataMask) trainingSubject).setMask(mask);
       @Nonnull final ValidatingTrainer validatingTrainer = new ValidatingTrainer(trainingSubject, new ArrayTrainable(data, network))
-        .setMaxTrainingSize(data.length)
-        .setMinTrainingSize(5)
-        .setMonitor(monitor)
-        .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
-        .setMaxIterations(1000);
+          .setMaxTrainingSize(data.length)
+          .setMinTrainingSize(5)
+          .setMonitor(monitor)
+          .setTimeout(timeoutMinutes, TimeUnit.MINUTES)
+          .setMaxIterations(1000);
       validatingTrainer.getRegimen().get(0)
-        .setOrientation(new GradientDescent())
-        .setLineSearchFactory(name -> name.equals(QQN.CURSOR_NAME) ?
-          new QuadraticSearch().setCurrentRate(1.0) :
-          new QuadraticSearch().setCurrentRate(1.0));
+          .setOrientation(new GradientDescent())
+          .setLineSearchFactory(name -> name.equals(QQN.CURSOR_NAME) ?
+              new QuadraticSearch().setCurrentRate(1.0) :
+              new QuadraticSearch().setCurrentRate(1.0));
       validatingTrainer
-        .run();
+          .run();
     });
   }
-  
+
   /**
    * The type Add layer runStep.
    */
@@ -308,7 +308,7 @@ public class ImageDecompositionLab {
      */
     public final Tensor[][] trainingData;
     private final int fromSize;
-  
+
     /**
      * Instantiates a new Add layer runStep.
      *
@@ -325,8 +325,8 @@ public class ImageDecompositionLab {
      * @param scale           the scale
      */
     public AddLayerStep(@Nonnull final NotebookOutput log, @Nonnull final Tensor[][] trainingData, final DAGNetwork priorModel,
-      final int layerNumber, final int fromSize, final int pretrainMinutes, final int timeoutMinutes,
-      final int band1, final int band2, final int radius, final int scale) {
+                        final int layerNumber, final int fromSize, final int pretrainMinutes, final int timeoutMinutes,
+                        final int band1, final int band2, final int radius, final int scale) {
       originalOut = EncodingUtil.rawOut;
       this.log = log;
       this.band1 = band1;
@@ -353,7 +353,7 @@ public class ImageDecompositionLab {
         return network;
       });
     }
-  
+
     /**
      * Build network pipeline network.
      *
@@ -362,16 +362,16 @@ public class ImageDecompositionLab {
     public PipelineNetwork buildNetwork() {
       return log.eval(() -> {
         return new PipelineNetwork(1,
-          new RescaledSubnetLayer(scale,
-            new PipelineNetwork(1,
-              convolutionLayer,
-              biasLayer
-            )
-          ), new ImgCropLayer(fromSize, fromSize)
+            new RescaledSubnetLayer(scale,
+                new PipelineNetwork(1,
+                    convolutionLayer,
+                    biasLayer
+                )
+            ), new ImgCropLayer(fromSize, fromSize)
         );
       });
     }
-  
+
     /**
      * Gets integration model.
      *
@@ -380,7 +380,7 @@ public class ImageDecompositionLab {
     public PipelineNetwork getIntegrationModel() {
       return integrationModel;
     }
-  
+
     /**
      * Get training mask boolean [ ].
      *
@@ -392,7 +392,7 @@ public class ImageDecompositionLab {
       mask[layerNumber + 1] = true;
       return mask;
     }
-  
+
     /**
      * Invoke add layer runStep.
      *
@@ -408,7 +408,7 @@ public class ImageDecompositionLab {
         }, convolutionLayer, biasLayer);
       });
       @Nonnull final boolean[] mask = getTrainingMask();
-      
+
       {
         log.h2("Initialization");
         log.h3("Training");
@@ -421,7 +421,7 @@ public class ImageDecompositionLab {
         TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
-  
+
       log.h2("Tuning");
       log.h3("Training");
       @Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(innerModel, layerNumber, layerNumber + 1);
@@ -432,7 +432,7 @@ public class ImageDecompositionLab {
       EncodingUtil.printModel(log, innerModel, modelNo++);
       TestUtil.printDataStatistics(log, trainingData);
       history.clear();
-  
+
       log.h2("Integration Training");
       log.h3("Training");
       @Nonnull final DAGNetwork trainingModel1 = EncodingUtil.buildTrainingModel(integrationModel, 1, layerNumber + 1);
@@ -445,23 +445,23 @@ public class ImageDecompositionLab {
       history.clear();
       return this;
     }
-  
+
     @Nonnull
     @Override
     public String toString() {
       return "AddLayerStep{" +
-        "toSize=" + toSize +
-        ", layerNumber=" + layerNumber +
-        ", pretrainMinutes=" + pretrainMinutes +
-        ", timeoutMinutes=" + timeoutMinutes +
-        ", radius=" + radius +
-        ", scale=" + scale +
-        ", band1=" + band1 +
-        ", band2=" + band2 +
-        '}';
+          "toSize=" + toSize +
+          ", layerNumber=" + layerNumber +
+          ", pretrainMinutes=" + pretrainMinutes +
+          ", timeoutMinutes=" + timeoutMinutes +
+          ", radius=" + radius +
+          ", scale=" + scale +
+          ", band1=" + band1 +
+          ", band2=" + band2 +
+          '}';
     }
   }
-  
+
   /**
    * The type Initialization runStep.
    */
@@ -525,7 +525,7 @@ public class ImageDecompositionLab {
      * The Training data.
      */
     public final Tensor[][] trainingData;
-  
+
     /**
      * Instantiates a new Initialization runStep.
      *
@@ -553,7 +553,7 @@ public class ImageDecompositionLab {
       biasLayer = new ImgBandBiasLayer(band0);
       model = buildModel();
     }
-  
+
     /**
      * Build model pipeline network.
      *
@@ -570,7 +570,7 @@ public class ImageDecompositionLab {
         return network;
       });
     }
-  
+
     /**
      * Invoke initialization runStep.
      *
@@ -582,7 +582,7 @@ public class ImageDecompositionLab {
       log.run(() -> {
         initialize(log, () -> EncodingUtil.convolutionFeatures(Arrays.stream(trainingData).map(x1 -> new Tensor[]{x1[0], x1[1]}), radius, 1), convolutionLayer, biasLayer);
       });
-      
+
       {
         log.h2("Initialization");
         log.h3("Training");
@@ -595,7 +595,7 @@ public class ImageDecompositionLab {
         TestUtil.printDataStatistics(log, trainingData);
         history.clear();
       }
-      
+
       log.h2("Tuning");
       log.h3("Training");
       @Nonnull final DAGNetwork trainingModel0 = EncodingUtil.buildTrainingModel(model, 1, 2);
@@ -606,26 +606,26 @@ public class ImageDecompositionLab {
       EncodingUtil.printModel(log, model, modelNo++);
       TestUtil.printDataStatistics(log, trainingData);
       history.clear();
-      
+
       return this;
     }
-  
+
     @Nonnull
     @Override
     public String toString() {
       return "InitializationStep{" +
-        ", fromSize=" + fromSize +
-        ", toSize=" + toSize +
-        ", pretrainMinutes=" + pretrainMinutes +
-        ", timeoutMinutes=" + timeoutMinutes +
-        ", radius=" + radius +
-        ", band0=" + band0 +
-        ", band1=" + band1 +
-        '}';
+          ", fromSize=" + fromSize +
+          ", toSize=" + toSize +
+          ", pretrainMinutes=" + pretrainMinutes +
+          ", timeoutMinutes=" + timeoutMinutes +
+          ", radius=" + radius +
+          ", band0=" + band0 +
+          ", band1=" + band1 +
+          '}';
     }
-    
+
   }
-  
+
   /**
    * The type Transcode runStep.
    */
@@ -668,7 +668,7 @@ public class ImageDecompositionLab {
      * The Train minutes.
      */
     public final int trainMinutes;
-  
+
     /**
      * Instantiates a new Transcode runStep.
      *
@@ -690,7 +690,7 @@ public class ImageDecompositionLab {
       monitor = EncodingUtil.getMonitor(history);
       this.trainMinutes = trainMinutes;
     }
-  
+
     /**
      * Invoke transcode runStep.
      *
@@ -708,16 +708,16 @@ public class ImageDecompositionLab {
       history.clear();
       return this;
     }
-  
+
     @Nonnull
     @Override
     public String toString() {
       return "TranscodeStep{" +
-        "category='" + category + '\'' +
-        ", imageCount=" + imageCount +
-        ", trainMinutes=" + trainMinutes +
-        '}';
+          "category='" + category + '\'' +
+          ", imageCount=" + imageCount +
+          ", trainMinutes=" + trainMinutes +
+          '}';
     }
   }
-  
+
 }

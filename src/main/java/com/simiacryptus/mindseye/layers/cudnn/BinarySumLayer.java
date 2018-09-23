@@ -20,24 +20,8 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.CoreSettings;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.LinearActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SumInputsLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
@@ -58,18 +42,18 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySumLayer> {
-  
+
   private double leftFactor;
   private Precision precision = Precision.Double;
   private double rightFactor;
-  
+
   /**
    * Instantiates a new Product inputs layer.
    */
   public BinarySumLayer() {
     this(1.0, 1.0);
   }
-  
+
   /**
    * Instantiates a new Binary sum layer.
    *
@@ -80,7 +64,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     this.leftFactor = leftFactor;
     this.rightFactor = rightFactor;
   }
-  
+
   /**
    * Instantiates a new Product inputs layer.
    *
@@ -92,7 +76,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     leftFactor = json.get("leftFactor").getAsDouble();
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
-  
+
   /**
    * From json product inputs layer.
    *
@@ -103,7 +87,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   public static BinarySumLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BinarySumLayer(json);
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -113,12 +97,12 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   public Layer getCompatibilityLayer() {
     @Nonnull PipelineNetwork network = new PipelineNetwork(2);
     network.wrap(new SumInputsLayer(),
-      network.wrap(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
-      network.wrap(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1))).freeRef();
+        network.wrap(new LinearActivationLayer().setScale(this.leftFactor).freeze(), network.getInput(0)),
+        network.wrap(new LinearActivationLayer().setScale(this.rightFactor).freeze(), network.getInput(1))).freeRef();
     return network;
-    
+
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -140,9 +124,9 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
       throw new IllegalArgumentException("dimensions=" + Arrays.toString(leftDimensions));
     }
     @Nonnull final int[] dimensions = {
-      leftDimensions.length < 1 ? 0 : leftDimensions[0],
-      leftDimensions.length < 2 ? 1 : leftDimensions[1],
-      leftDimensions.length < 3 ? 1 : leftDimensions[2]
+        leftDimensions.length < 1 ? 0 : leftDimensions[0],
+        leftDimensions.length < 2 ? 1 : leftDimensions[1],
+        leftDimensions.length < 3 ? 1 : leftDimensions[2]
     };
     final int length = leftData.length();
     if (length != rightData.length()) throw new IllegalArgumentException();
@@ -158,20 +142,20 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     return new Result(CudaSystem.run(gpu -> {
       @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_ADD, precision);
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length,
-        dimensions[2], dimensions[1], dimensions[0],
-        dimensions[2] * dimensions[1] * dimensions[0],
-        dimensions[1] * dimensions[0],
-        dimensions[0],
-        1);
+          dimensions[2], dimensions[1], dimensions[0],
+          dimensions[2] * dimensions[1] * dimensions[0],
+          dimensions[1] * dimensions[0],
+          dimensions[0],
+          1);
       @Nullable final CudaTensor lPtr = gpu.getTensor(leftData, precision, MemoryType.Device, false); //.getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
       @Nullable final CudaTensor rPtr = gpu.getTensor(rightData, precision, MemoryType.Device, false); //.getDenseAndFree(gpu);//.moveTo(gpu.getDeviceNumber());
       @Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Managed, true);
       CudaMemory lPtrMemory = lPtr.getMemory(gpu);
       CudaMemory rPtrMemory = rPtr.getMemory(gpu);
       gpu.cudnnOpTensor(opDescriptor.getPtr(),
-        precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
-        precision.getPointer(rightFactor), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
-        precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
+          precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
+          precision.getPointer(rightFactor), rPtr.descriptor.getPtr(), rPtrMemory.getPtr(),
+          precision.getPointer(0.0), outputDescriptor.getPtr(), outputPtr.getPtr());
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       lPtrMemory.dirty();
       rPtrMemory.dirty();
@@ -182,22 +166,22 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
       Stream.<ReferenceCounting>of(opDescriptor, lPtr, rPtr).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
     }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
-      
+
       Runnable a = () -> {
         if (inObj[0].isAlive()) {
           CudaTensorList tensorList = CudaSystem.run(gpu -> {
             @Nullable final CudaTensor lPtr = gpu.getTensor(delta, precision, MemoryType.Device, false);
             @Nonnull final CudaMemory passbackPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Managed.normalize(), true);
             @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision, length,
-              dimensions[2], dimensions[1], dimensions[0],
-              dimensions[2] * dimensions[1] * dimensions[0],
-              dimensions[1] * dimensions[0],
-              dimensions[0],
-              1);
+                dimensions[2], dimensions[1], dimensions[0],
+                dimensions[2] * dimensions[1] * dimensions[0],
+                dimensions[1] * dimensions[0],
+                dimensions[0],
+                1);
             CudaMemory lPtrMemory = lPtr.getMemory(gpu);
             gpu.cudnnTransformTensor(
-              precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
-              precision.getPointer(0.0), passbackDescriptor.getPtr(), passbackPtr.getPtr());
+                precision.getPointer(leftFactor), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
+                precision.getPointer(0.0), passbackDescriptor.getPtr(), passbackPtr.getPtr());
             assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
             passbackPtr.dirty();
             lPtrMemory.dirty();
@@ -215,15 +199,15 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
             @Nullable final CudaTensor lPtr = gpu.getTensor(delta, precision, MemoryType.Device, false);
             @Nonnull final CudaMemory outputPtr = gpu.allocate(precision.size * Tensor.length(dimensions) * length, MemoryType.Managed.normalize(), true);
             @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision, length,
-              dimensions[2], dimensions[1], dimensions[0],
-              dimensions[2] * dimensions[1] * dimensions[0],
-              dimensions[1] * dimensions[0],
-              dimensions[0],
-              1);
+                dimensions[2], dimensions[1], dimensions[0],
+                dimensions[2] * dimensions[1] * dimensions[0],
+                dimensions[1] * dimensions[0],
+                dimensions[0],
+                1);
             CudaMemory lPtrMemory = lPtr.getMemory(gpu);
             gpu.cudnnTransformTensor(
-              precision.getPointer(rightFactor), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
-              precision.getPointer(0.0), passbackDescriptor.getPtr(), outputPtr.getPtr());
+                precision.getPointer(rightFactor), lPtr.descriptor.getPtr(), lPtrMemory.getPtr(),
+                precision.getPointer(0.0), passbackDescriptor.getPtr(), outputPtr.getPtr());
             outputPtr.dirty();
             lPtrMemory.dirty();
             lPtrMemory.freeRef();
@@ -234,18 +218,18 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
           inObj[1].accumulate(buffer, tensorList);
         }
       };
-      if (CoreSettings.INSTANCE.isSingleThreaded()) TestUtil.runAllSerial(a, b);
+      if (CoreSettings.INSTANCE().isSingleThreaded()) TestUtil.runAllSerial(a, b);
       else TestUtil.runAllParallel(a, b);
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(x -> x.freeRef());
         leftData.freeRef();
         rightData.freeRef();
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         for (@Nonnull final Result element : inObj)
@@ -254,10 +238,10 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
           }
         return false;
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -267,7 +251,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   /**
    * Gets left factor.
    *
@@ -276,7 +260,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   public double getLeftFactor() {
     return leftFactor;
   }
-  
+
   /**
    * Sets left factor.
    *
@@ -288,19 +272,19 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     this.leftFactor = leftFactor;
     return this;
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public BinarySumLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   /**
    * Gets right factor.
    *
@@ -309,7 +293,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   public double getRightFactor() {
     return rightFactor;
   }
-  
+
   /**
    * Sets right factor.
    *
@@ -321,7 +305,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
     this.rightFactor = rightFactor;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

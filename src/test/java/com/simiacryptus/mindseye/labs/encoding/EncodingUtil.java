@@ -23,11 +23,7 @@ import com.simiacryptus.mindseye.lang.Coordinate;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.java.ImgBandScaleLayer;
-import com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer;
-import com.simiacryptus.mindseye.layers.java.ImgReshapeLayer;
-import com.simiacryptus.mindseye.layers.java.MeanSqLossLayer;
+import com.simiacryptus.mindseye.layers.java.*;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.opt.Step;
@@ -36,12 +32,12 @@ import com.simiacryptus.mindseye.test.PCAUtil;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.data.Caltech101;
+import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.notebook.TableOutput;
 import com.simiacryptus.util.FastRandom;
-import com.simiacryptus.util.TableOutput;
 import com.simiacryptus.util.data.DoubleStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 import com.simiacryptus.util.io.GifSequenceWriter;
-import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +65,7 @@ import java.util.stream.Stream;
  */
 public class EncodingUtil {
   private static final Logger log = LoggerFactory.getLogger(EncodingUtil.class);
-  
+
   /**
    * The constant imageNumber.
    */
@@ -87,7 +83,7 @@ public class EncodingUtil {
    */
   @Nonnull
   protected static PrintStream rawOut = SysOutInterceptor.INSTANCE.getInner();
-  
+
   /**
    * Add column tensor [ ] [ ].
    *
@@ -97,11 +93,11 @@ public class EncodingUtil {
    */
   public static Tensor[][] addColumn(@Nonnull final Tensor[][] trainingData, final int... size) {
     return Arrays.stream(trainingData).map(x -> Stream.concat(
-      Arrays.stream(x),
-      Stream.of(new Tensor(size).set(() -> 0.0 * (FastRandom.INSTANCE.random() - 0.5))))
-      .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
+        Arrays.stream(x),
+        Stream.of(new Tensor(size).set(() -> 0.0 * (FastRandom.INSTANCE.random() - 0.5))))
+        .toArray(i -> new Tensor[i])).toArray(i -> new Tensor[i][]);
   }
-  
+
   /**
    * Build training model dag network.
    *
@@ -115,12 +111,12 @@ public class EncodingUtil {
     @Nonnull final PipelineNetwork network = new PipelineNetwork(Math.max(learnedColumn, reproducedColumn) + 1);
     // network.add(new NthPowerActivationLayer().setPower(0.5), );
     network.wrap(new MeanSqLossLayer(),
-      network.add("image", innerModel, network.getInput(learnedColumn)),
-      network.getInput(reproducedColumn)).freeRef();
+        network.add("image", innerModel, network.getInput(learnedColumn)),
+        network.getInput(reproducedColumn)).freeRef();
     //addLogging(network);
     return network;
   }
-  
+
   /**
    * Convolution features tensor [ ] [ ].
    *
@@ -145,7 +141,7 @@ public class EncodingUtil {
       });
     });
   }
-  
+
   /**
    * To svg string.
    *
@@ -166,7 +162,7 @@ public class EncodingUtil {
       }
       return String.format("  <feImage xlink:href=\"%s\" result=\"pos_image_%s\" />\n", name, i);
     }).reduce((a, b) -> a + "\n" + b).get();
-  
+
     @Nonnull final CharSequence negativeFilter = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       String name;
       try {
@@ -177,32 +173,32 @@ public class EncodingUtil {
       }
       return String.format("  <feImage xlink:href=\"%s\" result=\"neg_image_%s\" />\n", name, i);
     }).reduce((a, b) -> a + "\n" + b).get();
-  
+
     @Nonnull final CharSequence compositingFilters = IntStream.range(0, signedComponents.size()).mapToObj(i -> {
       final double fPos = componentStats.get(i).getMax() / 0xFF;
       final double fNeg = componentStats.get(i).getMin() / 0xFF;
       return "  <feComposite in=\"" + (i == 0 ? "FillPaint" : "lastResult") + "\" in2=\"neg_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + -fNeg + "\" k4=\"" + fNeg + "\"/>\n" +
-        "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + fPos + "\" k4=\"" + 0.0 + "\"/>\n";
+          "  <feComposite in=\"lastResult\" in2=\"pos_image_" + i + "\" result=\"lastResult\" operator=\"arithmetic\" k1=\"0.0\" k2=\"1.0\" k3=\"" + fPos + "\" k4=\"" + 0.0 + "\"/>\n";
     }).reduce((a, b) -> a + "\n" + b).get();
-  
+
     final int red = (int) baseline.get(0, 0, 0);
     final int green = (int) baseline.get(0, 0, 1);
     final int blue = (int) baseline.get(0, 0, 2);
     @Nonnull final CharSequence avgHexColor = Long.toHexString(red + (green << 8) + (blue << 16));
     return "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n" +
-      ("<defs>\n" +
-         "<filter id=\"png\" >\n" + (
-        positiveFilter + "\n" +
-          negativeFilter + "\n" +
-          compositingFilters
-      ).replaceAll("\n", "\n\t") + "\n" +
-        "</filter>\n" +
-        "</defs>\n" +
-         "<rect style=\"filter:url(#png);\" setByCoord=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
-      ).replaceAll("\n", "\n\t") +
-      "\n</svg>";
+        ("<defs>\n" +
+            "<filter id=\"png\" >\n" + (
+            positiveFilter + "\n" +
+                negativeFilter + "\n" +
+                compositingFilters
+        ).replaceAll("\n", "\n\t") + "\n" +
+            "</filter>\n" +
+            "</defs>\n" +
+            "<rect style=\"filter:url(#png);\" setByCoord=\"#" + avgHexColor + "\" width=\"256\" height=\"256\"/>"
+        ).replaceAll("\n", "\n\t") +
+        "\n</svg>";
   }
-  
+
   /**
    * Down explode tensors stream.
    *
@@ -227,7 +223,7 @@ public class EncodingUtil {
       return new Tensor[]{tensor[0], result};
     }));
   }
-  
+
   /**
    * Down stack tensors stream.
    *
@@ -245,7 +241,7 @@ public class EncodingUtil {
       return new ImgReshapeLayer(abs, abs, expand).eval(tensor).getData().get(0);
     });
   }
-  
+
   /**
    * Find baseline tensor.
    *
@@ -263,7 +259,7 @@ public class EncodingUtil {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Find unit component tensor.
    *
@@ -288,7 +284,7 @@ public class EncodingUtil {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Get images tensor [ ] [ ].
    *
@@ -301,7 +297,7 @@ public class EncodingUtil {
   public static Tensor[][] getImages(@Nonnull final NotebookOutput log, final int size, final int maxImages, @Nonnull final CharSequence... categories) {
     return getImages(log, img -> 0 >= size ? img : TestUtil.resize(img, size), maxImages, categories);
   }
-  
+
   /**
    * Get images tensor [ ] [ ].
    *
@@ -321,12 +317,12 @@ public class EncodingUtil {
       return categories.length == 0 || Arrays.asList(categories).contains(x.label);
     }).parallel().map(labeledObj -> {
       return new Tensor[]{
-        new Tensor(Math.max(1, categories.length)).set(Math.max(0, Arrays.asList(categories).indexOf(labeledObj.label)), 1.0),
-        Tensor.fromRGB(fn.apply(labeledObj.data.get()))
+          new Tensor(Math.max(1, categories.length)).set(Math.max(0, Arrays.asList(categories).indexOf(labeledObj.label)), 1.0),
+          Tensor.fromRGB(fn.apply(labeledObj.data.get()))
       };
     }).sorted(Comparator.comparingInt(a -> System.identityHashCode(a) ^ seed)).limit(maxImages).toArray(i -> new Tensor[i][]);
   }
-  
+
   /**
    * Gets monitor.
    *
@@ -339,20 +335,20 @@ public class EncodingUtil {
       public void clear() {
         super.clear();
       }
-      
+
       @Override
       public void log(final String msg) {
         log.info(msg); // Logged MnistProblemData
         EncodingUtil.rawOut.println(msg); // Realtime MnistProblemData
       }
-      
+
       @Override
       public void onStepComplete(@Nonnull final Step currentPoint) {
         history.add(new StepRecord(currentPoint.point.getMean(), currentPoint.time, currentPoint.iteration));
       }
     };
   }
-  
+
   /**
    * Print model.
    *
@@ -365,13 +361,13 @@ public class EncodingUtil {
     log.eval(() -> {
       @Nonnull final ScalarStatistics scalarStatistics = new ScalarStatistics();
       network.state().stream().flatMapToDouble(x -> Arrays.stream(x))
-        .forEach(v -> scalarStatistics.add(v));
+          .forEach(v -> scalarStatistics.add(v));
       return scalarStatistics.getMetrics();
     });
     @Nonnull final String modelName = "model" + modelNo + ".json";
     log.p("Saved model as " + log.file(network.getJson().toString(), modelName, modelName));
   }
-  
+
   /**
    * Render layer.
    *
@@ -390,25 +386,25 @@ public class EncodingUtil {
       }
       @Nullable final Tensor decoded = decoder.eval(tensor).getData().get(0);
       row.put("Decode_" + col, TestUtil.render(log, decoded, false));
-      
+
       final List<Tensor> rawComponents = IntStream.range(0, tensor.getDimensions()[2])
-        .mapToObj(band -> EncodingUtil.findUnitComponent(decoder, band, tensor))
-        .collect(Collectors.toList());
+          .mapToObj(band -> EncodingUtil.findUnitComponent(decoder, band, tensor))
+          .collect(Collectors.toList());
       @Nullable final Tensor baseline = EncodingUtil.findBaseline(decoder, tensor);
       final List<Tensor> signedComponents = IntStream.range(0, tensor.getDimensions()[2])
-        .mapToObj(band -> rawComponents.get(band).minus(baseline))
-        .collect(Collectors.toList());
-      
+          .mapToObj(band -> rawComponents.get(band).minus(baseline))
+          .collect(Collectors.toList());
+
       row.put("SVG_" + col, log.file(EncodingUtil.decompositionSvg(log, baseline, signedComponents), "svg" + EncodingUtil.svgNumber++ + ".svg", "SVG Composite Image"));
       row.put("GIF_" + col, animatedGif(log, baseline, signedComponents));
-  
+
       @Nonnull final CharSequence render = signedComponents.stream()
-        .map(signedContribution -> TestUtil.render(log, signedContribution, true))
-        .reduce((a, b) -> a + "" + b).get();
+          .map(signedContribution -> TestUtil.render(log, signedContribution, true))
+          .reduce((a, b) -> a + "" + b).get();
       row.put("Band_Decode_" + col, render);
     }
   }
-  
+
   /**
    * Sets initial feature space.
    *
@@ -432,7 +428,7 @@ public class EncodingUtil {
     log.info(String.format("Bias: %s%n", Arrays.toString(biasLayer.getBias())));
     log.info(String.format("Kernel: %s%n", kernel.prettyPrint()));
   }
-  
+
   /**
    * Validation report.
    *
@@ -455,7 +451,7 @@ public class EncodingUtil {
       return table;
     });
   }
-  
+
   /**
    * Animated gif string.
    *
@@ -473,23 +469,23 @@ public class EncodingUtil {
       @Nonnull String filename = gifNumber++ + ".gif";
       @Nonnull File file = new File(log.getResourceDir(), filename);
       GifSequenceWriter.write(file, loopTimeMs / frames, true,
-        DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
-          return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
-            return signedComponents.get(i).scale((1 + Math.sin((1 + i) * t)) / 2);
-          }).reduce((a, b) -> {
-            Tensor add = a.addAndFree(b);
-            b.freeRef();
-            return add;
-          }).get().add(baseline).toImage();
-        }).toArray(i -> new BufferedImage[i]));
+          DoubleStream.iterate(0, x -> x + step).limit(frames).parallel().mapToObj(t -> {
+            return IntStream.range(0, signedComponents.size()).mapToObj(i -> {
+              return signedComponents.get(i).scale((1 + Math.sin((1 + i) * t)) / 2);
+            }).reduce((a, b) -> {
+              Tensor add = a.addAndFree(b);
+              b.freeRef();
+              return add;
+            }).get().add(baseline).toImage();
+          }).toArray(i -> new BufferedImage[i]));
       return String.format("<img src=\"etc/%s\" />", filename);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
-  
+
   private static class ConvolutionExtractor implements ToDoubleFunction<Coordinate> {
-  
+
     /**
      * The Column.
      */
@@ -506,12 +502,12 @@ public class EncodingUtil {
      * The Y.
      */
     public int y;
-    
+
     @Override
     public double applyAsDouble(@Nonnull final Coordinate c) {
       final int[] coords = c.getCoords();
       return image[column].get(coords[0] + x, coords[column] + y, coords[2]);
     }
   }
-  
+
 }

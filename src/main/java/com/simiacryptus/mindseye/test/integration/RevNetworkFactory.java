@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.network.DAGNetwork;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 

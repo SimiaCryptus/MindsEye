@@ -33,17 +33,17 @@ public abstract class EntropyLayerTest extends ActivationLayerTestBase {
   public EntropyLayerTest() {
     super(new EntropyLayer());
   }
-  
+
   @Override
   public ComponentTest<ToleranceStatistics> getDerivativeTester() {
     if (!validateDifferentials) return null;
     return new SingleDerivativeTester(1e-2, 1e-5);
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends EntropyLayerTest {
   }
-  
+
 }

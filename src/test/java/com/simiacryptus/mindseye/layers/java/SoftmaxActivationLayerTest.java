@@ -29,23 +29,23 @@ import java.util.Random;
  * The type Softmax activation layer apply.
  */
 public abstract class SoftmaxActivationLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{{4}};
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new SoftmaxActivationLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends SoftmaxActivationLayerTest {
   }
-  
+
 }

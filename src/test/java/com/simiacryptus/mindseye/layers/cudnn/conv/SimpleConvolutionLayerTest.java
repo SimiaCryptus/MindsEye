@@ -25,13 +25,8 @@ import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer;
 import com.simiacryptus.mindseye.layers.cudnn.CudaLayerTestBase;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.mindseye.test.unit.BatchingTester;
-import com.simiacryptus.mindseye.test.unit.ComponentTest;
-import com.simiacryptus.mindseye.test.unit.PerformanceTester;
-import com.simiacryptus.mindseye.test.unit.ReferenceIO;
-import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
-import com.simiacryptus.mindseye.test.unit.TrainingTester;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.mindseye.test.unit.*;
+import com.simiacryptus.notebook.NotebookOutput;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -42,7 +37,7 @@ import java.util.Random;
  * The type Simple convolution layer apply.
  */
 public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Radius.
    */
@@ -63,8 +58,8 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
    * The LayerBase.
    */
   SimpleConvolutionLayer layer;
-  
-  
+
+
   /**
    * Instantiates a new Simple convolution layer apply.
    *
@@ -81,29 +76,29 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     smallSize = this.radius;
     largeSize = 800;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {smallSize, smallSize, bands}
+        {smallSize, smallSize, bands}
     };
   }
-  
+
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {largeSize, largeSize, bands}
+        {largeSize, largeSize, bands}
     };
   }
-  
+
   @Nullable
   @Override
   public Layer getReferenceLayer() {
@@ -121,7 +116,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
     tensor.freeRef();
     return convolutionLayer;
   }
-  
+
   /**
    * Maximally-basic single-value "convolution" in 64 bits
    */
@@ -133,7 +128,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       super(1, 1, Precision.Double, 1);
     }
   }
-  
+
   /**
    * Typical 3x3 png convolution (64-bit)
    */
@@ -147,7 +142,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       smallSize = 5;
     }
   }
-  
+
   /**
    * Typical 3x3 png convolution (32-bit)
    */
@@ -159,14 +154,14 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       super(3, 3, Precision.Float, 1);
       tolerance = 1e-2;
     }
-  
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-  
+
   }
-  
+
   /**
    * Basic single-band 3x3 png filter.
    */
@@ -178,7 +173,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       super(3, 1, Precision.Double, 1);
     }
   }
-  
+
   /**
    * Basic multi-band, 1-pixel-radius filter.
    */
@@ -190,7 +185,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       super(1, 3, Precision.Double, 1);
     }
   }
-  
+
   /**
    * Base allocationOverflow configuration demonstrating the absence of failure in this case.
    */
@@ -202,13 +197,13 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       super(3, 8, Precision.Double, 1);
       validateDifferentials = false;
     }
-  
+
     @Override
     @Test(timeout = 15 * 60 * 1000, expected = Throwable.class)
     public void test() throws Throwable {
       super.test();
     }
-    
+
     @Override
     public void run(NotebookOutput log) {
 //      @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
@@ -219,25 +214,25 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
 //      apiLog.close();
 //      CudaSystem.apiLog.remove(apiLog);
     }
-    
-    
+
+
     @Override
     public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
       return null;
     }
-  
+
     @Nonnull
     public ComponentTest<ToleranceStatistics> getPerformanceTester() {
       return new PerformanceTester().setBatches(10).setSamples(1);
     }
-  
+
     @Nonnull
     protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
       return new ReferenceIO(getReferenceIO());
     }
-    
+
   }
-  
+
   /**
    * Demonstration of a suspected CudaSystem bug when using 0 padding apply the GPU convolution operation.
    */
@@ -249,9 +244,9 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       super();
       layer.setPaddingXY(0, 0);
     }
-  
+
   }
-  
+
   /**
    * Typical 3x3 png convolution (64-bit)
    */
@@ -266,7 +261,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       smallSize = 5;
     }
   }
-  
+
   /**
    * Simple 256x256 band 1-pixel "convolution"
    */
@@ -278,7 +273,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       super(1, 2048, Precision.Double);
     }
   }
-  
+
   /**
    * Simple 256x256 band 1-pixel "convolution"
    */
@@ -295,20 +290,20 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
       validateDifferentials = false;
       setTestTraining(false);
     }
-    
+
     @Override
     public Layer getReferenceLayer() {
       return null;
     }
-  
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {30, 30, bands}
+          {30, 30, bands}
       };
     }
-  
+
     @Override
     public ComponentTest<ToleranceStatistics> getBatchingTester() {
       if (!validateBatchExecution) return null;
@@ -319,21 +314,21 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
         }
       }).setBatchSize(5);
     }
-  
+
     @Nullable
     @Override
     protected ComponentTest<ToleranceStatistics> getJsonTester() {
       logger.warn("Disabled Json Test");
       return null;
     }
-  
+
     @Nullable
     @Override
     public ComponentTest<ToleranceStatistics> getPerformanceTester() {
       logger.warn("Disabled Performance Test");
       return null;
     }
-  
+
   }
-  
+
 }

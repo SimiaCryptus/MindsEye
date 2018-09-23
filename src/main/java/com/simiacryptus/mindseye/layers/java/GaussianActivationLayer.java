@@ -31,14 +31,14 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public final class GaussianActivationLayer extends SimpleActivationLayer<GaussianActivationLayer> {
-  
+
   private static final double MIN_X = -20;
   private static final double MAX_X = -GaussianActivationLayer.MIN_X;
   private static final double MAX_F = Math.exp(GaussianActivationLayer.MAX_X);
   private static final double MIN_F = Math.exp(GaussianActivationLayer.MIN_X);
   private final double mean;
   private final double stddev;
-  
+
   /**
    * Instantiates a new Gaussian activation layer.
    *
@@ -49,7 +49,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
     this.mean = mean;
     this.stddev = stddev;
   }
-  
+
   /**
    * Instantiates a new Gaussian activation layer.
    *
@@ -60,7 +60,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
     mean = id.get("mean").getAsDouble();
     stddev = id.get("stddev").getAsDouble();
   }
-  
+
   /**
    * From json gaussian activation layer.
    *
@@ -71,7 +71,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
   public static GaussianActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GaussianActivationLayer(json);
   }
-  
+
   @Override
   protected final void eval(final double x, final double[] results) {
     final double minDeriv = 0;
@@ -91,7 +91,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
     results[0] = f;
     results[1] = -d;
   }
-  
+
   private double exp(final double x) {
     if (x < GaussianActivationLayer.MIN_X) {
       return GaussianActivationLayer.MIN_F;
@@ -101,7 +101,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
     }
     return Math.exp(x);
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -110,5 +110,5 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
     json.addProperty("stddev", stddev);
     return json;
   }
-  
+
 }

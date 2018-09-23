@@ -50,7 +50,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    */
   @Nullable
   protected volatile double[] delta;
-  
+
   /**
    * Instantiates a new Double buffer.
    *
@@ -63,7 +63,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     this.target = target;
     this.delta = null;
   }
-  
+
   /**
    * Instantiates a new Double buffer.
    *
@@ -77,7 +77,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     this.target = target;
     this.delta = delta;
   }
-  
+
   /**
    * Are equal boolean.
    *
@@ -92,7 +92,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     }
     return true;
   }
-  
+
   /**
    * Copy evalInputDelta.
    *
@@ -103,7 +103,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     assertAlive();
     return new DoubleBuffer<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()));
   }
-  
+
   /**
    * Delta statistics double array stats facade.
    *
@@ -113,7 +113,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   public DoubleArrayStatsFacade deltaStatistics() {
     return new DoubleArrayStatsFacade(getDelta());
   }
-  
+
   /**
    * Dot double.
    *
@@ -133,14 +133,14 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     final double[] array = IntStream.range(0, l.length).mapToDouble(i -> l[i] * r[i]).toArray();
     return Arrays.stream(array).summaryStatistics().getSum();
   }
-  
+
   @Nullable
   public double[] getDeltaAndFree() {
     double[] delta = getDelta();
     freeRef();
     return delta;
   }
-  
+
   /**
    * Get evalInputDelta double [ ].
    *
@@ -158,7 +158,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     }
     return delta;
   }
-  
+
   /**
    * Gets id.
    *
@@ -167,7 +167,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   public CharSequence getId() {
     return this.layer.toString();
   }
-  
+
   /**
    * Length int.
    *
@@ -176,7 +176,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   public int length() {
     return this.target.length;
   }
-  
+
   /**
    * Map evalInputDelta.
    *
@@ -187,7 +187,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   public DoubleBuffer<K> map(@Nonnull final DoubleUnaryOperator mapper) {
     return new DoubleBuffer<K>(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
-  
+
   /**
    * Set evalInputDelta.
    *
@@ -201,7 +201,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     assert Arrays.stream(getDelta()).allMatch(Double::isFinite);
     return this;
   }
-  
+
   /**
    * Target statistics double array stats facade.
    *
@@ -211,7 +211,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   public DoubleArrayStatsFacade targetStatistics() {
     return new DoubleArrayStatsFacade(target);
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
@@ -221,7 +221,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     builder.append(this.layer);
     return builder.toString();
   }
-  
+
   @Override
   protected void _free() {
     layer.freeRef();

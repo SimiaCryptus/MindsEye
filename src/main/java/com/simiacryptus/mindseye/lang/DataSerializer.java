@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  * Implementations may use reduced precision and other lossy compression techniques.
  */
 public interface DataSerializer {
-  
+
   /**
    * Copy.
    *
@@ -34,7 +34,7 @@ public interface DataSerializer {
    * @param to   the to
    */
   void copy(double[] from, byte[] to);
-  
+
   /**
    * Copy.
    *
@@ -42,14 +42,14 @@ public interface DataSerializer {
    * @param to   the to
    */
   void copy(byte[] from, double[] to);
-  
+
   /**
    * Gets element size.
    *
    * @return the element size
    */
   int getElementSize();
-  
+
   /**
    * To bytes byte [ ].
    *
@@ -62,7 +62,7 @@ public interface DataSerializer {
     copy(from, to);
     return to;
   }
-  
+
   /**
    * Encoded size int.
    *
@@ -74,7 +74,7 @@ public interface DataSerializer {
     if (size > Integer.MAX_VALUE) throw new IllegalStateException();
     return (int) size;
   }
-  
+
   /**
    * Gets header size.
    *
@@ -83,7 +83,7 @@ public interface DataSerializer {
   default int getHeaderSize() {
     return 0;
   }
-  
+
   /**
    * From bytes double [ ].
    *
@@ -96,7 +96,7 @@ public interface DataSerializer {
     copy(from, to);
     return to;
   }
-  
+
   /**
    * Decoded size int.
    *

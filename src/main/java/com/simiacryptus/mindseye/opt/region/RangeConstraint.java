@@ -29,10 +29,10 @@ import java.util.Arrays;
  * of AdaptiveTrustSphere, it places a limit on the step size for a given layer.
  */
 public class RangeConstraint implements TrustRegion {
-  
+
   private double min;
   private double max;
-  
+
   /**
    * Instantiates a new Range constraint.
    */
@@ -40,7 +40,7 @@ public class RangeConstraint implements TrustRegion {
     min = 0;
     max = 255;
   }
-  
+
   /**
    * Instantiates a new Range constraint.
    *
@@ -51,7 +51,7 @@ public class RangeConstraint implements TrustRegion {
     this.min = min;
     this.max = max;
   }
-  
+
   /**
    * Gets max.
    *
@@ -60,7 +60,7 @@ public class RangeConstraint implements TrustRegion {
   public double getMax() {
     return max;
   }
-  
+
   /**
    * Sets max.
    *
@@ -72,7 +72,7 @@ public class RangeConstraint implements TrustRegion {
     this.max = max;
     return this;
   }
-  
+
   /**
    * Length double.
    *
@@ -82,13 +82,13 @@ public class RangeConstraint implements TrustRegion {
   public double length(@Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
-  
+
   @Nonnull
   @Override
   public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
     return Arrays.stream(point).map(x -> Math.max(x, min)).map(x -> Math.min(x, max)).toArray();
   }
-  
+
   /**
    * Gets min.
    *
@@ -97,7 +97,7 @@ public class RangeConstraint implements TrustRegion {
   public double getMin() {
     return min;
   }
-  
+
   /**
    * Sets min.
    *

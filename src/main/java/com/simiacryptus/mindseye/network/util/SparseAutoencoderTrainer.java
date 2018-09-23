@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
  */
 @SuppressWarnings("serial")
 public class SparseAutoencoderTrainer extends SupervisedNetwork {
-  
+
   /**
    * The Decoder.
    */
@@ -63,7 +63,7 @@ public class SparseAutoencoderTrainer extends SupervisedNetwork {
    * The Sum sparsity layer.
    */
   public final DAGNode sumSparsityLayer;
-  
+
   /**
    * Instantiates a new Sparse autoencoder trainer.
    *
@@ -80,7 +80,7 @@ public class SparseAutoencoderTrainer extends SupervisedNetwork {
     sparsityThrottleLayer = add(new LinearActivationLayer().setScale(0.5), sumSparsityLayer);
     sumFitnessLayer = add(new SumReducerLayer(), sparsityThrottleLayer, loss);
   }
-  
+
   @Override
   public DAGNode getHead() {
     return sumFitnessLayer;

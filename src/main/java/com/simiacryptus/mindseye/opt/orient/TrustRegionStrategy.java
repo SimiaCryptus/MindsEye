@@ -46,22 +46,22 @@ import java.util.stream.Stream;
  * package.
  */
 public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSearchCursor> {
-  
-  
+
+
   /**
    * The Inner.
    */
   public final OrientationStrategy<? extends SimpleLineSearchCursor> inner;
   private final List<PointSample> history = new LinkedList<>();
   private int maxHistory = 10;
-  
+
   /**
    * Instantiates a new Trust region strategy.
    */
   public TrustRegionStrategy() {
     this(new LBFGS());
   }
-  
+
   /**
    * Instantiates a new Trust region strategy.
    *
@@ -70,7 +70,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
   protected TrustRegionStrategy(final OrientationStrategy<? extends SimpleLineSearchCursor> inner) {
     this.inner = inner;
   }
-  
+
   /**
    * Dot double.
    *
@@ -82,12 +82,12 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
     assert a.size() == b.size();
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }
-  
+
   @Override
   protected void _free() {
     this.inner.freeRef();
   }
-  
+
   /**
    * Gets max history.
    *
@@ -96,7 +96,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
   public int getMaxHistory() {
     return maxHistory;
   }
-  
+
   /**
    * Sets max history.
    *
@@ -108,7 +108,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
     this.maxHistory = maxHistory;
     return this;
   }
-  
+
   /**
    * Gets the Trust Region for a particular LayerBase
    *
@@ -116,7 +116,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
    * @return the region policy
    */
   public abstract TrustRegion getRegionPolicy(Layer layer);
-  
+
   @Nonnull
   @Override
   public LineSearchCursor orient(@Nonnull final Trainable subject, final PointSample origin, final TrainingMonitor monitor) {
@@ -131,7 +131,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
       public CharSequence getDirectionType() {
         return cursor.getDirectionType() + "+Trust";
       }
-  
+
       @Nonnull
       @Override
       public DeltaSet<Layer> position(final double alpha) {
@@ -140,7 +140,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
         project(adjustedPosVector, new TrainingMonitor());
         return adjustedPosVector;
       }
-  
+
       @Nonnull
       public DeltaSet<Layer> project(@Nonnull final DeltaSet<Layer> deltaIn, final TrainingMonitor monitor) {
         final DeltaSet<Layer> originalAlphaDerivative = cursor.direction;
@@ -186,19 +186,19 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
 //                  monitor.log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", layer, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
                 }
               }
-  
-  
+
+
             }
           }
         });
         return newAlphaDerivative;
       }
-      
+
       @Override
       public void reset() {
         cursor.reset();
       }
-  
+
       @Nonnull
       @Override
       public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
@@ -214,14 +214,14 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
         sample.freeRef();
         return lineSearchPoint;
       }
-      
+
       @Override
       public void _free() {
         cursor.freeRef();
       }
     };
   }
-  
+
   @Override
   public void reset() {
     inner.reset();

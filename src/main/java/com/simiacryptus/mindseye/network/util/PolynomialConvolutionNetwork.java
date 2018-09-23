@@ -33,9 +33,9 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class PolynomialConvolutionNetwork extends PolynomialNetwork {
-  
+
   private final int radius;
-  
+
   /**
    * Instantiates a new Polynomial convolution network.
    *
@@ -48,7 +48,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
     super(inputDims, outputDims);
     this.radius = radius;
   }
-  
+
   /**
    * Instantiates a new Polynomial convolution network.
    *
@@ -60,7 +60,7 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
     radius = json.get("radius").getAsInt();
     json.get("simple").getAsBoolean();
   }
-  
+
   /**
    * From json polynomial convolution network.
    *
@@ -71,19 +71,19 @@ public class PolynomialConvolutionNetwork extends PolynomialNetwork {
   public static PolynomialConvolutionNetwork fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PolynomialConvolutionNetwork(json, rs);
   }
-  
+
   @Nonnull
   @Override
   public Layer newBias(final int[] dims, final double weight) {
     return new ImgBandBiasLayer(dims[2]).setWeights(i -> weight);
   }
-  
+
   @Nonnull
   @Override
   public Layer newProductLayer() {
     return new NProductLayer();
   }
-  
+
   @Nonnull
   @Override
   public Layer newSynapse(final double weight) {

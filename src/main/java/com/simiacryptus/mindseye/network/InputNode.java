@@ -31,7 +31,7 @@ import java.util.UUID;
 @SuppressWarnings("serial")
 final class InputNode extends LazyResult {
   private final DAGNetwork dagNetwork;
-  
+
   /**
    * Instantiates a new Input node.
    *
@@ -40,7 +40,7 @@ final class InputNode extends LazyResult {
   InputNode(final DAGNetwork dagNetwork) {
     this(dagNetwork, null);
   }
-  
+
   /**
    * Instantiates a new Input node.
    *
@@ -51,7 +51,7 @@ final class InputNode extends LazyResult {
     super(key);
     this.dagNetwork = dagNetwork;
   }
-  
+
   /**
    * Add dag node.
    *
@@ -61,7 +61,7 @@ final class InputNode extends LazyResult {
   public DAGNode add(@Nonnull final Layer nextHead) {
     return dagNetwork.add(nextHead, InputNode.this);
   }
-  
+
   @Override
   protected Result eval(@Nonnull final GraphEvaluationContext context) {
     assertAlive();
@@ -72,22 +72,22 @@ final class InputNode extends LazyResult {
       return countingNNResult;
     }
   }
-  
+
   @Override
   public <T extends Layer> T getLayer() {
     return null;
   }
-  
+
   @Override
   public void setLayer(final Layer layer) {
     throw new IllegalStateException();
   }
-  
+
   @Override
   public DAGNetwork getNetwork() {
     return this.dagNetwork;
   }
-  
+
   @Override
   protected void _free() {
     super._free();

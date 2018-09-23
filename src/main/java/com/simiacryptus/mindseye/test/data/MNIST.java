@@ -29,18 +29,10 @@ import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
@@ -51,7 +43,7 @@ import java.util.zip.GZIPInputStream;
  * http://yann.lecun.com/exdb/mnist/
  */
 public class MNIST {
-  
+
   /**
    * The constant training.
    */
@@ -63,18 +55,18 @@ public class MNIST {
           return MNIST.fillImage(b, new Tensor(28, 28, 1));
         });
         @Nonnull final Stream<byte[]> labelStream = MNIST.binaryStream("train-labels-idx1-ubyte.gz", 8, 1);
-  
+
         @Nonnull final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
           @Nonnull
           Iterator<Tensor> imgItr = imgStream.iterator();
           @Nonnull
           Iterator<byte[]> labelItr = labelStream.iterator();
-          
+
           @Override
           public boolean hasNext() {
             return imgItr.hasNext() && labelItr.hasNext();
           }
-    
+
           @Nonnull
           @Override
           public LabeledObject<Tensor> next() {
@@ -98,18 +90,18 @@ public class MNIST {
           return MNIST.fillImage(b, new Tensor(28, 28, 1));
         });
         @Nonnull final Stream<byte[]> labelStream = MNIST.binaryStream("t10k-labels-idx1-ubyte.gz", 8, 1);
-  
+
         @Nonnull final Stream<LabeledObject<Tensor>> merged = MNIST.toStream(new Iterator<LabeledObject<Tensor>>() {
           @Nonnull
           Iterator<Tensor> imgItr = imgStream.iterator();
           @Nonnull
           Iterator<byte[]> labelItr = labelStream.iterator();
-          
+
           @Override
           public boolean hasNext() {
             return imgItr.hasNext() && labelItr.hasNext();
           }
-    
+
           @Nonnull
           @Override
           public LabeledObject<Tensor> next() {
@@ -122,7 +114,7 @@ public class MNIST {
       }
     }
   };
-  
+
   private static Stream<byte[]> binaryStream(@Nonnull final String name, final int skip, final int recordSize) throws IOException {
     @Nullable InputStream stream = null;
     try {
@@ -135,7 +127,7 @@ public class MNIST {
     in.skip(skip);
     return MNIST.toIterator(new BinaryChunkIterator(in, recordSize));
   }
-  
+
   @Nonnull
   private static Tensor fillImage(final byte[] b, @Nonnull final Tensor tensor) {
     for (int x = 0; x < 28; x++) {
@@ -145,19 +137,19 @@ public class MNIST {
     }
     return tensor;
   }
-  
+
   private static <T> Stream<T> toIterator(@Nonnull final Iterator<T> iterator) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, 1, Spliterator.ORDERED), false);
   }
-  
+
   private static <T> Stream<T> toStream(@Nonnull final Iterator<T> iterator, final int size) {
     return MNIST.toStream(iterator, size, false);
   }
-  
+
   private static <T> Stream<T> toStream(@Nonnull final Iterator<T> iterator, final int size, final boolean parallel) {
     return StreamSupport.stream(Spliterators.spliterator(iterator, size, Spliterator.ORDERED), parallel);
   }
-  
+
   /**
    * Training data stream stream.
    *
@@ -166,7 +158,7 @@ public class MNIST {
   public static Stream<LabeledObject<Tensor>> trainingDataStream() {
     return MNIST.training.stream();
   }
-  
+
   /**
    * Validation data stream stream.
    *
@@ -175,5 +167,5 @@ public class MNIST {
   public static Stream<LabeledObject<Tensor>> validationDataStream() {
     return MNIST.validation.stream();
   }
-  
+
 }

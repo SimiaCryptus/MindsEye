@@ -30,25 +30,25 @@ import java.util.Random;
  * The type Rascaled subnet layer apply.
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {6, 6, 1}
+        {6, 6, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new RescaledSubnetLayer(2, new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random()));
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends RescaledSubnetLayerTest {
   }
-  
+
 }

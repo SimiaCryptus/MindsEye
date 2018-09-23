@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  */
 public class DataSerializerTest {
   private static final Logger log = LoggerFactory.getLogger(DataSerializerTest.class);
-  
+
   /**
    * Test coord stream.
    *
@@ -46,7 +46,7 @@ public class DataSerializerTest {
   public void testDouble() {
     test(SerialPrecision.Double);
   }
-  
+
   /**
    * Test float.
    *
@@ -57,7 +57,7 @@ public class DataSerializerTest {
   public void testFloat() {
     test(SerialPrecision.Float);
   }
-  
+
   /**
    * Test uniform 32.
    *
@@ -68,7 +68,7 @@ public class DataSerializerTest {
   public void testUniform32() {
     test(SerialPrecision.Uniform32);
   }
-  
+
   /**
    * Test uniform 16.
    *
@@ -79,7 +79,7 @@ public class DataSerializerTest {
   public void testUniform16() {
     test(SerialPrecision.Uniform16);
   }
-  
+
   /**
    * Test uniform 8.
    *
@@ -90,7 +90,7 @@ public class DataSerializerTest {
   public void testUniform8() {
     test(SerialPrecision.Uniform8);
   }
-  
+
   /**
    * Test.
    *
@@ -100,7 +100,7 @@ public class DataSerializerTest {
     test(target, this::random1, "Uniform");
     test(target, this::random2, "Exponential");
   }
-  
+
   /**
    * Test.
    *
@@ -115,20 +115,20 @@ public class DataSerializerTest {
     log.info(String.format("%s RMS: %s", name, rms));
     //assert rms < 1e-4;
   }
-  
+
   @Nonnull
   private double[] random(int i, @Nonnull DoubleSupplier f) {
     @Nonnull double[] doubles = new double[i];
     Arrays.parallelSetAll(doubles, j -> f.getAsDouble());
     return doubles;
   }
-  
+
   private double random1() {
     return Math.random();
   }
-  
+
   private double random2() {
     return Math.exp(Math.random());
   }
-  
+
 }

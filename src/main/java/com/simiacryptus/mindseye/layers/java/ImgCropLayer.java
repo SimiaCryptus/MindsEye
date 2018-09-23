@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,11 +36,11 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ImgCropLayer extends LayerBase {
-  
-  
+
+
   private final int sizeX;
   private final int sizeY;
-  
+
   /**
    * Instantiates a new Img crop layer.
    *
@@ -59,7 +52,7 @@ public class ImgCropLayer extends LayerBase {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
   }
-  
+
   /**
    * Instantiates a new Img crop layer.
    *
@@ -70,7 +63,7 @@ public class ImgCropLayer extends LayerBase {
     sizeX = json.getAsJsonPrimitive("sizeX").getAsInt();
     sizeY = json.getAsJsonPrimitive("sizeY").getAsInt();
   }
-  
+
   /**
    * Copy condense tensor.
    *
@@ -96,16 +89,22 @@ public class ImgCropLayer extends LayerBase {
       int width = inputData.getDimensions()[0];
       int height = inputData.getDimensions()[1];
       double value;
-      if (x < 0) { value = 0.0; }
-      else if (x >= width) { value = 0.0; }
-      else if (y < 0) { value = 0.0; }
-      else if (y >= height) { value = 0.0; }
-      else { value = inputData.get(x, y, z); }
+      if (x < 0) {
+        value = 0.0;
+      } else if (x >= width) {
+        value = 0.0;
+      } else if (y < 0) {
+        value = 0.0;
+      } else if (y >= height) {
+        value = 0.0;
+      } else {
+        value = inputData.get(x, y, z);
+      }
       outputData.set(c, value);
     });
     return outputData;
   }
-  
+
   /**
    * From json img crop layer.
    *
@@ -116,7 +115,7 @@ public class ImgCropLayer extends LayerBase {
   public static ImgCropLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgCropLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -126,39 +125,39 @@ public class ImgCropLayer extends LayerBase {
     @Nonnull final int[] inputDims = batch.getDimensions();
     assert 3 == inputDims.length;
     return new Result(TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
-      .mapToObj(dataIndex -> {
-        @Nonnull final Tensor outputData = new Tensor(sizeX, sizeY, inputDims[2]);
-        Tensor inputData = batch.get(dataIndex);
-        ImgCropLayer.copy(inputData, outputData);
-        inputData.freeRef();
-        return outputData;
-      })
-      .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+        .mapToObj(dataIndex -> {
+          @Nonnull final Tensor outputData = new Tensor(sizeX, sizeY, inputDims[2]);
+          Tensor inputData = batch.get(dataIndex);
+          ImgCropLayer.copy(inputData, outputData);
+          inputData.freeRef();
+          return outputData;
+        })
+        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
-          .mapToObj(dataIndex -> {
-            @Nullable final Tensor err = error.get(dataIndex);
-            @Nonnull final Tensor passback = new Tensor(inputDims);
-            copy(err, passback);
-            err.freeRef();
-            return passback;
-          }).toArray(i -> new Tensor[i]));
+            .mapToObj(dataIndex -> {
+              @Nullable final Tensor err = error.get(dataIndex);
+              @Nonnull final Tensor passback = new Tensor(inputDims);
+              copy(err, passback);
+              err.freeRef();
+              return passback;
+            }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -167,12 +166,12 @@ public class ImgCropLayer extends LayerBase {
     json.addProperty("sizeY", sizeY);
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();
   }
-  
-  
+
+
 }

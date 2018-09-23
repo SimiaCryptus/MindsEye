@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.TrustRegionStrategy;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
  * The type Trust sphere apply.
  */
 public class TrustSphereTest extends MnistTestBase {
-  
+
   @Override
   public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.eval(() -> {
@@ -51,16 +51,16 @@ public class TrustSphereTest extends MnistTestBase {
         }
       };
       return new IterativeTrainer(trainable)
-        .setIterationsPerSample(100)
-        .setMonitor(monitor)
-        //.setOrientation(new ValidatingOrientationWrapper(trustRegionStrategy))
-        .setOrientation(trustRegionStrategy)
-        .setTimeout(3, TimeUnit.MINUTES)
-        .setMaxIterations(500)
-        .runAndFree();
+          .setIterationsPerSample(100)
+          .setMonitor(monitor)
+          //.setOrientation(new ValidatingOrientationWrapper(trustRegionStrategy))
+          .setOrientation(trustRegionStrategy)
+          .setTimeout(3, TimeUnit.MINUTES)
+          .setMaxIterations(500)
+          .runAndFree();
     });
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {

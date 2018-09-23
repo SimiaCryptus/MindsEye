@@ -33,26 +33,26 @@ public class SignReducerLayerTest {
    * The type Normal.
    */
   public static class Normal extends LayerTestBase {
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {3}
+          {3}
       };
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new SignReducerLayer();
     }
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends SignReducerLayerTest {
   }
-  
+
 }

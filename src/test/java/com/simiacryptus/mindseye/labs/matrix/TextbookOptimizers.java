@@ -32,7 +32,7 @@ import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.integration.MnistProblemData;
 import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -44,7 +44,7 @@ import java.util.function.Function;
  * suite.
  */
 public class TextbookOptimizers extends OptimizerComparison {
-  
+
   /**
    * The constant conjugate_gradient_descent.
    */
@@ -53,11 +53,11 @@ public class TextbookOptimizers extends OptimizerComparison {
     log.p("Optimized via the Conjugate Gradient Descent method:");
     return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMonitor(monitor);
+          .setMinTrainingSize(Integer.MAX_VALUE)
+          .setMonitor(monitor);
       trainer.getRegimen().get(0)
-        .setOrientation(new GradientDescent())
-        .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-5));
+          .setOrientation(new GradientDescent())
+          .setLineSearchFactory(name -> new QuadraticSearch().setRelativeTolerance(1e-5));
       return trainer;
     });
   };
@@ -69,12 +69,12 @@ public class TextbookOptimizers extends OptimizerComparison {
     log.p("Optimized via the Limited-Memory BFGS method:");
     return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMonitor(monitor);
+          .setMinTrainingSize(Integer.MAX_VALUE)
+          .setMonitor(monitor);
       trainer.getRegimen().get(0)
-        .setOrientation(new LBFGS())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch()
-          .setAlpha(name.toString().contains("LBFGS") ? 1.0 : 1e-6));
+          .setOrientation(new LBFGS())
+          .setLineSearchFactory(name -> new ArmijoWolfeSearch()
+              .setAlpha(name.toString().contains("LBFGS") ? 1.0 : 1e-6));
       return trainer;
     });
   };
@@ -86,12 +86,12 @@ public class TextbookOptimizers extends OptimizerComparison {
     log.p("Optimized via the Orthantwise Quasi-Newton search method:");
     return log.eval(() -> {
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMonitor(monitor);
+          .setMinTrainingSize(Integer.MAX_VALUE)
+          .setMonitor(monitor);
       trainer.getRegimen().get(0)
-        .setOrientation(new OwlQn())
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch()
-          .setAlpha(name.toString().contains("OWL") ? 1.0 : 1e-6));
+          .setOrientation(new OwlQn())
+          .setLineSearchFactory(name -> new ArmijoWolfeSearch()
+              .setAlpha(name.toString().contains("OWL") ? 1.0 : 1e-6));
       return trainer;
     });
   };
@@ -104,12 +104,12 @@ public class TextbookOptimizers extends OptimizerComparison {
     return log.eval(() -> {
       final double rate = 0.05;
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMinTrainingSize(Integer.MAX_VALUE)
-        .setMaxEpochIterations(100)
-        .setMonitor(monitor);
+          .setMinTrainingSize(Integer.MAX_VALUE)
+          .setMaxEpochIterations(100)
+          .setMonitor(monitor);
       trainer.getRegimen().get(0)
-        .setOrientation(new GradientDescent())
-        .setLineSearchFactory(name -> new StaticLearningRate(rate));
+          .setOrientation(new GradientDescent())
+          .setLineSearchFactory(name -> new StaticLearningRate(rate));
       return trainer;
     });
   };
@@ -122,40 +122,40 @@ public class TextbookOptimizers extends OptimizerComparison {
     return log.eval(() -> {
       final double carryOver = 0.5;
       @Nonnull final ValidatingTrainer trainer = new ValidatingTrainer(trainingSubject, validationSubject)
-        .setMaxEpochIterations(100)
-        .setMonitor(monitor);
+          .setMaxEpochIterations(100)
+          .setMonitor(monitor);
       trainer.getRegimen().get(0)
-        .setOrientation(new MomentumStrategy(new GradientDescent()).setCarryOver(carryOver))
-        .setLineSearchFactory(name -> new ArmijoWolfeSearch());
+          .setOrientation(new MomentumStrategy(new GradientDescent()).setCarryOver(carryOver))
+          .setLineSearchFactory(name -> new ArmijoWolfeSearch());
       return trainer;
     });
   };
-  
+
   /**
    * Instantiates a new Compare textbook.
    */
   public TextbookOptimizers() {
     super(MnistTests.fwd_conv_1, MnistTests.rev_conv_1, new MnistProblemData());
   }
-  
+
   @Override
   public void compare(@Nonnull final NotebookOutput log, @Nonnull final Function<OptimizationStrategy, List<StepRecord>> test) {
     log.h1("Textbook Optimizer Comparison");
     log.h2("GD");
     @Nonnull final ProblemRun gd = new ProblemRun("GD", test.apply(TextbookOptimizers.simple_gradient_descent),
-      Color.BLACK, ProblemRun.PlotType.Line);
+        Color.BLACK, ProblemRun.PlotType.Line);
     log.h2("SGD");
     @Nonnull final ProblemRun sgd = new ProblemRun("SGD", test.apply(TextbookOptimizers.stochastic_gradient_descent),
-      Color.GREEN, ProblemRun.PlotType.Line);
+        Color.GREEN, ProblemRun.PlotType.Line);
     log.h2("CGD");
     @Nonnull final ProblemRun cgd = new ProblemRun("CjGD", test.apply(TextbookOptimizers.conjugate_gradient_descent),
-      Color.BLUE, ProblemRun.PlotType.Line);
+        Color.BLUE, ProblemRun.PlotType.Line);
     log.h2("L-BFGS");
     @Nonnull final ProblemRun lbfgs = new ProblemRun("L-BFGS", test.apply(TextbookOptimizers.limited_memory_bfgs),
-      Color.MAGENTA, ProblemRun.PlotType.Line);
+        Color.MAGENTA, ProblemRun.PlotType.Line);
     log.h2("OWL-QN");
     @Nonnull final ProblemRun owlqn = new ProblemRun("OWL-QN", test.apply(TextbookOptimizers.orthantwise_quasi_newton),
-      Color.ORANGE, ProblemRun.PlotType.Line);
+        Color.ORANGE, ProblemRun.PlotType.Line);
     log.h2("Comparison");
     log.eval(() -> {
       return TestUtil.compare("Convergence Plot", gd, sgd, cgd, lbfgs, owlqn);

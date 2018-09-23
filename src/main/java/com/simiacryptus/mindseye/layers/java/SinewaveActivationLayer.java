@@ -30,15 +30,15 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public final class SinewaveActivationLayer extends SimpleActivationLayer<SinewaveActivationLayer> {
-  
+
   private boolean balanced = true;
-  
+
   /**
    * Instantiates a new Sinewave activation layer.
    */
   public SinewaveActivationLayer() {
   }
-  
+
   /**
    * Instantiates a new Sinewave activation layer.
    *
@@ -48,7 +48,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
     super(id);
     balanced = id.get("balanced").getAsBoolean();
   }
-  
+
   /**
    * From json sinewave activation layer.
    *
@@ -59,7 +59,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
   public static SinewaveActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SinewaveActivationLayer(json);
   }
-  
+
   @Override
   protected final void eval(final double x, final double[] results) {
     double d = Math.cos(x);
@@ -71,7 +71,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
     results[0] = f;
     results[1] = d;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -79,7 +79,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
     json.addProperty("balanced", balanced);
     return json;
   }
-  
+
   /**
    * Is balanced boolean.
    *
@@ -88,7 +88,7 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
   public boolean isBalanced() {
     return balanced;
   }
-  
+
   /**
    * Sets balanced.
    *

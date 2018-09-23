@@ -29,61 +29,61 @@ import java.util.Random;
  * The type Mean sq loss layer apply.
  */
 public abstract class MeanSqLossLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}, {8, 8, 1}
+        {8, 8, 1}, {8, 8, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new MeanSqLossLayer();
   }
-  
+
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.MeanSqLossLayer.class;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {1200, 1200, 3}, {1200, 1200, 3}
+        {1200, 1200, 3}, {1200, 1200, 3}
     };
   }
-  
+
   /**
    * Basic apply.
    */
   public class Basic extends MeanSqLossLayerTest {
-  
+
   }
-  
+
   /**
    * Test using asymmetric input.
    */
   public class Asymetric extends MeanSqLossLayerTest {
-    
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {2, 3, 1}, {2, 3, 1}
+          {2, 3, 1}, {2, 3, 1}
       };
     }
-    
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {200, 300, 100}, {200, 300, 100}
+          {200, 300, 100}, {200, 300, 100}
       };
     }
   }
-  
+
 }

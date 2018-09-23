@@ -27,7 +27,7 @@ import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SigmoidActivationLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -39,7 +39,7 @@ import java.util.stream.IntStream;
  * The type Activation layer apply.
  */
 public abstract class ActivationLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Mode.
    */
@@ -47,7 +47,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   private final Precision precision;
   private final int smallSize;
   private final int largeSize;
-  
+
   /**
    * Instantiates a new Activation layer apply.
    *
@@ -62,40 +62,40 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
     this.smallSize = smallSize;
     this.largeSize = largeSize;
   }
-  
+
   @Override
   public SingleDerivativeTester getDerivativeTester() {
     return new SingleDerivativeTester(1e-2, 1e-4);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{{smallSize, smallSize, 1}};
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ActivationLayer(mode).setPrecision(precision);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {largeSize, largeSize, 1}
+        {largeSize, largeSize, 1}
     };
   }
-  
+
   @Override
   public void run(final NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
 //    log.p(log.file((String) null, logName, "GPU Log"));
 //    CudaSystem.addLog(new PrintStream(log.file(logName)));
-  
+
     super.run(log);
-  
+
     log.h3("Function Plots");
     @Nonnull final Layer layer = getLayer(new int[][]{{1, 1, 1}}, new Random());
     final List<double[]> plotData = IntStream.range(-1000, 1000).mapToDouble(x -> x / 300.0).mapToObj(x -> {
@@ -107,17 +107,17 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
       return doubles;
     }).collect(Collectors.toList());
     layer.freeRef();
-  
+
     log.eval(() -> {
       return ActivationLayerTestBase.plot("Value Plot", plotData, x -> new double[]{x[0], x[1]});
     });
-  
+
     log.eval(() -> {
       return ActivationLayerTestBase.plot("Derivative Plot", plotData, x -> new double[]{x[0], x[2]});
     });
-  
+
   }
-  
+
   /**
    * Configured apply double (64-bit) precision, y=x&lt;0?0:x
    */
@@ -128,13 +128,13 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
     public ReLu_Double() {
       super(ActivationLayer.Mode.RELU, Precision.Double, 2, 800);
     }
-  
+
     @Override
     public Layer getReferenceLayer() {
       return new ReLuActivationLayer();
     }
   }
-  
+
   /**
    * Configured apply float (32-bit) precision, y=x&lt;0?0:x
    */
@@ -145,13 +145,13 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
     public ReLu_Float() {
       super(ActivationLayer.Mode.RELU, Precision.Float, 2, 1200);
     }
-  
+
     @Override
     public Layer getReferenceLayer() {
       return new ReLuActivationLayer();
     }
   }
-  
+
   /**
    * Configured apply double (64-bit) precision using the Sigmoid function
    */
@@ -162,13 +162,13 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
     public Sigmoid_Double() {
       super(ActivationLayer.Mode.SIGMOID, Precision.Double, 2, 1200);
     }
-  
+
     @Override
     public Layer getReferenceLayer() {
       return new SigmoidActivationLayer().setBalanced(false);
     }
   }
-  
+
   /**
    * Configured apply float (32-bit) precision using the Sigmoid function
    */
@@ -179,11 +179,11 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
     public Sigmoid_Float() {
       super(ActivationLayer.Mode.SIGMOID, Precision.Float, 2, 1200);
     }
-  
+
     @Override
     public Layer getReferenceLayer() {
       return new SigmoidActivationLayer().setBalanced(false);
     }
   }
-  
+
 }

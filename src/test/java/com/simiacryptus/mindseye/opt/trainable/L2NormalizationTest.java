@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
@@ -38,13 +38,13 @@ import java.util.concurrent.TimeUnit;
  * The type L 2 normalization apply.
  */
 public class L2NormalizationTest extends MnistTestBase {
-  
+
   @Override
   public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.p("Training a model involves a few different components. First, our model is combined mapCoords a loss function. " +
-      "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
-      "Finally, we use a simple iterative scheme to refine the weights of our model. " +
-      "The final output is the last output value of the loss function when evaluating the last batch.");
+        "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
+        "Finally, we use a simple iterative scheme to refine the weights of our model. " +
+        "The final output is the last output value of the loss function when evaluating the last batch.");
     log.eval(() -> {
       @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @Nonnull final Trainable trainable = new L12Normalizer(new SampledArrayTrainable(trainingData, supervisedNetwork, 1000)) {
@@ -52,25 +52,25 @@ public class L2NormalizationTest extends MnistTestBase {
         public Layer getLayer() {
           return inner.getLayer();
         }
-  
+
         @Override
         protected double getL1(final Layer layer) {
           return 0.0;
         }
-        
+
         @Override
         protected double getL2(final Layer layer) {
           return 1e4;
         }
       };
       return new IterativeTrainer(trainable)
-        .setMonitor(monitor)
-        .setTimeout(3, TimeUnit.MINUTES)
-        .setMaxIterations(500)
-        .runAndFree();
+          .setMonitor(monitor)
+          .setTimeout(3, TimeUnit.MINUTES)
+          .setMaxIterations(500)
+          .runAndFree();
     });
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {

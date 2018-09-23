@@ -29,25 +29,25 @@ import java.util.Random;
  * The type Img eval layer apply.
  */
 public abstract class ImgConcatLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}, {8, 8, 1}
+        {8, 8, 1}, {8, 8, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgConcatLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ImgConcatLayerTest {
   }
-  
+
 }

@@ -19,19 +19,10 @@
 
 package com.simiacryptus.mindseye.eval;
 
-import com.simiacryptus.mindseye.lang.ConstantResult;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.PointSample;
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.StateSet;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.lang.TimedResult;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.lang.TimedResult;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,7 +35,7 @@ import java.util.stream.IntStream;
  * the main class the handles actual execution for training purposes.
  */
 public class TensorListTrainable extends ReferenceCountingBase implements TrainableDataMask {
-  
+
   /**
    * The Network.
    */
@@ -54,14 +45,14 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
    */
   @Nullable
   protected TensorList[] data;
-  
+
   /**
    * The Mask.
    */
   @Nullable
   boolean[] mask = null;
   private int verbosity = 0;
-  
+
   /**
    * Instantiates a new Gpu trainable.
    *
@@ -73,7 +64,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
     this.network.addRef(this);
     this.data = data;
   }
-  
+
   /**
    * Get nn context nn result [ ].
    *
@@ -92,8 +83,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
       @Nonnull TensorArray tensorArray = TensorArray.create(tensors);
       if (null == mask || col >= mask.length || !mask[col]) {
         return new ConstantResult(tensorArray);
-      }
-      else {
+      } else {
         return new Result(tensorArray, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
           for (int index = 0; index < delta.length(); index++) {
             final Tensor dt = delta.get(index);
@@ -106,7 +96,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
             layer.freeRef();
           }
         }) {
-          
+
           @Override
           public boolean isAlive() {
             return true;
@@ -115,7 +105,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
       }
     }).toArray(x1 -> new Result[x1]);
   }
-  
+
   /**
    * Eval point sample.
    *
@@ -138,11 +128,11 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
       }
       final TensorList resultData = result.getData();
       final DoubleSummaryStatistics statistics = resultData.stream()
-        .flatMapToDouble(x -> {
-          double[] array = Arrays.stream(x.getData()).toArray();
-          x.freeRef();
-          return Arrays.stream(array);
-        }).summaryStatistics();
+          .flatMapToDouble(x -> {
+            double[] array = Arrays.stream(x.getData()).toArray();
+            x.freeRef();
+            return Arrays.stream(array);
+          }).summaryStatistics();
       final double sum = statistics.getSum();
       @Nonnull final DeltaSet<Layer> deltaSet = new DeltaSet<Layer>();
       @Nonnull PointSample pointSample;
@@ -166,7 +156,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
     timedResult.result.freeRef();
     return normalize;
   }
-  
+
   /**
    * Get data tensor list [ ].
    *
@@ -176,18 +166,18 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
   public TensorList[] getData() {
     return data;
   }
-  
+
   @Nullable
   @Override
   public boolean[] getMask() {
     return mask;
   }
-  
+
   @Override
   public Layer getLayer() {
     return network;
   }
-  
+
   /**
    * Measure point sample.
    *
@@ -208,7 +198,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
     assert null != timedResult.result;
     return timedResult.result;
   }
-  
+
   /**
    * Sets data.
    *
@@ -225,14 +215,14 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
     this.data = data;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public TrainableDataMask setMask(final boolean... mask) {
     this.mask = mask;
     return this;
   }
-  
+
   /**
    * Sets verbose.
    *
@@ -244,7 +234,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
     verbosity = verbose;
     return this;
   }
-  
+
   /**
    * Is verbose boolean.
    *
@@ -253,7 +243,7 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
   public int verbosity() {
     return verbosity;
   }
-  
+
   @Override
   protected void _free() {
     this.network.freeRef();

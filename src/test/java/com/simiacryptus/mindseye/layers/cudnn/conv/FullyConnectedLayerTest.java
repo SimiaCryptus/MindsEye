@@ -25,7 +25,7 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.BatchingTester;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,7 +35,7 @@ import java.util.Random;
  * The type Fully connected layer apply.
  */
 public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Input dim.
    */
@@ -51,7 +51,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
    */
   @Nonnull
   protected final Layer layer;
-  
+
   /**
    * Instantiates a new Fully connected layer allocationOverflow.
    *
@@ -64,40 +64,40 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
     this.fullyConnectedLayer = new FullyConnectedLayer(inputDims, outputDims).setWeightsLog(-2);
     this.layer = this.fullyConnectedLayer.setBatchBands(batchBands).explode();
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      inputDim
+        inputDim
     };
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return FullyConnectedLayer.class;
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     layer.addRef();
     return layer;
   }
-  
+
   @Override
   public Layer getReferenceLayer() {
     @Nullable Class<? extends Layer> referenceLayerClass = getReferenceLayerClass();
     return null == referenceLayerClass ? null : this.fullyConnectedLayer.as(referenceLayerClass);
   }
-  
+
   @Nullable
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return FullyConnectedReferenceLayer.class;
   }
-  
+
   @Override
   public void run(NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
@@ -105,7 +105,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
 //    CudaSystem.addLog(new PrintStream(log.file(logName)));
     super.run(log);
   }
-  
+
   /**
    * Basic Test
    */
@@ -117,12 +117,12 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
       super(new int[]{2}, new int[]{2}, 512);
     }
   }
-  
+
   /**
    * Basic Test
    */
   public abstract static class BigTests extends FullyConnectedLayerTest {
-  
+
     /**
      * Instantiates a new BigTests.
      *
@@ -135,12 +135,12 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
       validateDifferentials = false;
       setTestTraining(false);
     }
-  
+
     @Override
     public Class<? extends Layer> getReferenceLayerClass() {
       return null;
     }
-  
+
     @Override
     public ComponentTest<ToleranceStatistics> getBatchingTester() {
       if (!validateBatchExecution) return null;
@@ -151,7 +151,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
         }
       }).setBatchSize(5);
     }
-  
+
     @Nullable
     @Override
     protected ComponentTest<ToleranceStatistics> getJsonTester() {
@@ -159,7 +159,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
       return null;
       //return super.getJsonTester();
     }
-  
+
     @Nullable
     @Override
     public ComponentTest<ToleranceStatistics> getPerformanceTester() {
@@ -168,7 +168,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
       //return super.getPerformanceTester();
     }
   }
-  
+
   /**
    * Large-dimension test using the size of the largest layer in VGG16
    */
@@ -179,9 +179,9 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
     public Big_VGG() {
       super(new int[]{25088}, new int[]{4096}, 25088 / 2);
     }
-    
+
   }
-  
+
   /**
    * Large-dimension test
    */
@@ -192,8 +192,8 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
     public Big1() {
       super(new int[]{2 * 1024}, new int[]{2 * 1024}, 512);
     }
-    
+
   }
-  
-  
+
+
 }

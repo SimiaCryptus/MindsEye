@@ -33,7 +33,7 @@ public interface MultiPrecision<T> {
    * @return the precision
    */
   Precision getPrecision();
-  
+
   /**
    * Sets precision.
    *

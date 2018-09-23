@@ -38,9 +38,9 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class AssertDimensionsLayer extends LayerBase {
-  
+
   private final int[] dims;
-  
+
   /**
    * Instantiates a new Assert dimensions layer.
    *
@@ -50,7 +50,7 @@ public class AssertDimensionsLayer extends LayerBase {
     super();
     this.dims = dims;
   }
-  
+
   /**
    * Instantiates a new Assert dimensions layer.
    *
@@ -61,7 +61,7 @@ public class AssertDimensionsLayer extends LayerBase {
     final JsonArray dimsJson = json.get("dims").getAsJsonArray();
     dims = IntStream.range(0, dimsJson.size()).map(i -> dimsJson.get(i).getAsInt()).toArray();
   }
-  
+
   /**
    * From json assert dimensions layer.
    *
@@ -72,7 +72,7 @@ public class AssertDimensionsLayer extends LayerBase {
   public static AssertDimensionsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AssertDimensionsLayer(json);
   }
-  
+
   @Override
   public Result evalAndFree(@Nonnull final Result... array) {
     if (0 == array.length) {
@@ -88,12 +88,12 @@ public class AssertDimensionsLayer extends LayerBase {
     }
     return input;
   }
-  
+
   @Override
   public List<Layer> getChildren() {
     return super.getChildren();
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -105,11 +105,11 @@ public class AssertDimensionsLayer extends LayerBase {
     json.add("dims", dimsJson);
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
 }

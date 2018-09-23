@@ -20,11 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +40,8 @@ public final class LoggingWrapperLayer extends WrapperLayer {
    * The Logger.
    */
   static final Logger log = LoggerFactory.getLogger(LoggingWrapperLayer.class);
-  
-  
+
+
   /**
    * Instantiates a new Monitoring wrapper layer.
    *
@@ -55,7 +51,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   protected LoggingWrapperLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
   }
-  
+
   /**
    * Instantiates a new Monitoring wrapper layer.
    *
@@ -64,7 +60,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   public LoggingWrapperLayer(final Layer inner) {
     super(inner);
   }
-  
+
   /**
    * From json monitoring wrapper layer.
    *
@@ -75,7 +71,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   public static LoggingWrapperLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new LoggingWrapperLayer(json, rs);
   }
-  
+
   @Override
   public Result eval(@Nonnull final Result... inObj) {
     final Result[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
@@ -87,17 +83,17 @@ public final class LoggingWrapperLayer extends WrapperLayer {
           x.freeRef();
           return str;
         })
-          .reduce((a, b) -> a + "\n" + b).get();
+            .reduce((a, b) -> a + "\n" + b).get();
         log.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
         data.addRef();
         inputToWrap.accumulate(buffer, data);
       }) {
-  
+
         @Override
         protected void _free() {
           inputToWrap.freeRef();
         }
-        
+
         @Override
         public boolean isAlive() {
           return inputToWrap.isAlive();
@@ -122,7 +118,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         x.freeRef();
         return str;
       })
-        .reduce((a, b) -> a + "\n" + b).get();
+          .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
     return new Result(output.getData(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
@@ -131,23 +127,23 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         x.freeRef();
         return str;
       })
-        .reduce((a, b) -> a + "\n" + b).get();
+          .reduce((a, b) -> a + "\n" + b).get();
       log.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
       data.addRef();
       output.accumulate(buffer, data);
     }) {
-  
+
       @Override
       protected void _free() {
         output.freeRef();
       }
-  
-  
+
+
       @Override
       public boolean isAlive() {
         return output.isAlive();
       }
     };
   }
-  
+
 }

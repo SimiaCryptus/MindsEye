@@ -45,16 +45,16 @@ public enum DeviceLimits {
    * Pending launch device limits.
    */
   PendingLaunch(cudaLimitDevRuntimePendingLaunchCount);
-  
+
   /**
    * The Id.
    */
   public final int id;
-  
+
   DeviceLimits(int id) {
     this.id = id;
   }
-  
+
   /**
    * Get long.
    *
@@ -63,7 +63,7 @@ public enum DeviceLimits {
   public long get() {
     return CudaSystem.cudaDeviceGetLimit(id);
   }
-  
+
   /**
    * Set.
    *

@@ -29,11 +29,11 @@ public abstract class SqActivationLayerTest extends ActivationLayerTestBase {
   public SqActivationLayerTest() {
     super(new SqActivationLayer());
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends SqActivationLayerTest {
   }
-  
+
 }

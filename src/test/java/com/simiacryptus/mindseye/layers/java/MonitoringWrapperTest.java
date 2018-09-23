@@ -29,15 +29,15 @@ import java.util.Random;
  * The type Monitoring wrapper apply.
  */
 public abstract class MonitoringWrapperTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
@@ -46,11 +46,11 @@ public abstract class MonitoringWrapperTest extends LayerTestBase {
     inner.freeRef();
     return wrapperLayer;
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends MonitoringWrapperTest {
   }
-  
+
 }

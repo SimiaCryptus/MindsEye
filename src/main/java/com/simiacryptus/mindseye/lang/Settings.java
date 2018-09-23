@@ -33,7 +33,7 @@ public interface Settings {
    * The constant logger.
    */
   Logger logger = LoggerFactory.getLogger(CudaSettings.class);
-  
+
   /**
    * Gets boolean.
    *
@@ -46,7 +46,7 @@ public interface Settings {
     logger.info(String.format("%s = %s", key, value));
     return value;
   }
-  
+
   /**
    * Get t.
    *
@@ -60,7 +60,7 @@ public interface Settings {
     logger.info(String.format("%s = %s", key, value));
     return value;
   }
-  
+
   /**
    * Gets int.
    *
@@ -73,7 +73,7 @@ public interface Settings {
     logger.info(String.format("%s = %s", key, value));
     return value;
   }
-  
+
   /**
    * Gets int.
    *
@@ -86,7 +86,7 @@ public interface Settings {
     logger.info(String.format("%s = %s", key, value));
     return value;
   }
-  
+
   /**
    * Gets double.
    *
@@ -99,7 +99,7 @@ public interface Settings {
     logger.info(String.format("%s = %s", key, value));
     return value;
   }
-  
+
   /**
    * Gets long.
    *

@@ -22,11 +22,8 @@ package com.simiacryptus.mindseye.lang;
 import jcuda.Sizeof;
 
 import javax.annotation.Nonnull;
-import java.nio.ByteBuffer;
+import java.nio.*;
 import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 
@@ -46,7 +43,7 @@ public enum SerialPrecision implements DataSerializer {
         outBuffer.put(inBuffer.get());
       }
     }
-    
+
     @Override
     public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
       @Nonnull DoubleBuffer inBuffer = ByteBuffer.wrap(from).asDoubleBuffer();
@@ -67,9 +64,9 @@ public enum SerialPrecision implements DataSerializer {
       while (inBuffer.hasRemaining()) {
         outBuffer.put((float) inBuffer.get());
       }
-  
+
     }
-  
+
     @Override
     public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
       @Nonnull FloatBuffer inBuffer = ByteBuffer.wrap(from).asFloatBuffer();
@@ -99,9 +96,9 @@ public enum SerialPrecision implements DataSerializer {
       while (inBuffer.hasRemaining()) {
         byteBuffer.put((int) (Integer.MAX_VALUE * (inBuffer.get() - center) / radius));
       }
-      
+
     }
-    
+
     @Override
     public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
       @Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
@@ -116,9 +113,9 @@ public enum SerialPrecision implements DataSerializer {
         int v = intBuffer.get();
         outBuffer.put((v * radius / Integer.MAX_VALUE) + center);
       }
-      
+
     }
-    
+
     @Override
     public int getHeaderSize() {
       return 8;
@@ -144,9 +141,9 @@ public enum SerialPrecision implements DataSerializer {
       while (inBuffer.hasRemaining()) {
         shortBuffer.put((short) (Short.MAX_VALUE * (inBuffer.get() - center) / radius));
       }
-      
+
     }
-    
+
     @Override
     public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
       @Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
@@ -161,9 +158,9 @@ public enum SerialPrecision implements DataSerializer {
         short v = shortBuffer.get();
         outBuffer.put((v * radius / Short.MAX_VALUE) + center);
       }
-      
+
     }
-    
+
     @Override
     public int getHeaderSize() {
       return 8;
@@ -189,9 +186,9 @@ public enum SerialPrecision implements DataSerializer {
       while (inBuffer.hasRemaining()) {
         byteBuffer.put((byte) (Byte.MAX_VALUE * (inBuffer.get() - center) / radius));
       }
-      
+
     }
-    
+
     @Override
     public void copy(@Nonnull byte[] from, @Nonnull double[] to) {
       @Nonnull DoubleBuffer outBuffer = DoubleBuffer.wrap(to);
@@ -206,22 +203,22 @@ public enum SerialPrecision implements DataSerializer {
         byte v = byteBuffer.get();
         outBuffer.put((v * radius / Byte.MAX_VALUE) + center);
       }
-      
+
     }
-    
+
     @Override
     public int getHeaderSize() {
       return 8;
     }
   };
-  
+
   private final int size;
-  
+
   SerialPrecision(final int size) {
     this.size = size;
   }
-  
-  
+
+
   /**
    * The Element Size.
    */
@@ -229,8 +226,8 @@ public enum SerialPrecision implements DataSerializer {
   public int getElementSize() {
     return size;
   }
-  
-  
+
+
   /**
    * To rational rational.
    *
@@ -245,36 +242,31 @@ public enum SerialPrecision implements DataSerializer {
       @Nonnull Rational next = rationalRecursion(value, i);
       if (next.numerator < maxScalar && next.denominator < maxScalar) {
         current = next;
-      }
-      else {
+      } else {
         break;
       }
     }
     return current;
   }
-  
+
   private Rational rationalRecursion(double value, int recursions) {
     if (value < 0) {
       @Nonnull Rational rational = rationalRecursion(-value, recursions);
       return new Rational(-rational.numerator, rational.denominator);
-    }
-    else if (0 == value) {
+    } else if (0 == value) {
       return new Rational(0, 1);
-    }
-    else if (value >= 1) {
+    } else if (value >= 1) {
       int scalar = (int) value;
       @Nonnull Rational rational = rationalRecursion(value - scalar, recursions);
       return new Rational(rational.numerator + (scalar * rational.denominator), rational.denominator);
-    }
-    else if (recursions <= 0) {
+    } else if (recursions <= 0) {
       return new Rational((int) Math.round(value), 1);
-    }
-    else {
+    } else {
       @Nonnull Rational rational = rationalRecursion(1.0 / value, recursions - 1);
       return new Rational(rational.denominator, rational.numerator);
     }
   }
-  
+
   /**
    * The type Rational.
    */
@@ -287,7 +279,7 @@ public enum SerialPrecision implements DataSerializer {
      * The Denominator.
      */
     public final int denominator;
-  
+
     /**
      * Instantiates a new Rational.
      *
@@ -298,6 +290,6 @@ public enum SerialPrecision implements DataSerializer {
       this.numerator = numerator;
       this.denominator = denominator;
     }
-    
+
   }
 }

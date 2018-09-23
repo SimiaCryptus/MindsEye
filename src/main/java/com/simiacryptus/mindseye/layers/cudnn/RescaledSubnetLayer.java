@@ -43,17 +43,17 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<RescaledSubnetLayer> {
   private static final Logger log = LoggerFactory.getLogger(RescaledSubnetLayer.class);
-  
+
   private int scale;
   private Layer layer;
   private Precision precision = Precision.Double;
-  
+
   /**
    * Instantiates a new Img eval layer.
    */
   private RescaledSubnetLayer() {
   }
-  
+
   /**
    * Instantiates a new Rescaled subnet layer.
    *
@@ -64,7 +64,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
     this.scale = scale;
     this.layer = layer;
   }
-  
+
   /**
    * Instantiates a new Img eval layer.
    *
@@ -77,7 +77,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
     layer = Layer.fromJson(json, rs);
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
-  
+
   /**
    * From json img eval layer.
    *
@@ -88,7 +88,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -98,7 +98,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   public Layer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.RescaledSubnetLayer(scale, layer);
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(final Result... inObj) {
@@ -106,7 +106,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
     log.warn("Not Implemented: " + getClass().getCanonicalName());
     return getCompatibilityLayer().evalAndFree(inObj);
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -116,18 +116,18 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public RescaledSubnetLayer setPrecision(final Precision precision) {

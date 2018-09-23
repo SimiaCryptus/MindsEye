@@ -24,7 +24,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,10 +38,10 @@ import java.util.stream.IntStream;
  */
 public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(EquivalencyTester.class);
-  
+
   private final Layer reference;
   private final double tolerance;
-  
+
   /**
    * Instantiates a new Equivalency tester.
    *
@@ -53,13 +53,13 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
     this.reference = referenceLayer;
     this.reference.addRef();
   }
-  
+
   @Override
   protected void _free() {
     reference.freeRef();
     super._free();
   }
-  
+
   /**
    * Test tolerance statistics.
    *
@@ -99,7 +99,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
       error.freeRef();
     }
   }
-  
+
   /**
    * Test tolerance statistics.
    *
@@ -120,13 +120,13 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
       return test(subject, inputPrototype);
     });
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "EquivalencyTester{" +
-      "reference=" + reference +
-      ", tolerance=" + tolerance +
-      '}';
+        "reference=" + reference +
+        ", tolerance=" + tolerance +
+        '}';
   }
 }

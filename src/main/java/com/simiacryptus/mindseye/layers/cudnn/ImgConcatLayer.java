@@ -20,23 +20,8 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.CoreSettings;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,17 +37,17 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConcatLayer> {
-  
+
   private int maxBands = -1;
   private Precision precision = Precision.Double;
   private boolean parallel = true;
-  
+
   /**
    * Instantiates a new Img eval layer.
    */
   public ImgConcatLayer() {
   }
-  
+
   /**
    * Instantiates a new Img eval layer.
    *
@@ -74,7 +59,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     precision = Precision.valueOf(json.get("precision").getAsString());
     this.parallel = json.get("parallel").getAsBoolean();
   }
-  
+
   /**
    * From json img eval layer.
    *
@@ -85,7 +70,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   public static ImgConcatLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgConcatLayer(json);
   }
-  
+
   /**
    * Eval tensor.
    *
@@ -100,7 +85,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     data.freeRef();
     return tensor;
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -110,8 +95,8 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.java.ImgConcatLayer.class);
   }
-  
-  
+
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -151,24 +136,24 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           assert maxBands <= 0 || inputBands <= maxBands;
           assert inputBands <= inputDimensions[2];
           @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(
-            precision, length, inputBands, outputDimensions[1], outputDimensions[0], //
-            outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
-            outputDimensions[1] * outputDimensions[0], //
-            outputDimensions[0], //
-            1);
-  
+              precision, length, inputBands, outputDimensions[1], outputDimensions[0], //
+              outputDimensions[2] * outputDimensions[1] * outputDimensions[0], //
+              outputDimensions[1] * outputDimensions[0], //
+              outputDimensions[0], //
+              1);
+
           @Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
-            precision, length, inputBands, inputDimensions[1], inputDimensions[0], //
-            cudaInput.descriptor.nStride, //
-            cudaInput.descriptor.cStride, //
-            cudaInput.descriptor.hStride, //
-            cudaInput.descriptor.wStride);
-  
+              precision, length, inputBands, inputDimensions[1], inputDimensions[0], //
+              cudaInput.descriptor.nStride, //
+              cudaInput.descriptor.cStride, //
+              cudaInput.descriptor.hStride, //
+              cudaInput.descriptor.wStride);
+
           int byteOffset = outputDescriptor.cStride * bandOffset * precision.size;
           CudaMemory cudaInputMemory = cudaInput.getMemory(gpu);
           gpu.cudnnTransformTensor(
-            precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr(),
-            precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
+              precision.getPointer(1.0), inputDescriptor.getPtr(), cudaInputMemory.getPtr(),
+              precision.getPointer(0.0), outputDescriptor.getPtr(), cudaOutput.getPtr().withByteOffset(byteOffset)
           );
           assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
           cudaInputMemory.dirty();
@@ -189,7 +174,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       //outputBuffer.freeRef();
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
       @Nonnull IntStream stream = IntStream.range(0, inObj.length);
-      if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) stream = stream.parallel();
+      if (!CoreSettings.INSTANCE().isSingleThreaded() && parallel) stream = stream.parallel();
       stream.forEach(i -> {
         final Result input = inObj[i];
         int[] inputDimentions = input.getData().getDimensions();
@@ -204,49 +189,50 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           assert inputBands <= outputDimensions[2];
           final TensorList passbackTensorList = CudaSystem.run(gpu -> {
             final CudaTensor result;
-            synchronized (gpu) {result = gpu.getTensor(delta, precision, MemoryType.Device, true);}
+            synchronized (gpu) {
+              result = gpu.getTensor(delta, precision, MemoryType.Device, true);
+            }
             @Nullable final CudaTensor cudaDelta = result;
             CudaMemory cudaDeltaMemory = cudaDelta.getMemory(gpu);
             try {
               if (inputDimentions[2] == inputBands) {
                 @Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
-                  precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
-                  cudaDelta.descriptor.nStride, //
-                  cudaDelta.descriptor.cStride, //
-                  cudaDelta.descriptor.hStride, //
-                  cudaDelta.descriptor.wStride);
+                    precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
+                    cudaDelta.descriptor.nStride, //
+                    cudaDelta.descriptor.cStride, //
+                    cudaDelta.descriptor.hStride, //
+                    cudaDelta.descriptor.wStride);
                 int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
                 CudaMemory ptr = cudaDeltaMemory.withByteOffset(byteOffset);
                 CudaTensor cudaTensor = CudaTensor.wrap(ptr, viewDescriptor, precision);
                 Stream.<ReferenceCounting>of(cudaDelta).forEach(ReferenceCounting::freeRef);
                 return CudaTensorList.wrap(cudaTensor, length, inputDimentions, precision);
-              }
-              else {
+              } else {
                 @Nonnull final CudaDevice.CudaTensorDescriptor passbackTransferDescriptor = gpu.newTensorDescriptor(
-                  precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
-                  inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
-                  inputDimentions[1] * inputDimentions[0], //
-                  inputDimentions[0], //
-                  1);
+                    precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
+                    inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
+                    inputDimentions[1] * inputDimentions[0], //
+                    inputDimentions[0], //
+                    1);
                 @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(
-                  precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
-                  inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
-                  inputDimentions[1] * inputDimentions[0], //
-                  inputDimentions[0], //
-                  1);
+                    precision, length, inputDimentions[2], inputDimentions[1], inputDimentions[0], //
+                    inputDimentions[2] * inputDimentions[1] * inputDimentions[0], //
+                    inputDimentions[1] * inputDimentions[0], //
+                    inputDimentions[0], //
+                    1);
                 @Nonnull final CudaDevice.CudaTensorDescriptor deltaViewDescriptor = gpu.newTensorDescriptor(
-                  precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
-                  cudaDelta.descriptor.nStride, //
-                  cudaDelta.descriptor.cStride, //
-                  cudaDelta.descriptor.hStride, //
-                  cudaDelta.descriptor.wStride);
+                    precision, length, inputBands, inputDimentions[1], inputDimentions[0], //
+                    cudaDelta.descriptor.nStride, //
+                    cudaDelta.descriptor.cStride, //
+                    cudaDelta.descriptor.hStride, //
+                    cudaDelta.descriptor.wStride);
                 @Nonnull final CudaMemory cudaBackprop = gpu.allocate(
-                  (long) passbackDescriptor.nStride * length * precision.size,
-                  MemoryType.Managed.normalize(), inputBands == inputDimentions[2]);
+                    (long) passbackDescriptor.nStride * length * precision.size,
+                    MemoryType.Managed.normalize(), inputBands == inputDimentions[2]);
                 int byteOffset = cudaDelta.descriptor.cStride * bandOffset * precision.size;
                 gpu.cudnnTransformTensor(
-                  precision.getPointer(1.0), deltaViewDescriptor.getPtr(), cudaDeltaMemory.getPtr().withByteOffset(byteOffset),
-                  precision.getPointer(0.0), passbackTransferDescriptor.getPtr(), cudaBackprop.getPtr()
+                    precision.getPointer(1.0), deltaViewDescriptor.getPtr(), cudaDeltaMemory.getPtr().withByteOffset(byteOffset),
+                    precision.getPointer(0.0), passbackTransferDescriptor.getPtr(), cudaBackprop.getPtr()
                 );
                 cudaBackprop.dirty();
                 cudaDeltaMemory.dirty();
@@ -262,7 +248,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
         //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       });
     }) {
-      
+
       @Override
       protected void _free() {
         for (@Nonnull Result result : inObj) {
@@ -270,14 +256,14 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
           result.getData().freeRef();
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -287,7 +273,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     json.addProperty("parallel", isParallel());
     return json;
   }
-  
+
   /**
    * Gets max bands.
    *
@@ -296,7 +282,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   public int getMaxBands() {
     return maxBands;
   }
-  
+
   /**
    * Sets max bands.
    *
@@ -308,26 +294,26 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     this.maxBands = maxBands;
     return this;
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public ImgConcatLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
-  
+
+
   /**
    * Is parallel boolean.
    *
@@ -336,7 +322,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   public boolean isParallel() {
     return parallel;
   }
-  
+
   /**
    * Sets parallel.
    *
@@ -347,5 +333,5 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
     this.parallel = parallel;
     return this;
   }
-  
+
 }

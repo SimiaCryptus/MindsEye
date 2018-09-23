@@ -21,13 +21,7 @@ package com.simiacryptus.mindseye.layers.cudnn.conv;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
@@ -50,7 +44,7 @@ import java.util.function.IntToDoubleFunction;
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends LayerBase implements MultiPrecision<ConvolutionLayer>, Explodable {
-  
+
   @Nullable
   private final Tensor kernel;
   private final int inputBands;
@@ -63,14 +57,14 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   private Integer paddingY = null;
   private Precision precision = Precision.Double;
   private int batchBands = 0;
-  
+
   /**
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
     this(1, 1, 1, 1);
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -92,11 +86,11 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     if (getKernel().getDimensions()[2] <= 0) throw new IllegalArgumentException();
     this.inputBands = inputBands;
     this.outputBands = outputBands;
-    int batchBands = (int) Math.sqrt(CudaSettings.INSTANCE.getMaxFilterElements() / (width * height));
+    int batchBands = (int) Math.sqrt(CudaSettings.INSTANCE().getMaxFilterElements() / (width * height));
     //batchBands = binaryFriendly(batchBands, 3);
     setBatchBands(batchBands);
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -118,7 +112,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     this.inputBands = json.get("inputBands").getAsInt();
     this.outputBands = json.get("outputBands").getAsInt();
   }
-  
+
   /**
    * Binary friendly int.
    *
@@ -129,7 +123,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public static int binaryFriendly(final int value, final int bits) {
     return (int) Math.pow(2, (Math.floor(Math.log(value) * bits) / bits) / Math.log(2));
   }
-  
+
   /**
    * Add.
    *
@@ -141,7 +135,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
       data[i] += f.getAsDouble();
     }
   }
-  
+
   /**
    * From json convolution layer.
    *
@@ -152,13 +146,13 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public static ConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ConvolutionLayer(json, rs);
   }
-  
+
   @Override
   protected void _free() {
     kernel.freeRef();
     super._free();
   }
-  
+
   /**
    * Add weights convolution layer.
    *
@@ -170,7 +164,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     ConvolutionLayer.add(f, getKernel().getData());
     return this;
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -180,7 +174,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public Layer getCompatibilityLayer() {
     return this.as(com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer.class);
   }
-  
+
   /**
    * Explode nn layer.
    *
@@ -198,7 +192,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
       explodedNetwork.freeRef();
     }
   }
-  
+
   /**
    * Gets exploded network.
    *
@@ -216,7 +210,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
 //    }
     return new ExplodedConvolutionGrid(getConvolutionParams(), batchBands).write(kernel);
   }
-  
+
   /**
    * Gets convolution params.
    *
@@ -226,7 +220,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public ConvolutionParams getConvolutionParams() {
     return new ConvolutionParams(inputBands, outputBands, precision, strideX, strideY, paddingX, paddingY, kernel.getDimensions());
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -261,12 +255,12 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
         read.freeRef();
       }
     }) {
-  
+
       @Override
       public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
-  
+
       @Override
       protected void _free() {
         grid.freeRef();
@@ -274,14 +268,14 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
         kernel.freeRef();
         ConvolutionLayer.this.freeRef();
       }
-      
+
       @Override
       public boolean isAlive() {
         return result.isAlive();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -297,19 +291,19 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     json.addProperty("outputBands", outputBands);
     return json;
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public ConvolutionLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -320,7 +314,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public ConvolutionLayer set(@Nonnull final DoubleSupplier f) {
     return set(i -> f.getAsDouble());
   }
-  
+
   /**
    * Set convolution layer.
    *
@@ -332,7 +326,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     getKernel().set(tensor);
     return this;
   }
-  
+
   /**
    * Sets and free.
    *
@@ -345,7 +339,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     tensor.freeRef();
     return this;
   }
-  
+
   /**
    * Set convolution layer.
    *
@@ -357,13 +351,13 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     getKernel().set(f);
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(getKernel().getData());
   }
-  
+
   /**
    * The Stride x.
    *
@@ -372,7 +366,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public int getStrideX() {
     return strideX;
   }
-  
+
   /**
    * Sets stride x.
    *
@@ -384,7 +378,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     this.strideX = strideX;
     return this;
   }
-  
+
   /**
    * The Stride y.
    *
@@ -393,7 +387,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public int getStrideY() {
     return strideY;
   }
-  
+
   /**
    * Sets stride y.
    *
@@ -405,7 +399,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     this.strideY = strideY;
     return this;
   }
-  
+
   /**
    * Sets weights log.
    *
@@ -416,7 +410,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public ConvolutionLayer setWeightsLog(double f) {
     return set(() -> Math.pow(10, f) * (Math.random() - 0.5));
   }
-  
+
   /**
    * Sets stride xy.
    *
@@ -428,7 +422,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public ConvolutionLayer setStrideXY(int x, int y) {
     return setStrideX(x).setStrideY(y);
   }
-  
+
   /**
    * Sets padding xy.
    *
@@ -440,7 +434,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public ConvolutionLayer setPaddingXY(Integer x, Integer y) {
     return setPaddingX(x).setPaddingY(y);
   }
-  
+
   /**
    * Gets padding x.
    *
@@ -450,7 +444,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public Integer getPaddingX() {
     return paddingX;
   }
-  
+
   /**
    * Sets padding x.
    *
@@ -462,7 +456,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     this.paddingX = paddingX;
     return this;
   }
-  
+
   /**
    * Gets padding y.
    *
@@ -472,7 +466,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public Integer getPaddingY() {
     return paddingY;
   }
-  
+
   /**
    * Sets padding y.
    *
@@ -484,7 +478,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     this.paddingY = paddingY;
     return this;
   }
-  
+
   /**
    * The Filter.
    *
@@ -494,8 +488,8 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public Tensor getKernel() {
     return kernel;
   }
-  
-  
+
+
   /**
    * Gets batch bands.
    *
@@ -504,7 +498,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   public int getBatchBands() {
     return batchBands;
   }
-  
+
   /**
    * Sets batch bands.
    *

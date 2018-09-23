@@ -20,21 +20,8 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -50,11 +37,11 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgBandSelectLayer> {
-  
+
   private int from;
   private int to;
   private Precision precision = Precision.Double;
-  
+
   /**
    * Instantiates a new Img band select layer.
    *
@@ -65,7 +52,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     this.setFrom(from);
     this.setTo(to);
   }
-  
+
   /**
    * Instantiates a new Img eval layer.
    *
@@ -77,7 +64,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     setTo(json.get("to").getAsInt());
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
-  
+
   /**
    * From json img eval layer.
    *
@@ -88,7 +75,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   public static ImgBandSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandSelectLayer(json);
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -98,8 +85,8 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   public Layer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.ImgBandSelectLayer(IntStream.range(getFrom(), getTo()).toArray());
   }
-  
-  
+
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -122,11 +109,11 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
       inputData.freeRef();
       final int byteOffset = cudaInput.descriptor.cStride * getFrom() * precision.size;
       @Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
-        precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
-        cudaInput.descriptor.nStride, //
-        cudaInput.descriptor.cStride, //
-        cudaInput.descriptor.hStride, //
-        cudaInput.descriptor.wStride);
+          precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
+          cudaInput.descriptor.nStride, //
+          cudaInput.descriptor.cStride, //
+          cudaInput.descriptor.hStride, //
+          cudaInput.descriptor.wStride);
       CudaMemory cudaInputMemory = cudaInput.getMemory(gpu);
       assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
       CudaTensor cudaTensor = CudaTensor.wrap(cudaInputMemory.withByteOffset(byteOffset), inputDescriptor, precision);
@@ -139,17 +126,17 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
       if (inObj[0].isAlive()) {
         final TensorList passbackTensorList = CudaSystem.run(gpu -> {
           @Nonnull final CudaDevice.CudaTensorDescriptor viewDescriptor = gpu.newTensorDescriptor(
-            precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
-            inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
-            inputDimensions[1] * inputDimensions[0], //
-            inputDimensions[0], //
-            1);
+              precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0], //
+              inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
+              inputDimensions[1] * inputDimensions[0], //
+              inputDimensions[0], //
+              1);
           @Nonnull final CudaDevice.CudaTensorDescriptor inputDescriptor = gpu.newTensorDescriptor(
-            precision, length, inputDimensions[2], inputDimensions[1], inputDimensions[0], //
-            inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
-            inputDimensions[1] * inputDimensions[0], //
-            inputDimensions[0], //
-            1);
+              precision, length, inputDimensions[2], inputDimensions[1], inputDimensions[0], //
+              inputDimensions[2] * inputDimensions[1] * inputDimensions[0], //
+              inputDimensions[1] * inputDimensions[0], //
+              inputDimensions[0], //
+              1);
           final int byteOffset = viewDescriptor.cStride * getFrom() * precision.size;
           assert delta.length() == length;
           //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(Double::isFinite);
@@ -159,8 +146,8 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
           @Nonnull final CudaMemory passbackBuffer = gpu.allocate(size1, MemoryType.Managed.normalize(), false);
           CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
           gpu.cudnnTransformTensor(
-            precision.getPointer(1.0), errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
-            precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
+              precision.getPointer(1.0), errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
+              precision.getPointer(0.0), viewDescriptor.getPtr(), passbackBuffer.getPtr().withByteOffset(byteOffset)
           );
           errorPtrMemory.dirty();
           passbackBuffer.dirty();
@@ -171,30 +158,29 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
           //assert passbackTensorList.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
         }, delta);
         inObj[0].accumulate(buffer, passbackTensorList);
-      }
-      else {
+      } else {
         delta.freeRef();
       }
     }) {
-  
+
       @Override
       public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
-  
-  
+
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         return Arrays.stream(inObj).anyMatch(x -> x.isAlive());
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -204,7 +190,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   /**
    * Gets max bands.
    *
@@ -213,7 +199,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   public int getFrom() {
     return from;
   }
-  
+
   /**
    * Sets max bands.
    *
@@ -225,25 +211,25 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     this.from = from;
     return this;
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public ImgBandSelectLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   /**
    * Gets to.
    *
@@ -252,7 +238,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   public int getTo() {
     return to;
   }
-  
+
   /**
    * Sets to.
    *

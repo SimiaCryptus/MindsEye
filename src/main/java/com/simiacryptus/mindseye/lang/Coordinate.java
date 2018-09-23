@@ -36,14 +36,14 @@ public final class Coordinate {
    * The Index.
    */
   protected int index;
-  
+
   /**
    * Instantiates a new Coordinate.
    */
   public Coordinate() {
     this(-1, null);
   }
-  
+
   /**
    * Instantiates a new Coordinate.
    *
@@ -55,7 +55,7 @@ public final class Coordinate {
     this.index = index;
     this.coords = coords;
   }
-  
+
   /**
    * Add int [ ].
    *
@@ -71,7 +71,7 @@ public final class Coordinate {
     }
     return r;
   }
-  
+
   /**
    * Transpose coordinates int.
    *
@@ -86,7 +86,7 @@ public final class Coordinate {
     assert index == filterBandY * rows + filterBandX;
     return filterBandX * cols + filterBandY;
   }
-  
+
   @Override
   public boolean equals(@Nullable final Object obj) {
     if (this == obj) {
@@ -100,7 +100,7 @@ public final class Coordinate {
     }
     return index == ((Coordinate) obj).index;
   }
-  
+
   /**
    * The Coords.
    *
@@ -109,7 +109,7 @@ public final class Coordinate {
   public int[] getCoords() {
     return coords;
   }
-  
+
   /**
    * Sets coords.
    *
@@ -121,7 +121,7 @@ public final class Coordinate {
     this.coords = coords;
     return this;
   }
-  
+
   /**
    * The Index.
    *
@@ -130,7 +130,7 @@ public final class Coordinate {
   public int getIndex() {
     return index;
   }
-  
+
   /**
    * Sets index.
    *
@@ -142,17 +142,17 @@ public final class Coordinate {
     this.index = index;
     return this;
   }
-  
+
   @Override
   public int hashCode() {
     return Integer.hashCode(index) ^ Arrays.hashCode(coords);
   }
-  
+
   @Override
   public String toString() {
     return Arrays.toString(coords) + "<" + index + ">";
   }
-  
+
   /**
    * Copy coordinate.
    *

@@ -22,11 +22,7 @@ package com.simiacryptus.mindseye.network;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.layers.cudnn.PoolingLayer;
 import com.simiacryptus.mindseye.layers.cudnn.conv.ConvolutionLayer;
-import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
-import com.simiacryptus.mindseye.layers.java.ImgBandBiasLayer;
-import com.simiacryptus.mindseye.layers.java.ImgCropLayer;
-import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
-import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
+import com.simiacryptus.mindseye.layers.java.*;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -35,16 +31,16 @@ import java.util.ArrayList;
  * The type Conv pipeline apply.
  */
 public class ConvPipelineTest extends PipelineTest {
-  
+
   /**
    * Instantiates a new Conv pipeline apply.
    */
   public ConvPipelineTest() {
     super(
-      buildList_1()
+        buildList_1()
     );
   }
-  
+
   /**
    * Build list 1 nn layer [ ].
    *
@@ -52,34 +48,34 @@ public class ConvPipelineTest extends PipelineTest {
    */
   public static Layer[] buildList_1() {
     @Nonnull final ArrayList<Layer> network = new ArrayList<Layer>();
-    
+
     network.add(new ConvolutionLayer(3, 3, 3, 10).set(i -> 1e-8 * (Math.random() - 0.5)));
     network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
     network.add(new ReLuActivationLayer());
     network.add(new ImgCropLayer(126, 126));
-    
+
     network.add(new ConvolutionLayer(3, 3, 10, 20).set(i -> 1e-8 * (Math.random() - 0.5)));
     network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
     network.add(new ReLuActivationLayer());
     network.add(new ImgCropLayer(62, 62));
-    
+
     network.add(new ConvolutionLayer(5, 5, 20, 30).set(i -> 1e-8 * (Math.random() - 0.5)));
     network.add(new PoolingLayer().setMode(PoolingLayer.PoolingMode.Max));
     network.add(new ReLuActivationLayer());
     network.add(new ImgCropLayer(18, 18));
-    
+
     network.add(new ConvolutionLayer(3, 3, 30, 40).set(i -> 1e-8 * (Math.random() - 0.5)));
     network.add(new PoolingLayer().setWindowX(4).setWindowY(4).setMode(PoolingLayer.PoolingMode.Avg));
     network.add(new ReLuActivationLayer());
     network.add(new ImgCropLayer(4, 4));
-    
+
     network.add(new ImgBandBiasLayer(40));
     network.add(new FullyConnectedLayer(new int[]{4, 4, 40}, new int[]{100}).set(() -> 0.001 * (Math.random() - 0.45)));
     network.add(new SoftmaxActivationLayer());
-  
+
     return network.toArray(new Layer[]{});
   }
-  
+
   @Nonnull
   @Override
   public int[] getInputDims() {

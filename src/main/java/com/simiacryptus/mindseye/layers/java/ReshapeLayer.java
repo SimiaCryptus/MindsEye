@@ -20,14 +20,8 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReshapedTensorList;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.util.io.JsonUtil;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,14 +43,14 @@ public class ReshapeLayer extends LayerBase {
    */
   @Nullable
   public final int[] outputDims;
-  
+
   /**
    * Instantiates a new Img eval layer.
    */
   private ReshapeLayer() {
     outputDims = null;
   }
-  
+
   /**
    * Instantiates a new Fully connected layer.
    *
@@ -65,7 +59,7 @@ public class ReshapeLayer extends LayerBase {
   public ReshapeLayer(@Nonnull final int... outputDims) {
     this.outputDims = Arrays.copyOf(outputDims, outputDims.length);
   }
-  
+
   /**
    * Instantiates a new Img eval layer.
    *
@@ -76,7 +70,7 @@ public class ReshapeLayer extends LayerBase {
     super(json);
     outputDims = JsonUtil.getIntArray(json.getAsJsonArray("outputDims"));
   }
-  
+
   /**
    * From json img eval layer.
    *
@@ -87,7 +81,7 @@ public class ReshapeLayer extends LayerBase {
   public static ReshapeLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ReshapeLayer(json, rs);
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -100,22 +94,22 @@ public class ReshapeLayer extends LayerBase {
       @Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
       inObj[0].accumulate(buffer, tensorList);
     }) {
-      
+
       @Override
       protected void _free() {
         for (@Nonnull Result result : inObj) {
           result.freeRef();
         }
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
       }
     };
-    
+
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -123,11 +117,11 @@ public class ReshapeLayer extends LayerBase {
     json.add("outputDims", JsonUtil.getJson(outputDims));
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
 }

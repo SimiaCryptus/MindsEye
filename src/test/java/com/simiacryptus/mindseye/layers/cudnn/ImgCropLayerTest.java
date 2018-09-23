@@ -26,7 +26,7 @@ import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.PerformanceTester;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,42 +37,42 @@ import java.util.Random;
  * The type Img crop layer apply.
  */
 public abstract class ImgCropLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * Instantiates a new Img crop layer apply.
    */
   public ImgCropLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+        {8, 8, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+        {1200, 1200, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgCropLayer(5, 5);
   }
-  
+
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.ImgCropLayer.class;
   }
-  
-  
+
+
   @Nullable
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
@@ -93,7 +93,7 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
 //          }
         }
       }
-  
+
       @Override
       protected void _free() {
         inner.freeRef();
@@ -101,19 +101,19 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
       }
     };
   }
-  
+
   /**
    * The type Chained.
    */
   public static class Chained extends ImgCropLayerTest {
-  
+
     /**
      * Instantiates a new Chained.
      */
     public Chained() {
       validateDifferentials = false;
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {
@@ -121,7 +121,7 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
       //return wrap(imgCropLayer);
       return imgCropLayer;
     }
-  
+
     /**
      * Wrap nn layer.
      *
@@ -134,15 +134,15 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
       network.wrap(imgCropLayer).freeRef();
       return network;
     }
-  
+
     @Nonnull
     @Override
     public Class<? extends Layer> getTestClass() {
       return ImgCropLayer.class;
     }
-    
+
   }
-  
+
   /**
    * Basic Test
    */

@@ -19,15 +19,8 @@
 
 package com.simiacryptus.mindseye.lang.cudnn;
 
-import com.simiacryptus.util.lang.TimedResult;
-import jcuda.jcudnn.JCudnn;
-import jcuda.jcudnn.cudnnActivationDescriptor;
-import jcuda.jcudnn.cudnnConvolutionDescriptor;
-import jcuda.jcudnn.cudnnFilterDescriptor;
-import jcuda.jcudnn.cudnnNanPropagation;
-import jcuda.jcudnn.cudnnOpTensorDescriptor;
-import jcuda.jcudnn.cudnnPoolingDescriptor;
-import jcuda.jcudnn.cudnnTensorDescriptor;
+import com.simiacryptus.lang.TimedResult;
+import jcuda.jcudnn.*;
 import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
 import org.slf4j.Logger;
@@ -58,7 +51,7 @@ public class CudaDevice extends CudaSystem {
    */
   protected final int deviceId;
   private volatile cudaDeviceProp deviceProperties;
-  
+
   /**
    * Instantiates a new Gpu device.
    *
@@ -71,12 +64,11 @@ public class CudaDevice extends CudaSystem {
     if (0 <= this.deviceId) {
       initThread();
       deviceName = getDeviceName(deviceId);
-    }
-    else {
+    } else {
       deviceName = null;
     }
   }
-  
+
   /**
    * Cuda freeRef int.
    *
@@ -96,12 +88,11 @@ public class CudaDevice extends CudaSystem {
     };
     if (deviceId < 0) {
       return fn.apply(null);
-    }
-    else {
+    } else {
       return CudaSystem.withDevice(deviceId, fn);
     }
   }
-  
+
   /**
    * Gets device name.
    *
@@ -111,7 +102,7 @@ public class CudaDevice extends CudaSystem {
   public static String getDeviceName(final int device) {
     return new String(CudaDevice.getDeviceProperties(device).name, Charset.forName("ASCII")).trim();
   }
-  
+
   /**
    * Gets device properties.
    *
@@ -128,7 +119,7 @@ public class CudaDevice extends CudaSystem {
       return deviceProp;
     });
   }
-  
+
   /**
    * Sets device.
    *
@@ -145,7 +136,7 @@ public class CudaDevice extends CudaSystem {
       CudaSystem.currentDeviceId.set(cudaDeviceId);
     }
   }
-  
+
   /**
    * Acquire pointer.
    *
@@ -173,12 +164,12 @@ public class CudaDevice extends CudaSystem {
       @Nonnull TimedResult<Double> timedResult = TimedResult.time(() -> CudaMemory.clearMemory(getDeviceId()));
       final long freedMemory = startMemory - metrics.usedMemory.get();
       CudaMemory.logger.warn(String.format("Low GPU Memory while allocating %s bytes; %s freed in %.4fs resulting in %s total (triggered by %s)",
-        size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));
+          size, freedMemory, timedResult.seconds(), metrics.usedMemory.get(), e.getMessage()));
     }
     if (retries < 0) throw new IllegalStateException();
     return this.acquire(size, type, retries - 1);
   }
-  
+
   /**
    * Ensure capacity device metrics.
    *
@@ -193,34 +184,34 @@ public class CudaDevice extends CudaSystem {
       if (size <= 0) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
-      if (size > CudaSettings.INSTANCE.getMaxAllocSize()) {
+      if (size > CudaSettings.INSTANCE().getMaxAllocSize()) {
         throw new OutOfMemoryError("Allocated block is too large: " + size);
       }
       metrics = CudaMemory.getGpuStats(deviceId);
       double resultingTotalMemory = CudaMemory.METRICS.values().stream().mapToLong(m -> m.usedMemory.get()).sum() + size;
-      if (resultingTotalMemory > CudaSettings.INSTANCE.getMaxTotalMemory()) {
-        CudaMemory.logger.info(String.format("Clearing weak global memory while allocating %e bytes (%e > %e)", (double) size, resultingTotalMemory, CudaSettings.INSTANCE.getMaxTotalMemory()));
+      if (resultingTotalMemory > CudaSettings.INSTANCE().getMaxTotalMemory()) {
+        CudaMemory.logger.info(String.format("Clearing weak global memory while allocating %e bytes (%e > %e)", (double) size, resultingTotalMemory, CudaSettings.INSTANCE().getMaxTotalMemory()));
         CudaMemory.clearWeakMemory(deviceId);
       }
       resultingTotalMemory = CudaMemory.METRICS.values().stream().mapToLong(x1 -> x1.usedMemory.get()).sum() + size;
-      if (resultingTotalMemory > CudaSettings.INSTANCE.getMaxTotalMemory()) {
-        CudaMemory.logger.info(String.format("Clearing all global memory while allocating %e bytes (%e > %e)", (double) size, resultingTotalMemory, CudaSettings.INSTANCE.getMaxTotalMemory()));
+      if (resultingTotalMemory > CudaSettings.INSTANCE().getMaxTotalMemory()) {
+        CudaMemory.logger.info(String.format("Clearing all global memory while allocating %e bytes (%e > %e)", (double) size, resultingTotalMemory, CudaSettings.INSTANCE().getMaxTotalMemory()));
         CudaMemory.clearMemory(deviceId);
       }
       double resultingDeviceMemory = metrics.usedMemory.get() + size;
-      if (resultingDeviceMemory > CudaSettings.INSTANCE.getMaxDeviceMemory()) {
-        CudaMemory.logger.info(String.format("Clearing weak memory for device %s while allocating %e bytes (%e > %e)", this, (double) size, resultingDeviceMemory, CudaSettings.INSTANCE.getMaxDeviceMemory()));
+      if (resultingDeviceMemory > CudaSettings.INSTANCE().getMaxDeviceMemory()) {
+        CudaMemory.logger.info(String.format("Clearing weak memory for device %s while allocating %e bytes (%e > %e)", this, (double) size, resultingDeviceMemory, CudaSettings.INSTANCE().getMaxDeviceMemory()));
         CudaMemory.METRICS.keySet().stream().mapToInt(x -> x).distinct().forEach(CudaMemory::clearWeakMemory);
       }
       resultingDeviceMemory = metrics.usedMemory.get() + size;
-      if (resultingDeviceMemory > CudaSettings.INSTANCE.getMaxDeviceMemory()) {
-        CudaMemory.logger.info(String.format("Clearing all memory for device %s while allocating %e bytes (%s > %e)", this, (double) size, resultingDeviceMemory, CudaSettings.INSTANCE.getMaxDeviceMemory()));
+      if (resultingDeviceMemory > CudaSettings.INSTANCE().getMaxDeviceMemory()) {
+        CudaMemory.logger.info(String.format("Clearing all memory for device %s while allocating %e bytes (%s > %e)", this, (double) size, resultingDeviceMemory, CudaSettings.INSTANCE().getMaxDeviceMemory()));
         CudaMemory.METRICS.keySet().stream().mapToInt(x -> x).distinct().forEach(CudaMemory::clearMemory);
       }
     }
     return metrics;
   }
-  
+
   /**
    * New convolution nd descriptor cuda resource.
    *
@@ -244,12 +235,12 @@ public class CudaDevice extends CudaSystem {
     log("cudnnCreateConvolutionDescriptor", result, new Object[]{convDesc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetConvolutionNdDescriptor(convDesc,
-      3,
-      padding,
-      stride,
-      dilation,
-      mode,
-      dataType
+        3,
+        padding,
+        stride,
+        dilation,
+        mode,
+        dataType
     );
     log("cudnnSetConvolutionNdDescriptor", result, new Object[]{convDesc, padding.length, padding, stride, dilation, mode, dataType});
     CudaSystem.handle(result);
@@ -258,14 +249,14 @@ public class CudaDevice extends CudaSystem {
       @Override
       public String toString() {
         return "cudnnSetConvolutionNdDescriptor(padding=" + Arrays.toString(padding) +
-          ";stride=" + Arrays.toString(stride) +
-          ";dilation=" + Arrays.toString(dilation) +
-          ";mode=" + mode +
-          ";dataType=" + dataType + ")";
+            ";stride=" + Arrays.toString(stride) +
+            ";dilation=" + Arrays.toString(dilation) +
+            ";mode=" + mode +
+            ";dataType=" + dataType + ")";
       }
     };
   }
-  
+
   /**
    * New filter descriptor cuda resource.
    *
@@ -289,12 +280,12 @@ public class CudaDevice extends CudaSystem {
       @Override
       public String toString() {
         return "cudnnSetFilterNdDescriptor(dataType=" + dataType +
-          ";tensorLayout=" + tensorLayout +
-          ";dimensions=" + Arrays.toString(dimensions) + ")";
+            ";tensorLayout=" + tensorLayout +
+            ";dimensions=" + Arrays.toString(dimensions) + ")";
       }
     };
   }
-  
+
   /**
    * Allocate cuda ptr.
    *
@@ -310,8 +301,8 @@ public class CudaDevice extends CudaSystem {
     if (!dirty) obtain.clear();
     return obtain;
   }
-  
-  
+
+
   /**
    * New tensor descriptor cuda resource.
    *
@@ -323,10 +314,10 @@ public class CudaDevice extends CudaSystem {
    * @return the cuda resource
    */
   public CudaTensorDescriptor newTensorDescriptor(final Precision dataType,
-    final int batchCount, final int channels, final int height, final int width) {
+                                                  final int batchCount, final int channels, final int height, final int width) {
     return newTensorDescriptor(dataType, batchCount, channels, height, width, channels * height * width, height * width, width, 1);
   }
-  
+
   /**
    * New tensor descriptor cuda resource.
    *
@@ -342,8 +333,8 @@ public class CudaDevice extends CudaSystem {
    * @return the cuda resource
    */
   public CudaTensorDescriptor newTensorDescriptor(final Precision dataType,
-    final int batchCount, final int channels, final int height, final int width,
-    final int nStride, final int cStride, final int hStride, final int wStride) {
+                                                  final int batchCount, final int channels, final int height, final int width,
+                                                  final int nStride, final int cStride, final int hStride, final int wStride) {
     assert batchCount > 0;
     assert channels > 0;
     assert height > 0;
@@ -363,7 +354,7 @@ public class CudaDevice extends CudaSystem {
     CudaSystem.handle(result);
     return new CudaTensorDescriptor(desc, getDeviceId(), dataType, batchCount, channels, height, width, nStride, cStride, hStride, wStride);
   }
-  
+
   /**
    * New op descriptor cuda resource.
    *
@@ -383,7 +374,7 @@ public class CudaDevice extends CudaSystem {
     CudaSystem.handle(result);
     return new CudaResource<>(opDesc, CudaSystem::cudnnDestroyOpTensorDescriptor, getDeviceId());
   }
-  
+
   /**
    * New filter descriptor cuda resource.
    *
@@ -410,15 +401,15 @@ public class CudaDevice extends CudaSystem {
       @Override
       public String toString() {
         return "cudnnSetFilter4dDescriptor(dataType=" + dataType +
-          ";tensorLayout=" + tensorLayout +
-          ";outputChannels=" + outputChannels +
-          ";inputChannels=" + inputChannels +
-          ";height=" + height +
-          ";=width" + width + ")";
+            ";tensorLayout=" + tensorLayout +
+            ";outputChannels=" + outputChannels +
+            ";inputChannels=" + inputChannels +
+            ";height=" + height +
+            ";=width" + width + ")";
       }
     };
   }
-  
+
   /**
    * New convolutions 2 d descriptor cuda resource.
    *
@@ -439,22 +430,22 @@ public class CudaDevice extends CudaSystem {
     log("cudnnCreateConvolutionDescriptor", result, new Object[]{convDesc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetConvolution2dDescriptor(
-      convDesc,
-      paddingY, // zero-padding height
-      paddingX, // zero-padding width
-      strideHeight, // vertical filter stride
-      strideWidth, // horizontal filter stride
-      dilationY, // upscale the input in x-direction
-      dilationX, // upscale the input in y-direction
-      mode
-      , dataType.code
+        convDesc,
+        paddingY, // zero-padding height
+        paddingX, // zero-padding width
+        strideHeight, // vertical filter stride
+        strideWidth, // horizontal filter stride
+        dilationY, // upscale the input in x-direction
+        dilationX, // upscale the input in y-direction
+        mode
+        , dataType.code
     );
     newConvolutions2dDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     log("cudnnSetConvolution2dDescriptor", result, new Object[]{convDesc, paddingY, paddingX, strideHeight, strideWidth, dilationY, dilationX, mode, dataType});
     CudaSystem.handle(result);
     return new CudaResource<>(convDesc, CudaSystem::cudnnDestroyConvolutionDescriptor, getDeviceId());
   }
-  
+
   /**
    * New activation descriptor cuda resource.
    *
@@ -475,7 +466,7 @@ public class CudaDevice extends CudaSystem {
     CudaSystem.handle(result);
     return new CudaResource<>(desc, CudaSystem::cudnnDestroyActivationDescriptor, getDeviceId());
   }
-  
+
   /**
    * Create pooling descriptor cuda resource.
    *
@@ -493,21 +484,21 @@ public class CudaDevice extends CudaSystem {
     log("cudnnCreatePoolingDescriptor", result, new Object[]{poolingDesc});
     CudaSystem.handle(result);
     result = JCudnn.cudnnSetPoolingNdDescriptor(poolingDesc,
-      mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
-      padding, stride);
+        mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize,
+        padding, stride);
     log("cudnnSetPoolingNdDescriptor", result, new Object[]{poolingDesc, mode, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN, poolDims, windowSize, padding, stride});
     CudaSystem.handle(result);
     createPoolingDescriptor_execution.accept((System.nanoTime() - startTime) / 1e9);
     return new CudaResource<>(poolingDesc, CudaSystem::cudnnDestroyPoolingDescriptor, getDeviceId());
   }
-  
+
   /**
    * Init thread.
    */
   public void initThread() {
     setDevice(getDeviceId());
   }
-  
+
   /**
    * Gets device properties.
    *
@@ -519,7 +510,7 @@ public class CudaDevice extends CudaSystem {
     }
     return deviceProperties;
   }
-  
+
   /**
    * Gets device number.
    *
@@ -528,7 +519,7 @@ public class CudaDevice extends CudaSystem {
   public int getDeviceId() {
     return deviceId;
   }
-  
+
   /**
    * Gets device name.
    *
@@ -538,12 +529,12 @@ public class CudaDevice extends CudaSystem {
   public CharSequence getDeviceName() {
     return new String(getDeviceProperties().name, Charset.forName("ASCII")).trim();
   }
-  
+
   /**
    * The type Cuda tensor descriptor.
    */
   public static class CudaTensorDescriptor extends CudaResource<cudnnTensorDescriptor> {
-  
+
     /**
      * The W stride.
      */
@@ -580,7 +571,7 @@ public class CudaDevice extends CudaSystem {
      * The Data type.
      */
     public final Precision dataType;
-  
+
     /**
      * Instantiates a new Cuda resource.
      *
@@ -597,8 +588,8 @@ public class CudaDevice extends CudaSystem {
      * @param wStride    the w stride
      */
     protected CudaTensorDescriptor(final cudnnTensorDescriptor obj, final int deviceId, final Precision dataType,
-      final int batchCount, final int channels, final int height, final int width,
-      final int nStride, final int cStride, final int hStride, final int wStride) {
+                                   final int batchCount, final int channels, final int height, final int width,
+                                   final int nStride, final int cStride, final int hStride, final int wStride) {
       super(obj, CudaSystem::cudnnDestroyTensorDescriptor, deviceId);
       this.dataType = dataType;
       this.batchCount = batchCount;
@@ -610,7 +601,7 @@ public class CudaDevice extends CudaSystem {
       this.hStride = hStride;
       this.wStride = wStride;
     }
-  
+
     /**
      * Copy cuda tensor descriptor.
      *

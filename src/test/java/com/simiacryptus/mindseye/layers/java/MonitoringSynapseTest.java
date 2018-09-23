@@ -29,25 +29,25 @@ import java.util.Random;
  * The type Monitoring synapse apply.
  */
 public abstract class MonitoringSynapseTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new MonitoringSynapse();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends MonitoringSynapseTest {
   }
-  
+
 }

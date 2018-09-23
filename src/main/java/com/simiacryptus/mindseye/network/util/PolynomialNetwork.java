@@ -34,18 +34,14 @@ import com.simiacryptus.mindseye.network.DAGNode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * The type Polynomial network.
  */
 @SuppressWarnings("serial")
 public class PolynomialNetwork extends DAGNetwork {
-  
+
   /**
    * The Input dims.
    */
@@ -73,7 +69,7 @@ public class PolynomialNetwork extends DAGNetwork {
    * The Head.
    */
   protected DAGNode head;
-  
+
   /**
    * Instantiates a new Polynomial network.
    *
@@ -85,8 +81,8 @@ public class PolynomialNetwork extends DAGNetwork {
     this.inputDims = inputDims;
     this.outputDims = outputDims;
   }
-  
-  
+
+
   /**
    * Instantiates a new Polynomial network.
    *
@@ -109,7 +105,7 @@ public class PolynomialNetwork extends DAGNetwork {
       corrections.add(new Correcton(item.getAsJsonObject()));
     });
   }
-  
+
   /**
    * From json polynomial network.
    *
@@ -120,7 +116,7 @@ public class PolynomialNetwork extends DAGNetwork {
   public static PolynomialNetwork fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PolynomialNetwork(json, rs);
   }
-  
+
   /**
    * To int array int [ ].
    *
@@ -136,7 +132,7 @@ public class PolynomialNetwork extends DAGNetwork {
     }
     return x;
   }
-  
+
   /**
    * To json json array.
    *
@@ -151,7 +147,7 @@ public class PolynomialNetwork extends DAGNetwork {
     }
     return array;
   }
-  
+
   /**
    * Add term.
    *
@@ -159,11 +155,11 @@ public class PolynomialNetwork extends DAGNetwork {
    */
   public void addTerm(final double power) {
     corrections.add(new Correcton(power,
-      newBias(outputDims, 1.0),
-      newSynapse(0.0)
+        newBias(outputDims, 1.0),
+        newSynapse(0.0)
     ));
   }
-  
+
   @Override
   public synchronized DAGNode getHead() {
     if (null == head) {
@@ -186,7 +182,7 @@ public class PolynomialNetwork extends DAGNetwork {
     }
     return head;
   }
-  
+
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     assertConsistent();
@@ -209,7 +205,7 @@ public class PolynomialNetwork extends DAGNetwork {
     assert null != Layer.fromJson(json) : "Smoke apply deserialization";
     return json;
   }
-  
+
   /**
    * New bias nn layer.
    *
@@ -221,7 +217,7 @@ public class PolynomialNetwork extends DAGNetwork {
   public Layer newBias(final int[] dims, final double weight) {
     return new BiasLayer(dims).setWeights(i -> weight);
   }
-  
+
   /**
    * New nth power layer nn layer.
    *
@@ -232,7 +228,7 @@ public class PolynomialNetwork extends DAGNetwork {
   public Layer newNthPowerLayer(final double power) {
     return new NthPowerActivationLayer().setPower(power);
   }
-  
+
   /**
    * New product layer nn layer.
    *
@@ -242,7 +238,7 @@ public class PolynomialNetwork extends DAGNetwork {
   public Layer newProductLayer() {
     return new ProductInputsLayer();
   }
-  
+
   /**
    * New synapse nn layer.
    *
@@ -253,7 +249,7 @@ public class PolynomialNetwork extends DAGNetwork {
   public Layer newSynapse(final double weight) {
     return new FullyConnectedLayer(inputDims, outputDims).set(() -> weight * (Math.random() - 1));
   }
-  
+
   /**
    * The type Correcton.
    */
@@ -270,7 +266,7 @@ public class PolynomialNetwork extends DAGNetwork {
      * The Power.
      */
     public final double power;
-  
+
     /**
      * Instantiates a new Correcton.
      *
@@ -283,7 +279,7 @@ public class PolynomialNetwork extends DAGNetwork {
       this.bias = bias;
       this.factor = factor;
     }
-  
+
     /**
      * Instantiates a new Correcton.
      *
@@ -295,7 +291,7 @@ public class PolynomialNetwork extends DAGNetwork {
       bias = layersById.get(UUID.fromString(json.get("bias").getAsString()));
       factor = layersById.get(UUID.fromString(json.get("factor").getAsString()));
     }
-  
+
     /**
      * Add dag node.
      *
@@ -305,7 +301,7 @@ public class PolynomialNetwork extends DAGNetwork {
     public DAGNode add(final DAGNode input) {
       return PolynomialNetwork.this.add(newNthPowerLayer(power), PolynomialNetwork.this.add(bias, PolynomialNetwork.this.add(factor, input)));
     }
-  
+
     /**
      * Gets json.
      *
@@ -320,5 +316,5 @@ public class PolynomialNetwork extends DAGNetwork {
       return json;
     }
   }
-  
+
 }

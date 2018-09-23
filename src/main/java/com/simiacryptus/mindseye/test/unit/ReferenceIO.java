@@ -24,8 +24,8 @@ import com.simiacryptus.mindseye.lang.ReferenceCounting;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.data.DoubleStatistics;
-import com.simiacryptus.util.io.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,7 +40,7 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
    * The Reference io.
    */
   HashMap<Tensor[], Tensor> referenceIO;
-  
+
   /**
    * Instantiates a new Reference io.
    *
@@ -49,14 +49,14 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
   public ReferenceIO(final HashMap<Tensor[], Tensor> referenceIO) {
     this.referenceIO = referenceIO;
   }
-  
+
   @Override
   protected void _free() {
     referenceIO.keySet().stream().flatMap(x -> Arrays.stream(x)).forEach(ReferenceCounting::freeRef);
     referenceIO.values().forEach(ReferenceCounting::freeRef);
     super._free();
   }
-  
+
   @Nullable
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, @Nonnull final Tensor... inputPrototype) {
@@ -70,35 +70,34 @@ public class ReferenceIO extends ComponentTestBase<ToleranceStatistics> {
           @Nonnull final DoubleStatistics error = new DoubleStatistics().accept(add.getData());
           add.freeRef();
           String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\nError: %s\n--------------------\nDerivative: \n%s",
-            Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
-            eval.getOutput().prettyPrint(), error,
-            Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
+              Arrays.stream(input).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get(),
+              eval.getOutput().prettyPrint(), error,
+              Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get());
           eval.freeRef();
           return format;
         });
       });
-    }
-    else {
+    } else {
       log.h1("Example Input/Output Pair");
       log.p("Display input/output pairs from random executions:");
       log.eval(() -> {
         @Nonnull final SimpleEval eval = SimpleEval.run(layer, inputPrototype);
         String format = String.format("--------------------\nInput: \n[%s]\n--------------------\nOutput: \n%s\n--------------------\nDerivative: \n%s",
-          Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""),
-          eval.getOutput().prettyPrint(),
-          Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""));
+            Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""),
+            eval.getOutput().prettyPrint(),
+            Arrays.stream(eval.getDerivative()).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).orElse(""));
         eval.freeRef();
         return format;
       });
     }
     return null;
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "ReferenceIO{" +
-      "referenceIO=" + referenceIO +
-      '}';
+        "referenceIO=" + referenceIO +
+        '}';
   }
 }

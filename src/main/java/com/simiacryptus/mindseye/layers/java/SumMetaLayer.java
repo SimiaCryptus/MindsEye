@@ -20,15 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,20 +37,20 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class SumMetaLayer extends LayerBase {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SumMetaLayer.class);
   @Nullable
   private Tensor lastResult;
   private int minBatches = 1;
-  
+
   /**
    * Instantiates a new Sum meta layer.
    */
   public SumMetaLayer() {
   }
-  
+
   /**
    * Instantiates a new Sum meta layer.
    *
@@ -70,7 +62,7 @@ public class SumMetaLayer extends LayerBase {
     lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatches = json.get("minBatches").getAsInt();
   }
-  
+
   /**
    * From json sum meta layer.
    *
@@ -81,7 +73,7 @@ public class SumMetaLayer extends LayerBase {
   public static SumMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumMetaLayer(json, rs);
   }
-  
+
   @Nullable
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -90,9 +82,9 @@ public class SumMetaLayer extends LayerBase {
     final int itemCnt = input.getData().length();
     if (null == lastResult || minBatches < itemCnt) {
       @Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
-        IntStream.range(0, itemCnt)
-          .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
-          .sum();
+          IntStream.range(0, itemCnt)
+              .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+              .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
     return new Result(TensorArray.wrap(lastResult), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
@@ -111,20 +103,20 @@ public class SumMetaLayer extends LayerBase {
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         return input.isAlive();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -135,7 +127,7 @@ public class SumMetaLayer extends LayerBase {
     json.addProperty("minBatches", minBatches);
     return json;
   }
-  
+
   /**
    * Gets min batches.
    *
@@ -144,7 +136,7 @@ public class SumMetaLayer extends LayerBase {
   public int getMinBatches() {
     return minBatches;
   }
-  
+
   /**
    * Sets min batches.
    *
@@ -156,7 +148,7 @@ public class SumMetaLayer extends LayerBase {
     this.minBatches = minBatches;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

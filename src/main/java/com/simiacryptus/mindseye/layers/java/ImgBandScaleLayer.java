@@ -20,18 +20,9 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.RecycleBin;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,12 +41,12 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ImgBandScaleLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgBandScaleLayer.class);
   @Nullable
   private final double[] weights;
-  
+
   /**
    * Instantiates a new Img band scale layer.
    */
@@ -63,7 +54,7 @@ public class ImgBandScaleLayer extends LayerBase {
     super();
     weights = null;
   }
-  
+
   /**
    * Instantiates a new Img band scale layer.
    *
@@ -73,8 +64,8 @@ public class ImgBandScaleLayer extends LayerBase {
     super();
     weights = bands;
   }
-  
-  
+
+
   /**
    * Instantiates a new Img band scale layer.
    *
@@ -84,7 +75,7 @@ public class ImgBandScaleLayer extends LayerBase {
     super(json);
     weights = JsonUtil.getDoubleArray(json.getAsJsonArray("bias"));
   }
-  
+
   /**
    * From json img band scale layer.
    *
@@ -95,7 +86,7 @@ public class ImgBandScaleLayer extends LayerBase {
   public static ImgBandScaleLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandScaleLayer(json);
   }
-  
+
   /**
    * Add weights img band scale layer.
    *
@@ -107,13 +98,13 @@ public class ImgBandScaleLayer extends LayerBase {
     Util.add(f, getWeights());
     return this;
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     return eval(inObj[0]);
   }
-  
+
   /**
    * Eval nn result.
    *
@@ -132,7 +123,7 @@ public class ImgBandScaleLayer extends LayerBase {
       }
       if (tensor.getDimensions()[2] != weights.length) {
         throw new IllegalArgumentException(String.format("%s: %s does not have %s bands",
-          getName(), Arrays.toString(tensor.getDimensions()), weights.length));
+            getName(), Arrays.toString(tensor.getDimensions()), weights.length));
       }
       @Nullable Tensor tensor1 = tensor.mapCoords(c -> tensor.get(c) * weights[c.getCoords()[2]]);
       tensor.freeRef();
@@ -176,21 +167,21 @@ public class ImgBandScaleLayer extends LayerBase {
         input.accumulate(buffer, tensorArray);
       }
     }) {
-  
+
       @Override
       protected void _free() {
         inData.freeRef();
         input.freeRef();
       }
-  
-  
+
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -198,7 +189,7 @@ public class ImgBandScaleLayer extends LayerBase {
     json.add("bias", JsonUtil.getJson(getWeights()));
     return json;
   }
-  
+
   /**
    * Get wieghts double [ ].
    *
@@ -211,7 +202,7 @@ public class ImgBandScaleLayer extends LayerBase {
     }
     return weights;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -227,7 +218,7 @@ public class ImgBandScaleLayer extends LayerBase {
     assert Arrays.stream(bias).allMatch(v -> Double.isFinite(v));
     return this;
   }
-  
+
   /**
    * Set nn layer.
    *
@@ -243,7 +234,7 @@ public class ImgBandScaleLayer extends LayerBase {
     assert Arrays.stream(bias).allMatch(v -> Double.isFinite(v));
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

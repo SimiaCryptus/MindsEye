@@ -35,13 +35,13 @@ import java.util.stream.Stream;
  * @param <K> the type parameter
  */
 public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, State<K>> {
-  
+
   /**
    * Instantiates a new State setByCoord.
    */
   public StateSet() {
   }
-  
+
   /**
    * Instantiates a new State setByCoord as a copy of the target data buffers in the input setByCoord
    *
@@ -55,7 +55,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
     assert stream().allMatch(x -> Arrays.stream(x.getDelta()).allMatch(Double::isFinite));
     assert stream().allMatch(x -> x instanceof State);
   }
-  
+
   /**
    * Instantiates a new State setByCoord.
    *
@@ -65,7 +65,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
     super(toCopy);
     assert stream().allMatch(x -> x instanceof State);
   }
-  
+
   /**
    * Instantiates a new State setByCoord.
    *
@@ -74,7 +74,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   public StateSet(@Nonnull final Map<K, State<K>> collect) {
     super(collect);
   }
-  
+
   /**
    * Union state setByCoord.
    *
@@ -85,18 +85,18 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    */
   public static <K extends ReferenceCounting> StateSet<K> union(@Nonnull final DoubleBufferSet<K, State<K>> left, @Nonnull final DoubleBufferSet<K, State<K>> right) {
     final Map<K, State<K>> collect = Stream.concat(
-      left.map.entrySet().stream(),
-      right.map.entrySet().stream()
+        left.map.entrySet().stream(),
+        right.map.entrySet().stream()
     ).collect(Collectors.groupingBy((@Nonnull final Map.Entry<K, State<K>> e1) -> e1.getKey(),
-      Collectors.mapping((@Nonnull final Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
-        Collectors.reducing((@Nonnull final State<K> a, @Nonnull final State<K> b) -> {
-          assert a.target == b.target;
-          assert a.layer.equals(b.layer);
-          return a;
-        }), x -> x.get()))));
+        Collectors.mapping((@Nonnull final Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
+            Collectors.reducing((@Nonnull final State<K> a, @Nonnull final State<K> b) -> {
+              assert a.target == b.target;
+              assert a.layer.equals(b.layer);
+              return a;
+            }), x -> x.get()))));
     return new StateSet<K>(collect);
   }
-  
+
   /**
    * Add evalInputDelta setByCoord.
    *
@@ -116,7 +116,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
     deltas.freeRef();
     return kStateSet;
   }
-  
+
   /**
    * As vector evalInputDelta setByCoord.
    *
@@ -130,13 +130,13 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
     newMap.values().forEach(v -> v.freeRef());
     return deltaSet;
   }
-  
+
   @Nonnull
   @Override
   public StateSet<K> copy() {
     return map(x -> x.copy());
   }
-  
+
   /**
    * Backup copy state setBytes.
    *
@@ -146,7 +146,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   public StateSet<K> backupCopy() {
     return map(l -> l.backupCopy());
   }
-  
+
   /**
    * Backup state setBytes.
    *
@@ -161,7 +161,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
     stream.forEach(e -> e.getValue().backup());
     return this;
   }
-  
+
   /**
    * Restore state setBytes.
    *
@@ -176,13 +176,13 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
     stream.forEach(e -> e.getValue().restore());
     return this;
   }
-  
+
   @Nonnull
   @Override
   protected State<K> factory(@Nonnull final K layer, final double[] target) {
     return new State<K>(layer, target);
   }
-  
+
   /**
    * Is different boolean.
    *
@@ -191,7 +191,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   public boolean isDifferent() {
     return stream().parallel().anyMatch(x -> !x.areEqual());
   }
-  
+
   @Nonnull
   @Override
   public StateSet<K> map(@Nonnull final Function<State<K>, State<K>> mapper) {
@@ -204,7 +204,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
     newMap.values().forEach(x -> x.freeRef());
     return kStateSet;
   }
-  
+
   /**
    * Subtract evalInputDelta setByCoord.
    *
@@ -215,7 +215,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   public StateSet<K> subtract(@Nonnull final DeltaSet<K> right) {
     return this.add(right.scale(-1));
   }
-  
+
   /**
    * Subtract evalInputDelta setByCoord.
    *
@@ -233,8 +233,8 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
     add.freeRef();
     return addVector;
   }
-  
-  
+
+
   /**
    * Union evalInputDelta setByCoord.
    *

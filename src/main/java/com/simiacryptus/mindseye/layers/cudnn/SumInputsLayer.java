@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.CoreSettings;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -45,17 +38,17 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInputsLayer> {
-  
+
   private Precision precision = Precision.Double;
   private boolean parallel = true;
-  
+
   /**
    * Instantiates a new Product inputs layer.
    */
   public SumInputsLayer() {
     super();
   }
-  
+
   /**
    * Instantiates a new Product inputs layer.
    *
@@ -66,7 +59,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
     precision = Precision.valueOf(json.get("precision").getAsString());
     setParallel(json.get("parallel").getAsBoolean());
   }
-  
+
   /**
    * From json product inputs layer.
    *
@@ -77,7 +70,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumInputsLayer(json);
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -86,9 +79,9 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   @Nonnull
   public Layer getCompatibilityLayer() {
     return new com.simiacryptus.mindseye.layers.java.SumInputsLayer();
-    
+
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -103,24 +96,24 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
     }
     if (!CudaSystem.isEnabled()) return getCompatibilityLayer().evalAndFree(inObj);
     Stream<TensorList> tensorListStream = Arrays.stream(inObj).map(x -> x.getData());
-    if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) tensorListStream = tensorListStream.parallel();
+    if (!CoreSettings.INSTANCE().isSingleThreaded() && parallel) tensorListStream = tensorListStream.parallel();
     return new Result(tensorListStream.reduce((leftData, rightData) -> CudaSystem.run(gpu -> {
       return gpu.addAndFree(precision, leftData, rightData);
     }, leftData, rightData)).get(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
       @Nonnull Stream<Result> deltaStream = Arrays.stream(inObj);
-      if (!CoreSettings.INSTANCE.isSingleThreaded() && parallel) deltaStream = deltaStream.parallel();
+      if (!CoreSettings.INSTANCE().isSingleThreaded() && parallel) deltaStream = deltaStream.parallel();
       deltaStream.filter(Result::isAlive).forEach(obj -> {
         delta.addRef();
         obj.accumulate(buffer, delta);
       });
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(x -> x.freeRef());
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         for (@Nonnull final Result element : inObj)
@@ -129,10 +122,10 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
           }
         return false;
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -141,26 +134,26 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
     json.addProperty("parallel", isParallel());
     return json;
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public SumInputsLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
-  
+
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   /**
    * Is parallel boolean.
    *
@@ -169,7 +162,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   public boolean isParallel() {
     return parallel;
   }
-  
+
   /**
    * Sets parallel.
    *
@@ -180,5 +173,5 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
     this.parallel = parallel;
     return this;
   }
-  
+
 }

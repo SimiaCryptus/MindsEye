@@ -19,10 +19,10 @@
 
 package com.simiacryptus.mindseye.test;
 
+import com.simiacryptus.notebook.MarkdownNotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.util.CodeUtil;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
-import com.simiacryptus.util.io.NotebookOutput;
-import com.simiacryptus.util.lang.CodeUtil;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,17 +39,17 @@ import java.util.function.Consumer;
  * The type Notebook output apply base.
  */
 public abstract class NotebookReportBase {
-  
+
   /**
    * The constant log.
    */
   protected static final Logger logger = LoggerFactory.getLogger(NotebookReportBase.class);
-  
+
   static {
     SysOutInterceptor.INSTANCE.init();
   }
-  
-  
+
+
   /**
    * Print header string.
    *
@@ -67,7 +67,7 @@ public abstract class NotebookReportBase {
     log.setFrontMatterProperty(prefix + "_class_doc", javadoc.replaceAll("\n", ""));
     return javadoc;
   }
-  
+
   /**
    * Gets test report location.
    *
@@ -91,7 +91,7 @@ public abstract class NotebookReportBase {
     logger.info(String.format("Output Location: %s", path.getAbsoluteFile()));
     return path;
   }
-  
+
   /**
    * Gets log.
    *
@@ -109,7 +109,7 @@ public abstract class NotebookReportBase {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Gets report type.
    *
@@ -117,7 +117,7 @@ public abstract class NotebookReportBase {
    */
   @Nonnull
   public abstract ReportType getReportType();
-  
+
   /**
    * Print header.
    *
@@ -133,7 +133,7 @@ public abstract class NotebookReportBase {
     log.p("__Target Description:__ " + targetJavadoc);
     log.p("__Report Description:__ " + reportJavadoc);
   }
-  
+
   /**
    * Gets report class.
    *
@@ -142,7 +142,7 @@ public abstract class NotebookReportBase {
   public Class<? extends NotebookReportBase> getReportClass() {
     return getClass();
   }
-  
+
   /**
    * Run.
    *
@@ -156,7 +156,7 @@ public abstract class NotebookReportBase {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Gets log.
    *
@@ -168,14 +168,14 @@ public abstract class NotebookReportBase {
     if (null == logPath || logPath.length == 0) logPath = new String[]{getClass().getSimpleName()};
     return getLog(getTestReportLocation(getTargetClass(), logPath));
   }
-  
+
   /**
    * Gets target class.
    *
    * @return the target class
    */
   protected abstract Class<?> getTargetClass();
-  
+
   /**
    * The enum Report type.
    */
@@ -204,5 +204,5 @@ public abstract class NotebookReportBase {
      */
     Experiments
   }
-  
+
 }

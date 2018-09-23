@@ -28,14 +28,14 @@ public interface SampledTrainable extends Trainable {
   @Nonnull
   @Override
   SampledCachedTrainable<? extends SampledTrainable> cached();
-  
+
   /**
    * Gets training size.
    *
    * @return the training size
    */
   int getTrainingSize();
-  
+
   /**
    * Sets training size.
    *

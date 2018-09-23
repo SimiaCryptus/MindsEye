@@ -48,7 +48,7 @@ public final class PointSample extends ReferenceCountingBase {
    * The Rate.
    */
   public double rate;
-  
+
   /**
    * Instantiates a new Point sample.
    *
@@ -67,7 +67,7 @@ public final class PointSample extends ReferenceCountingBase {
     this.count = count;
     setRate(rate);
   }
-  
+
   /**
    * Add point sample.
    *
@@ -80,12 +80,12 @@ public final class PointSample extends ReferenceCountingBase {
     assert right.delta.getMap().size() == right.weights.getMap().size();
     assert left.rate == right.rate;
     return new PointSample(left.delta.add(right.delta),
-      StateSet.union(left.weights, right.weights),
-      left.sum + right.sum,
-      left.rate,
-      left.count + right.count);
+        StateSet.union(left.weights, right.weights),
+        left.sum + right.sum,
+        left.rate,
+        left.count + right.count);
   }
-  
+
   /**
    * Add point sample.
    *
@@ -95,7 +95,7 @@ public final class PointSample extends ReferenceCountingBase {
   public PointSample add(@Nonnull final PointSample right) {
     return PointSample.add(this, right);
   }
-  
+
   /**
    * Add in place point sample.
    *
@@ -107,12 +107,12 @@ public final class PointSample extends ReferenceCountingBase {
     assert right.delta.getMap().size() == right.weights.getMap().size();
     assert rate == right.rate;
     return new PointSample(delta.addInPlace(right.delta),
-      StateSet.union(weights, right.weights),
-      sum + right.sum,
-      rate,
-      count + right.count);
+        StateSet.union(weights, right.weights),
+        sum + right.sum,
+        rate,
+        count + right.count);
   }
-  
+
   /**
    * Copy evalInputDelta point sample.
    *
@@ -121,7 +121,7 @@ public final class PointSample extends ReferenceCountingBase {
   public PointSample copyDelta() {
     return new PointSample(delta.copy(), weights, sum, rate, count);
   }
-  
+
   /**
    * Copy full point sample.
    *
@@ -136,7 +136,7 @@ public final class PointSample extends ReferenceCountingBase {
     weightsCopy.freeRef();
     return pointSample;
   }
-  
+
   /**
    * Gets mean.
    *
@@ -145,7 +145,7 @@ public final class PointSample extends ReferenceCountingBase {
   public double getMean() {
     return sum / count;
   }
-  
+
   /**
    * Gets rate.
    *
@@ -154,7 +154,7 @@ public final class PointSample extends ReferenceCountingBase {
   public double getRate() {
     return rate;
   }
-  
+
   /**
    * Sets rate.
    *
@@ -166,7 +166,7 @@ public final class PointSample extends ReferenceCountingBase {
     this.rate = rate;
     return this;
   }
-  
+
   /**
    * Normalize point sample.
    *
@@ -177,15 +177,14 @@ public final class PointSample extends ReferenceCountingBase {
     if (count == 1) {
       this.addRef();
       return this;
-    }
-    else {
+    } else {
       @Nonnull DeltaSet<Layer> scale = delta.scale(1.0 / count);
       @Nonnull PointSample pointSample = new PointSample(scale, weights, sum / count, rate, 1);
       scale.freeRef();
       return pointSample;
     }
   }
-  
+
   /**
    * Reset point sample.
    *
@@ -196,7 +195,7 @@ public final class PointSample extends ReferenceCountingBase {
     weights.stream().forEach(d -> d.restore());
     return this;
   }
-  
+
   /**
    * Backup point sample.
    *
@@ -207,7 +206,7 @@ public final class PointSample extends ReferenceCountingBase {
     weights.stream().forEach(d -> d.backup());
     return this;
   }
-  
+
   @Override
   public String toString() {
     @Nonnull final StringBuffer sb = new StringBuffer("PointSample{");
@@ -215,7 +214,7 @@ public final class PointSample extends ReferenceCountingBase {
     sb.append('}');
     return sb.toString();
   }
-  
+
   @Override
   protected void _free() {
     this.weights.freeRef();

@@ -29,23 +29,23 @@ import java.util.Random;
  * The type Product layer apply.
  */
 public abstract class StochasticBinaryNoiseLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{};
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new StochasticBinaryNoiseLayer(5);
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends StochasticBinaryNoiseLayerTest {
   }
-  
+
 }

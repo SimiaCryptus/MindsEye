@@ -23,16 +23,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.util.io.JsonUtil;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,34 +43,34 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class AvgPoolingLayer extends LayerBase {
-  
+
   /**
    * The constant indexMapCache.
    */
   public static final LoadingCache<AvgPoolingLayer.IndexMapKey, Map<Coordinate, List<int[]>>> indexMapCache = CacheBuilder.newBuilder()
-    .build(new LayerCacheLoader());
+      .build(new LayerCacheLoader());
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgPoolingLayer.class);
   private int[] kernelDims;
-  
-  
+
+
   /**
    * Instantiates a new Avg subsample layer.
    */
   protected AvgPoolingLayer() {
     super();
   }
-  
+
   /**
    * Instantiates a new Avg subsample layer.
    *
    * @param kernelDims the kernel dims
    */
   public AvgPoolingLayer(@Nonnull final int... kernelDims) {
-    
+
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
-  
+
   /**
    * Instantiates a new Avg subsample layer.
    *
@@ -89,7 +81,7 @@ public class AvgPoolingLayer extends LayerBase {
     super(id);
     this.kernelDims = Arrays.copyOf(kernelDims, kernelDims.length);
   }
-  
+
   /**
    * From json avg subsample layer.
    *
@@ -99,9 +91,9 @@ public class AvgPoolingLayer extends LayerBase {
    */
   public static AvgPoolingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AvgPoolingLayer(json,
-      JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
+        JsonUtil.getIntArray(json.getAsJsonArray("heapCopy")));
   }
-  
+
   private static synchronized Map<Coordinate, List<int[]>> getCoordMap(final int[] kernelDims, final int[] outDims) {
     try {
       return AvgPoolingLayer.indexMapCache.get(new AvgPoolingLayer.IndexMapKey(kernelDims, outDims));
@@ -109,7 +101,7 @@ public class AvgPoolingLayer extends LayerBase {
       throw new RuntimeException(e);
     }
   }
-  
+
   @Nonnull
   @SuppressWarnings("unchecked")
   @Override
@@ -153,19 +145,19 @@ public class AvgPoolingLayer extends LayerBase {
         inObj[0].accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -173,13 +165,13 @@ public class AvgPoolingLayer extends LayerBase {
     json.add("heapCopy", JsonUtil.getJson(kernelDims));
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   /**
    * The type Index buildMap key.
    */
@@ -192,7 +184,7 @@ public class AvgPoolingLayer extends LayerBase {
      * The Output.
      */
     int[] output;
-  
+
     /**
      * Instantiates a new Index buildMap key.
      *
@@ -204,7 +196,7 @@ public class AvgPoolingLayer extends LayerBase {
       this.kernel = kernel;
       this.output = output;
     }
-  
+
     /**
      * Instantiates a new Index buildMap key.
      *
@@ -217,7 +209,7 @@ public class AvgPoolingLayer extends LayerBase {
       this.kernel = kernel.getDimensions();
       this.output = output.getDimensions();
     }
-    
+
     @Override
     public boolean equals(@Nullable final Object obj) {
       if (this == obj) {
@@ -235,7 +227,7 @@ public class AvgPoolingLayer extends LayerBase {
       }
       return Arrays.equals(output, other.output);
     }
-    
+
     @Override
     public int hashCode() {
       final int prime = 31;
@@ -245,7 +237,7 @@ public class AvgPoolingLayer extends LayerBase {
       return result;
     }
   }
-  
+
   private static class LayerCacheLoader extends CacheLoader<IndexMapKey, Map<Coordinate, List<int[]>>> {
     @Override
     public Map<Coordinate, List<int[]>> load(final IndexMapKey key) {

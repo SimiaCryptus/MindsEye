@@ -29,22 +29,22 @@ import java.util.Random;
  * The type Binary noise layer apply.
  */
 public abstract class BinaryNoiseLayerTest extends LayerTestBase {
-  
+
   /**
    * Instantiates a new Binary noise layer apply.
    */
   public BinaryNoiseLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
@@ -56,5 +56,5 @@ public abstract class BinaryNoiseLayerTest extends LayerTestBase {
 //   */
 //  public static class Basic extends BinaryNoiseLayerTest {
 //  }
-  
+
 }

@@ -34,13 +34,13 @@ import java.util.Random;
  * The type Product layer apply.
  */
 public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Precision.
    */
   final Precision precision;
   private final double alpha;
-  
+
   /**
    * Instantiates a new Product layer apply.
    *
@@ -51,38 +51,38 @@ public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
     this.precision = precision;
     this.alpha = alpha;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {4, 4, 1}
+        {4, 4, 1}
     };
   }
-  
+
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+        {1200, 1200, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new SquareActivationLayer().setPrecision(precision).setAlpha(alpha);
   }
-  
+
   @Nullable
   @Override
   public Layer getReferenceLayer() {
     PipelineNetwork network = new PipelineNetwork();
     network.wrap(new LinearActivationLayer().setScale(alpha),
-      network.wrap(new NthPowerActivationLayer().setPower(2), network.getInput(0))).freeRef();
+        network.wrap(new NthPowerActivationLayer().setPower(2), network.getInput(0))).freeRef();
     return network;
     //return new NthPowerActivationLayer().setPower(2);
   }
-  
+
   /**
    * Multiplication of 2 inputs using 64-bit precision
    */
@@ -94,7 +94,7 @@ public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
       super(Precision.Double, 1.0);
     }
   }
-  
+
   /**
    * Multiplication of 2 inputs using 64-bit precision
    */
@@ -106,7 +106,7 @@ public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
       super(Precision.Double, -1.0);
     }
   }
-  
+
   /**
    * Multiplication of 2 inputs using 32-bit precision
    */
@@ -117,11 +117,11 @@ public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
     public Float() {
       super(Precision.Float, 1.0);
     }
-    
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-    
+
   }
 }

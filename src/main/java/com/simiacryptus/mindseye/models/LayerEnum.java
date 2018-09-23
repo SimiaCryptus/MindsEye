@@ -33,7 +33,7 @@ public interface LayerEnum<T> {
    * @return the pipeline network
    */
   PipelineNetwork network();
-  
+
   /**
    * Name char sequence.
    *

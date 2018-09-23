@@ -33,10 +33,10 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class AutoEntropyLayer extends PipelineNetwork {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AutoEntropyLayer.class);
-  
+
   /**
    * Instantiates a new Std dev meta layer.
    */
@@ -45,7 +45,7 @@ public class AutoEntropyLayer extends PipelineNetwork {
     DAGNode input = getInput(0);
     wrap(new EntropyLossLayer(), input, input).freeRef();
   }
-  
+
   /**
    * Instantiates a new Std dev meta layer.
    *
@@ -55,7 +55,7 @@ public class AutoEntropyLayer extends PipelineNetwork {
   protected AutoEntropyLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
   }
-  
+
   /**
    * From json std dev meta layer.
    *
@@ -66,5 +66,5 @@ public class AutoEntropyLayer extends PipelineNetwork {
   public static AutoEntropyLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AutoEntropyLayer(json, rs);
   }
-  
+
 }

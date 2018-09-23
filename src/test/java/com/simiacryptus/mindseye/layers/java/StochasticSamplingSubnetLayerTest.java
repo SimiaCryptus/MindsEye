@@ -32,32 +32,32 @@ import java.util.Random;
  * The type Rascaled subnet layer apply.
  */
 public abstract class StochasticSamplingSubnetLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {6, 6, 1}
+        {6, 6, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     PipelineNetwork subnetwork = new PipelineNetwork(1);
     subnetwork.wrap(new ProductLayer(),
-      subnetwork.getInput(0),
-      subnetwork.add(new StochasticBinaryNoiseLayer(0.5, 1.0, inputSize[0]), new DAGNode[]{})).freeRef();
-    
+        subnetwork.getInput(0),
+        subnetwork.add(new StochasticBinaryNoiseLayer(0.5, 1.0, inputSize[0]), new DAGNode[]{})).freeRef();
+
     StochasticSamplingSubnetLayer tileSubnetLayer = new StochasticSamplingSubnetLayer(subnetwork, 2);
     subnetwork.freeRef();
     return tileSubnetLayer;
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends StochasticSamplingSubnetLayerTest {
   }
-  
+
 }

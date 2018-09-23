@@ -36,7 +36,7 @@ public interface ImageProblemData {
    * @throws IOException the io exception
    */
   Stream<LabeledObject<Tensor>> trainingData() throws IOException;
-  
+
   /**
    * Validation data stream.
    *

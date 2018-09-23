@@ -34,17 +34,17 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class StdDevMetaLayer extends PipelineNetwork {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(StdDevMetaLayer.class);
-  
+
   /**
    * Instantiates a new Std dev meta layer.
    */
   public StdDevMetaLayer() {
     this(1);
   }
-  
+
   /**
    * Instantiates a new Std dev meta layer.
    *
@@ -62,7 +62,7 @@ public class StdDevMetaLayer extends PipelineNetwork {
     wrap(new SumInputsLayer(), getHead(), a).freeRef();
     wrap(new NthPowerActivationLayer().setPower(0.5)).freeRef();
   }
-  
+
   /**
    * Instantiates a new Std dev meta layer.
    *
@@ -72,7 +72,7 @@ public class StdDevMetaLayer extends PipelineNetwork {
   protected StdDevMetaLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
   }
-  
+
   /**
    * From json std dev meta layer.
    *
@@ -83,5 +83,5 @@ public class StdDevMetaLayer extends PipelineNetwork {
   public static StdDevMetaLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StdDevMetaLayer(json, rs);
   }
-  
+
 }

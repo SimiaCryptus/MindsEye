@@ -27,4 +27,5 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
  *
  * @param <T> the type parameter
  */
-public abstract class OrientationStrategyBase<T extends LineSearchCursor> extends ReferenceCountingBase implements OrientationStrategy<T> {}
+public abstract class OrientationStrategyBase<T extends LineSearchCursor> extends ReferenceCountingBase implements OrientationStrategy<T> {
+}

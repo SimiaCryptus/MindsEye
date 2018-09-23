@@ -20,11 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -41,18 +37,18 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class BandReducerLayer extends LayerBase implements MultiPrecision<BandReducerLayer> {
-  
+
   private PoolingLayer.PoolingMode mode = PoolingLayer.PoolingMode.Max;
   private Precision precision = Precision.Double;
   private double alpha = 1.0;
-  
+
   /**
    * Instantiates a new Pooling layer.
    */
   public BandReducerLayer() {
     super();
   }
-  
+
   /**
    * Instantiates a new Pooling layer.
    *
@@ -64,7 +60,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     precision = Precision.valueOf(json.get("precision").getAsString());
     alpha = json.get("alpha").getAsDouble();
   }
-  
+
   /**
    * From json pooling layer.
    *
@@ -75,7 +71,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   public static BandReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BandReducerLayer(json);
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -85,7 +81,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   public Layer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(final Result... inObj) {
@@ -94,14 +90,14 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     final TensorList batch = input.getData();
     @Nonnull final int[] inputSize = batch.getDimensions();
     @Nonnull PoolingLayer impl = new PoolingLayer().setMode(mode).setPrecision(precision)
-      .setWindowX(inputSize[1])
-      .setWindowY(inputSize[0])
-      .setAlpha(alpha);
+        .setWindowX(inputSize[1])
+        .setWindowY(inputSize[0])
+        .setAlpha(alpha);
     @Nullable Result result = impl.evalAndFree(inObj);
     impl.freeRef();
     return result;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -111,8 +107,8 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     json.addProperty("precision", precision.name());
     return json;
   }
-  
-  
+
+
   /**
    * Gets mode.
    *
@@ -121,7 +117,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   public PoolingMode getMode() {
     return mode;
   }
-  
+
   /**
    * Sets mode.
    *
@@ -133,25 +129,25 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
     this.mode = mode;
     return this;
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public BandReducerLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   /**
    * Gets alphaList.
    *
@@ -160,7 +156,7 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   public double getAlpha() {
     return alpha;
   }
-  
+
   /**
    * Sets alphaList.
    *

@@ -29,25 +29,25 @@ import java.util.Random;
  * The type Img band select layer apply.
  */
 public abstract class ImgBandSelectLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {2, 2, 3}
+        {2, 2, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgBandSelectLayer(0, 2);
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ImgBandSelectLayerTest {
   }
-  
+
 }

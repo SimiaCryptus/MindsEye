@@ -29,22 +29,22 @@ import java.util.Random;
  * The type Logging wrapper layer apply.
  */
 public abstract class LoggingWrapperLayerTest extends LayerTestBase {
-  
+
   /**
    * Instantiates a new Logging wrapper layer apply.
    */
   public LoggingWrapperLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
@@ -53,11 +53,11 @@ public abstract class LoggingWrapperLayerTest extends LayerTestBase {
     inner.freeRef();
     return loggingWrapperLayer;
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends LoggingWrapperLayerTest {
   }
-  
+
 }

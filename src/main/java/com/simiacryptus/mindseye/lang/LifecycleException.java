@@ -30,7 +30,7 @@ public class LifecycleException extends RuntimeException {
    */
   @Nonnull
   public final ReferenceCounting obj;
-  
+
   /**
    * Instantiates a new Lifecycle exception.
    *
@@ -40,5 +40,5 @@ public class LifecycleException extends RuntimeException {
     super("Lifecycle Exception: " + ReferenceCountingBase.referenceReport(obj, false));
     this.obj = obj;
   }
-  
+
 }

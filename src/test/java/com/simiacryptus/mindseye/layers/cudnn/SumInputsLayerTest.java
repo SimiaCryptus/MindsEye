@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
  * The type BinarySumLayerTest layer apply.
  */
 public abstract class SumInputsLayerTest extends CudaLayerTestBase {
-  
+
   private static int largeSize;
   /**
    * The Precision.
@@ -51,7 +51,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
    * The Inputs.
    */
   int inputs;
-  
+
   /**
    * Instantiates a new Product layer apply.
    *
@@ -66,28 +66,28 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     this.inputs = inputs;
     SumInputsLayerTest.largeSize = largeSize;
   }
-  
+
   @Override
   public int[][] getSmallDims(Random random) {
     return IntStream.range(0, inputs).mapToObj(i -> new int[]{2, 2, inputBands}).toArray(i -> new int[i][]);
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer().setPrecision(precision);
   }
-  
+
   @Override
   public int[][] getLargeDims(Random random) {
     return IntStream.range(0, inputs).mapToObj(i -> new int[]{largeSize, largeSize, inputBands}).toArray(i -> new int[i][]);
   }
-  
+
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.SumInputsLayer.class;
   }
-  
+
   /**
    * The type Double list.
    */
@@ -98,27 +98,27 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     public Double_List() {
       super(Precision.Double, 1, 5, 1200);
     }
-    
+
   }
-  
+
   /**
    * Ensures addition can be used to implement a doubling (x2) function
    */
   public static class OnePlusOne extends CudaLayerTestBase {
-  
-  
+
+
     /**
      * Instantiates a new Asymmetric apply.
      */
     public OnePlusOne() {
       super();
     }
-  
+
     @Override
     public Class<? extends Layer> getReferenceLayerClass() {
       return com.simiacryptus.mindseye.layers.java.SumInputsLayer.class;
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {
@@ -127,12 +127,12 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
       network.wrap(new com.simiacryptus.mindseye.layers.cudnn.SumInputsLayer(), input, input).freeRef();
       return network;
     }
-  
+
     @Override
     protected Class<?> getTargetClass() {
       return SumInputsLayer.class;
     }
-  
+
     @Override
     public Layer getReferenceLayer() {
       @Nonnull PipelineNetwork network = new PipelineNetwork();
@@ -140,25 +140,25 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
       network.wrap(new SumInputsLayer(), input, input).freeRef();
       return network;
     }
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {4, 4, 1}
+          {4, 4, 1}
       };
     }
-  
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {1200, 800, 1}
+          {1200, 800, 1}
       };
     }
-  
+
   }
-  
+
   /**
    * Adds using double (64-bit) precision, C = A + B
    */
@@ -171,7 +171,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
       testingBatchSize = 2;
     }
   }
-  
+
   /**
    * The type Double add.
    */
@@ -183,8 +183,8 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
       super(Precision.Double, 1, 2, 1200);
     }
   }
-  
-  
+
+
   /**
    * Adds using float (32-bit) precision, C = A + B
    */
@@ -195,19 +195,19 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
     public Float_Add() {
       super(Precision.Float, 1, 2, 1200);
     }
-    
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);
     }
-    
+
   }
-  
+
   /**
    * Basic Test
    */
   public abstract static class Big extends SumInputsLayerTest {
-  
+
     /**
      * Instantiates a new BigTests.
      *
@@ -222,26 +222,26 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
       setTestTraining(false);
       testingBatchSize = 5;
     }
-    
+
     @Override
     public Class<? extends Layer> getReferenceLayerClass() {
       return null;
     }
-    
+
     @Nullable
     @Override
     protected ComponentTest<ToleranceStatistics> getJsonTester() {
       logger.warn("Disabled Json Test");
       return null;
     }
-    
+
     @Nullable
     @Override
     public ComponentTest<ToleranceStatistics> getPerformanceTester() {
       logger.warn("Disabled Performance Test");
       return null;
     }
-  
+
   }
-  
+
 }

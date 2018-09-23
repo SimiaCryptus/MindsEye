@@ -29,28 +29,28 @@ import java.util.Random;
  * The type L 1 normalization layer apply.
  */
 public abstract class L1NormalizationLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{{4}};
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new L1NormalizationLayer();
   }
-  
+
   @Override
   public double random() {
     return super.random() * 100;
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends L1NormalizationLayerTest {
   }
-  
+
 }

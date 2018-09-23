@@ -20,11 +20,7 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.DoubleBuffer;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.PointSample;
-import com.simiacryptus.mindseye.lang.StateSet;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -39,9 +35,9 @@ import java.util.stream.Collectors;
  * An orientation wrapper which adds additional log statements.
  */
 public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSearchCursor> {
-  
+
   private final OrientationStrategy<? extends LineSearchCursor> inner;
-  
+
   /**
    * Instantiates a new Quantify orientation wrapper.
    *
@@ -50,12 +46,12 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
   public QuantifyOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
   }
-  
+
   @Override
   protected void _free() {
     inner.freeRef();
   }
-  
+
   /**
    * Gets id.
    *
@@ -72,7 +68,7 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
 //    }
 //    return x.layer.toStream();
   }
-  
+
   @Override
   public LineSearchCursor orient(final Trainable subject, final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
@@ -80,30 +76,29 @@ public class QuantifyOrientationWrapper extends OrientationStrategyBase<LineSear
       final DeltaSet<Layer> direction = ((SimpleLineSearchCursor) cursor).direction;
       @Nonnull final StateSet<Layer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       final Map<CharSequence, CharSequence> dataMap = weights.stream()
-        .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
-        .collect(Collectors.toMap(x -> x.getKey(), list -> {
-          final List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
-            final DoubleBuffer<Layer> dirDelta = direction.getMap().get(weightDelta.layer);
-            final double denominator = weightDelta.deltaStatistics().rms();
-            final double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
-            return numerator / (0 == denominator ? 1 : denominator);
-          }).collect(Collectors.toList());
-          if (1 == doubleList.size())
-            return Double.toString(doubleList.get(0));
-          return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
-        }));
+          .collect(Collectors.groupingBy(x -> getId(x), Collectors.toList())).entrySet().stream()
+          .collect(Collectors.toMap(x -> x.getKey(), list -> {
+            final List<Double> doubleList = list.getValue().stream().map(weightDelta -> {
+              final DoubleBuffer<Layer> dirDelta = direction.getMap().get(weightDelta.layer);
+              final double denominator = weightDelta.deltaStatistics().rms();
+              final double numerator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
+              return numerator / (0 == denominator ? 1 : denominator);
+            }).collect(Collectors.toList());
+            if (1 == doubleList.size())
+              return Double.toString(doubleList.get(0));
+            return new DoubleStatistics().accept(doubleList.stream().mapToDouble(x -> x).toArray()).toString();
+          }));
       monitor.log(String.format("Line search stats: %s", dataMap));
-    }
-    else {
+    } else {
       monitor.log(String.format("Non-simple cursor: %s", cursor));
     }
     return cursor;
   }
-  
+
   @Override
   public void reset() {
     inner.reset();
   }
-  
-  
+
+
 }

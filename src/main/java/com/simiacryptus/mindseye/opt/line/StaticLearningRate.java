@@ -30,10 +30,10 @@ import javax.annotation.Nullable;
  * improvement.
  */
 public class StaticLearningRate implements LineSearchStrategy {
-  
+
   private double minimumRate = 1e-12;
   private double rate = 1e-4;
-  
+
   /**
    * Instantiates a new Static learning rate.
    *
@@ -42,7 +42,7 @@ public class StaticLearningRate implements LineSearchStrategy {
   public StaticLearningRate(double rate) {
     this.rate = rate;
   }
-  
+
   /**
    * Gets minimum rate.
    *
@@ -51,7 +51,7 @@ public class StaticLearningRate implements LineSearchStrategy {
   public double getMinimumRate() {
     return minimumRate;
   }
-  
+
   /**
    * Sets minimum rate.
    *
@@ -63,7 +63,7 @@ public class StaticLearningRate implements LineSearchStrategy {
     this.minimumRate = minimumRate;
     return this;
   }
-  
+
   /**
    * Gets rate.
    *
@@ -72,7 +72,7 @@ public class StaticLearningRate implements LineSearchStrategy {
   public double getRate() {
     return rate;
   }
-  
+
   /**
    * Sets rate.
    *
@@ -84,7 +84,7 @@ public class StaticLearningRate implements LineSearchStrategy {
     this.rate = rate;
     return this;
   }
-  
+
   @Override
   public PointSample step(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor) {
     double thisRate = rate;
@@ -108,8 +108,7 @@ public class StaticLearningRate implements LineSearchStrategy {
           startPoint.freeRef();
           return point;
         }
-      }
-      else {
+      } else {
         PointSample point = lastStep.point;
         point.addRef();
         startPoint.freeRef();

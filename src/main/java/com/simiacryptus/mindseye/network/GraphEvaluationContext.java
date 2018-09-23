@@ -31,17 +31,17 @@ import java.util.function.Supplier;
  * each node is executed minimally.
  */
 class GraphEvaluationContext extends ReferenceCountingBase {
-  
+
   /**
    * The Expected counts.
    */
   final Map<UUID, Long> expectedCounts = new ConcurrentHashMap<>();
-  
+
   /**
    * The Calculated.
    */
   final Map<UUID, Supplier<CountingResult>> calculated = new ConcurrentHashMap<>();
-  
+
   @Override
   protected synchronized void _free() {
     calculated.entrySet().stream().filter(e -> {
@@ -51,8 +51,7 @@ class GraphEvaluationContext extends ReferenceCountingBase {
       CountingResult countingNNResult = (CountingResult) o;
       if (expectedCounts.containsKey(e.getKey())) {
         return expectedCounts.get(e.getKey()) > countingNNResult.getAccumulator().getCount();
-      }
-      else {
+      } else {
         return true;
       }
     }).forEach(x -> {

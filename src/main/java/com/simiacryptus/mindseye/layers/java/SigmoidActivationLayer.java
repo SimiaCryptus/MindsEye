@@ -32,19 +32,19 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidActivationLayer> {
-  
+
   private static final double MIN_X = -20;
   private static final double MAX_X = -SigmoidActivationLayer.MIN_X;
   private static final double MAX_F = Math.exp(SigmoidActivationLayer.MAX_X);
   private static final double MIN_F = Math.exp(SigmoidActivationLayer.MIN_X);
   private boolean balanced = true;
-  
+
   /**
    * Instantiates a new Sigmoid activation layer.
    */
   public SigmoidActivationLayer() {
   }
-  
+
   /**
    * Instantiates a new Sigmoid activation layer.
    *
@@ -54,7 +54,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
     super(id);
     balanced = id.get("balanced").getAsBoolean();
   }
-  
+
   /**
    * From json sigmoid activation layer.
    *
@@ -65,7 +65,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   public static SigmoidActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SigmoidActivationLayer(json);
   }
-  
+
   @Override
   protected final void eval(final double x, final double[] results) {
     final double minDeriv = 0;
@@ -86,7 +86,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
     results[0] = f;
     results[1] = d;
   }
-  
+
   private double exp(final double x) {
     if (x < SigmoidActivationLayer.MIN_X) {
       return SigmoidActivationLayer.MIN_F;
@@ -96,7 +96,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
     }
     return Math.exp(x);
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -104,7 +104,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
     json.addProperty("balanced", balanced);
     return json;
   }
-  
+
   /**
    * Is balanced boolean.
    *
@@ -113,7 +113,7 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   public boolean isBalanced() {
     return balanced;
   }
-  
+
   /**
    * Sets balanced.
    *

@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
  * The type Convolution network apply.
  */
 public abstract class DeepLinear extends NLayerTest {
-  
+
   /**
    * Instantiates a new Linear depth.
    *
@@ -41,14 +41,14 @@ public abstract class DeepLinear extends NLayerTest {
   public DeepLinear(final int[]... dimList) {
     super(dimList);
   }
-  
+
   @Override
   public void addLayer(@Nonnull final PipelineNetwork network, @Nonnull final int[] in, @Nonnull final int[] dims) {
     network.wrap(new FullyConnectedLayer(in, dims).set(this::random)).freeRef();
     network.wrap(new BiasLayer(dims)).freeRef();
     network.wrap(getActivation()).freeRef();
   }
-  
+
   /**
    * Gets activation.
    *
@@ -58,18 +58,18 @@ public abstract class DeepLinear extends NLayerTest {
   public Layer getActivation() {
     return new ReLuActivationLayer();
   }
-  
+
   @Nonnull
   @Override
   public int[] getInputDims() {
     return new int[]{5, 5, 3};
   }
-  
+
   @Override
   public double random() {
     return 0.1 * Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 500.0;
   }
-  
+
   /**
    * The type Four layer.
    */
@@ -79,15 +79,15 @@ public abstract class DeepLinear extends NLayerTest {
      */
     public NarrowingPipeline() {
       super(
-        new int[]{4, 4, 2},
-        new int[]{3, 3, 1},
-        new int[]{2, 2, 1},
-        new int[]{2, 2, 1}
+          new int[]{4, 4, 2},
+          new int[]{3, 3, 1},
+          new int[]{2, 2, 1},
+          new int[]{2, 2, 1}
       );
     }
-    
+
   }
-  
+
   /**
    * The type Four layer.
    */
@@ -97,21 +97,21 @@ public abstract class DeepLinear extends NLayerTest {
      */
     public SigmoidPipeline() {
       super(
-        new int[]{10},
-        new int[]{10},
-        new int[]{10},
-        new int[]{10}
+          new int[]{10},
+          new int[]{10},
+          new int[]{10},
+          new int[]{10}
       );
     }
-  
+
     @Nonnull
     @Override
     public Layer getActivation() {
       return new SigmoidActivationLayer();
     }
-  
+
   }
-  
+
   /**
    * The type Four layer.
    */
@@ -121,13 +121,13 @@ public abstract class DeepLinear extends NLayerTest {
      */
     public UniformPipeline() {
       super(
-        new int[]{10},
-        new int[]{10},
-        new int[]{10},
-        new int[]{10}
+          new int[]{10},
+          new int[]{10},
+          new int[]{10},
+          new int[]{10}
       );
     }
-  
+
   }
-  
+
 }

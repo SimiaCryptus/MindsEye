@@ -34,7 +34,7 @@ import java.util.UUID;
  */
 @SuppressWarnings("serial")
 public abstract class LayerBase extends RegisteredObjectBase implements Layer {
-  
+
   private final UUID id;
   /**
    * The Frozen.
@@ -42,7 +42,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   protected boolean frozen = false;
   @Nullable
   private String name;
-  
+
   /**
    * Instantiates a new Nn layer.
    */
@@ -50,7 +50,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
     id = UUID.randomUUID();
     name = getClass().getSimpleName() + "/" + getId();
   }
-  
+
   /**
    * Instantiates a new Nn layer.
    *
@@ -68,7 +68,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
       setName(json.get("name").getAsString());
     }
   }
-  
+
   /**
    * Instantiates a new Nn layer.
    *
@@ -79,7 +79,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
     this.id = id;
     this.name = name;
   }
-  
+
   @Override
   public final boolean equals(@Nullable final Object obj) {
     if (this == obj) {
@@ -94,10 +94,9 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
     @Nullable final Layer other = (Layer) obj;
     if (getId() == null) {
       return other.getId() == null;
-    }
-    else return getId().equals(other.getId());
+    } else return getId().equals(other.getId());
   }
-  
+
   /**
    * The Id.
    *
@@ -106,7 +105,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   public List<Layer> getChildren() {
     return Arrays.asList(this);
   }
-  
+
   /**
    * Gets id.
    *
@@ -116,7 +115,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   public Object getId() {
     return id;
   }
-  
+
   /**
    * Gets name.
    *
@@ -126,7 +125,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   public String getName() {
     return name;
   }
-  
+
   /**
    * Sets name.
    *
@@ -138,12 +137,12 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
     this.name = name;
     return this;
   }
-  
+
   @Override
   public final int hashCode() {
     return getId().hashCode();
   }
-  
+
   /**
    * Is frozen boolean.
    *
@@ -152,7 +151,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   public boolean isFrozen() {
     return frozen;
   }
-  
+
   /**
    * Sets frozen.
    *
@@ -164,7 +163,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
     this.frozen = frozen;
     return self();
   }
-  
+
   /**
    * Self nn layer.
    *
@@ -174,16 +173,16 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   protected final Layer self() {
     return this;
   }
-  
+
   @Nullable
   @Override
   public final String toString() {
     return getName();
   }
-  
+
   @Override
   protected void _free() {
-  
+
   }
-  
+
 }

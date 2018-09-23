@@ -41,7 +41,7 @@ public class DeviceMetrics {
    * The Used memory.
    */
   public final AtomicLong activeMemory = new AtomicLong(0);
-  
+
   /**
    * The Used memory.
    */

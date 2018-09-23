@@ -34,7 +34,7 @@ import java.security.NoSuchAlgorithmException;
  * models.
  */
 public abstract class VGG19 extends VGG {
-  
+
   /**
    * From s 3 vgg 16 hdf 5.
    *
@@ -47,7 +47,7 @@ public abstract class VGG19 extends VGG {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * From s 3 vgg 16 hdf 5.
    *
@@ -63,5 +63,5 @@ public abstract class VGG19 extends VGG {
       throw new RuntimeException(e);
     }
   }
-  
+
 }

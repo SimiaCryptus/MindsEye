@@ -33,7 +33,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
   private final LineSearchCursor direction;
   private final TrainingMonitor monitor;
   private PointSample best;
-  
+
   /**
    * Instantiates a new Failsafe line search cursor.
    *
@@ -47,7 +47,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
     best = previousPoint.copyFull();
     this.monitor = monitor;
   }
-  
+
   /**
    * Accumulate.
    *
@@ -63,8 +63,8 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
       this.best = newValue;
     }
   }
-  
-  
+
+
   /**
    * Gets best.
    *
@@ -78,29 +78,29 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
     }
     return best;
   }
-  
+
   @Override
   public CharSequence getDirectionType() {
     return direction.getDirectionType();
   }
-  
+
   @Override
   public DeltaSet<Layer> position(final double alpha) {
     return direction.position(alpha);
   }
-  
+
   @Override
   public void reset() {
     direction.reset();
   }
-  
+
   @Override
   public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
     final LineSearchPoint step = direction.step(alpha, monitor);
     accumulate(step.point);
     return step;
   }
-  
+
   @Override
   public void _free() {
     if (null != this.best) {
@@ -109,5 +109,5 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
     }
     this.direction.freeRef();
   }
-  
+
 }

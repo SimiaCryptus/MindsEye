@@ -19,10 +19,10 @@
 
 package com.simiacryptus.mindseye.test.data;
 
+import com.simiacryptus.lang.SupplierWeakCache;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.util.Util;
 import com.simiacryptus.util.io.DataLoader;
-import com.simiacryptus.util.lang.SupplierWeakCache;
 import com.simiacryptus.util.test.LabeledObject;
 import org.apache.commons.io.IOUtils;
 
@@ -46,7 +46,7 @@ import java.util.zip.ZipInputStream;
  * Workshop on Generative-Model Based Vision. 2004 For more information see http://www.vision.caltech.edu/Image_Datasets/Caltech101/
  */
 public class Caltech101 {
-  
+
   @Nullable
   private static final DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>> training = new DataLoader<LabeledObject<SupplierWeakCache<BufferedImage>>>() {
     @Override
@@ -93,14 +93,14 @@ public class Caltech101 {
       }
     }
   };
-  
+
   /**
    * Halt.
    */
   public static void halt() {
     Caltech101.training.stop();
   }
-  
+
   /**
    * Training data stream stream.
    *
@@ -109,6 +109,6 @@ public class Caltech101 {
   public static Stream<LabeledObject<SupplierWeakCache<BufferedImage>>> trainingDataStream() {
     return Caltech101.training.stream();
   }
-  
-  
+
+
 }

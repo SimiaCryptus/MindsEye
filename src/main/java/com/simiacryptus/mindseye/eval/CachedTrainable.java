@@ -36,11 +36,11 @@ import java.util.List;
  */
 public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   private static final Logger log = LoggerFactory.getLogger(CachedTrainable.class);
-  
+
   private final List<PointSample> history = new ArrayList<>();
   private int historySize = 3;
   private boolean verbose = true;
-  
+
   /**
    * Instantiates a new Cached trainable.
    *
@@ -49,13 +49,13 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   public CachedTrainable(final T inner) {
     super(inner);
   }
-  
+
   @Nonnull
   @Override
   public CachedTrainable<? extends Trainable> cached() {
     return this;
   }
-  
+
   /**
    * Gets history size.
    *
@@ -64,7 +64,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   public int getHistorySize() {
     return historySize;
   }
-  
+
   /**
    * Sets history size.
    *
@@ -76,7 +76,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
     this.historySize = historySize;
     return this;
   }
-  
+
   /**
    * Is verbose boolean.
    *
@@ -85,7 +85,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
   public boolean isVerbose() {
     return verbose;
   }
-  
+
   /**
    * Sets verbose.
    *
@@ -97,14 +97,14 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
     this.verbose = verbose;
     return this;
   }
-  
+
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     for (@Nonnull final PointSample result : history) {
       if (!result.weights.isDifferent()) {
         if (isVerbose()) {
           log.info(String.format("Returning cached value; %s buffers unchanged since %s => %s",
-            result.weights.getMap().size(), result.rate, result.getMean()));
+              result.weights.getMap().size(), result.rate, result.getMean()));
         }
         return result.copyFull();
       }
@@ -116,7 +116,7 @@ public class CachedTrainable<T extends Trainable> extends TrainableWrapper<T> {
     }
     return result;
   }
-  
+
   @Override
   public boolean reseed(final long seed) {
     history.clear();

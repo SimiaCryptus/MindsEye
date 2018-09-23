@@ -30,32 +30,32 @@ import java.util.Random;
  * The type Img crop layer apply.
  */
 public abstract class ImgTileAssemblyLayerTest extends LayerTestBase {
-  
+
   /**
    * Instantiates a new Img crop layer apply.
    */
   public ImgTileAssemblyLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {2, 2, 1}, {1, 2, 1}, {2, 2, 1}, {1, 2, 1}, {2, 1, 1}, {1, 1, 1}
+        {2, 2, 1}, {1, 2, 1}, {2, 2, 1}, {1, 2, 1}, {2, 1, 1}, {1, 1, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgTileAssemblyLayer(2, 3);
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ImgTileAssemblyLayerTest {
   }
-  
+
 }

@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,16 +35,16 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class CrossDotMetaLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(CrossDotMetaLayer.class);
-  
+
   /**
    * Instantiates a new Cross dot meta layer.
    */
   public CrossDotMetaLayer() {
   }
-  
+
   /**
    * Instantiates a new Cross dot meta layer.
    *
@@ -60,7 +53,7 @@ public class CrossDotMetaLayer extends LayerBase {
   protected CrossDotMetaLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json cross dot meta layer.
    *
@@ -71,7 +64,7 @@ public class CrossDotMetaLayer extends LayerBase {
   public static CrossDotMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new CrossDotMetaLayer(json);
   }
-  
+
   @Nullable
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -102,7 +95,7 @@ public class CrossDotMetaLayer extends LayerBase {
         @Nullable final Tensor deltaTensor = delta.get(0);
         @Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(dim));
-        
+
         for (int i = 0; i < dim; i++) {
           for (int j = 0; j < dim; j++) {
             if (i == j) {
@@ -119,32 +112,32 @@ public class CrossDotMetaLayer extends LayerBase {
           }
         }
         deltaTensor.freeRef();
-  
+
         @Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         indata.freeRef();
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         return input.isAlive();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

@@ -28,11 +28,7 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 import static com.simiacryptus.mindseye.lang.PersistanceMode.WEAK;
@@ -45,25 +41,26 @@ import static com.simiacryptus.mindseye.lang.PersistanceMode.WEAK;
  * @param <T> the type parameter
  */
 public abstract class RecycleBin<T> {
-  
+
   /**
    * The constant DOUBLES.
    */
   public static final RecycleBin<double[]> DOUBLES = new RecycleBin<double[]>() {
     @Override
-    protected void free(double[] obj) { }
-    
+    protected void free(double[] obj) {
+    }
+
     @Override
     public double[] create(final long length) {
       return new double[(int) length];
     }
-    
+
     @Override
     public void reset(@Nonnull final double[] data, long size) {
       assert data.length == size;
       Arrays.fill(data, 0);
     }
-  }.setPersistanceMode(CoreSettings.INSTANCE.getDoubleCacheMode());
+  }.setPersistanceMode(CoreSettings.INSTANCE().getDoubleCacheMode());
   /**
    * The constant logger.
    */
@@ -80,7 +77,7 @@ public abstract class RecycleBin<T> {
   private int minLengthPerBuffer = 256;
   private double maxLengthPerBuffer = 1e9;
   private int maxItemsPerBuffer = 100;
-  
+
   /**
    * Instantiates a new Recycle bin.
    */
@@ -97,8 +94,7 @@ public abstract class RecycleBin<T> {
             if (obj != null) {
               freeItem(obj, k);
             }
-          }
-          else {
+          } else {
             young.add(poll);
           }
         }
@@ -106,7 +102,7 @@ public abstract class RecycleBin<T> {
       });
     }, purgeFreq, purgeFreq, TimeUnit.SECONDS);
   }
-  
+
   /**
    * Gets garbage truck.
    *
@@ -122,7 +118,7 @@ public abstract class RecycleBin<T> {
     }
     return RecycleBin.garbageTruck;
   }
-  
+
   /**
    * Equals boolean.
    *
@@ -135,7 +131,7 @@ public abstract class RecycleBin<T> {
     if (a == null || b == null) return false;
     return a.equals(b);
   }
-  
+
   /**
    * Clear.
    *
@@ -146,7 +142,7 @@ public abstract class RecycleBin<T> {
       return freeItem(ref.obj.get(), length);
     }).sum()).sum();
   }
-  
+
   /**
    * Free.
    *
@@ -162,14 +158,14 @@ public abstract class RecycleBin<T> {
     if (null != obj) free(obj);
     return size;
   }
-  
+
   /**
    * Free.
    *
    * @param obj the obj
    */
   protected abstract void free(T obj);
-  
+
   /**
    * Obtain double [ ].
    *
@@ -194,7 +190,7 @@ public abstract class RecycleBin<T> {
     }
     return create(length, 1);
   }
-  
+
   /**
    * Copy of double [ ].
    *
@@ -209,7 +205,7 @@ public abstract class RecycleBin<T> {
     System.arraycopy(original, 0, copy, 0, (int) size);
     return copy;
   }
-  
+
   /**
    * Create t.
    *
@@ -218,7 +214,7 @@ public abstract class RecycleBin<T> {
    */
   @Nonnull
   public abstract T create(long length);
-  
+
   /**
    * Gets allocations.
    *
@@ -230,7 +226,7 @@ public abstract class RecycleBin<T> {
     if (!isProfiling(length)) return null;
     return allocations;
   }
-  
+
   /**
    * Gets frees.
    *
@@ -242,7 +238,7 @@ public abstract class RecycleBin<T> {
     if (!isProfiling(length)) return null;
     return frees;
   }
-  
+
   /**
    * Gets recycle get.
    *
@@ -254,7 +250,7 @@ public abstract class RecycleBin<T> {
     if (!isProfiling(length)) return null;
     return recycle_put;
   }
-  
+
   /**
    * Gets recycle submit.
    *
@@ -266,7 +262,7 @@ public abstract class RecycleBin<T> {
     if (!isProfiling(length)) return null;
     return recycle_get;
   }
-  
+
   /**
    * Is profiling boolean.
    *
@@ -276,7 +272,7 @@ public abstract class RecycleBin<T> {
   public boolean isProfiling(final long length) {
     return length > profilingThreshold;
   }
-  
+
   /**
    * Print all profiling.
    *
@@ -286,7 +282,7 @@ public abstract class RecycleBin<T> {
     printDetailedProfiling(out);
     printNetProfiling(out);
   }
-  
+
   /**
    * Print detailed profiling.
    *
@@ -306,7 +302,7 @@ public abstract class RecycleBin<T> {
       out.println("Recycle Bin (Get) Profiling:\n\t" + recycle_get.toString().replaceAll("\n", "\n\t"));
     }
   }
-  
+
   /**
    * Print net profiling.
    *
@@ -315,11 +311,11 @@ public abstract class RecycleBin<T> {
   public void printNetProfiling(@Nullable final PrintStream out) {
     if (null != out && null != recycle_put && null != recycle_get) {
       out.println("Recycle Bin (Net) Profiling:\n\t" +
-        StackCounter.toString(recycle_put, recycle_get, (a, b) -> a.getSum() - b.getSum())
-          .replaceAll("\n", "\n\t"));
+          StackCounter.toString(recycle_put, recycle_get, (a, b) -> a.getSum() - b.getSum())
+              .replaceAll("\n", "\n\t"));
     }
   }
-  
+
   /**
    * Recycle.
    *
@@ -344,7 +340,7 @@ public abstract class RecycleBin<T> {
     }
     freeItem(data, size);
   }
-  
+
   /**
    * Create t.
    *
@@ -367,7 +363,7 @@ public abstract class RecycleBin<T> {
     clearMemory(length);
     return create(length, retries - 1);
   }
-  
+
   private void clearMemory(long length) {
     long max = Runtime.getRuntime().maxMemory();
     long previous = Runtime.getRuntime().freeMemory();
@@ -378,7 +374,7 @@ public abstract class RecycleBin<T> {
     long after = Runtime.getRuntime().freeMemory();
     logger.warn(String.format("Clearing memory freed %s/%s bytes", previous - after, max));
   }
-  
+
   /**
    * Gets size.
    *
@@ -387,7 +383,7 @@ public abstract class RecycleBin<T> {
   public long getSize() {
     return this.buckets.entrySet().stream().mapToLong(e -> e.getKey() * e.getValue().size()).sum();
   }
-  
+
   /**
    * Want boolean.
    *
@@ -404,7 +400,7 @@ public abstract class RecycleBin<T> {
     ConcurrentLinkedDeque<ObjectWrapper> bin = getBin(size);
     return bin.size() < Math.min(Math.max(1, (int) (getMaxLengthPerBuffer() / size)), getMaxItemsPerBuffer());
   }
-  
+
   /**
    * Gets bin.
    *
@@ -414,7 +410,7 @@ public abstract class RecycleBin<T> {
   protected ConcurrentLinkedDeque<ObjectWrapper> getBin(long size) {
     return buckets.computeIfAbsent(size, x -> new ConcurrentLinkedDeque<>());
   }
-  
+
   /**
    * Gets purge freq.
    *
@@ -423,7 +419,7 @@ public abstract class RecycleBin<T> {
   public int getPurgeFreq() {
     return purgeFreq;
   }
-  
+
   /**
    * Sets purge freq.
    *
@@ -434,7 +430,7 @@ public abstract class RecycleBin<T> {
     this.purgeFreq = purgeFreq;
     return this;
   }
-  
+
   /**
    * Gets persistance mode.
    *
@@ -443,7 +439,7 @@ public abstract class RecycleBin<T> {
   public PersistanceMode getPersistanceMode() {
     return persistanceMode;
   }
-  
+
   /**
    * Sets persistance mode.
    *
@@ -455,7 +451,7 @@ public abstract class RecycleBin<T> {
     this.persistanceMode = persistanceMode;
     return this;
   }
-  
+
   /**
    * New ref reference.
    *
@@ -466,7 +462,7 @@ public abstract class RecycleBin<T> {
   protected Supplier<T> wrap(T data) {
     return persistanceMode.wrap(data);
   }
-  
+
   /**
    * Reset.
    *
@@ -474,7 +470,7 @@ public abstract class RecycleBin<T> {
    * @param size the size
    */
   public abstract void reset(T data, long size);
-  
+
   /**
    * Sets profiling.
    *
@@ -486,7 +482,7 @@ public abstract class RecycleBin<T> {
     this.profilingThreshold = threshold;
     return this;
   }
-  
+
   /**
    * Gets min bytes per buffer.
    *
@@ -495,7 +491,7 @@ public abstract class RecycleBin<T> {
   public int getMinLengthPerBuffer() {
     return minLengthPerBuffer;
   }
-  
+
   /**
    * Sets min bytes per buffer.
    *
@@ -507,7 +503,7 @@ public abstract class RecycleBin<T> {
     this.minLengthPerBuffer = minLengthPerBuffer;
     return this;
   }
-  
+
   /**
    * Gets max bytes per buffer.
    *
@@ -516,7 +512,7 @@ public abstract class RecycleBin<T> {
   public double getMaxLengthPerBuffer() {
     return maxLengthPerBuffer;
   }
-  
+
   /**
    * Sets max bytes per buffer.
    *
@@ -528,7 +524,7 @@ public abstract class RecycleBin<T> {
     this.maxLengthPerBuffer = maxLengthPerBuffer;
     return this;
   }
-  
+
   /**
    * Gets max items per buffer.
    *
@@ -537,7 +533,7 @@ public abstract class RecycleBin<T> {
   public int getMaxItemsPerBuffer() {
     return maxItemsPerBuffer;
   }
-  
+
   /**
    * Sets max items per buffer.
    *
@@ -549,7 +545,7 @@ public abstract class RecycleBin<T> {
     this.maxItemsPerBuffer = maxItemsPerBuffer;
     return this;
   }
-  
+
   private class ObjectWrapper {
     /**
      * The Obj.
@@ -559,9 +555,11 @@ public abstract class RecycleBin<T> {
      * The Created at.
      */
     public final long createdAt = System.nanoTime();
-    
-    private ObjectWrapper(final Supplier<T> obj) {this.obj = obj;}
-  
+
+    private ObjectWrapper(final Supplier<T> obj) {
+      this.obj = obj;
+    }
+
     /**
      * Age double.
      *

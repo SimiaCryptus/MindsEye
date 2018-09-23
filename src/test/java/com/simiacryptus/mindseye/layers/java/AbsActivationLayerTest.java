@@ -29,11 +29,11 @@ public abstract class AbsActivationLayerTest extends ActivationLayerTestBase {
   public AbsActivationLayerTest() {
     super(new AbsActivationLayer());
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends AbsActivationLayerTest {
-  
+
   }
 }

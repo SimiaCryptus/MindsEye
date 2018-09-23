@@ -37,12 +37,12 @@ import java.util.stream.IntStream;
  * method is called to re-sample the training data and pass it to the heapCopy Trainable implementation.
  */
 public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> implements SampledTrainable, TrainableDataMask {
-  
+
   private final List<? extends Supplier<Tensor[]>> trainingData;
   private int minSamples = 0;
   private long seed = Util.R.get().nextInt();
   private int trainingSize;
-  
+
   /**
    * Instantiates a new Stochastic array trainable.
    *
@@ -53,7 +53,7 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
   public SampledArrayTrainable(@Nonnull final List<? extends Supplier<Tensor[]>> trainingData, final Layer network, final int trainingSize) {
     this(trainingData, network, trainingSize, trainingSize);
   }
-  
+
   /**
    * Instantiates a new Stochastic array trainable.
    *
@@ -69,7 +69,7 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     this.trainingSize = trainingSize;
     reseed(System.nanoTime());
   }
-  
+
   /**
    * Instantiates a new Stochastic array trainable.
    *
@@ -80,7 +80,7 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
   public SampledArrayTrainable(@Nonnull final Tensor[][] trainingData, final Layer network, final int trainingSize) {
     this(trainingData, network, trainingSize, trainingSize);
   }
-  
+
   /**
    * Instantiates a new Stochastic array trainable.
    *
@@ -96,13 +96,13 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     this.trainingSize = trainingSize;
     reseed(System.nanoTime());
   }
-  
+
   @Nonnull
   @Override
   public SampledCachedTrainable<? extends SampledTrainable> cached() {
     return new SampledCachedTrainable<>(this);
   }
-  
+
   /**
    * Gets min samples.
    *
@@ -111,7 +111,7 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
   public int getMinSamples() {
     return minSamples;
   }
-  
+
   /**
    * Sets min samples.
    *
@@ -123,12 +123,12 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     this.minSamples = minSamples;
     return this;
   }
-  
+
   @Override
   public int getTrainingSize() {
     return Math.max(minSamples, Math.min(trainingData.size(), trainingSize));
   }
-  
+
   /**
    * Refresh sampled data.
    */
@@ -138,21 +138,20 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     if (0 < getTrainingSize() && getTrainingSize() < this.trainingData.size() - 1) {
       @Nonnull final Random random = new Random(seed);
       trainingData = IntStream.generate(() -> random.nextInt(this.trainingData.size()))
-        .distinct()
-        .mapToObj(i -> this.trainingData.get(i))
-        .filter(x -> x != null && x.get() != null)
-        .limit(getTrainingSize()).map(x -> x.get())
-        .toArray(i -> new Tensor[i][]);
-    }
-    else {
+          .distinct()
+          .mapToObj(i -> this.trainingData.get(i))
+          .filter(x -> x != null && x.get() != null)
+          .limit(getTrainingSize()).map(x -> x.get())
+          .toArray(i -> new Tensor[i][]);
+    } else {
       trainingData = this.trainingData.stream()
-        .filter(x -> x != null && x.get() != null)
-        .limit(getTrainingSize()).map(x -> x.get())
-        .toArray(i -> new Tensor[i][]);
+          .filter(x -> x != null && x.get() != null)
+          .limit(getTrainingSize()).map(x -> x.get())
+          .toArray(i -> new Tensor[i][]);
     }
     getInner().setTrainingData(trainingData);
   }
-  
+
   @Override
   public boolean reseed(final long seed) {
     setSeed(Util.R.get().nextInt());
@@ -160,13 +159,13 @@ public class SampledArrayTrainable extends TrainableWrapper<ArrayTrainable> impl
     super.reseed(seed);
     return true;
   }
-  
+
   private void setSeed(final int newValue) {
     if (seed == newValue) return;
     seed = newValue;
     refreshSampledData();
   }
-  
+
   @Nonnull
   @Override
   public SampledTrainable setTrainingSize(final int trainingSize) {

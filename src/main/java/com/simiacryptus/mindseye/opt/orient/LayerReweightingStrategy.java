@@ -36,13 +36,13 @@ import java.util.HashMap;
  * learning rate for each layer.
  */
 public abstract class LayerReweightingStrategy extends OrientationStrategyBase<SimpleLineSearchCursor> {
-  
+
   /**
    * The Inner.
    */
   public final OrientationStrategy<SimpleLineSearchCursor> inner;
-  
-  
+
+
   /**
    * Instantiates a new LayerBase reweighting strategy.
    *
@@ -51,7 +51,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
   public LayerReweightingStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;
   }
-  
+
   /**
    * Gets region policy.
    *
@@ -59,7 +59,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
    * @return the region policy
    */
   public abstract Double getRegionPolicy(Layer layer);
-  
+
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
     final SimpleLineSearchCursor orient = inner.orient(subject, measurement, monitor);
@@ -77,20 +77,20 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
     });
     return orient;
   }
-  
+
   @Override
   protected void _free() {
     this.inner.freeRef();
   }
-  
+
   /**
    * The type Hash buildMap layer reweighting strategy.
    */
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
-  
+
     @Nonnull
     private final HashMap<Layer, Double> map = new HashMap<>();
-  
+
     /**
      * Instantiates a new Hash buildMap layer reweighting strategy.
      *
@@ -99,7 +99,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
     public HashMapLayerReweightingStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
       super(inner);
     }
-  
+
     /**
      * Gets buildMap.
      *
@@ -109,16 +109,16 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
     public HashMap<Layer, Double> getMap() {
       return map;
     }
-  
+
     @Override
     public Double getRegionPolicy(final Layer layer) {
       return getMap().get(layer);
     }
-  
+
     @Override
     public void reset() {
       inner.reset();
     }
   }
-  
+
 }

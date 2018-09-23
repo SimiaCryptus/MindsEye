@@ -21,15 +21,7 @@ package com.simiacryptus.mindseye.layers.aparapi;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 
 import javax.annotation.Nonnull;
@@ -48,8 +40,8 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ConvolutionLayer extends LayerBase {
-  
-  
+
+
   /**
    * The Kernel.
    */
@@ -59,15 +51,15 @@ public class ConvolutionLayer extends LayerBase {
   private Integer paddingX = null;
   @Nullable
   private Integer paddingY = null;
-  
-  
+
+
   /**
    * Instantiates a new Convolution layer.
    */
   protected ConvolutionLayer() {
     this(null, true);
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -78,7 +70,7 @@ public class ConvolutionLayer extends LayerBase {
   public ConvolutionLayer(final int width, final int height, final int bands) {
     this(width, height, bands, true);
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -92,7 +84,7 @@ public class ConvolutionLayer extends LayerBase {
     assert !simple || 0 == (width - 1) % 2 : "Simple kernels must have odd width";
     assert !simple || 0 == (height - 1) % 2 : "Simple kernels must have odd height";
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -104,7 +96,7 @@ public class ConvolutionLayer extends LayerBase {
   public ConvolutionLayer(final int width, final int height, final int inputBands, final int outputBands) {
     this(width, height, inputBands * outputBands);
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -117,7 +109,7 @@ public class ConvolutionLayer extends LayerBase {
   public ConvolutionLayer(final int width, final int height, final int inputBands, final int outputBands, final boolean simple) {
     this(width, height, inputBands * outputBands, simple);
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -132,7 +124,7 @@ public class ConvolutionLayer extends LayerBase {
     JsonElement paddingY = json.get("paddingY");
     if (null != paddingY && paddingY.isJsonPrimitive()) this.setPaddingY((paddingY.getAsInt()));
   }
-  
+
   /**
    * Instantiates a new Convolution layer.
    *
@@ -151,7 +143,7 @@ public class ConvolutionLayer extends LayerBase {
     if (dimensions[2] <= 0) throw new IllegalArgumentException(Arrays.toString(dimensions));
     this.kernel = kernel;
   }
-  
+
   /**
    * From json convolution layer.
    *
@@ -162,7 +154,7 @@ public class ConvolutionLayer extends LayerBase {
   public static ConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ConvolutionLayer(json, rs);
   }
-  
+
   /**
    * Add weights convolution layer.
    *
@@ -174,12 +166,12 @@ public class ConvolutionLayer extends LayerBase {
     Util.add(f, kernel.getData());
     return this;
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    
+
     final Result input = inObj[0];
     final TensorList batch = input.getData();
     batch.addRef();
@@ -188,8 +180,8 @@ public class ConvolutionLayer extends LayerBase {
     @Nullable final double[] kernelData = ConvolutionLayer.this.kernel.getData();
     @Nonnull final ConvolutionController convolutionController = new ConvolutionController(inputDims, kernelDims, paddingX, paddingY);
     final Tensor[] output = IntStream.range(0, batch.length())
-      .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
-      .toArray(i -> new Tensor[i]);
+        .mapToObj(dataIndex -> new Tensor(convolutionController.getOutputDims()))
+        .toArray(i -> new Tensor[i]);
     try {
       final double[][] inputBuffers = batch.stream().map(x -> {
         @Nullable double[] data = x.getData();
@@ -216,7 +208,7 @@ public class ConvolutionLayer extends LayerBase {
         }).toArray(i -> new double[i][]);
         @Nonnull final Tensor weightGradient = new Tensor(kernelDims);
         convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
-        
+
         buffer.get(ConvolutionLayer.this, kernelData).addInPlace(weightGradient.getData()).freeRef();
         weightGradient.freeRef();
       }
@@ -236,21 +228,21 @@ public class ConvolutionLayer extends LayerBase {
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         batch.freeRef();
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -262,7 +254,7 @@ public class ConvolutionLayer extends LayerBase {
     if (null != paddingY && paddingY.isJsonPrimitive()) this.setPaddingY((paddingY.getAsInt()));
     return json;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -276,7 +268,7 @@ public class ConvolutionLayer extends LayerBase {
     });
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -290,13 +282,13 @@ public class ConvolutionLayer extends LayerBase {
     });
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(kernel.getData());
   }
-  
+
   /**
    * Gets padding x.
    *
@@ -306,7 +298,7 @@ public class ConvolutionLayer extends LayerBase {
   public Integer getPaddingX() {
     return paddingX;
   }
-  
+
   /**
    * Sets padding x.
    *
@@ -318,7 +310,7 @@ public class ConvolutionLayer extends LayerBase {
     this.paddingX = paddingX;
     return this;
   }
-  
+
   /**
    * Gets padding y.
    *
@@ -328,7 +320,7 @@ public class ConvolutionLayer extends LayerBase {
   public Integer getPaddingY() {
     return paddingY;
   }
-  
+
   /**
    * Sets padding y.
    *
@@ -340,7 +332,7 @@ public class ConvolutionLayer extends LayerBase {
     this.paddingY = paddingY;
     return this;
   }
-  
+
   @Override
   protected void _free() {
     this.kernel.freeRef();

@@ -29,11 +29,19 @@ import javax.annotation.Nonnull;
  * find and detect bracketing conditions. When the solution is bracketed, the next iteration always tests the midpoint.
  */
 public class BisectionSearch implements LineSearchStrategy {
-  
+
   private double currentRate = 1.0;
   private double zeroTol = 1e-20;
   private double spanTol = 1e-3;
-  
+
+  @Nonnull
+  public static PointSample getPointAndFree(final LineSearchPoint iterate) {
+    PointSample point = iterate.point;
+    point.addRef();
+    iterate.freeRef();
+    return point;
+  }
+
   /**
    * Gets current rate.
    *
@@ -42,7 +50,7 @@ public class BisectionSearch implements LineSearchStrategy {
   public double getCurrentRate() {
     return currentRate;
   }
-  
+
   /**
    * Sets current rate.
    *
@@ -54,7 +62,7 @@ public class BisectionSearch implements LineSearchStrategy {
     this.currentRate = currentRate;
     return this;
   }
-  
+
   /**
    * Gets zero tol.
    *
@@ -63,7 +71,7 @@ public class BisectionSearch implements LineSearchStrategy {
   public double getZeroTol() {
     return zeroTol;
   }
-  
+
   /**
    * Sets zero tol.
    *
@@ -75,24 +83,16 @@ public class BisectionSearch implements LineSearchStrategy {
     this.zeroTol = zeroTol;
     return this;
   }
-  
-  @Nonnull
-  public static PointSample getPointAndFree(final LineSearchPoint iterate) {
-    PointSample point = iterate.point;
-    point.addRef();
-    iterate.freeRef();
-    return point;
-  }
-  
+
   @Override
   public PointSample step(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor) {
-    
+
     double leftX = 0;
     double leftValue;
     final LineSearchPoint searchPoint = cursor.step(leftX, monitor);
     monitor.log(String.format("F(%s) = %s", leftX, searchPoint));
     leftValue = searchPoint.point.sum;
-  
+
     double rightRight = Double.POSITIVE_INFINITY;
     double rightX;
     double rightLineDeriv;
@@ -117,14 +117,12 @@ public class BisectionSearch implements LineSearchStrategy {
       if (rightValue > leftValue) {
         rightRight = rightX;
         monitor.log(String.format("Right is at most %s", rightX));
-      }
-      else if (rightLineDeriv < 0) {
+      } else if (rightLineDeriv < 0) {
         rightRightSoft *= 2.0;
         leftValue = rightValue;
         leftX = rightX;
         monitor.log(String.format("Right is at least %s", rightX));
-      }
-      else {
+      } else {
         break;
       }
     }
@@ -140,10 +138,10 @@ public class BisectionSearch implements LineSearchStrategy {
       }
     }
     if (null != rightPoint) rightPoint.freeRef();
-  
+
     return getPointAndFree(iterate(cursor, monitor, leftX, rightX));
   }
-  
+
   public LineSearchPoint iterate(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor, double leftX, double rightX) {
     LineSearchPoint searchPoint = null;
     int loopCount = 0;
@@ -162,16 +160,14 @@ public class BisectionSearch implements LineSearchStrategy {
           return searchPoint;
         }
         leftX = thisX;
-      }
-      else if (searchPoint.derivative > zeroTol) {
+      } else if (searchPoint.derivative > zeroTol) {
         if (rightX == thisX) {
           monitor.log(String.format("End (static right) at %s", thisX));
           currentRate = thisX;
           return searchPoint;
         }
         rightX = thisX;
-      }
-      else {
+      } else {
         monitor.log(String.format("End (at zero) at %s", thisX));
         currentRate = thisX;
         return searchPoint;
@@ -183,7 +179,7 @@ public class BisectionSearch implements LineSearchStrategy {
       }
     }
   }
-  
+
   /**
    * Gets span tol.
    *
@@ -192,7 +188,7 @@ public class BisectionSearch implements LineSearchStrategy {
   public double getSpanTol() {
     return spanTol;
   }
-  
+
   /**
    * Sets span tol.
    *

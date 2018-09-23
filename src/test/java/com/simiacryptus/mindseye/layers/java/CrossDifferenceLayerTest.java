@@ -29,25 +29,25 @@ import java.util.Random;
  * The type Cross difference layer apply.
  */
 public abstract class CrossDifferenceLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {4}
+        {4}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new CrossDifferenceLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends CrossDifferenceLayerTest {
   }
-  
+
 }

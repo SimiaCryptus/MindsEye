@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +37,13 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class LinearActivationLayer extends LayerBase {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(LinearActivationLayer.class);
   @Nullable
   private final Tensor weights;
-  
+
   /**
    * Instantiates a new Linear activation layer.
    */
@@ -60,7 +53,7 @@ public class LinearActivationLayer extends LayerBase {
     weights.set(0, 1.);
     weights.set(1, 0.);
   }
-  
+
   /**
    * Instantiates a new Linear activation layer.
    *
@@ -71,7 +64,7 @@ public class LinearActivationLayer extends LayerBase {
     super(json);
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
-  
+
   /**
    * From json linear activation layer.
    *
@@ -82,13 +75,13 @@ public class LinearActivationLayer extends LayerBase {
   public static LinearActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new LinearActivationLayer(json, rs);
   }
-  
+
   @Override
   protected void _free() {
     weights.freeRef();
     super._free();
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
@@ -137,22 +130,22 @@ public class LinearActivationLayer extends LayerBase {
         in0.accumulate(buffer, tensorList);
       }
     }) {
-      
+
       @Override
       public boolean isAlive() {
         return in0.isAlive() || !isFrozen();
       }
-      
+
       @Override
       protected void _free() {
         weights.freeRef();
         inData.freeRef();
         in0.freeRef();
       }
-      
+
     };
   }
-  
+
   /**
    * Gets bias.
    *
@@ -161,7 +154,7 @@ public class LinearActivationLayer extends LayerBase {
   public double getBias() {
     return weights.get(1);
   }
-  
+
   /**
    * Sets bias.
    *
@@ -173,7 +166,7 @@ public class LinearActivationLayer extends LayerBase {
     weights.set(1, bias);
     return this;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -181,7 +174,7 @@ public class LinearActivationLayer extends LayerBase {
     json.add("weights", weights.toJson(resources, dataSerializer));
     return json;
   }
-  
+
   /**
    * Gets scale.
    *
@@ -190,7 +183,7 @@ public class LinearActivationLayer extends LayerBase {
   public double getScale() {
     return weights.get(0);
   }
-  
+
   /**
    * Sets scale.
    *
@@ -202,11 +195,11 @@ public class LinearActivationLayer extends LayerBase {
     weights.set(0, scale);
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(weights.getData());
   }
-  
+
 }

@@ -29,11 +29,11 @@ public abstract class SinewaveActivationLayerTest extends ActivationLayerTestBas
   public SinewaveActivationLayerTest() {
     super(new SinewaveActivationLayer());
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends SinewaveActivationLayerTest {
   }
-  
+
 }

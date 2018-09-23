@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,13 +34,13 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class CrossDifferenceLayer extends LayerBase {
-  
+
   /**
    * Instantiates a new Cross difference layer.
    */
   public CrossDifferenceLayer() {
   }
-  
+
   /**
    * Instantiates a new Cross difference layer.
    *
@@ -56,7 +49,7 @@ public class CrossDifferenceLayer extends LayerBase {
   protected CrossDifferenceLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json cross difference layer.
    *
@@ -67,7 +60,7 @@ public class CrossDifferenceLayer extends LayerBase {
   public static CrossDifferenceLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new CrossDifferenceLayer(json);
   }
-  
+
   /**
    * Index int.
    *
@@ -79,7 +72,7 @@ public class CrossDifferenceLayer extends LayerBase {
   public static int index(final int x, final int y, final int max) {
     return max * (max - 1) / 2 - (max - x) * (max - x - 1) / 2 + y - x - 1;
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -119,12 +112,12 @@ public class CrossDifferenceLayer extends LayerBase {
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         for (@Nonnull final Result element : inObj)
@@ -133,20 +126,20 @@ public class CrossDifferenceLayer extends LayerBase {
           }
         return false;
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
 }

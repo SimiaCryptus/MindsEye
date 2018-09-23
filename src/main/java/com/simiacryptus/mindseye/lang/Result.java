@@ -36,7 +36,7 @@ public class Result extends ReferenceCountingBase {
    * The Accumulator.
    */
   protected final BiConsumer<DeltaSet<Layer>, TensorList> accumulator;
-  
+
   /**
    * Instantiates a new Nn result.
    *
@@ -48,7 +48,7 @@ public class Result extends ReferenceCountingBase {
     this.data = data;
     this.accumulator = accumulator;
   }
-  
+
   /**
    * Get single delta double [ ].
    *
@@ -62,12 +62,12 @@ public class Result extends ReferenceCountingBase {
     deltaBuffer.freeRef();
     return delta;
   }
-  
+
   public double[] copy(double[] delta) {
     delta = Arrays.copyOf(delta, delta.length);
     return delta;
   }
-  
+
   /**
    * Accumulate.
    *
@@ -76,7 +76,7 @@ public class Result extends ReferenceCountingBase {
   public final void accumulate(final DeltaSet<Layer> buffer) {
     accumulate(buffer, 1.0);
   }
-  
+
   /**
    * Accumulate.
    *
@@ -86,8 +86,8 @@ public class Result extends ReferenceCountingBase {
   public final void accumulate(final DeltaSet<Layer> buffer, final double value) {
     accumulate(buffer, TensorArray.wrap(getData().stream().map(t -> t.mapAndFree(v -> value)).toArray(i -> new Tensor[i])));
   }
-  
-  
+
+
   /**
    * Accumulate.
    *
@@ -101,7 +101,7 @@ public class Result extends ReferenceCountingBase {
       delta.freeRef();
     }
   }
-  
+
   /**
    * Gets data.
    *
@@ -110,7 +110,7 @@ public class Result extends ReferenceCountingBase {
   public final TensorList getData() {
     return data;
   }
-  
+
   /**
    * Is alive boolean.
    *
@@ -119,7 +119,7 @@ public class Result extends ReferenceCountingBase {
   public boolean isAlive() {
     return null != getAccumulator();
   }
-  
+
   /**
    * Gets accumulator.
    *
@@ -129,7 +129,7 @@ public class Result extends ReferenceCountingBase {
     assertAlive();
     return accumulator;
   }
-  
+
   /**
    * Gets data and free.
    *

@@ -48,7 +48,7 @@ public class PCAUtil {
   public static RealMatrix getCovariance(@Nonnull final Supplier<Stream<double[]>> stream) {
     final int dimension = stream.get().findAny().get().length;
     final List<DoubleStatistics> statList = IntStream.range(0, dimension * dimension)
-      .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
+        .mapToObj(i -> new DoubleStatistics()).collect(Collectors.toList());
     stream.get().forEach(array -> {
       for (int i = 0; i < dimension; i++) {
         for (int j = 0; j <= i; j++) {
@@ -67,7 +67,7 @@ public class PCAUtil {
     }
     return covariance;
   }
-  
+
   /**
    * Pca features inv tensor [ ].
    *
@@ -80,18 +80,18 @@ public class PCAUtil {
   public static Tensor[] pcaFeatures(final RealMatrix covariance, final int components, final int[] featureDimensions, final double power) {
     @Nonnull final EigenDecomposition decomposition = new EigenDecomposition(covariance);
     final int[] orderedVectors = IntStream.range(0, components).mapToObj(x -> x)
-      .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
+        .sorted(Comparator.comparing(x -> -decomposition.getRealEigenvalue(x))).mapToInt(x -> x).toArray();
     return IntStream.range(0, orderedVectors.length)
-      .mapToObj(i -> {
-          @Nonnull final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), featureDimensions).copy();
-          return src
-            .scale(1.0 / src.rms())
-            .scale((Math.pow(decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[0]), power)))
-            ;
-        }
-      ).toArray(i -> new Tensor[i]);
+        .mapToObj(i -> {
+              @Nonnull final Tensor src = new Tensor(decomposition.getEigenvector(orderedVectors[i]).toArray(), featureDimensions).copy();
+              return src
+                  .scale(1.0 / src.rms())
+                  .scale((Math.pow(decomposition.getRealEigenvalue(orderedVectors[i]) / decomposition.getRealEigenvalue(orderedVectors[0]), power)))
+                  ;
+            }
+        ).toArray(i -> new Tensor[i]);
   }
-  
+
   /**
    * Populate pca kernel.
    *
@@ -113,7 +113,7 @@ public class PCAUtil {
       return Double.isFinite(v) ? v : kernel.get(c);
     });
   }
-  
+
   /**
    * Populate pca kernel.
    *

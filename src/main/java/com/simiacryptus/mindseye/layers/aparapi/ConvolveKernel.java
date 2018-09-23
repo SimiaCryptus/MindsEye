@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * The type Convolve kernel.
  */
 public final class ConvolveKernel extends Kernel {
-  
+
   /**
    * The Input.
    */
@@ -64,13 +64,13 @@ public final class ConvolveKernel extends Kernel {
    */
   @Nullable
   public double[] weights;
-  
+
   /**
    * Instantiates a new Convolve kernel.
    */
   public ConvolveKernel() {
   }
-  
+
   /**
    * Exe.
    *
@@ -84,7 +84,7 @@ public final class ConvolveKernel extends Kernel {
     assert kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length;
     execute(device.createRange(output.length));
   }
-  
+
   @Override
   public void run() {
     final int i = getGlobalId();
@@ -95,7 +95,7 @@ public final class ConvolveKernel extends Kernel {
     final int o2 = i % os2 / os1;
     final int o1 = i % os1 / os0;
     final int o0 = i % os0;
-    
+
     double accum = 0;
     for (int k = 0; k < weights.length; k++) {
       if (0. != weights[k]) {
@@ -105,7 +105,7 @@ public final class ConvolveKernel extends Kernel {
         final int k2 = k % ks2 / ks1;
         final int k1 = k % ks1 / ks0;
         final int k0 = k % ks0;
-  
+
         final int x = k2 - o2;
         if (x >= 0 && 0 == x % outputSize[2]) {
           final int i2 = x / outputSize[2];
@@ -122,5 +122,5 @@ public final class ConvolveKernel extends Kernel {
     }
     output[i] = accum;
   }
-  
+
 }

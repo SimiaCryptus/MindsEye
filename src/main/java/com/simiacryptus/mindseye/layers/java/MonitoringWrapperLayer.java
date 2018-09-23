@@ -20,16 +20,12 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.lang.TimedResult;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.MonitoredItem;
 import com.simiacryptus.util.MonitoredObject;
 import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
-import com.simiacryptus.util.lang.TimedResult;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @SuppressWarnings({"serial", "FieldCanBeLocal"})
 public final class MonitoringWrapperLayer extends WrapperLayer implements MonitoredItem {
-  
+
   private final PercentileStatistics backwardPerformance = new PercentileStatistics();
   private final ScalarStatistics backwardSignal = new PercentileStatistics();
   private final PercentileStatistics forwardPerformance = new PercentileStatistics();
@@ -54,7 +50,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   private boolean recordSignalMetrics = false;
   private int totalBatches = 0;
   private int totalItems = 0;
-  
+
   /**
    * Instantiates a new Monitoring wrapper layer.
    *
@@ -79,7 +75,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     totalBatches = json.get("totalBatches").getAsInt();
     totalItems = json.get("totalItems").getAsInt();
   }
-  
+
   /**
    * Instantiates a new Monitoring wrapper layer.
    *
@@ -88,7 +84,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public MonitoringWrapperLayer(final Layer inner) {
     super(inner);
   }
-  
+
   /**
    * From json monitoring wrapper layer.
    *
@@ -99,7 +95,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public static MonitoringWrapperLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MonitoringWrapperLayer(json, rs);
   }
-  
+
   /**
    * Add to monitoring wrapper layer.
    *
@@ -110,7 +106,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public MonitoringWrapperLayer addTo(@Nonnull final MonitoredObject obj) {
     return addTo(obj, getInner().getName());
   }
-  
+
   /**
    * Add to monitoring wrapper layer.
    *
@@ -124,7 +120,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     obj.addObj(getName(), this);
     return this;
   }
-  
+
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
     @Nonnull final AtomicLong passbackNanos = new AtomicLong(0);
@@ -133,13 +129,13 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         data.addRef();
         passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }) {
-  
+
         @Override
         protected void _free() {
           result.freeRef();
         }
-  
-  
+
+
         @Override
         public boolean isAlive() {
           return result.isAlive();
@@ -170,19 +166,19 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
       data.addRef();
       backwardPerformance.add((TimedResult.time(() -> output.accumulate(buffer, data)).timeNanos - passbackNanos.getAndSet(0)) / (items * 1e9));
     }) {
-  
+
       @Override
       protected void _free() {
         output.freeRef();
       }
-      
+
       @Override
       public boolean isAlive() {
         return output.isAlive();
       }
     };
   }
-  
+
   /**
    * Gets backward performance.
    *
@@ -192,7 +188,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public PercentileStatistics getBackwardPerformance() {
     return backwardPerformance;
   }
-  
+
   /**
    * Gets backward signal.
    *
@@ -202,7 +198,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public ScalarStatistics getBackwardSignal() {
     return backwardSignal;
   }
-  
+
   /**
    * Gets forward performance.
    *
@@ -212,7 +208,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public PercentileStatistics getForwardPerformance() {
     return forwardPerformance;
   }
-  
+
   /**
    * Gets forward signal.
    *
@@ -222,7 +218,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public ScalarStatistics getForwardSignal() {
     return forwardSignal;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -234,7 +230,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     json.addProperty("recordSignalMetrics", recordSignalMetrics);
     return json;
   }
-  
+
   @Nonnull
   @Override
   public Map<CharSequence, Object> getMetrics() {
@@ -270,13 +266,13 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     }
     return map;
   }
-  
+
   @Nullable
   @Override
   public String getName() {
     return getInner().getName();
   }
-  
+
   /**
    * Record signal metrics boolean.
    *
@@ -285,7 +281,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public boolean recordSignalMetrics() {
     return recordSignalMetrics;
   }
-  
+
   @Nonnull
   @Override
   public Layer setName(final String name) {
@@ -294,7 +290,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
     }
     return this;
   }
-  
+
   /**
    * Should record signal metrics monitoring wrapper layer.
    *

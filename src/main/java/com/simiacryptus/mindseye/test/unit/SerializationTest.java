@@ -25,8 +25,8 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.SerialPrecision;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.NotebookOutput;
 import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nonnull;
@@ -48,7 +48,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   private final HashMap<SerialPrecision, Layer> models = new HashMap<>();
   private boolean persist = false;
-  
+
   /**
    * Compress gz byte [ ].
    *
@@ -58,7 +58,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   public static byte[] compressGZ(@Nonnull String prettyPrint) {
     return compressGZ(prettyPrint.getBytes(Charset.forName("UTF-8")));
   }
-  
+
   /**
    * Compress gz byte [ ].
    *
@@ -76,13 +76,13 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     }
     return byteArrayOutputStream.toByteArray();
   }
-  
+
   @Nullable
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, final Tensor... inputPrototype) {
     log.h1("Serialization");
     log.p("This apply will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
-    
+
     String prettyPrint = "";
     log.h2("Raw Json");
     try {
@@ -131,10 +131,10 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
           e.printStackTrace();
         }
       });
-    
+
     return null;
   }
-  
+
   /**
    * Gets models.
    *
@@ -144,7 +144,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   public HashMap<SerialPrecision, Layer> getModels() {
     return models;
   }
-  
+
   /**
    * Is persist boolean.
    *
@@ -153,7 +153,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   public boolean isPersist() {
     return persist;
   }
-  
+
   /**
    * Sets persist.
    *
@@ -165,13 +165,13 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
     this.persist = persist;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "SerializationTest{" +
-      "models=" + models +
-      ", persist=" + persist +
-      '}';
+        "models=" + models +
+        ", persist=" + persist +
+        '}';
   }
 }

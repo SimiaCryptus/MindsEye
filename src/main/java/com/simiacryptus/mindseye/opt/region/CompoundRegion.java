@@ -23,9 +23,9 @@ package com.simiacryptus.mindseye.opt.region;
  * This combination region yields the effective itersection of the trust region volumes.
  */
 public class CompoundRegion implements TrustRegion {
-  
+
   private final TrustRegion[] inner;
-  
+
   /**
    * Instantiates a new Compound region.
    *
@@ -34,7 +34,7 @@ public class CompoundRegion implements TrustRegion {
   public CompoundRegion(final TrustRegion... inner) {
     this.inner = inner;
   }
-  
+
   @Override
   public double[] project(final double[][] history, final double[] point) {
     double[] returnValue = point;
@@ -43,5 +43,5 @@ public class CompoundRegion implements TrustRegion {
     }
     return returnValue;
   }
-  
+
 }

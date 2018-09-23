@@ -29,35 +29,35 @@ import java.util.Random;
  * The type Avg reducer layer apply.
  */
 public abstract class AvgReducerLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new AvgReducerLayer();
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {200, 200, 3}
+        {200, 200, 3}
     };
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends AvgMetaLayerTest {
-  
+
   }
-  
-  
+
+
 }

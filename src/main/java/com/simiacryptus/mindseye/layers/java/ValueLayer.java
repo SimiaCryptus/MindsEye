@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,10 +34,10 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class ValueLayer extends LayerBase {
-  
+
   @Nullable
   private Tensor data;
-  
+
   /**
    * Instantiates a new Const nn layer.
    *
@@ -55,7 +48,7 @@ public class ValueLayer extends LayerBase {
     super(json);
     data = Tensor.fromJson(json.get("value"), resources);
   }
-  
+
   /**
    * Instantiates a new Const nn layer.
    *
@@ -67,7 +60,7 @@ public class ValueLayer extends LayerBase {
     data.addRef();
     this.frozen = true;
   }
-  
+
   /**
    * From json const nn layer.
    *
@@ -78,7 +71,7 @@ public class ValueLayer extends LayerBase {
   public static ValueLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ValueLayer(json, rs);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... array) {
@@ -93,25 +86,25 @@ public class ValueLayer extends LayerBase {
         });
       }
     }) {
-      
+
       @Override
       protected void _free() {
         ValueLayer.this.data.freeRef();
         ValueLayer.this.freeRef();
       }
-      
+
       @Override
       public boolean isAlive() {
         return !ValueLayer.this.isFrozen();
       }
     };
   }
-  
+
   @Override
   protected void _free() {
     data.freeRef();
   }
-  
+
   /**
    * Gets data.
    *
@@ -121,7 +114,7 @@ public class ValueLayer extends LayerBase {
   public Tensor getData() {
     return data;
   }
-  
+
   /**
    * Sets data.
    *
@@ -132,7 +125,7 @@ public class ValueLayer extends LayerBase {
     if (null != this.data) this.data.freeRef();
     this.data = data;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -140,7 +133,7 @@ public class ValueLayer extends LayerBase {
     json.add("value", data.toJson(resources, dataSerializer));
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

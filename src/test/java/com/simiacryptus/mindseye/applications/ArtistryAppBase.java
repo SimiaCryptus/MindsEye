@@ -21,7 +21,7 @@ package com.simiacryptus.mindseye.applications;
 
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +34,9 @@ import java.util.Date;
  * The type ArtistryAppBase demo.
  */
 public abstract class ArtistryAppBase extends NotebookReportBase {
-  
+
   private static final Logger logger = LoggerFactory.getLogger(ArtistryAppBase.class);
-  
+
   /**
    * Test.
    *
@@ -46,20 +46,20 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
   public final void run() {
     run(notebookOutput -> run(notebookOutput), getClass().getSimpleName() + "_" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()));
   }
-  
+
   /**
    * Run.
    *
    * @param notebookOutput the notebook output
    */
   protected abstract void run(final NotebookOutput notebookOutput);
-  
+
   @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Applications;
   }
-  
+
   /**
    * Init.
    *
@@ -74,5 +74,5 @@ public abstract class ArtistryAppBase extends NotebookReportBase {
 //    log.p(log.file((String) null, logName, "GPU Log"));
 //    CudaSystem.addLog(new PrintStream(log.file(logName)));
   }
-  
+
 }

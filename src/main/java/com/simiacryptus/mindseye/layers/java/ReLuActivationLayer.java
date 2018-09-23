@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,13 +38,13 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ReLuActivationLayer extends LayerBase {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ReLuActivationLayer.class);
   @Nullable
   private final Tensor weights;
-  
+
   /**
    * Instantiates a new Re lu activation layer.
    */
@@ -61,7 +54,7 @@ public class ReLuActivationLayer extends LayerBase {
     weights.set(0, 1.);
     this.frozen = true;
   }
-  
+
   /**
    * Instantiates a new Re lu activation layer.
    *
@@ -72,7 +65,7 @@ public class ReLuActivationLayer extends LayerBase {
     super(json);
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
-  
+
   /**
    * From json re lu activation layer.
    *
@@ -83,13 +76,13 @@ public class ReLuActivationLayer extends LayerBase {
   public static ReLuActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ReLuActivationLayer(json, rs);
   }
-  
+
   @Override
   protected void _free() {
     weights.freeRef();
     super._free();
   }
-  
+
   /**
    * Add weights re lu activation layer.
    *
@@ -101,7 +94,7 @@ public class ReLuActivationLayer extends LayerBase {
     Util.add(f, weights.getData());
     return this;
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
@@ -159,22 +152,22 @@ public class ReLuActivationLayer extends LayerBase {
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         input.freeRef();
         indata.freeRef();
         weights.freeRef();
       }
-      
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -182,7 +175,7 @@ public class ReLuActivationLayer extends LayerBase {
     json.add("weights", weights.toJson(resources, dataSerializer));
     return json;
   }
-  
+
   /**
    * Gets mobility.
    *
@@ -191,7 +184,7 @@ public class ReLuActivationLayer extends LayerBase {
   protected double getMobility() {
     return 1;
   }
-  
+
   /**
    * Sets weight.
    *
@@ -203,7 +196,7 @@ public class ReLuActivationLayer extends LayerBase {
     weights.set(0, data);
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -215,11 +208,11 @@ public class ReLuActivationLayer extends LayerBase {
     Arrays.parallelSetAll(weights.getData(), i -> f.getAsDouble());
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(weights.getData());
   }
-  
+
 }

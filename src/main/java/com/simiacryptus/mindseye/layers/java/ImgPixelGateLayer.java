@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,18 +35,18 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ImgPixelGateLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgPixelGateLayer.class);
-  
+
   /**
    * Instantiates a new Img band scale layer.
    */
   public ImgPixelGateLayer() {
     super();
   }
-  
-  
+
+
   /**
    * Instantiates a new Img band scale layer.
    *
@@ -62,7 +55,7 @@ public class ImgPixelGateLayer extends LayerBase {
   protected ImgPixelGateLayer(@Nonnull final JsonObject json) {
     super(json);
   }
-  
+
   /**
    * From json img band scale layer.
    *
@@ -73,14 +66,14 @@ public class ImgPixelGateLayer extends LayerBase {
   public static ImgPixelGateLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgPixelGateLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
     assert 2 == inObj.length;
     return eval(inObj[0], inObj[1]);
   }
-  
+
   /**
    * Eval nn result.
    *
@@ -116,10 +109,10 @@ public class ImgPixelGateLayer extends LayerBase {
           Tensor deltaTensor = delta.get(i);
           Tensor gateTensor = gateData.get(i);
           Tensor result = new Tensor(input.getData().getDimensions())
-            .setByCoord(c -> {
-              int[] coords = c.getCoords();
-              return deltaTensor.get(coords[0], coords[1], 0) * gateTensor.get(coords[0], coords[1], 0);
-            });
+              .setByCoord(c -> {
+                int[] coords = c.getCoords();
+                return deltaTensor.get(coords[0], coords[1], 0) * gateTensor.get(coords[0], coords[1], 0);
+              });
           deltaTensor.freeRef();
           gateTensor.freeRef();
           return result;
@@ -131,10 +124,10 @@ public class ImgPixelGateLayer extends LayerBase {
           Tensor deltaTensor = delta.get(i);
           Tensor inputTensor = inputData.get(i);
           Tensor result = new Tensor(gateData.getDimensions())
-            .setByCoord(c -> IntStream.range(0, inputDims[2]).mapToDouble(b -> {
-              int[] coords = c.getCoords();
-              return deltaTensor.get(coords[0], coords[1], 0) * inputTensor.get(coords[0], coords[1], b);
-            }).sum());
+              .setByCoord(c -> IntStream.range(0, inputDims[2]).mapToDouble(b -> {
+                int[] coords = c.getCoords();
+                return deltaTensor.get(coords[0], coords[1], 0) * inputTensor.get(coords[0], coords[1], b);
+              }).sum());
           deltaTensor.freeRef();
           inputTensor.freeRef();
           return result;
@@ -142,7 +135,7 @@ public class ImgPixelGateLayer extends LayerBase {
         gate.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         inputData.freeRef();
@@ -150,22 +143,22 @@ public class ImgPixelGateLayer extends LayerBase {
         gate.freeRef();
         gateData.freeRef();
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

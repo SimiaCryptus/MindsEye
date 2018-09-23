@@ -20,24 +20,8 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.ComponentException;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.mindseye.layers.java.AvgPoolingLayer;
 import com.simiacryptus.mindseye.layers.java.MaxPoolingLayer;
 import jcuda.jcudnn.cudnnPoolingDescriptor;
@@ -56,7 +40,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLayer> {
-  
+
   private PoolingMode mode = PoolingMode.Max;
   private int paddingX = 0;
   private int paddingY = 0;
@@ -66,7 +50,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   private int windowX = 2;
   private int windowY = 2;
   private double alpha;
-  
+
   /**
    * Instantiates a new Pooling layer.
    */
@@ -74,7 +58,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     super();
     alpha = 1.0;
   }
-  
+
   /**
    * Instantiates a new Pooling layer.
    *
@@ -93,7 +77,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     precision = Precision.valueOf(json.get("precision").getAsString());
     alpha = 1.0;
   }
-  
+
   /**
    * From json pooling layer.
    *
@@ -104,7 +88,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public static PoolingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PoolingLayer(json);
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -116,7 +100,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     if (mode == PoolingMode.Avg) return this.as(AvgPoolingLayer.class);
     else throw new RuntimeException("Not Implemented");
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -135,7 +119,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
       try {
         gpu.initThread();
         @Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
-          mode.id, poolDims, windowSize, padding, stride);
+            mode.id, poolDims, windowSize, padding, stride);
         @Nullable final CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
         CudaSystem.handle(CudaSystem.cudnnGetPoolingNdForwardOutputDim(poolingDesc.getPtr(), inputTensor.descriptor.getPtr(), 4, outputSize));
         assert inputSize[2] == outputSize[1];
@@ -143,10 +127,10 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
         @Nonnull final CudaMemory outputTensor = gpu.allocate((long) precision.size * Tensor.length(outputSize), MemoryType.Managed.normalize(), true);
         CudaMemory inputDataMemory = inputTensor.getMemory(gpu);
         CudaSystem.handle(gpu.cudnnPoolingForward(poolingDesc.getPtr(),
-          precision.getPointer(alpha),
-          inputTensor.descriptor.getPtr(), inputDataMemory.getPtr(),
-          precision.getPointer(0.0),
-          outputDescriptor.getPtr(), outputTensor.getPtr()));
+            precision.getPointer(alpha),
+            inputTensor.descriptor.getPtr(), inputDataMemory.getPtr(),
+            precision.getPointer(0.0),
+            outputDescriptor.getPtr(), outputTensor.getPtr()));
         assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
         inputDataMemory.dirty();
         outputTensor.dirty();
@@ -157,54 +141,58 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
       }
     }, inputData);
     return new Result(CudaTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
-      (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
-        assert error.length() == inputData.length();
-        if (input.isAlive()) {
-          TensorList data = CudaSystem.run(gpu -> {
-            @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision,
-              length, inputSize[2], inputSize[1], inputSize[0],
-              inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
-            @Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
-              mode.id, poolDims, windowSize, padding, stride);
-            @Nullable final CudaTensor inputTensor;
-            synchronized (gpu) {inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);}
-            @Nullable final CudaTensor errorPtr;
-            synchronized (gpu) {errorPtr = gpu.getTensor(error, precision, MemoryType.Device, true);}
-            @Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) inputDims * precision.size * length, MemoryType.Managed.normalize(), true);
-            CudaMemory outputDataMemory = outputData.getMemory(gpu);
-            CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
-            CudaMemory inputDataMemory = inputTensor.getMemory(gpu);
-            CudaSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
-              precision.getPointer(this.alpha), outputData.descriptor.getPtr(), outputDataMemory.getPtr(),
-              errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
-              inputTensor.descriptor.getPtr(), inputDataMemory.getPtr(),
-              precision.getPointer(0.0), passbackDescriptor.getPtr(), passbackBuffer.getPtr()));
-            outputDataMemory.dirty();
-            errorPtrMemory.dirty();
-            inputDataMemory.dirty();
-            passbackBuffer.dirty();
-  
-            Stream.<ReferenceCounting>of(errorPtr, inputTensor, poolingDesc, outputDataMemory, errorPtrMemory, inputDataMemory).forEach(ReferenceCounting::freeRef);
-            return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor, precision), length, inputSize, precision);
-          }, error);
-          input.accumulate(buffer, data);
-        }
-      }) {
-      
+        (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+          assert error.length() == inputData.length();
+          if (input.isAlive()) {
+            TensorList data = CudaSystem.run(gpu -> {
+              @Nonnull final CudaDevice.CudaTensorDescriptor passbackDescriptor = gpu.newTensorDescriptor(precision,
+                  length, inputSize[2], inputSize[1], inputSize[0],
+                  inputSize[2] * inputSize[1] * inputSize[0], inputSize[1] * inputSize[0], inputSize[0], 1);
+              @Nonnull final CudaResource<cudnnPoolingDescriptor> poolingDesc = gpu.createPoolingDescriptor(
+                  mode.id, poolDims, windowSize, padding, stride);
+              @Nullable final CudaTensor inputTensor;
+              synchronized (gpu) {
+                inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
+              }
+              @Nullable final CudaTensor errorPtr;
+              synchronized (gpu) {
+                errorPtr = gpu.getTensor(error, precision, MemoryType.Device, true);
+              }
+              @Nonnull final CudaMemory passbackBuffer = gpu.allocate((long) inputDims * precision.size * length, MemoryType.Managed.normalize(), true);
+              CudaMemory outputDataMemory = outputData.getMemory(gpu);
+              CudaMemory errorPtrMemory = errorPtr.getMemory(gpu);
+              CudaMemory inputDataMemory = inputTensor.getMemory(gpu);
+              CudaSystem.handle(gpu.cudnnPoolingBackward(poolingDesc.getPtr(),
+                  precision.getPointer(this.alpha), outputData.descriptor.getPtr(), outputDataMemory.getPtr(),
+                  errorPtr.descriptor.getPtr(), errorPtrMemory.getPtr(),
+                  inputTensor.descriptor.getPtr(), inputDataMemory.getPtr(),
+                  precision.getPointer(0.0), passbackDescriptor.getPtr(), passbackBuffer.getPtr()));
+              outputDataMemory.dirty();
+              errorPtrMemory.dirty();
+              inputDataMemory.dirty();
+              passbackBuffer.dirty();
+
+              Stream.<ReferenceCounting>of(errorPtr, inputTensor, poolingDesc, outputDataMemory, errorPtrMemory, inputDataMemory).forEach(ReferenceCounting::freeRef);
+              return CudaTensorList.wrap(CudaTensor.wrap(passbackBuffer, passbackDescriptor, precision), length, inputSize, precision);
+            }, error);
+            input.accumulate(buffer, data);
+          }
+        }) {
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         inputData.freeRef();
         outputData.freeRef();
       }
-      
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -220,7 +208,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   /**
    * Gets mode.
    *
@@ -229,7 +217,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public PoolingMode getMode() {
     return mode;
   }
-  
+
   /**
    * Sets mode.
    *
@@ -241,7 +229,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     this.mode = mode;
     return this;
   }
-  
+
   /**
    * Gets padding x.
    *
@@ -250,7 +238,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public int getPaddingX() {
     return paddingX;
   }
-  
+
   /**
    * Sets padding x.
    *
@@ -262,7 +250,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     this.paddingX = paddingX;
     return this;
   }
-  
+
   /**
    * Gets padding y.
    *
@@ -271,7 +259,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public int getPaddingY() {
     return paddingY;
   }
-  
+
   /**
    * Sets padding y.
    *
@@ -283,19 +271,19 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     this.paddingY = paddingY;
     return this;
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public PoolingLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   /**
    * Gets stride x.
    *
@@ -304,7 +292,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public int getStrideX() {
     return strideX;
   }
-  
+
   /**
    * Sets stride x.
    *
@@ -316,7 +304,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     this.strideX = strideX;
     return this;
   }
-  
+
   /**
    * Gets stride y.
    *
@@ -325,7 +313,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public int getStrideY() {
     return strideY;
   }
-  
+
   /**
    * Sets stride y.
    *
@@ -337,7 +325,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     this.strideY = strideY;
     return this;
   }
-  
+
   /**
    * Gets window x.
    *
@@ -346,7 +334,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public int getWindowX() {
     return windowX;
   }
-  
+
   /**
    * Sets window x.
    *
@@ -358,7 +346,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     this.windowX = windowX;
     return this;
   }
-  
+
   /**
    * Gets window y.
    *
@@ -367,7 +355,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public int getWindowY() {
     return windowY;
   }
-  
+
   /**
    * Sets window y.
    *
@@ -379,13 +367,13 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     this.windowY = windowY;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   /**
    * Sets window xy.
    *
@@ -399,7 +387,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     setWindowX(x);
     return this;
   }
-  
+
   /**
    * Sets stride xy.
    *
@@ -413,7 +401,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     setStrideY(y);
     return this;
   }
-  
+
   /**
    * Sets padding xy.
    *
@@ -427,7 +415,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     setPaddingY(y);
     return this;
   }
-  
+
   /**
    * Gets alphaList.
    *
@@ -436,7 +424,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   public double getAlpha() {
     return alpha;
   }
-  
+
   /**
    * Sets alphaList.
    *
@@ -447,7 +435,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
     this.alpha = alpha;
     return this;
   }
-  
+
   /**
    * The enum Pooling mode.
    */
@@ -464,7 +452,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
      * The Id.
      */
     final int id;
-    
+
     PoolingMode(final int id) {
       this.id = id;
     }

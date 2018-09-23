@@ -27,10 +27,10 @@ import javax.annotation.Nonnull;
  * This trust region uses recent position history to define an ellipsoid volume for the n+1 line search
  */
 public class AdaptiveTrustSphere implements TrustRegion {
-  
+
   private int divisor = 5;
   private int lookback = 10;
-  
+
   /**
    * Gets divisor.
    *
@@ -39,7 +39,7 @@ public class AdaptiveTrustSphere implements TrustRegion {
   public int getDivisor() {
     return divisor;
   }
-  
+
   /**
    * Sets divisor.
    *
@@ -51,7 +51,7 @@ public class AdaptiveTrustSphere implements TrustRegion {
     this.divisor = divisor;
     return this;
   }
-  
+
   /**
    * Gets lookback.
    *
@@ -60,7 +60,7 @@ public class AdaptiveTrustSphere implements TrustRegion {
   public int getLookback() {
     return lookback;
   }
-  
+
   /**
    * Sets lookback.
    *
@@ -72,7 +72,7 @@ public class AdaptiveTrustSphere implements TrustRegion {
     this.lookback = lookback;
     return this;
   }
-  
+
   /**
    * Length double.
    *
@@ -82,7 +82,7 @@ public class AdaptiveTrustSphere implements TrustRegion {
   public double length(@Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
-  
+
   @Nonnull
   @Override
   public double[] project(@Nonnull final double[][] history, @Nonnull final double[] point) {

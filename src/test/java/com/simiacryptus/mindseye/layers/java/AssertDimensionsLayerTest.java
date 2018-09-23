@@ -29,26 +29,26 @@ import java.util.Random;
  * The type Assert dimensions layer apply.
  */
 public abstract class AssertDimensionsLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {2, 2}
+        {2, 2}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new AssertDimensionsLayer(2, 2);
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends AssertDimensionsLayerTest {
-  
+
   }
-  
+
 }

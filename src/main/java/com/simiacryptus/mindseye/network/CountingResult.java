@@ -19,12 +19,7 @@
 
 package com.simiacryptus.mindseye.network;
 
-import com.simiacryptus.mindseye.lang.CoreSettings;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,13 +40,13 @@ public class CountingResult extends Result {
    * The constant logger.
    */
   protected static final Logger logger = LoggerFactory.getLogger(CountingResult.class);
-  
+
   /**
    * The Inner.
    */
   @Nonnull
   private final Result inner;
-  
+
   /**
    * Instantiates a new Counting nn result.
    *
@@ -62,7 +57,7 @@ public class CountingResult extends Result {
     this.inner = inner;
     inner.addRef();
   }
-  
+
   /**
    * Instantiates a new Counting result.
    *
@@ -73,24 +68,24 @@ public class CountingResult extends Result {
     this(r);
     getAccumulator().references.set(samples);
   }
-  
+
   @Nonnull
   @Override
   public CountingAccumulator getAccumulator() {
     return (CountingAccumulator) super.getAccumulator();
   }
-  
+
   @Override
   protected void _free() {
     inner.freeRef();
     ((CountingAccumulator) accumulator).freeRef();
   }
-  
+
   @Override
   public boolean isAlive() {
     return inner.isAlive();
   }
-  
+
   /**
    * The type Counting accumulator.
    */
@@ -104,7 +99,7 @@ public class CountingResult extends Result {
     private final LinkedList<TensorList> passbackBuffers;
     @Nonnull
     private final AtomicInteger accumulations;
-  
+
     /**
      * Instantiates a new Counting accumulator.
      *
@@ -118,7 +113,7 @@ public class CountingResult extends Result {
       passbackBuffers = new LinkedList<>();
       accumulations = new AtomicInteger(0);
     }
-  
+
     /**
      * Increment counting nn result.
      *
@@ -127,7 +122,7 @@ public class CountingResult extends Result {
     public int increment() {
       return this.references.incrementAndGet();
     }
-  
+
     /**
      * Gets count.
      *
@@ -136,7 +131,7 @@ public class CountingResult extends Result {
     public int getCount() {
       return this.references.get();
     }
-  
+
     @Override
     public void accept(DeltaSet<Layer> buffer, @Nonnull TensorList data) {
       //assert null == CudaSystem.getThreadHandle();
@@ -145,16 +140,15 @@ public class CountingResult extends Result {
       if (1 >= references.get()) {
         data.addRef();
         inner.accumulate(buffer, data);
-      }
-      else {
+      } else {
         @Nonnull TensorList reduced = null;
         synchronized (passbackBuffers) {
           assert passbackBuffers.stream().allMatch(x -> x.assertAlive());
           passbackBuffers.add(data);
           data.addRef();
-          if (passbackBuffers.size() > CoreSettings.INSTANCE.backpropAggregationSize) {
+          if (passbackBuffers.size() > CoreSettings.INSTANCE().backpropAggregationSize) {
             Stream<TensorList> stream = passbackBuffers.stream();
-            if (!CoreSettings.INSTANCE.isSingleThreaded()) stream = stream.parallel();
+            if (!CoreSettings.INSTANCE().isSingleThreaded()) stream = stream.parallel();
             //x.addRef();
             @Nonnull TensorList compacted = stream.reduce((a, b) -> {
               TensorList c;
@@ -169,7 +163,7 @@ public class CountingResult extends Result {
           }
           if (accumulations.incrementAndGet() == references.get()) {
             Stream<TensorList> stream = passbackBuffers.stream();
-            if (!CoreSettings.INSTANCE.isSingleThreaded()) stream = stream.parallel();
+            if (!CoreSettings.INSTANCE().isSingleThreaded()) stream = stream.parallel();
             reduced = stream.reduce((a, b) -> {
               TensorList c;
               c = a.addAndFree(b);
@@ -186,7 +180,7 @@ public class CountingResult extends Result {
         }
       }
     }
-  
+
     @Override
     protected void _free() {
       synchronized (passbackBuffers) {
@@ -195,7 +189,7 @@ public class CountingResult extends Result {
       }
       this.inner.freeRef();
     }
-    
-    
+
+
   }
 }

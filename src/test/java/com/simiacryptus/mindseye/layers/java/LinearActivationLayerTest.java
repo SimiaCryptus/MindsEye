@@ -29,11 +29,11 @@ public abstract class LinearActivationLayerTest extends ActivationLayerTestBase 
   public LinearActivationLayerTest() {
     super(new LinearActivationLayer());
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends LinearActivationLayerTest {
   }
-  
+
 }

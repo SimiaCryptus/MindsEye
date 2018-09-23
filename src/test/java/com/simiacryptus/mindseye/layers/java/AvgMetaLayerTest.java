@@ -29,34 +29,34 @@ import java.util.Random;
  * The type Avg meta layer apply.
  */
 public abstract class AvgMetaLayerTest extends MetaLayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new AvgMetaLayer().setMinBatchCount(0);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {100}
+        {100}
     };
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends AvgMetaLayerTest {
-  
+
   }
-  
+
 }

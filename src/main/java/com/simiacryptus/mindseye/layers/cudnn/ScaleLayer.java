@@ -35,15 +35,17 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class ScaleLayer extends PipelineNetwork {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ScaleLayer.class);
-  
+
   /**
    * Instantiates a new Std dev meta layer.
    */
-  public ScaleLayer() {this(new Tensor(1));}
-  
+  public ScaleLayer() {
+    this(new Tensor(1));
+  }
+
   /**
    * Instantiates a new Std dev meta layer.
    *
@@ -54,7 +56,7 @@ public class ScaleLayer extends PipelineNetwork {
     //this.weights = weights;
     wrap(new ProductLayer(), getInput(0), wrap(new ValueLayer(weights), new DAGNode[]{})).freeRef();
   }
-  
+
   /**
    * Instantiates a new Std dev meta layer.
    *
@@ -65,7 +67,7 @@ public class ScaleLayer extends PipelineNetwork {
     super(json, rs);
     //weights = new Tensor(1);
   }
-  
+
   /**
    * From json std dev meta layer.
    *
@@ -76,5 +78,5 @@ public class ScaleLayer extends PipelineNetwork {
   public static ScaleLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ScaleLayer(json, rs);
   }
-  
+
 }

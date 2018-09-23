@@ -28,8 +28,8 @@ import org.junit.Test;
  * The type LayerBase apply base.
  */
 public abstract class LayerTestBase extends StandardLayerTests {
-  
-  
+
+
   /**
    * Test.
    *
@@ -44,7 +44,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
 //  public void testMonteCarlo() throws Throwable {
 //    apply(this::monteCarlo);
 //  }
-  
+
   /**
    * Clean all.
    */
@@ -52,7 +52,7 @@ public abstract class LayerTestBase extends StandardLayerTests {
   public void setup() {
     //GpuController.reset();
   }
-  
+
   /**
    * Cleanup.
    */
@@ -61,5 +61,5 @@ public abstract class LayerTestBase extends StandardLayerTests {
     System.gc();
     //GpuController.reset();
   }
-  
+
 }

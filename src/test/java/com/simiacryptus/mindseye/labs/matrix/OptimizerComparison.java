@@ -21,13 +21,8 @@ package com.simiacryptus.mindseye.labs.matrix;
 
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.StepRecord;
-import com.simiacryptus.mindseye.test.integration.ClassifyProblem;
-import com.simiacryptus.mindseye.test.integration.EncodingProblem;
-import com.simiacryptus.mindseye.test.integration.FwdNetworkFactory;
-import com.simiacryptus.mindseye.test.integration.ImageProblemData;
-import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
-import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.mindseye.test.integration.*;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -41,7 +36,7 @@ import java.util.function.Function;
  * The type Optimizer comparison.
  */
 public abstract class OptimizerComparison extends NotebookReportBase {
-  
+
   /**
    * The Data.
    */
@@ -58,7 +53,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    * The Timeout minutes.
    */
   protected int timeoutMinutes = 10;
-  
+
   /**
    * Instantiates a new Optimizer comparison.
    *
@@ -71,7 +66,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
     this.revFactory = revFactory;
     this.data = data;
   }
-  
+
   /**
    * Classification comparison.
    *
@@ -82,7 +77,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
   public void classification() {
     run(this::classification, getClass().getSimpleName(), "Classification");
   }
-  
+
   /**
    * Classification.
    *
@@ -91,10 +86,10 @@ public abstract class OptimizerComparison extends NotebookReportBase {
   public void classification(@Nonnull NotebookOutput log) {
     compare(log, opt -> {
       return new ClassifyProblem(fwdFactory, opt, data, 10)
-        .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
+          .setTimeoutMinutes(timeoutMinutes).run(log).getHistory();
     });
   }
-  
+
   /**
    * Compare.
    *
@@ -102,8 +97,8 @@ public abstract class OptimizerComparison extends NotebookReportBase {
    * @param test the apply
    */
   public abstract void compare(NotebookOutput log, Function<OptimizationStrategy, List<StepRecord>> test);
-  
-  
+
+
   /**
    * Classification comparison.
    *
@@ -114,7 +109,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
   public void encoding() {
     run(this::encoding, getClass().getSimpleName(), "Encoding");
   }
-  
+
   /**
    * Encoding.
    *
@@ -123,10 +118,10 @@ public abstract class OptimizerComparison extends NotebookReportBase {
   public void encoding(@Nonnull NotebookOutput log) {
     compare(log, opt -> {
       return new EncodingProblem(revFactory, opt, data, 20)
-        .setTimeoutMinutes(timeoutMinutes).setTrainingSize(1000).run(log).getHistory();
+          .setTimeoutMinutes(timeoutMinutes).setTrainingSize(1000).run(log).getHistory();
     });
   }
-  
+
   /**
    * Gets timeout minutes.
    *
@@ -135,7 +130,7 @@ public abstract class OptimizerComparison extends NotebookReportBase {
   public int getTimeoutMinutes() {
     return timeoutMinutes;
   }
-  
+
   /**
    * Sets timeout minutes.
    *
@@ -147,13 +142,13 @@ public abstract class OptimizerComparison extends NotebookReportBase {
     this.timeoutMinutes = timeoutMinutes;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public ReportType getReportType() {
     return ReportType.Experiments;
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {

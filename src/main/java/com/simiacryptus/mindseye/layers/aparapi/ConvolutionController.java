@@ -33,11 +33,11 @@ import java.util.stream.IntStream;
  * The type Convolution controller.
  */
 public final class ConvolutionController {
-  
+
   private static final BackpropKernel backpropTask = new BackpropKernel();
   private static final ConvolveKernel convolveTask = new ConvolveKernel();
   private static final GradientKernel kernelTask = new GradientKernel();
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConvolutionController.class);
   /**
@@ -52,7 +52,7 @@ public final class ConvolutionController {
   private Integer paddingX = null;
   @Nullable
   private Integer paddingY = null;
-  
+
   /**
    * Instantiates a new Convolution controller.
    *
@@ -71,20 +71,16 @@ public final class ConvolutionController {
       @Nullable Integer padding;
       if (i == 0) {
         padding = paddingX;
-      }
-      else if (i == 1) {
+      } else if (i == 1) {
         padding = paddingY;
-      }
-      else {
+      } else {
         padding = null;
       }
       if (i == kernelSize.length - 1) {
         x = kernelSize[i] / inputSize[i];
-      }
-      else if (null == padding) {
+      } else if (null == padding) {
         x = inputSize[i];
-      }
-      else {
+      } else {
         x = 1 + inputSize[i] - kernelSize[i] + padding;
       }
       assert 0 < x;
@@ -94,7 +90,7 @@ public final class ConvolutionController {
     assert this.kernelSize.length == 3;
     assert this.inputSize.length == 3;
   }
-  
+
   /**
    * Backprop.
    *
@@ -121,8 +117,8 @@ public final class ConvolutionController {
           ConvolutionController.backpropTask.kernelSize = kernelSize;
           ConvolutionController.backpropTask.put(ConvolutionController.backpropTask.kernelSize);
           ConvolutionController.backpropTask.kernelOffset = new int[]{
-            null == paddingY ? (kernelSize[1] - 1) / 2 : paddingY,
-            null == paddingX ? (kernelSize[0] - 1) / 2 : paddingX
+              null == paddingY ? (kernelSize[1] - 1) / 2 : paddingY,
+              null == paddingX ? (kernelSize[0] - 1) / 2 : paddingX
           };
           ConvolutionController.backpropTask.put(ConvolutionController.convolveTask.kernelOffset);
           @Nullable double[] inputBuffer = null;
@@ -171,9 +167,9 @@ public final class ConvolutionController {
         throw new ComponentException("Error apply " + this, e);
       }
     });
-    
+
   }
-  
+
   /**
    * Convolve.
    *
@@ -200,8 +196,8 @@ public final class ConvolutionController {
           ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.weights);
           ConvolutionController.convolveTask.kernelSize = kernelSize;
           ConvolutionController.convolveTask.kernelOffset = new int[]{
-            null == paddingY ? (kernelSize[1] - 1) / 2 : paddingY,
-            null == paddingX ? (kernelSize[0] - 1) / 2 : paddingX
+              null == paddingY ? (kernelSize[1] - 1) / 2 : paddingY,
+              null == paddingX ? (kernelSize[0] - 1) / 2 : paddingX
           };
           ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.kernelOffset);
           ConvolutionController.convolveTask.put(ConvolutionController.convolveTask.kernelSize);
@@ -255,7 +251,7 @@ public final class ConvolutionController {
       }
     });
   }
-  
+
   /**
    * Get output dims int [ ].
    *
@@ -264,7 +260,7 @@ public final class ConvolutionController {
   public int[] getOutputDims() {
     return outputSize;
   }
-  
+
   private void gradient(@Nonnull final double[] input, @Nonnull final double[] weights, final int weightSize, @Nonnull final double[] output) {
     assert 0 < input.length;
     assert 0 < weights.length;
@@ -281,8 +277,8 @@ public final class ConvolutionController {
           ConvolutionController.kernelTask.weightSize = weightSize;
           ConvolutionController.kernelTask.paralellism = weights.length / weightSize;
           ConvolutionController.kernelTask.kernelOffset = new int[]{
-            paddingY == null ? (kernelSize[1] - 1) / 2 : paddingY,
-            paddingX == null ? (kernelSize[0] - 1) / 2 : paddingX
+              paddingY == null ? (kernelSize[1] - 1) / 2 : paddingY,
+              paddingX == null ? (kernelSize[0] - 1) / 2 : paddingX
           };
           ConvolutionController.kernelTask.setExplicit(true);
           ConvolutionController.kernelTask.put(ConvolutionController.convolveTask.kernelOffset);
@@ -305,7 +301,7 @@ public final class ConvolutionController {
       }
     });
   }
-  
+
   /**
    * Gradient.
    *
@@ -353,7 +349,7 @@ public final class ConvolutionController {
     RecycleBin.DOUBLES.recycle(inputBuffer, inputBuffer.length);
     RecycleBin.DOUBLES.recycle(outputBuffer, outputBuffer.length);
   }
-  
+
   @Override
   public String toString() {
     @Nonnull final StringBuilder builder = new StringBuilder();
@@ -366,7 +362,7 @@ public final class ConvolutionController {
     builder.append("]");
     return builder.toString();
   }
-  
+
   /**
    * Gets padding x.
    *
@@ -376,7 +372,7 @@ public final class ConvolutionController {
   public Integer getPaddingX() {
     return paddingX;
   }
-  
+
   /**
    * Sets padding x.
    *
@@ -385,7 +381,7 @@ public final class ConvolutionController {
   public void setPaddingX(Integer paddingX) {
     this.paddingX = paddingX;
   }
-  
+
   /**
    * Gets padding y.
    *
@@ -395,7 +391,7 @@ public final class ConvolutionController {
   public Integer getPaddingY() {
     return paddingY;
   }
-  
+
   /**
    * Sets padding y.
    *

@@ -32,7 +32,7 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class VariableLayer extends WrapperLayer {
-  
+
   /**
    * Instantiates a new Variable layer.
    *
@@ -42,7 +42,7 @@ public class VariableLayer extends WrapperLayer {
   protected VariableLayer(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
   }
-  
+
   /**
    * Instantiates a new Variable layer.
    *
@@ -51,7 +51,7 @@ public class VariableLayer extends WrapperLayer {
   public VariableLayer(final Layer inner) {
     super(inner);
   }
-  
+
   /**
    * From json variable layer.
    *
@@ -62,12 +62,12 @@ public class VariableLayer extends WrapperLayer {
   public static VariableLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new VariableLayer(json, rs);
   }
-  
+
   @Override
   public List<Layer> getChildren() {
     return super.getChildren();
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -75,7 +75,7 @@ public class VariableLayer extends WrapperLayer {
     json.add("heapCopy", getInner().getJson(resources, dataSerializer));
     return json;
   }
-  
+
   /**
    * Sets heapCopy.
    *
@@ -87,5 +87,5 @@ public class VariableLayer extends WrapperLayer {
     this.getInner().addRef();
     return null;
   }
-  
+
 }

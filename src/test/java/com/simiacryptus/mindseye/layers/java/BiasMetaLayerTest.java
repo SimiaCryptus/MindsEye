@@ -35,25 +35,25 @@ public abstract class BiasMetaLayerTest extends LayerTestBase {
   public BiasMetaLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}, {3}
+        {3}, {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new BiasMetaLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends BiasMetaLayerTest {
   }
-  
+
 }

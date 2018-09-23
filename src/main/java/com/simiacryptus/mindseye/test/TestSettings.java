@@ -35,16 +35,16 @@ public class TestSettings implements Settings {
    * The Tag.
    */
   public final String tag;
-  
+
   /**
    * The Autobrowse.
    */
   public boolean autobrowse;
-  
+
   private TestSettings() {
-    if (CudaSettings.INSTANCE == null) throw new RuntimeException();
+    if (CudaSettings.INSTANCE() == null) throw new RuntimeException();
     tag = Settings.get("GIT_TAG", "master");
     autobrowse = Util.AUTO_BROWSE;
   }
-  
+
 }

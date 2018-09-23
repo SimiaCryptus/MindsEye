@@ -30,8 +30,10 @@ public class CudaStream extends CudaResource<cudaStream_t> {
    *
    * @param stream the stream
    */
-  CudaStream(cudaStream_t stream) {super(stream, CudaSystem::cudaStreamDestroy, CudaSystem.getThreadDeviceId());}
-  
+  CudaStream(cudaStream_t stream) {
+    super(stream, CudaSystem::cudaStreamDestroy, CudaSystem.getThreadDeviceId());
+  }
+
   /**
    * Sync.
    */

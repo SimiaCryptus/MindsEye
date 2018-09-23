@@ -46,14 +46,14 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
   public final OrientationStrategy<?> inner;
   private double factor_L1 = 0.000;
   private double zeroTol = 1e-20;
-  
+
   /**
    * Instantiates a new Owl qn.
    */
   public OwlQn() {
     this(new LBFGS());
   }
-  
+
   /**
    * Instantiates a new Owl qn.
    *
@@ -62,7 +62,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
   protected OwlQn(final OrientationStrategy<?> inner) {
     this.inner = inner;
   }
-  
+
   /**
    * Gets factor l 1.
    *
@@ -71,7 +71,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
   public double getFactor_L1() {
     return factor_L1;
   }
-  
+
   /**
    * Sets factor l 1.
    *
@@ -83,7 +83,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
     this.factor_L1 = factor_L1;
     return this;
   }
-  
+
   /**
    * Gets layers.
    *
@@ -92,12 +92,12 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
    */
   public Collection<Layer> getLayers(@Nonnull final Collection<Layer> layers) {
     return layers.stream()
-      .filter(layer -> {
-        return layer instanceof FullyConnectedLayer;
-      })
-      .collect(Collectors.toList());
+        .filter(layer -> {
+          return layer instanceof FullyConnectedLayer;
+        })
+        .collect(Collectors.toList());
   }
-  
+
   /**
    * Gets zero tol.
    *
@@ -106,7 +106,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
   public double getZeroTol() {
     return zeroTol;
   }
-  
+
   /**
    * Sets zero tol.
    *
@@ -118,7 +118,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
     this.zeroTol = zeroTol;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public LineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, final TrainingMonitor monitor) {
@@ -164,8 +164,7 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
             if (sign(prevValue) != 0 && sign(prevValue) != sign(newValue)) {
               currentDelta[i] = 0;
               buffer.target[i] = 0;
-            }
-            else {
+            } else {
               buffer.target[i] = newValue;
             }
           }
@@ -180,12 +179,12 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
       }
     }.setDirectionType("OWL/QN");
   }
-  
+
   @Override
   public void reset() {
     inner.reset();
   }
-  
+
   /**
    * Sign int.
    *
@@ -195,15 +194,13 @@ public class OwlQn extends OrientationStrategyBase<LineSearchCursor> {
   protected int sign(final double weight) {
     if (weight > zeroTol) {
       return 1;
-    }
-    else if (weight < -zeroTol) {
-    }
-    else {
+    } else if (weight < -zeroTol) {
+    } else {
       return -1;
     }
     return 0;
   }
-  
+
   @Override
   protected void _free() {
     inner.freeRef();

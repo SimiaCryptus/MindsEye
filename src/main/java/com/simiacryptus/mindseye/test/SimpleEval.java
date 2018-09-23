@@ -19,13 +19,7 @@
 
 package com.simiacryptus.mindseye.test;
 
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,8 +39,8 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   private Tensor[] derivative;
   @Nullable
   private Tensor output;
-  
-  
+
+
   /**
    * Instantiates a new Simple trainAll.
    *
@@ -61,7 +55,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     for (@Nonnull Tensor x : input) x.addRef();
     layer.addRef();
   }
-  
+
   /**
    * Run simple trainAll.
    *
@@ -73,7 +67,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   public static SimpleEval run(@Nonnull final Layer layer, final Tensor... tensor) {
     return new SimpleEval(layer, tensor).call();
   }
-  
+
   @Override
   protected void _free() {
     for (@Nonnull Tensor x : input) x.freeRef();
@@ -86,7 +80,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       }
     }
   }
-  
+
   @Nonnull
   @Override
   public SimpleEval call() {
@@ -101,9 +95,9 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       }) {
         @Override
         protected void _free() {
-  
+
         }
-        
+
         @Override
         public boolean isAlive() {
           return true;
@@ -145,7 +139,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       deltaSet.freeRef();
     }
   }
-  
+
   /**
    * Get derivative tensor [ ].
    *
@@ -155,7 +149,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   public Tensor[] getDerivative() {
     return derivative;
   }
-  
+
   /**
    * Gets feedback.
    *
@@ -170,7 +164,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
       return map;
     }).toArray(i -> new Tensor[i]));
   }
-  
+
   /**
    * Gets output.
    *
@@ -180,7 +174,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   public Tensor getOutput() {
     return output;
   }
-  
+
   /**
    * Gets output and free.
    *

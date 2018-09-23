@@ -36,7 +36,7 @@ import javax.annotation.Nonnull;
  * (if it yields a SimpleLineSearch cursor)
  */
 public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCursor> {
-  
+
   /**
    * The Inner.
    */
@@ -47,7 +47,7 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
   @Nonnull
   DeltaSet<Layer> prevDelta = new DeltaSet<Layer>();
   private double carryOver = 0.1;
-  
+
   /**
    * Instantiates a new Momentum strategy.
    *
@@ -56,12 +56,12 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
   public MomentumStrategy(final OrientationStrategy<SimpleLineSearchCursor> inner) {
     this.inner = inner;
   }
-  
+
   @Override
   protected void _free() {
     this.inner.freeRef();
   }
-  
+
   /**
    * Gets carry over.
    *
@@ -70,7 +70,7 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
   public double getCarryOver() {
     return carryOver;
   }
-  
+
   /**
    * Sets carry over.
    *
@@ -82,7 +82,7 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
     this.carryOver = carryOver;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, final TrainingMonitor monitor) {
@@ -96,7 +96,7 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
     prevDelta = newDelta;
     return new SimpleLineSearchCursor(subject, measurement, newDelta);
   }
-  
+
   @Override
   public void reset() {
     inner.reset();

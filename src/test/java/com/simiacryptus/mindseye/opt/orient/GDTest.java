@@ -28,7 +28,7 @@ import com.simiacryptus.mindseye.network.SimpleLossNetwork;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
@@ -37,21 +37,21 @@ import java.util.concurrent.TimeUnit;
  * The type Gd apply.
  */
 public class GDTest extends MnistTestBase {
-  
+
   @Override
   public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.eval(() -> {
       @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @Nonnull final Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 1000);
       return new IterativeTrainer(trainable)
-        .setMonitor(monitor)
-        .setOrientation(new GradientDescent())
-        .setTimeout(5, TimeUnit.MINUTES)
-        .setMaxIterations(500)
-        .runAndFree();
+          .setMonitor(monitor)
+          .setOrientation(new GradientDescent())
+          .setTimeout(5, TimeUnit.MINUTES)
+          .setMaxIterations(500)
+          .runAndFree();
     });
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {

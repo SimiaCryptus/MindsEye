@@ -31,16 +31,16 @@ public abstract class LogActivationLayerTest extends ActivationLayerTestBase {
   public LogActivationLayerTest() {
     super(new LogActivationLayer());
   }
-  
+
   @Override
   public SingleDerivativeTester getDerivativeTester() {
     return new SingleDerivativeTester(1e-2, 1e-8);
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends LogActivationLayerTest {
   }
-  
+
 }

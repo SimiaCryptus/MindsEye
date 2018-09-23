@@ -23,17 +23,7 @@ import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.eval.ArrayTrainable;
 import com.simiacryptus.mindseye.eval.BasicTrainable;
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.PointSample;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.StateSet;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
@@ -54,7 +44,7 @@ import java.util.stream.IntStream;
  * sub-optimization batch apply.
  */
 public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchCursor> {
-  
+
   /**
    * The constant CURSOR_LABEL.
    */
@@ -63,7 +53,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   @Nullable
   private double[] weights = null;
   private double terminateThreshold;
-  
+
   @Nonnull
   @Override
   public SimpleLineSearchCursor orient(@Nonnull Trainable subject, @Nonnull PointSample measurement, @Nonnull TrainingMonitor monitor) {
@@ -86,7 +76,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
       macroLayer.freeRef();
     }
   }
-  
+
   /**
    * Build subspace nn layer.
    *
@@ -102,21 +92,20 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
       monitor.log(String.format("Zero gradient: %s", magnitude));
-    }
-    else if (Math.abs(magnitude) < 1e-5) {
+    } else if (Math.abs(magnitude) < 1e-5) {
       monitor.log(String.format("Low gradient: %s", magnitude));
     }
     boolean hasPlaceholders = direction.getMap().entrySet().stream().filter(x -> x.getKey() instanceof PlaceholderLayer).findAny().isPresent();
-  
+
     List<Layer> deltaLayers = direction.getMap().entrySet().stream().map(x -> x.getKey())
-      .filter(x -> !(x instanceof PlaceholderLayer))
-      .collect(Collectors.toList());
+        .filter(x -> !(x instanceof PlaceholderLayer))
+        .collect(Collectors.toList());
     int size = deltaLayers.size() + (hasPlaceholders ? 1 : 0);
     if (null == weights || weights.length != size) weights = new double[size];
     return new LayerBase() {
       @Nonnull
       Layer self = this;
-  
+
       @Nonnull
       @Override
       public Result eval(Result... array) {
@@ -127,8 +116,8 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
         });
         if (hasPlaceholders) {
           direction.getMap().entrySet().stream()
-            .filter(x -> x.getKey() instanceof PlaceholderLayer).distinct()
-            .forEach(entry -> entry.getValue().accumulate(weights[0]));
+              .filter(x -> x.getKey() instanceof PlaceholderLayer).distinct()
+              .forEach(entry -> entry.getValue().accumulate(weights[0]));
         }
         PointSample measure = subject.measure(monitor);
         double mean = measure.getMean();
@@ -142,11 +131,11 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
           });
           if (hasPlaceholders) {
             deltaStream = DoubleStream.concat(DoubleStream.of(
-              direction.getMap().keySet().stream().filter(x -> x instanceof PlaceholderLayer).distinct().mapToDouble(layer -> {
-                Delta<Layer> a = direction.getMap().get(layer);
-                Delta<Layer> b = measure.delta.getMap().get(layer);
-                return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
-              }).sum()), deltaStream);
+                direction.getMap().keySet().stream().filter(x -> x instanceof PlaceholderLayer).distinct().mapToDouble(layer -> {
+                  Delta<Layer> a = direction.getMap().get(layer);
+                  Delta<Layer> b = measure.delta.getMap().get(layer);
+                  return b.dot(a) / Math.max(Math.sqrt(a.dot(a)), 1e-8);
+                }).sum()), deltaStream);
           }
           buffer.get(self, weights).addInPlace(deltaStream.toArray()).freeRef();
         }) {
@@ -155,14 +144,14 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
             measure.freeRef();
             direction.freeRef();
           }
-  
+
           @Override
           public boolean isAlive() {
             return true;
           }
         };
       }
-  
+
       @Override
       protected void _free() {
         //deltaLayers.stream().forEach(ReferenceCounting::freeRef);
@@ -170,13 +159,13 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
         origin.freeRef();
         super._free();
       }
-  
+
       @Nonnull
       @Override
       public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
         throw new IllegalStateException();
       }
-  
+
       @Nullable
       @Override
       public List<double[]> state() {
@@ -184,7 +173,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
       }
     };
   }
-  
+
   /**
    * Train.
    *
@@ -198,26 +187,26 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     inner.freeRef();
     //tensor.freeRef();
     new IterativeTrainer(trainable)
-      .setOrientation(new LBFGS())
-      .setLineSearchFactory(n -> new ArmijoWolfeSearch())
-      .setMonitor(new TrainingMonitor() {
-        @Override
-        public void log(String msg) {
-          monitor.log("\t" + msg);
-        }
-      })
-      .setMaxIterations(getIterations())
-      .setIterationsPerSample(getIterations())
-      .setTerminateThreshold(terminateThreshold)
-      .runAndFree();
+        .setOrientation(new LBFGS())
+        .setLineSearchFactory(n -> new ArmijoWolfeSearch())
+        .setMonitor(new TrainingMonitor() {
+          @Override
+          public void log(String msg) {
+            monitor.log("\t" + msg);
+          }
+        })
+        .setMaxIterations(getIterations())
+        .setIterationsPerSample(getIterations())
+        .setTerminateThreshold(terminateThreshold)
+        .runAndFree();
     trainable.freeRef();
   }
-  
+
   @Override
   public void reset() {
     weights = null;
   }
-  
+
   /**
    * Gets iterations.
    *
@@ -226,7 +215,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   public int getIterations() {
     return iterations;
   }
-  
+
   /**
    * Sets iterations.
    *
@@ -238,11 +227,11 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
     this.iterations = iterations;
     return this;
   }
-  
+
   @Override
   protected void _free() {
   }
-  
+
   /**
    * Gets terminate threshold.
    *
@@ -251,7 +240,7 @@ public class RecursiveSubspace extends OrientationStrategyBase<SimpleLineSearchC
   public double getTerminateThreshold() {
     return terminateThreshold;
   }
-  
+
   /**
    * Sets terminate threshold.
    *

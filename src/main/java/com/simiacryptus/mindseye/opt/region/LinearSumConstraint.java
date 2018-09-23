@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
  */
 public class LinearSumConstraint implements TrustRegion {
   private boolean permitDecrease = true;
-  
+
   /**
    * Is permit decrease boolean.
    *
@@ -37,7 +37,7 @@ public class LinearSumConstraint implements TrustRegion {
   public boolean isPermitDecrease() {
     return permitDecrease;
   }
-  
+
   /**
    * Sets permit decrease.
    *
@@ -49,7 +49,7 @@ public class LinearSumConstraint implements TrustRegion {
     this.permitDecrease = permitDecrease;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public double[] project(final double[] weights, @Nonnull final double[] point) {
@@ -65,7 +65,7 @@ public class LinearSumConstraint implements TrustRegion {
     }
     return returnValue;
   }
-  
+
   /**
    * Sign int.
    *

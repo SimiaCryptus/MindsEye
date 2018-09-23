@@ -30,12 +30,12 @@ import java.util.Random;
  * The type Img band bias layer apply.
  */
 public abstract class ImgBandBiasLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * The Precision.
    */
   final Precision precision;
-  
+
   /**
    * Instantiates a new Img band bias layer apply.
    *
@@ -44,29 +44,29 @@ public abstract class ImgBandBiasLayerTest extends CudaLayerTestBase {
   public ImgBandBiasLayerTest(final Precision precision) {
     this.precision = precision;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 3}
+        {8, 8, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgBandBiasLayer(3).setPrecision(precision).addWeights(this::random);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+        {1200, 1200, 3}
     };
   }
-  
+
   /**
    * Basic 64-bit apply
    */
@@ -78,7 +78,7 @@ public abstract class ImgBandBiasLayerTest extends CudaLayerTestBase {
       super(Precision.Double);
     }
   }
-  
+
   /**
    * Basic 32-bit apply
    */
@@ -89,7 +89,7 @@ public abstract class ImgBandBiasLayerTest extends CudaLayerTestBase {
     public Float() {
       super(Precision.Float);
     }
-  
+
     @Override
     public SingleDerivativeTester getDerivativeTester() {
       return new SingleDerivativeTester(1e-2, 1e-3);

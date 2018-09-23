@@ -29,11 +29,11 @@ public abstract class GaussianNoiseLayerTest extends ActivationLayerTestBase {
   public GaussianNoiseLayerTest() {
     super(new GaussianNoiseLayer());
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends GaussianNoiseLayerTest {
   }
-  
+
 }

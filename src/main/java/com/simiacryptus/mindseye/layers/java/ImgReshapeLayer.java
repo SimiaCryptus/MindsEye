@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,12 +36,12 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ImgReshapeLayer extends LayerBase {
-  
-  
+
+
   private final boolean expand;
   private final int kernelSizeX;
   private final int kernelSizeY;
-  
+
   /**
    * Instantiates a new Img reshapeCast layer.
    *
@@ -62,7 +55,7 @@ public class ImgReshapeLayer extends LayerBase {
     this.kernelSizeY = kernelSizeY;
     this.expand = expand;
   }
-  
+
   /**
    * Instantiates a new Img reshapeCast layer.
    *
@@ -74,7 +67,7 @@ public class ImgReshapeLayer extends LayerBase {
     kernelSizeY = json.getAsJsonPrimitive("kernelSizeY").getAsInt();
     expand = json.getAsJsonPrimitive("expandPlasma").getAsBoolean();
   }
-  
+
   /**
    * Copy condense tensor.
    *
@@ -110,7 +103,7 @@ public class ImgReshapeLayer extends LayerBase {
     }
     return outputData;
   }
-  
+
   /**
    * Copy expandPlasma tensor.
    *
@@ -145,7 +138,7 @@ public class ImgReshapeLayer extends LayerBase {
     }
     return outputData;
   }
-  
+
   /**
    * From json img reshapeCast layer.
    *
@@ -156,13 +149,13 @@ public class ImgReshapeLayer extends LayerBase {
   public static ImgReshapeLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgReshapeLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
     //assert Arrays.stream(inObj).flatMapToDouble(input-> input.getData().stream().flatMapToDouble(x-> Arrays.stream(x.getData()))).allMatch(v->Double.isFinite(v));
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    
+
     final Result input = inObj[0];
     final TensorList batch = input.getData();
     @Nonnull final int[] inputDims = batch.getDimensions();
@@ -174,51 +167,50 @@ public class ImgReshapeLayer extends LayerBase {
     Tensor outputDims;
     if (expand) {
       outputDims = new Tensor(inputDims[0] * kernelSizeX,
-        inputDims[1] * kernelSizeY,
-        inputDims[2] / (kernelSizeX * kernelSizeY));
-    }
-    else {
+          inputDims[1] * kernelSizeY,
+          inputDims[2] / (kernelSizeX * kernelSizeY));
+    } else {
       outputDims = new Tensor(inputDims[0] / kernelSizeX,
-        inputDims[1] / kernelSizeY,
-        inputDims[2] * kernelSizeX * kernelSizeY);
+          inputDims[1] / kernelSizeY,
+          inputDims[2] * kernelSizeX * kernelSizeY);
     }
     TensorArray data = TensorArray.wrap(IntStream.range(0, batch.length()).parallel()
-      .mapToObj(dataIndex -> {
-        Tensor inputData = batch.get(dataIndex);
-        Tensor tensor = expand ? ImgReshapeLayer.copyExpand(inputData, outputDims.copy()) : ImgReshapeLayer.copyCondense(inputData, outputDims.copy());
-        inputData.freeRef();
-        return tensor;
-      })
-      .toArray(i -> new Tensor[i]));
+        .mapToObj(dataIndex -> {
+          Tensor inputData = batch.get(dataIndex);
+          Tensor tensor = expand ? ImgReshapeLayer.copyExpand(inputData, outputDims.copy()) : ImgReshapeLayer.copyCondense(inputData, outputDims.copy());
+          inputData.freeRef();
+          return tensor;
+        })
+        .toArray(i -> new Tensor[i]));
     outputDims.freeRef();
     return new Result(data, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
-          .mapToObj(dataIndex -> {
-            @Nonnull final Tensor passback = new Tensor(inputDims);
-            @Nullable final Tensor err = error.get(dataIndex);
-            Tensor tensor = expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
-            err.freeRef();
-            return tensor;
-          }).toArray(i -> new Tensor[i]));
+            .mapToObj(dataIndex -> {
+              @Nonnull final Tensor passback = new Tensor(inputDims);
+              @Nullable final Tensor err = error.get(dataIndex);
+              Tensor tensor = expand ? ImgReshapeLayer.copyCondense(err, passback) : ImgReshapeLayer.copyExpand(err, passback);
+              err.freeRef();
+              return tensor;
+            }).toArray(i -> new Tensor[i]));
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return input.isAlive() || !isFrozen();
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -228,12 +220,12 @@ public class ImgReshapeLayer extends LayerBase {
     json.addProperty("expandPlasma", expand);
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();
   }
-  
-  
+
+
 }

@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 public class ConstL12Normalizer extends L12Normalizer implements SampledTrainable, TrainableDataMask {
   private double factor_L1 = 0.0;
   private double factor_L2 = 0.0;
-  
+
   /**
    * Instantiates a new Const l 12 normalizer.
    *
@@ -42,18 +42,18 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
   public ConstL12Normalizer(final Trainable inner) {
     super(inner);
   }
-  
+
   @Nonnull
   @Override
   public SampledCachedTrainable<? extends SampledTrainable> cached() {
     return new SampledCachedTrainable<>(this);
   }
-  
+
   @Override
   public Layer getLayer() {
     return inner.getLayer();
   }
-  
+
   /**
    * Gets factor l 1.
    *
@@ -62,7 +62,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
   public double getFactor_L1() {
     return factor_L1;
   }
-  
+
   /**
    * Sets factor l 1.
    *
@@ -74,7 +74,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
     this.factor_L1 = factor_L1;
     return this;
   }
-  
+
   /**
    * Gets factor l 2.
    *
@@ -83,7 +83,7 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
   public double getFactor_L2() {
     return factor_L2;
   }
-  
+
   /**
    * Sets factor l 2.
    *
@@ -95,43 +95,43 @@ public class ConstL12Normalizer extends L12Normalizer implements SampledTrainabl
     this.factor_L2 = factor_L2;
     return this;
   }
-  
+
   @Override
   protected double getL1(final Layer layer) {
     if (supress(layer)) return 0;
     return factor_L1;
   }
-  
+
   @Override
   protected double getL2(final Layer layer) {
     return factor_L2;
   }
-  
+
   @Nullable
   @Override
   public boolean[] getMask() {
     return ((TrainableDataMask) inner).getMask();
   }
-  
+
   @Override
   public int getTrainingSize() {
     return ((SampledTrainable) inner).getTrainingSize();
   }
-  
+
   @Nonnull
   @Override
   public ConstL12Normalizer setTrainingSize(final int trainingSize) {
     ((SampledTrainable) inner).setTrainingSize(trainingSize);
     return this;
   }
-  
+
   @Nonnull
   @Override
   public TrainableDataMask setMask(final boolean... mask) {
     ((TrainableDataMask) inner).setMask(mask);
     return this;
   }
-  
+
   private boolean supress(final Layer layer) {
     if (layer instanceof BiasLayer) return false;
     if (layer instanceof ImgBandBiasLayer) return false;

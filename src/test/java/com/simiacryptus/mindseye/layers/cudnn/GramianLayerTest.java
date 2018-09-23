@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.Random;
@@ -29,42 +29,42 @@ import java.util.Random;
  * The type Fully connected layer apply.
  */
 public abstract class GramianLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * Instantiates a new Gramian layer test.
    */
   public GramianLayerTest() {
     testingBatchSize = 1;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {2, 2, 3}
+        {2, 2, 3}
     };
   }
-  
+
   @Override
   public abstract int[][] getLargeDims(final Random random);
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {
     return GramianLayer.class;
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new GramianLayer();
   }
-  
+
   @Override
   public Layer getReferenceLayer() {
     return null;
   }
-  
+
   @Override
   public void run(NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
@@ -72,7 +72,7 @@ public abstract class GramianLayerTest extends CudaLayerTestBase {
 //    CudaSystem.addLog(new PrintStream(log.file(logName)));
     super.run(log);
   }
-  
+
   /**
    * Basic Test
    */
@@ -83,16 +83,16 @@ public abstract class GramianLayerTest extends CudaLayerTestBase {
     public Image() {
       super();
     }
-  
+
     @Override
     public int[][] getLargeDims(final Random random) {
       return new int[][]{
-        {1000, 1000, 3}
+          {1000, 1000, 3}
       };
     }
-  
+
   }
-  
+
   /**
    * The type Deep.
    */
@@ -103,14 +103,14 @@ public abstract class GramianLayerTest extends CudaLayerTestBase {
     public Deep() {
       super();
     }
-    
+
     @Override
     public int[][] getLargeDims(final Random random) {
       return new int[][]{
-        {100, 100, 512}
+          {100, 100, 512}
       };
     }
   }
-  
-  
+
+
 }

@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * The type Image tiles.
  */
 public class ImageTiles {
-  
+
   /**
    * Read tensor.
    *
@@ -65,7 +65,7 @@ public class ImageTiles {
     }
     return tensor;
   }
-  
+
   /**
    * Read files stream.
    *
@@ -76,7 +76,7 @@ public class ImageTiles {
     if (dir.isFile()) return Arrays.asList(dir).stream();
     return Arrays.stream(dir.listFiles()).flatMap(ImageTiles::readFiles);
   }
-  
+
   /**
    * Tiles rgb tensor [ ].
    *
@@ -88,7 +88,7 @@ public class ImageTiles {
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height) {
     return ImageTiles.tilesRgb(image, width, height, false);
   }
-  
+
   /**
    * Tiles rgb tensor [ ].
    *
@@ -101,7 +101,7 @@ public class ImageTiles {
   public static Tensor[] tilesRgb(@Nonnull final BufferedImage image, final int width, final int height, final boolean overlap) {
     return ImageTiles.tilesRgb(image, width, height, overlap ? 1 : width, overlap ? 1 : height);
   }
-  
+
   /**
    * Tiles rgb tensor [ ].
    *
@@ -126,7 +126,7 @@ public class ImageTiles {
     }
     return tensors.toArray(new Tensor[]{});
   }
-  
+
   /**
    * To tiles list.
    *
@@ -159,7 +159,7 @@ public class ImageTiles {
     }
     return queue;
   }
-  
+
   /**
    * To tiles list.
    *
@@ -177,12 +177,12 @@ public class ImageTiles {
   public static List<Tensor> toTiles(@Nonnull final File file, final int tileWidth, final int tileHeight, final int minSpacingWidth, final int minSpacingHeight, final int maxTileCols, final int maxTileRows) throws IOException {
     return ImageTiles.toTiles(ImageIO.read(file), tileWidth, tileHeight, minSpacingWidth, minSpacingHeight, maxTileCols, maxTileRows);
   }
-  
+
   /**
    * The type Image tensor loader.
    */
   public static class ImageTensorLoader extends DataLoader<Tensor> {
-  
+
     /**
      * The Max tile cols.
      */
@@ -211,7 +211,7 @@ public class ImageTiles {
      * The Tile width.
      */
     public final int tileWidth;
-  
+
     /**
      * Instantiates a new Image tensor loader.
      *
@@ -232,7 +232,7 @@ public class ImageTiles {
       this.maxTileRows = maxTileRows;
       this.maxTileCols = maxTileCols;
     }
-  
+
     @Override
     protected void read(@Nonnull final List<Tensor> queue) {
       @Nonnull final ArrayList<File> files = new ArrayList<>(ImageTiles.readFiles(parentDirectiory).collect(Collectors.toList()));

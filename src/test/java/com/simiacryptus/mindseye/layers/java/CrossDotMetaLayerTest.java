@@ -29,32 +29,32 @@ import java.util.Random;
  * The type Cross dot meta layer apply.
  */
 public abstract class CrossDotMetaLayerTest extends LayerTestBase {
-  
+
   /**
    * Instantiates a new Cross dot meta layer apply.
    */
   public CrossDotMetaLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new CrossDotMetaLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends CrossDotMetaLayerTest {
   }
-  
+
 }

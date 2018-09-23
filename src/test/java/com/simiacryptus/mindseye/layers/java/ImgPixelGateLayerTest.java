@@ -29,25 +29,25 @@ import java.util.Random;
  * The type Img band select layer apply.
  */
 public abstract class ImgPixelGateLayerTest extends LayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {2, 2, 3}, {2, 2, 1}
+        {2, 2, 3}, {2, 2, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgPixelGateLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ImgPixelGateLayerTest {
   }
-  
+
 }

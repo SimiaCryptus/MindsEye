@@ -30,53 +30,53 @@ import java.util.Random;
  * The type Rascaled subnet layer apply.
  */
 public abstract class ImgTileSubnetLayerTest extends CudaLayerTestBase {
-  
+
   private final ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1).set(() -> this.random());
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {5, 5, 1}
+        {5, 5, 1}
     };
   }
-  
+
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {1200, 1200, 1}
+        {1200, 1200, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgTileSubnetLayer(new ActivationLayer(ActivationLayer.Mode.RELU), 3, 3, 2, 2);
   }
-  
+
   @Nullable
   @Override
   public Layer getReferenceLayer() {
     return new ActivationLayer(ActivationLayer.Mode.RELU);
   }
-  
+
   @Nullable
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.ImgTileSubnetLayer.class;
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ImgTileSubnetLayerTest {
-  
+
     @Nullable
     @Override
     public Class<? extends Layer> getReferenceLayerClass() {
       return null;
     }
-  
+
   }
-  
+
 }

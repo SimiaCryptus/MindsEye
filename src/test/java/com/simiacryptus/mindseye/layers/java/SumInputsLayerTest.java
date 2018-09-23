@@ -35,73 +35,73 @@ public class SumInputsLayerTest {
    * The type N 1 apply.
    */
   public static class N1Test extends LayerTestBase {
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {3}, {1}
+          {3}, {1}
       };
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
-  
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {100}, {1}
+          {100}, {1}
       };
     }
-    
+
   }
-  
+
   /**
    * The type Nn apply.
    */
   public static class NNTest extends LayerTestBase {
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {3}, {3}
+          {3}, {3}
       };
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new SumInputsLayer();
     }
-  
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return new int[][]{
-        {100}, {100}
+          {100}, {100}
       };
     }
-    
+
   }
-  
+
   /**
    * Ensures addition can be used to implement a doubling (x2) function
    */
   public static class OnePlusOne extends LayerTestBase {
-  
+
     /**
      * Instantiates a new Asymmetric apply.
      */
     public OnePlusOne() {
       super();
     }
-  
-  
+
+
     @Nonnull
     @Override
     public Layer getLayer(int[][] inputSize, Random random) {
@@ -110,31 +110,31 @@ public class SumInputsLayerTest {
       network.wrap(new SumInputsLayer(), input, input).freeRef();
       return network;
     }
-    
+
     @Override
     public Layer getReferenceLayer() {
       return null;
     }
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {1, 1, 1}
+          {1, 1, 1}
       };
     }
-  
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(random);
     }
-  
+
     @Nonnull
     @Override
     protected Class<?> getTargetClass() {
       return SumInputsLayer.class;
     }
-    
+
   }
 }

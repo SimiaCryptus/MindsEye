@@ -48,14 +48,14 @@ public class AparapiTest {
    * The Log.
    */
   private static final Logger log = LoggerFactory.getLogger(AparapiTest.class);
-  
+
   /**
    * Instantiates a new Aparapi apply.
    */
   public AparapiTest() {
     super();
   }
-  
+
   /**
    * Main.
    *
@@ -88,12 +88,11 @@ public class AparapiTest {
       log.info("}");
       platformc++;
     }
-  
+
     final Device bestDevice = Device.best();
     if (bestDevice == null) {
       log.info("OpenCLDevice.best() returned null!");
-    }
-    else {
+    } else {
       log.info("OpenCLDevice.best() returned { ");
       log.info("   Type                  : " + bestDevice.getType());
       log.info("   GlobalMemSize         : " + ((OpenCLDevice) bestDevice).getGlobalMemSize());
@@ -103,12 +102,11 @@ public class AparapiTest {
       log.info("   MaxWorkItemDimensions : " + bestDevice.getMaxWorkItemDimensions());
       log.info("}");
     }
-  
+
     final Device firstCPU = Device.firstCPU();
     if (firstCPU == null) {
       log.info("OpenCLDevice.firstCPU() returned null!");
-    }
-    else {
+    } else {
       log.info("OpenCLDevice.firstCPU() returned { ");
       log.info("   Type                  : " + firstCPU.getType());
       log.info("   GlobalMemSize         : " + ((OpenCLDevice) firstCPU).getGlobalMemSize());
@@ -118,12 +116,11 @@ public class AparapiTest {
       log.info("   MaxWorkItemDimensions : " + firstCPU.getMaxWorkItemDimensions());
       log.info("}");
     }
-  
+
     final Device firstGPU = Device.firstGPU();
     if (firstGPU == null) {
       log.info("OpenCLDevice.firstGPU() returned null!");
-    }
-    else {
+    } else {
       log.info("OpenCLDevice.firstGPU() returned { ");
       log.info("   Type                  : " + firstGPU.getType());
       log.info("   GlobalMemSize         : " + ((OpenCLDevice) firstGPU).getGlobalMemSize());
@@ -133,12 +130,11 @@ public class AparapiTest {
       log.info("   MaxWorkItemDimensions : " + firstGPU.getMaxWorkItemDimensions());
       log.info("}");
     }
-  
+
     final Device bestGPU = Device.bestGPU();
     if (bestGPU == null) {
       log.info("OpenCLDevice.bestGPU() returned null!");
-    }
-    else {
+    } else {
       log.info("OpenCLDevice.bestGPU() returned { ");
       log.info("   Type                  : " + bestGPU.getType());
       log.info("   GlobalMemSize         : " + ((OpenCLDevice) bestGPU).getGlobalMemSize());
@@ -148,12 +144,11 @@ public class AparapiTest {
       log.info("   MaxWorkItemDimensions : " + bestGPU.getMaxWorkItemDimensions());
       log.info("}");
     }
-  
+
     final Device firstACC = Device.bestACC();
     if (firstACC == null) {
       log.info("OpenCLDevice.firstACC() returned null!");
-    }
-    else {
+    } else {
       log.info("OpenCLDevice.firstACC() returned { ");
       log.info("   Type                  : " + firstACC.getType());
       log.info("   GlobalMemSize         : " + ((OpenCLDevice) firstACC).getGlobalMemSize());
@@ -163,12 +158,11 @@ public class AparapiTest {
       log.info("   MaxWorkItemDimensions : " + firstACC.getMaxWorkItemDimensions());
       log.info("}");
     }
-  
+
     final Device bestACC = Device.bestACC();
     if (bestACC == null) {
       log.info("OpenCLDevice.bestACC() returned null!");
-    }
-    else {
+    } else {
       log.info("OpenCLDevice.bestACC() returned { ");
       log.info("   Type                  : " + bestACC.getType());
       log.info("   GlobalMemSize         : " + ((OpenCLDevice) bestACC).getGlobalMemSize());
@@ -178,16 +172,16 @@ public class AparapiTest {
       log.info("   MaxWorkItemDimensions : " + bestACC.getMaxWorkItemDimensions());
       log.info("}");
     }
-  
+
   }
-  
+
   /**
    * Test 1.
    */
   @Test
   @Ignore
   public void test1() {
-  
+
     @Nonnull final OpenCLDevice openclDevice = (OpenCLDevice) Device.best();
     // final Convolution convolution = openclDevice.bind(Convolution.class);
     @Nonnull final AparapiTest.TestKernel testKernel = new AparapiTest.TestKernel();
@@ -202,7 +196,7 @@ public class AparapiTest {
     }
     testKernel.dispose();
   }
-  
+
   /**
    * Test 2.
    *
@@ -214,7 +208,7 @@ public class AparapiTest {
     @Nonnull final float inB[] = new float[1024];
     assert inA.length == inB.length;
     @Nonnull final float[] result = new float[inA.length];
-  
+
     @Nonnull final Kernel kernel = new Kernel() {
       @Override
       public void run() {
@@ -222,11 +216,11 @@ public class AparapiTest {
         result[i] = inA[i] + inB[i];
       }
     };
-  
+
     @Nonnull final Range range = Range.create(result.length);
     kernel.execute(range);
   }
-  
+
   /**
    * The interface Convolution.
    */
@@ -245,24 +239,24 @@ public class AparapiTest {
      */
     @Nonnull
     AparapiTest.Convolution applyConvolution(//
-      Range range, //
-      @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
-      //// from
-      //// filter
-      @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from filter
-      // (actually char[])
-      @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
-      // read) from filter
-      // (actually char[])
-      @OpenCL.Arg("_width") int _width, //
-      @OpenCL.Arg("_height") int _height);
+                                             Range range, //
+                                             @OpenCL.GlobalReadOnly("_convMatrix3x3") float[] _convMatrix3x3, //// only read
+                                             //// from
+                                             //// filter
+                                             @OpenCL.GlobalReadOnly("_imagIn") byte[] _imageIn, // only read from filter
+                                             // (actually char[])
+                                             @OpenCL.GlobalWriteOnly("_imagOut") byte[] _imageOut, // only written to (never
+                                             // read) from filter
+                                             // (actually char[])
+                                             @OpenCL.Arg("_width") int _width, //
+                                             @OpenCL.Arg("_height") int _height);
   }
-  
+
   /**
    * The type Test kernel.
    */
   public static class TestKernel extends Kernel {
-  
+
     /**
      * The Input.
      */
@@ -271,7 +265,7 @@ public class AparapiTest {
      * The Results.
      */
     public final int[] results = new int[10240];
-  
+
     @Override
     public void run() {
       final int i = getGlobalId();
@@ -279,8 +273,8 @@ public class AparapiTest {
         results[i] += (1 + results[i - 1] + results[i + 1]) * input[i];
       }
     }
-  
+
   }
-  
-  
+
+
 }

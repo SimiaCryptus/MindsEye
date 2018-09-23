@@ -31,10 +31,10 @@ import java.util.List;
  * conditions to manage execution memory requirements.
  */
 public class ArrayTrainable extends BatchedTrainable implements TrainableDataMask {
-  
+
   @Nullable
   private Tensor[][] trainingData;
-  
+
   /**
    * Instantiates a new Array trainable.
    *
@@ -44,7 +44,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   public ArrayTrainable(DataTrainable inner, @Nonnull Tensor[]... trainingData) {
     this(inner, trainingData, trainingData.length);
   }
-  
+
   /**
    * Instantiates a new Array trainable.
    *
@@ -61,7 +61,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
       }
     }
   }
-  
+
   /**
    * Instantiates a new Array trainable.
    *
@@ -71,7 +71,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   public ArrayTrainable(final Layer network, final int batchSize) {
     this(null, network, batchSize);
   }
-  
+
   /**
    * Instantiates a new Array trainable.
    *
@@ -81,7 +81,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
   public ArrayTrainable(@Nonnull final Tensor[][] trainingData, final Layer network) {
     this(trainingData, network, trainingData.length);
   }
-  
+
   /**
    * Instantiates a new Array trainable.
    *
@@ -98,18 +98,18 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
       }
     }
   }
-  
+
   @Nullable
   @Override
   public Tensor[][] getData() {
     return trainingData;
   }
-  
+
   @Override
   public ArrayTrainable setVerbose(final boolean verbose) {
     return (ArrayTrainable) super.setVerbose(verbose);
   }
-  
+
   @Override
   protected void _free() {
     for (@Nonnull Tensor[] tensors : trainingData) {
@@ -119,7 +119,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
     }
     super._free();
   }
-  
+
   @Nonnull
   @Override
   public Trainable setData(@Nonnull final List<Tensor[]> tensors) {
@@ -136,7 +136,7 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
     trainingData = tensors.toArray(new Tensor[][]{});
     return this;
   }
-  
+
   /**
    * Sets training data.
    *
@@ -155,12 +155,12 @@ public class ArrayTrainable extends BatchedTrainable implements TrainableDataMas
     }
     this.trainingData = tensors;
   }
-  
+
   @Nonnull
   @Override
   public ArrayTrainable setMask(boolean... mask) {
     return (ArrayTrainable) super.setMask(mask);
   }
-  
-  
+
+
 }

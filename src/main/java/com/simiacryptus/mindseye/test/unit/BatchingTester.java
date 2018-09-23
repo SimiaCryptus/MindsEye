@@ -27,8 +27,8 @@ import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.SimpleListEval;
 import com.simiacryptus.mindseye.test.SimpleResult;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.data.ScalarStatistics;
-import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +45,10 @@ import java.util.stream.IntStream;
  */
 public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger logger = LoggerFactory.getLogger(BatchingTester.class);
-  
+
   private final double tolerance;
   private int batchSize = 10;
-  
+
   /**
    * Instantiates a new Batching tester.
    *
@@ -57,7 +57,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   public BatchingTester(final double tolerance) {
     this.tolerance = tolerance;
   }
-  
+
   /**
    * Gets randomize.
    *
@@ -66,7 +66,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   public double getRandom() {
     return 5 * (Math.random() - 0.5);
   }
-  
+
   /**
    * Test tolerance statistics.
    *
@@ -77,23 +77,23 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public ToleranceStatistics test(@Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     if (null == reference) return new ToleranceStatistics();
-  
+
     final TensorList[] inputTensorLists = Arrays.stream(inputPrototype).map(t ->
-      TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
-        .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
+        TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
+            .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
     @Nonnull final SimpleResult asABatch;
     final List<SimpleEval> oneAtATime;
     try {
       asABatch = SimpleListEval.run(reference, inputTensorLists);
       oneAtATime = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
-          Tensor[] inputTensors = IntStream.range(0, inputTensorLists.length)
-            .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]);
-          @Nonnull SimpleEval eval = SimpleEval.run(reference, inputTensors);
-        for (@Nonnull Tensor tensor : inputTensors) {
-            tensor.freeRef();
+            Tensor[] inputTensors = IntStream.range(0, inputTensorLists.length)
+                .mapToObj(i -> inputTensorLists[i].get(batch)).toArray(i -> new Tensor[i]);
+            @Nonnull SimpleEval eval = SimpleEval.run(reference, inputTensors);
+            for (@Nonnull Tensor tensor : inputTensors) {
+              tensor.freeRef();
+            }
+            return eval;
           }
-          return eval;
-        }
       ).collect(Collectors.toList());
     } finally {
       for (@Nonnull TensorList tensorList : inputTensorLists) {
@@ -101,20 +101,20 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
       }
     }
     try {
-  
+
       TensorList batchOutput = asABatch.getOutput();
       @Nonnull IntFunction<ToleranceStatistics> toleranceStatisticsIntFunction = batch -> {
         @Nullable Tensor batchTensor = batchOutput.get(batch);
         @Nonnull ToleranceStatistics accumulate = new ToleranceStatistics().accumulate(
-          batchTensor.getData(),
-          oneAtATime.get(batch).getOutput().getData());
+            batchTensor.getData(),
+            oneAtATime.get(batch).getOutput().getData());
         batchTensor.freeRef();
         return accumulate;
       };
       int batchLength = batchOutput.length();
       @Nonnull final ToleranceStatistics outputAgreement = IntStream.range(0, Math.min(getBatchSize(), batchLength))
-        .mapToObj(toleranceStatisticsIntFunction)
-        .reduce((a, b) -> a.combine(b)).get();
+          .mapToObj(toleranceStatisticsIntFunction)
+          .reduce((a, b) -> a.combine(b)).get();
       if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
         logger.info("Batch Output: " + batchOutput.stream().map(x -> {
           String str = x.prettyPrint();
@@ -124,7 +124,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
         logger.info("Singular Output: " + oneAtATime.stream().map(x -> x.getOutput().prettyPrint()).collect(Collectors.toList()));
         throw new AssertionError("Output Corrupt: " + outputAgreement);
       }
-  
+
       ToleranceStatistics derivativeAgreement = IntStream.range(0, Math.min(getBatchSize(), batchLength)).mapToObj(batch -> {
         IntFunction<ToleranceStatistics> statisticsFunction = input -> {
           @Nullable Tensor a = asABatch.getInputDerivative()[input].get(batch);
@@ -141,7 +141,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
         };
         return IntStream.range(0, Math.min(inputPrototype.length, batchLength)).mapToObj(statisticsFunction).reduce((a, b) -> a.combine(b)).orElse(null);
       }).filter(x -> x != null).reduce((a, b) -> a.combine(b)).orElse(null);
-  
+
       if (null != derivativeAgreement && !(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
         throw new AssertionError("Derivatives Corrupt: " + derivativeAgreement);
       }
@@ -151,7 +151,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
       oneAtATime.forEach(x -> x.freeRef());
     }
   }
-  
+
   /**
    * Test tolerance statistics.
    *
@@ -168,7 +168,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
       return test(reference, inputPrototype);
     });
   }
-  
+
   /**
    * Gets batch size.
    *
@@ -177,7 +177,7 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
   public int getBatchSize() {
     return batchSize;
   }
-  
+
   /**
    * Sets batch size.
    *
@@ -189,13 +189,13 @@ public class BatchingTester extends ComponentTestBase<ToleranceStatistics> {
     this.batchSize = batchSize;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "BatchingTester{" +
-      "tolerance=" + tolerance +
-      ", batchSize=" + batchSize +
-      '}';
+        "tolerance=" + tolerance +
+        ", batchSize=" + batchSize +
+        '}';
   }
 }

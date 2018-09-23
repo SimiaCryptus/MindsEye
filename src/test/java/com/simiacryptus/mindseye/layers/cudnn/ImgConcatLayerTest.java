@@ -35,12 +35,12 @@ import java.util.stream.IntStream;
  * The type Img eval layer apply.
  */
 public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
-  
+
   private final Precision precision;
   private final int[] bandSeq;
   private final int smallSize;
   private final int largeSize;
-  
+
   /**
    * Instantiates a new Img eval layer apply.
    *
@@ -50,8 +50,10 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
    * @param smallSize     the small size
    * @param largeSize     the large size
    */
-  public ImgConcatLayerTest(final Precision precision, int inputs, int bandsPerInput, final int smallSize, final int largeSize) {this(precision, IntStream.range(0, inputs).map(i -> bandsPerInput).toArray(), smallSize, largeSize);}
-  
+  public ImgConcatLayerTest(final Precision precision, int inputs, int bandsPerInput, final int smallSize, final int largeSize) {
+    this(precision, IntStream.range(0, inputs).map(i -> bandsPerInput).toArray(), smallSize, largeSize);
+  }
+
   /**
    * Instantiates a new Img eval layer apply.
    *
@@ -66,89 +68,89 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
     this.smallSize = smallSize;
     this.largeSize = largeSize;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return Arrays.stream(bandSeq).mapToObj(x -> new int[]{smallSize, smallSize, x}).toArray(i -> new int[i][]);
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgConcatLayer().setPrecision(precision);
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return Arrays.stream(bandSeq).mapToObj(x -> new int[]{largeSize, largeSize, x}).toArray(i -> new int[i][]);
   }
-  
+
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.ImgConcatLayer.class;
   }
-  
+
   /**
    * Test truncation feature that limits the png to N bands, discarding the last as needed.
    */
   public static class BandLimitTest extends ImgConcatLayerTest {
-  
+
     /**
      * Instantiates a new Band limit apply.
      */
     public BandLimitTest() {
       super(Precision.Double, 2, 1, 8, 1200);
     }
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {1, 1, 3}
+          {1, 1, 3}
       };
     }
-  
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(new Random());
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new ImgConcatLayer().setMaxBands(2);
     }
   }
-  
+
   /**
    * Test truncation feature that both concatenates images and limits the png to N bands, discarding the last as
    * needed.
    */
   public static class BandConcatLimitTest extends ImgConcatLayerTest {
-  
+
     /**
      * Instantiates a new Band limit apply.
      */
     public BandConcatLimitTest() {
       super(Precision.Double, new int[]{2, 3, 4}, 2, 1200);
     }
-  
+
     @Nonnull
     @Override
     public int[][] getLargeDims(Random random) {
       return getSmallDims(new Random());
     }
-  
+
     @Nonnull
     @Override
     public Layer getLayer(final int[][] inputSize, Random random) {
       return new ImgConcatLayer().setMaxBands(8);
     }
   }
-  
+
   /**
    * Basic 64-bit apply
    */
@@ -172,12 +174,12 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
 //      super(Precision.Double, 8, 512);
 //    }
 //  }
-  
+
   /**
    * The type BigTests.
    */
   public abstract static class Big extends ImgConcatLayerTest {
-  
+
     /**
      * Instantiates a new BigTests.
      *
@@ -190,7 +192,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
       this.validateDifferentials = false;
       setTestTraining(false);
     }
-    
+
     @Override
     public ComponentTest<ToleranceStatistics> getBatchingTester() {
       if (!validateBatchExecution) return null;
@@ -201,24 +203,24 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
         }
       }).setBatchSize(5);
     }
-    
-    
+
+
     @Nullable
     @Override
     protected ComponentTest<ToleranceStatistics> getJsonTester() {
       logger.warn("Disabled Json Test");
       return null;
     }
-    
+
     @Nullable
     @Override
     public ComponentTest<ToleranceStatistics> getPerformanceTester() {
       logger.warn("Disabled Performance Test");
       return null;
     }
-    
+
   }
-  
+
   /**
    * Basic 32-bit apply
    */
@@ -231,5 +233,5 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
       tolerance = 1e-2;
     }
   }
-  
+
 }

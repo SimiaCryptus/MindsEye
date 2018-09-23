@@ -37,14 +37,14 @@ public class ToleranceStatistics {
    * The Relative tol.
    */
   public final DoubleStatistics relativeTol;
-  
+
   /**
    * Instantiates a new Tolerance statistics.
    */
   public ToleranceStatistics() {
     this(new DoubleStatistics(), new DoubleStatistics());
   }
-  
+
   /**
    * Instantiates a new Tolerance statistics.
    *
@@ -55,7 +55,7 @@ public class ToleranceStatistics {
     this.absoluteTol = absoluteTol;
     this.relativeTol = relativeTol;
   }
-  
+
   /**
    * Accumulate tolerance statistics.
    *
@@ -71,7 +71,7 @@ public class ToleranceStatistics {
     }
     return this;
   }
-  
+
   /**
    * Accumulate tolerance statistics.
    *
@@ -85,7 +85,7 @@ public class ToleranceStatistics {
     IntStream.range(0, target.length).forEach(i -> accumulate(target[i], val[i]));
     return this;
   }
-  
+
   /**
    * Combine tolerance statistics.
    *
@@ -96,17 +96,17 @@ public class ToleranceStatistics {
   public ToleranceStatistics combine(@Nullable final ToleranceStatistics right) {
     if (null == right) return this;
     return new ToleranceStatistics(
-      absoluteTol.combine(right.absoluteTol),
-      relativeTol.combine(right.relativeTol)
+        absoluteTol.combine(right.absoluteTol),
+        relativeTol.combine(right.relativeTol)
     );
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "ToleranceStatistics{" +
-      "absoluteTol=" + absoluteTol +
-      ", relativeTol=" + relativeTol +
-      '}';
+        "absoluteTol=" + absoluteTol +
+        ", relativeTol=" + relativeTol +
+        '}';
   }
 }

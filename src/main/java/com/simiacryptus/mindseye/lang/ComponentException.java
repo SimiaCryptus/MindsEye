@@ -24,13 +24,13 @@ package com.simiacryptus.mindseye.lang;
  */
 @SuppressWarnings("serial")
 public class ComponentException extends RuntimeException {
-  
+
   /**
    * Instantiates a new Component exception.
    */
   public ComponentException() {
   }
-  
+
   /**
    * Instantiates a new Component exception.
    *
@@ -39,7 +39,7 @@ public class ComponentException extends RuntimeException {
   public ComponentException(final String message) {
     super(message);
   }
-  
+
   /**
    * Instantiates a new Component exception.
    *
@@ -49,7 +49,7 @@ public class ComponentException extends RuntimeException {
   public ComponentException(final String message, final Throwable cause) {
     super(message, cause);
   }
-  
+
   /**
    * Instantiates a new Component exception.
    *
@@ -61,7 +61,7 @@ public class ComponentException extends RuntimeException {
   public ComponentException(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
     super(message, cause, enableSuppression, writableStackTrace);
   }
-  
+
   /**
    * Instantiates a new Component exception.
    *

@@ -28,9 +28,9 @@ import javax.annotation.Nonnull;
  * no proven use case.
  */
 public class MeanVarianceGradient implements TrustRegion {
-  
+
   private double max = Double.POSITIVE_INFINITY;
-  
+
   /**
    * Gets max.
    *
@@ -39,7 +39,7 @@ public class MeanVarianceGradient implements TrustRegion {
   public double getMax() {
     return max;
   }
-  
+
   /**
    * Sets max.
    *
@@ -51,7 +51,7 @@ public class MeanVarianceGradient implements TrustRegion {
     this.max = max;
     return this;
   }
-  
+
   /**
    * Length double.
    *
@@ -61,7 +61,7 @@ public class MeanVarianceGradient implements TrustRegion {
   public double length(@Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
-  
+
   @Nonnull
   @Override
   public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {

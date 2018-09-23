@@ -38,14 +38,16 @@ public abstract class CudaResourceBase<T> extends ReferenceCountingBase implemen
    * The Ptr.
    */
   protected T ptr;
-  
+
   /**
    * Instantiates a new Cuda resource base.
    *
    * @param obj the obj
    */
-  public CudaResourceBase(final T obj) {this.ptr = obj;}
-  
+  public CudaResourceBase(final T obj) {
+    this.ptr = obj;
+  }
+
   /**
    * Gets ptr.
    *
@@ -55,12 +57,12 @@ public abstract class CudaResourceBase<T> extends ReferenceCountingBase implemen
     assertAlive();
     return ptr;
   }
-  
+
   /**
    * Free.
    */
   protected abstract void _free();
-  
+
   /**
    * Is active obj boolean.
    *
@@ -69,7 +71,7 @@ public abstract class CudaResourceBase<T> extends ReferenceCountingBase implemen
   public boolean isActiveObj() {
     return objGeneration == CudaSystem.gpuGeneration.get();
   }
-  
+
   /**
    * Release.
    */

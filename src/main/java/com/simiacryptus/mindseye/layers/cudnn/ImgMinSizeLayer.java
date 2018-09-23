@@ -41,17 +41,17 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinSizeLayer> {
   private static final Logger log = LoggerFactory.getLogger(ImgMinSizeLayer.class);
-  
+
   private int sizeX;
   private int sizeY;
   private Precision precision = Precision.Double;
-  
+
   /**
    * Instantiates a new Img eval layer.
    */
   private ImgMinSizeLayer() {
   }
-  
+
   /**
    * Instantiates a new Img zero padding layer.
    *
@@ -62,7 +62,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
     this.sizeX = sizeX;
     this.sizeY = sizeY;
   }
-  
+
   /**
    * Instantiates a new Img eval layer.
    *
@@ -75,7 +75,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
     sizeY = json.get("sizeY").getAsInt();
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
-  
+
   /**
    * From json img eval layer.
    *
@@ -86,7 +86,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
   public static ImgMinSizeLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgMinSizeLayer(json, rs);
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -95,7 +95,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
     @Nonnull int[] dimensions = in0.getData().getDimensions();
     int inputWidth = dimensions[0];
     int inputHeight = dimensions[1];
-    
+
     int ouputWidth = Math.max(inputWidth, sizeX);
     int outputHeight = Math.max(inputHeight, sizeY);
     assert ouputWidth > 0;
@@ -105,13 +105,13 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
         return in0;
       }
     }
-    
+
     @Nonnull ImgCropLayer imgCropLayer = new ImgCropLayer(ouputWidth, outputHeight).setPrecision(precision);
     @Nullable Result eval = imgCropLayer.evalAndFree(inObj);
     imgCropLayer.freeRef();
     return eval;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -121,23 +121,23 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public ImgMinSizeLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
 }

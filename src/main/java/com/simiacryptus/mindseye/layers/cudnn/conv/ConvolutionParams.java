@@ -59,7 +59,7 @@ public class ConvolutionParams {
    * The Master filter dimensions.
    */
   public final int[] masterFilterDimensions;
-  
+
   /**
    * Instantiates a new Convolution params.
    *
@@ -82,18 +82,18 @@ public class ConvolutionParams {
     this.paddingY = paddingY;
     this.masterFilterDimensions = masterFilterDimensions;
   }
-  
+
   @Override
   public String toString() {
     return "{" +
-      "inputBands=" + inputBands +
-      ", outputBands=" + outputBands +
-      ", filterDimensions=" + Arrays.toString(masterFilterDimensions) +
-      ", precision=" + precision +
-      (strideX == 1 ? "" : (", strideX=" + strideX)) +
-      (strideY == 1 ? "" : (", strideY=" + strideY)) +
-      ", paddingX=" + paddingX +
-      ", paddingY=" + paddingY +
-      '}';
+        "inputBands=" + inputBands +
+        ", outputBands=" + outputBands +
+        ", filterDimensions=" + Arrays.toString(masterFilterDimensions) +
+        ", precision=" + precision +
+        (strideX == 1 ? "" : (", strideX=" + strideX)) +
+        (strideY == 1 ? "" : (", strideY=" + strideY)) +
+        ", paddingX=" + paddingX +
+        ", paddingY=" + paddingY +
+        '}';
   }
 }

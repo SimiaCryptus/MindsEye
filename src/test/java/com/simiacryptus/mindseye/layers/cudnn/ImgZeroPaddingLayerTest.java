@@ -29,41 +29,41 @@ import java.util.Random;
  * The type Img crop layer apply.
  */
 public abstract class ImgZeroPaddingLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * Instantiates a new Img crop layer apply.
    */
   public ImgZeroPaddingLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {8, 8, 1}
+        {8, 8, 1}
     };
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {1200, 1200, 3}
+        {1200, 1200, 3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgZeroPaddingLayer(1, 1);
   }
-  
+
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.ImgZeroPaddingLayer.class;
   }
-  
+
   /**
    * Basic Test
    */
@@ -89,5 +89,5 @@ public abstract class ImgZeroPaddingLayerTest extends CudaLayerTestBase {
 //      };
 //    }
 //  }
-  
+
 }

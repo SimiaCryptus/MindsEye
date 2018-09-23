@@ -28,14 +28,14 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
  * A mutable cursor which represents a 1-d optimization problem.
  */
 public abstract class LineSearchCursorBase extends ReferenceCountingBase implements LineSearchCursor {
-  
+
   /**
    * Gets direction type.
    *
    * @return the direction type
    */
   public abstract CharSequence getDirectionType();
-  
+
   /**
    * Position evalInputDelta setByCoord.
    *
@@ -43,12 +43,12 @@ public abstract class LineSearchCursorBase extends ReferenceCountingBase impleme
    * @return the evalInputDelta setByCoord
    */
   public abstract DeltaSet<Layer> position(double alpha);
-  
+
   /**
    * Reset.
    */
   public abstract void reset();
-  
+
   /**
    * Step line search point.
    *
@@ -57,6 +57,6 @@ public abstract class LineSearchCursorBase extends ReferenceCountingBase impleme
    * @return the line search point
    */
   public abstract LineSearchPoint step(double alpha, TrainingMonitor monitor);
-  
+
   protected abstract void _free();
 }

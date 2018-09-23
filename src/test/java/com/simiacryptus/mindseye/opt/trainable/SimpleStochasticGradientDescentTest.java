@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.opt.IterativeTrainer;
 import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.orient.GradientDescent;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
@@ -38,25 +38,25 @@ import java.util.concurrent.TimeUnit;
  * The type Simple stochastic gradient descent apply.
  */
 public class SimpleStochasticGradientDescentTest extends MnistTestBase {
-  
+
   @Override
   public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.p("Training a model involves a few different components. First, our model is combined mapCoords a loss function. " +
-      "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
-      "Finally, we use a simple iterative scheme to refine the weights of our model. " +
-      "The final output is the last output value of the loss function when evaluating the last batch.");
+        "Then we take that model and combine it mapCoords our training data to define a trainable object. " +
+        "Finally, we use a simple iterative scheme to refine the weights of our model. " +
+        "The final output is the last output value of the loss function when evaluating the last batch.");
     log.eval(() -> {
       @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @Nonnull final Trainable trainable = new SampledArrayTrainable(trainingData, supervisedNetwork, 10000);
       return new IterativeTrainer(trainable)
-        .setMonitor(monitor)
-        .setOrientation(new GradientDescent())
-        .setTimeout(5, TimeUnit.MINUTES)
-        .setMaxIterations(500)
-        .runAndFree();
+          .setMonitor(monitor)
+          .setOrientation(new GradientDescent())
+          .setTimeout(5, TimeUnit.MINUTES)
+          .setMaxIterations(500)
+          .runAndFree();
     });
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {

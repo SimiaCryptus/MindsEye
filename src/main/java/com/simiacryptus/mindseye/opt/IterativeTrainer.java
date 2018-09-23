@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.opt;
 
+import com.simiacryptus.lang.TimedResult;
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.IterativeStopException;
 import com.simiacryptus.mindseye.lang.PointSample;
@@ -32,7 +33,6 @@ import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.orient.LBFGS;
 import com.simiacryptus.mindseye.opt.orient.OrientationStrategy;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.lang.TimedResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,7 @@ import java.util.function.Function;
  */
 public class IterativeTrainer extends ReferenceCountingBase {
   private static final Logger log = LoggerFactory.getLogger(IterativeTrainer.class);
-  
+
   private final Map<CharSequence, LineSearchStrategy> lineSearchStrategyMap = new HashMap<>();
   private final Trainable subject;
   private AtomicInteger currentIteration = new AtomicInteger(0);
@@ -63,7 +63,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   private OrientationStrategy<?> orientation = new LBFGS();
   private double terminateThreshold;
   private Duration timeout;
-  
+
   /**
    * Instantiates a new Iterative trainer.
    *
@@ -75,7 +75,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     timeout = Duration.of(5, ChronoUnit.MINUTES);
     terminateThreshold = 0;
   }
-  
+
   /**
    * Gets current iteration.
    *
@@ -84,7 +84,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   public AtomicInteger getCurrentIteration() {
     return currentIteration;
   }
-  
+
   /**
    * Sets current iteration.
    *
@@ -96,7 +96,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     this.currentIteration = currentIteration;
     return this;
   }
-  
+
   /**
    * Gets iterations per sample.
    *
@@ -105,7 +105,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   public int getIterationsPerSample() {
     return iterationsPerSample;
   }
-  
+
   /**
    * Sets iterations per sample.
    *
@@ -117,7 +117,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     this.iterationsPerSample = iterationsPerSample;
     return this;
   }
-  
+
   /**
    * Gets line search factory.
    *
@@ -126,7 +126,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   public Function<CharSequence, LineSearchStrategy> getLineSearchFactory() {
     return lineSearchFactory;
   }
-  
+
   /**
    * Sets line search factory.
    *
@@ -138,7 +138,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     this.lineSearchFactory = lineSearchFactory;
     return this;
   }
-  
+
   /**
    * Gets max iterations.
    *
@@ -147,7 +147,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   public int getMaxIterations() {
     return maxIterations;
   }
-  
+
   /**
    * Sets max iterations.
    *
@@ -159,7 +159,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     this.maxIterations = maxIterations;
     return this;
   }
-  
+
   /**
    * Gets monitor.
    *
@@ -168,7 +168,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   public TrainingMonitor getMonitor() {
     return monitor;
   }
-  
+
   /**
    * Sets monitor.
    *
@@ -180,7 +180,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     this.monitor = monitor;
     return this;
   }
-  
+
   /**
    * Gets orientation.
    *
@@ -189,7 +189,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   public OrientationStrategy<?> getOrientation() {
     return orientation;
   }
-  
+
   /**
    * Sets orientation.
    *
@@ -202,7 +202,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     this.orientation = orientation;
     return this;
   }
-  
+
   /**
    * Gets terminate threshold.
    *
@@ -211,7 +211,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   public double getTerminateThreshold() {
     return terminateThreshold;
   }
-  
+
   /**
    * Sets terminate threshold.
    *
@@ -223,7 +223,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     this.terminateThreshold = terminateThreshold;
     return this;
   }
-  
+
   /**
    * Gets timeout.
    *
@@ -232,7 +232,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   public Duration getTimeout() {
     return timeout;
   }
-  
+
   /**
    * Sets timeout.
    *
@@ -244,7 +244,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     this.timeout = timeout;
     return this;
   }
-  
+
   /**
    * Measure point sample.
    *
@@ -266,8 +266,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
         }
         if (!subject.reseed(System.nanoTime())) {
           if (retries > 0) throw new IterativeStopException("Failed to reset training subject");
-        }
-        else {
+        } else {
           monitor.log(String.format("Reset training subject"));
         }
       }
@@ -282,7 +281,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     }
     return currentPoint;
   }
-  
+
   /**
    * Run and free double.
    *
@@ -295,7 +294,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
       freeRef();
     }
   }
-  
+
   /**
    * Run double.
    *
@@ -306,7 +305,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     long lastIterationTime = System.nanoTime();
     @Nullable PointSample currentPoint = measure(true);
     try {
-      mainLoop:
+mainLoop:
       while (timeoutMs > System.currentTimeMillis() && currentPoint.getMean() > terminateThreshold) {
         if (currentIteration.get() > maxIterations) {
           break;
@@ -314,7 +313,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
         currentPoint.freeRef();
         currentPoint = measure(true);
         assert 0 < currentPoint.delta.getMap().size() : "Nothing to optimize";
-        subiterationLoop:
+subiterationLoop:
         for (int subiteration = 0; subiteration < iterationsPerSample || iterationsPerSample <= 0; subiteration++) {
           if (timeoutMs < System.currentTimeMillis()) {
             break mainLoop;
@@ -336,7 +335,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
             currentPoint = timedLineSearch.result;
             final long now = System.nanoTime();
             final CharSequence perfString = String.format("Total: %.4f; Orientation: %.4f; Line Search: %.4f",
-              (now - lastIterationTime) / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
+                (now - lastIterationTime) / 1e9, timedOrientation.timeNanos / 1e9, timedLineSearch.timeNanos / 1e9);
             lastIterationTime = now;
             monitor.log(String.format("Fitness changed from %s to %s", previous.getMean(), currentPoint.getMean()));
             if (previous.getMean() <= currentPoint.getMean()) {
@@ -344,28 +343,25 @@ public class IterativeTrainer extends ReferenceCountingBase {
                 monitor.log(String.format("Resetting Iteration %s", perfString));
                 currentPoint.freeRef();
                 currentPoint = direction.step(0, monitor).point;
-              }
-              else {
+              } else {
                 monitor.log(String.format("Static Iteration %s", perfString));
               }
               if (subject.reseed(System.nanoTime())) {
                 monitor.log(String.format("Iteration %s failed, retrying. Error: %s",
-                  currentIteration.get(), currentPoint.getMean()));
+                    currentIteration.get(), currentPoint.getMean()));
                 monitor.log(String.format("Previous Error: %s -> %s",
-                  previous.getRate(), previous.getMean()));
+                    previous.getRate(), previous.getMean()));
                 break subiterationLoop;
-              }
-              else {
+              } else {
                 monitor.log(String.format("Iteration %s failed, aborting. Error: %s",
-                  currentIteration.get(), currentPoint.getMean()));
+                    currentIteration.get(), currentPoint.getMean()));
                 monitor.log(String.format("Previous Error: %s -> %s",
-                  previous.getRate(), previous.getMean()));
+                    previous.getRate(), previous.getMean()));
                 break mainLoop;
               }
-            }
-            else {
+            } else {
               monitor.log(String.format("Iteration %s complete. Error: %s " + perfString,
-                currentIteration.get(), currentPoint.getMean()));
+                  currentIteration.get(), currentPoint.getMean()));
             }
             monitor.onStepComplete(new Step(currentPoint, currentIteration.get()));
           } finally {
@@ -384,7 +380,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
       currentPoint.freeRef();
     }
   }
-  
+
   /**
    * Sets timeout.
    *
@@ -397,7 +393,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     timeout = Duration.of(number, units);
     return this;
   }
-  
+
   /**
    * Sets timeout.
    *
@@ -409,7 +405,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
   public IterativeTrainer setTimeout(final int number, @Nonnull final TimeUnit units) {
     return setTimeout(number, Util.cvt(units));
   }
-  
+
   /**
    * Step point sample.
    *
@@ -423,8 +419,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     LineSearchStrategy lineSearchStrategy;
     if (lineSearchStrategyMap.containsKey(directionType)) {
       lineSearchStrategy = lineSearchStrategyMap.get(directionType);
-    }
-    else {
+    } else {
       log.info(String.format("Constructing line search parameters: %s", directionType));
       lineSearchStrategy = lineSearchFactory.apply(direction.getDirectionType());
       lineSearchStrategyMap.put(directionType, lineSearchStrategy);
@@ -435,7 +430,7 @@ public class IterativeTrainer extends ReferenceCountingBase {
     wrapped.freeRef();
     return currentPoint;
   }
-  
+
   @Override
   protected void _free() {
     this.subject.freeRef();

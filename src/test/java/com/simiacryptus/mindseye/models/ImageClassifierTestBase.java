@@ -19,24 +19,21 @@
 
 package com.simiacryptus.mindseye.models;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.simiacryptus.mindseye.labs.encoding.EncodingUtil;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
-import com.simiacryptus.util.TableOutput;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
+import com.simiacryptus.notebook.TableOutput;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -44,7 +41,7 @@ import java.util.concurrent.Future;
  * The type Image classifier apply base.
  */
 public abstract class ImageClassifierTestBase extends NotebookReportBase {
-  
+
   /**
    * Test.
    *
@@ -54,7 +51,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
   public void run() {
     run(this::run);
   }
-  
+
   /**
    * Gets png classifier.
    *
@@ -62,38 +59,38 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    * @return the png classifier
    */
   public abstract ImageClassifier getImageClassifier(NotebookOutput log);
-  
+
   /**
    * Test.
    *
    * @param log the log
    */
   public void run(@Nonnull NotebookOutput log) {
-    Future<Tensor[][]> submit = Executors.newSingleThreadExecutor()
-      .submit(() -> Arrays.stream(EncodingUtil.getImages(log, img -> {
-        return img;
+    Future<Tensor[][]> submit = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setDaemon(true).build())
+        .submit(() -> Arrays.stream(EncodingUtil.getImages(log, img -> {
+          return img;
 //        return TestUtil.maximumSize(img, 224, 224);
 //        if(img.getWidth()>img.getHeight()) {
 //          return TestUtil.maximumSize(img, 224, img.getHeight() * 224 / img.getWidth());
 //        } else {
 //          return TestUtil.maximumSize(img, img.getWidth() * 224 / img.getHeight(), 224);
 //        }
-      }, 10, new CharSequence[]{}))
-        .toArray(i -> new Tensor[i][]));
+        }, 10, new CharSequence[]{}))
+            .toArray(i -> new Tensor[i][]));
     ImageClassifier vgg16 = getImageClassifier(log);
     @Nonnull Layer network = vgg16.getNetwork();
-    
+
     log.h1("Network Diagram");
     log.p("This is a diagram of the imported network:");
     log.eval(() -> {
       return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) network))
-        .height(4000).width(800).render(Format.PNG).toImage();
+          .height(4000).width(800).render(Format.PNG).toImage();
     });
 
 //    @javax.annotation.Nonnull SerializationTest serializationTest = new SerializationTest();
 //    serializationTest.setPersist(true);
 //    serializationTest.test(log, network, (Tensor[]) null);
-  
+
     log.h1("Predictions");
     Tensor[][] images;
     try {
@@ -108,9 +105,9 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
 //      log.h2(precision.name());
 //      modelPredictions.put(precision.name(), predict(log, vgg16, model, images));
 //    });
-  
+
     log.h1("Result");
-  
+
     log.out(() -> {
       @Nonnull TableOutput tableOutput = new TableOutput();
       for (int i = 0; i < images.length; i++) {
@@ -119,9 +116,9 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
         row.put("Image", log.png(images[i][1].toImage(), ""));
         modelPredictions.forEach((model, predictions) -> {
           row.put(model, predictions.get(index).entrySet().stream()
-            .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
-            .reduce((a, b) -> a + "<br/>" + b).get());
-          
+              .map(e -> String.format("%s -> %.2f", e.getKey(), 100 * e.getValue()))
+              .reduce((a, b) -> a + "<br/>" + b).get());
+
         });
         tableOutput.putRow(row);
       }
@@ -132,9 +129,9 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
 //    log.run(() -> {
 //      return TestUtil.toFormattedJson(CudaSystem.getExecutionStatistics());
 //    });
-  
+
   }
-  
+
   /**
    * Predict list.
    *
@@ -153,7 +150,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
     TestUtil.extractPerformance(log, (DAGNetwork) network);
     return predictions;
   }
-  
+
   /**
    * Gets target class.
    *
@@ -161,7 +158,7 @@ public abstract class ImageClassifierTestBase extends NotebookReportBase {
    */
   @Nonnull
   protected abstract Class<?> getTargetClass();
-  
+
   @Nonnull
   @Override
   public ReportType getReportType() {

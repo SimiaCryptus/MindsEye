@@ -19,20 +19,12 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.ConstantResult;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.DoubleBuffer;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.data.ScalarStatistics;
-import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +44,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
    * The Logger.
    */
   static final Logger log = LoggerFactory.getLogger(BatchDerivativeTester.class);
-  
+
   /**
    * The Probe size.
    */
@@ -63,7 +55,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   private boolean testLearning = true;
   private boolean verbose = true;
   private boolean verify = true;
-  
+
   /**
    * Instantiates a new Derivative tester.
    *
@@ -76,7 +68,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     this.probeSize = probeSize;
     this.batches = batches;
   }
-  
+
   @Nonnull
   private Tensor getFeedbackGradient(@Nonnull final Layer component, final int inputIndex, @Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     final Tensor inputTensor = inputPrototype[inputIndex];
@@ -95,12 +87,12 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         }
         buffer.get(inputKey, new double[gradientBuffer.length()]).addInPlace(gradientBuffer.getData());
       }) {
-        
+
         @Override
         public boolean isAlive() {
           return true;
         }
-  
+
       };
       @Nullable final Result eval = component.eval(copyInput);
       @Nonnull final DeltaSet<Layer> xxx = new DeltaSet<Layer>();
@@ -117,7 +109,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     }
     return result;
   }
-  
+
   @Nonnull
   private Tensor getLearningGradient(@Nonnull final Layer component, final int layerNum, @Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     component.setFrozen(false);
@@ -141,7 +133,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     }
     return gradient;
   }
-  
+
   /**
    * Is apply feedback boolean.
    *
@@ -150,7 +142,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   public boolean isTestFeedback() {
     return testFeedback;
   }
-  
+
   /**
    * Sets apply feedback.
    *
@@ -162,7 +154,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     this.testFeedback = testFeedback;
     return this;
   }
-  
+
   /**
    * Is apply learning boolean.
    *
@@ -171,7 +163,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   public boolean isTestLearning() {
     return testLearning;
   }
-  
+
   /**
    * Sets apply learning.
    *
@@ -183,7 +175,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     this.testLearning = testLearning;
     return this;
   }
-  
+
   /**
    * Is verbose boolean.
    *
@@ -192,7 +184,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   public boolean isVerbose() {
     return verbose;
   }
-  
+
   /**
    * Sets verbose.
    *
@@ -204,7 +196,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     this.verbose = verbose;
     return this;
   }
-  
+
   /**
    * Is verify boolean.
    *
@@ -213,7 +205,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   public boolean isVerify() {
     return verify;
   }
-  
+
   /**
    * Sets verify.
    *
@@ -225,7 +217,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     this.verify = verify;
     return this;
   }
-  
+
   @Nonnull
   private Tensor measureFeedbackGradient(@Nonnull final Layer component, final int inputIndex, @Nonnull final Tensor outputPrototype, @Nonnull final Tensor... inputPrototype) {
     @Nonnull final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].length(), outputPrototype.length());
@@ -244,20 +236,20 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     }
     return measuredGradient;
   }
-  
+
   @Nonnull
   private Tensor measureLearningGradient(@Nonnull final Layer component, final int layerNum, @Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     @Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
-    
+
     @Nullable final Tensor baseOutput = component.eval(ConstantResult.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
-    
+
     for (int i = 0; i < stateLen; i++) {
       @Nonnull final Layer copy = component.copy();
       copy.state().get(layerNum)[i] += probeSize;
-  
+
       @Nullable final Tensor evalProbe = copy.eval(ConstantResult.singleResultArray(new Tensor[][]{inputPrototype})).getData().get(0);
-  
+
       @Nonnull final Tensor delta = evalProbe.minus(baseOutput).scaleInPlace(1. / probeSize);
       for (int j = 0; j < delta.length(); j++) {
         gradient.set(new int[]{i, j}, delta.getData()[j]);
@@ -265,7 +257,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     }
     return gradient;
   }
-  
+
   /**
    * Test learning tolerance statistics.
    *
@@ -285,11 +277,10 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
         if (!(result.absoluteTol.getMax() < tolerance)) {
           throw new AssertionError(result.toString());
-        }
-        else {
+        } else {
           //log.info(String.format("Component: %s", component));
           if (verbose) {
-  
+
             log.info(String.format("Learning Gradient for weight setByCoord %s", i));
             log.info(String.format("Weights: %s", new Tensor(component.state().get(i)).prettyPrint()));
             log.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
@@ -316,11 +307,11 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         }
         throw e;
       }
-      
+
     }).reduce((a, b) -> a.combine(b)).map(x -> x.combine(prev)).orElseGet(() -> prev);
     return statistics;
   }
-  
+
   /**
    * Test feedback tolerance statistics.
    *
@@ -337,7 +328,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.length()).mapToObj(i1 -> {
           return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
         }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
-        
+
         if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
         //log.info(String.format("Component: %s", component));
         if (verbose) {
@@ -372,7 +363,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     }).reduce((a, b) -> a.combine(b)).get());
     return statistics;
   }
-  
+
   /**
    * Test tolerance statistics.
    *
@@ -385,7 +376,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer component, @Nonnull final Tensor... inputPrototype) {
     log.h1("Differential Validation");
     @Nonnull IOPair ioPair = new IOPair(component, inputPrototype[0]).invoke();
-    
+
     if (verbose) {
       log.run(() -> {
         BatchDerivativeTester.log.info(String.format("Inputs: %s", Arrays.stream(inputPrototype).map(t -> t.prettyPrint()).reduce((a, b) -> a + ",\n" + b).get()));
@@ -394,9 +385,9 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         BatchDerivativeTester.log.info(String.format("Outputs Statistics: %s", new ScalarStatistics().add(ioPair.getOutputPrototype().getData())));
       });
     }
-  
+
     ToleranceStatistics _statistics = new ToleranceStatistics();
-  
+
     if (isTestFeedback()) {
       log.h2("Feedback Validation");
       log.p("We validate the agreement between the implemented derivative _of the inputs_ apply finite difference estimations:");
@@ -413,7 +404,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         return testLearning(component, ioPair, statistics);
       });
     }
-  
+
     log.h2("Total Accuracy");
     log.p("The overall agreement accuracy between the implemented derivative and the finite difference estimations:");
     ToleranceStatistics statistics = _statistics;
@@ -423,16 +414,16 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       BatchDerivativeTester.log.info(String.format("absoluteTol: %s", statistics.absoluteTol));
       BatchDerivativeTester.log.info(String.format("relativeTol: %s", statistics.relativeTol));
     });
-  
+
     log.h2("Frozen and Alive Status");
     log.run(() -> {
       testFrozen(component, ioPair.getInputPrototype());
       testUnFrozen(component, ioPair.getInputPrototype());
     });
-  
+
     return _statistics;
   }
-  
+
   /**
    * Test frozen.
    *
@@ -445,13 +436,13 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @Nullable final Result eval = frozen.eval(new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-  
+
       @Override
       public boolean isAlive() {
         return true;
       }
-  
-  
+
+
     });
     @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
     TensorList tensorList = eval.getData().copy();
@@ -467,7 +458,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       throw new RuntimeException("Frozen component did not pass input backwards");
     }
   }
-  
+
   /**
    * Test un frozen.
    *
@@ -480,12 +471,12 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @Nullable final Result eval = frozen.eval(new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-  
+
       @Override
       public boolean isAlive() {
         return true;
       }
-  
+
     });
     @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
     TensorList data = eval.getData();
@@ -501,27 +492,27 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       throw new RuntimeException("Nonfrozen component did not pass input backwards");
     }
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "BatchDerivativeTester{" +
-      "probeSize=" + probeSize +
-      ", batches=" + batches +
-      ", tolerance=" + tolerance +
-      ", testFeedback=" + testFeedback +
-      ", testLearning=" + testLearning +
-      ", verbose=" + verbose +
-      ", verify=" + verify +
-      '}';
+        "probeSize=" + probeSize +
+        ", batches=" + batches +
+        ", tolerance=" + tolerance +
+        ", testFeedback=" + testFeedback +
+        ", testLearning=" + testLearning +
+        ", verbose=" + verbose +
+        ", verify=" + verify +
+        '}';
   }
-  
+
   private class IOPair {
     private final Layer component;
     private final Tensor tensor;
     private Tensor[] inputPrototype;
     private Tensor outputPrototype;
-  
+
     /**
      * Instantiates a new Io pair.
      *
@@ -532,7 +523,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       this.component = component;
       this.tensor = tensor;
     }
-  
+
     /**
      * Get input prototype tensor [ ].
      *
@@ -541,7 +532,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     public Tensor[] getInputPrototype() {
       return inputPrototype;
     }
-  
+
     /**
      * Gets output prototype.
      *
@@ -550,7 +541,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     public Tensor getOutputPrototype() {
       return outputPrototype;
     }
-  
+
     /**
      * Invoke io pair.
      *

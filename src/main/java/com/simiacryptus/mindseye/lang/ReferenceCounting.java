@@ -31,71 +31,73 @@ import java.util.UUID;
  * not heap.)
  */
 public interface ReferenceCounting {
-  
+
   /**
    * Current ref count int.
    *
    * @return the int
    */
   int currentRefCount();
-  
+
   /**
    * Add ref.
    */
   ReferenceCountingBase addRef();
-  
+
   /**
    * Free ref.
    */
-  default void freeRef() {}
-  
+  default void freeRef() {
+  }
+
   /**
    * Free ref async.
    */
-  default void freeRefAsync() {}
-  
+  default void freeRefAsync() {
+  }
+
   /**
    * Claim ref.
    *
    * @param obj the obj
    */
   void claimRef(ReferenceCounting obj);
-  
+
   /**
    * Add ref.
    *
    * @param obj the obj
    */
   void addRef(ReferenceCounting obj);
-  
+
   /**
    * Is finalized boolean.
    *
    * @return the boolean
    */
   boolean isFinalized();
-  
+
   /**
    * Assert alive.
    *
    * @return the boolean
    */
   boolean assertAlive();
-  
+
   /**
    * Free ref.
    *
    * @param obj the obj
    */
   void freeRef(ReferenceCounting obj);
-  
+
   /**
    * Gets object id.
    *
    * @return the object id
    */
   UUID getObjectId();
-  
+
   /**
    * Sets floating.
    */

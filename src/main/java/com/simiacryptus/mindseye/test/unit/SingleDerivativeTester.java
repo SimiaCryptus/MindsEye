@@ -19,20 +19,12 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.ConstantResult;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.DoubleBuffer;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.test.SimpleEval;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.data.ScalarStatistics;
-import com.simiacryptus.util.io.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +42,7 @@ import java.util.stream.IntStream;
  */
 public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger log = LoggerFactory.getLogger(SingleDerivativeTester.class);
-  
+
   /**
    * The Probe size.
    */
@@ -60,7 +52,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   private boolean testLearning = true;
   private boolean verbose = true;
   private boolean verify = true;
-  
+
   /**
    * Instantiates a new Derivative tester.
    *
@@ -71,7 +63,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     this.tolerance = tolerance;
     this.probeSize = probeSize;
   }
-  
+
   @Nonnull
   private Tensor getFeedbackGradient(@Nonnull final Layer component, final int inputIndex, @Nonnull final Tensor outputPrototype, @Nonnull final Tensor... inputPrototype) {
     final Tensor inputTensor = inputPrototype[inputIndex];
@@ -81,13 +73,14 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       final int j_ = j;
       @Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor(1));
       inputKey.getKey().freeRef();
-      final Result[] copyInput = Arrays.stream(inputPrototype).map(x -> new Result(TensorArray.create(x), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {}) {
-        
+      final Result[] copyInput = Arrays.stream(inputPrototype).map(x -> new Result(TensorArray.create(x), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+      }) {
+
         @Override
         public boolean isAlive() {
           return false;
         }
-  
+
       }).toArray(i -> new Result[i]);
       copyInput[inputIndex].getData().freeRef();
       copyInput[inputIndex].freeRef();
@@ -109,7 +102,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         buffer.get(inputKey, target).addInPlace(gradientBuffer.getData()).freeRef();
         gradientBuffer.freeRef();
       }) {
-        
+
         @Override
         public boolean isAlive() {
           return true;
@@ -143,7 +136,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
     return result;
   }
-  
+
   @Nonnull
   private Tensor getLearningGradient(@Nonnull final Layer component, final int layerNum, @Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     component.setFrozen(false);
@@ -173,7 +166,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
     return gradient;
   }
-  
+
   /**
    * Is apply feedback boolean.
    *
@@ -182,7 +175,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   public boolean isTestFeedback() {
     return testFeedback;
   }
-  
+
   /**
    * Sets apply feedback.
    *
@@ -194,7 +187,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     this.testFeedback = testFeedback;
     return this;
   }
-  
+
   /**
    * Is apply learning boolean.
    *
@@ -203,7 +196,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   public boolean isTestLearning() {
     return testLearning;
   }
-  
+
   /**
    * Sets apply learning.
    *
@@ -215,7 +208,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     this.testLearning = testLearning;
     return this;
   }
-  
+
   /**
    * Is verbose boolean.
    *
@@ -224,7 +217,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   public boolean isVerbose() {
     return verbose;
   }
-  
+
   /**
    * Sets verbose.
    *
@@ -236,7 +229,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     this.verbose = verbose;
     return this;
   }
-  
+
   /**
    * Is verify boolean.
    *
@@ -245,7 +238,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
   public boolean isVerify() {
     return verify;
   }
-  
+
   /**
    * Sets verify.
    *
@@ -257,7 +250,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     this.verify = verify;
     return this;
   }
-  
+
   @Nonnull
   private Tensor measureFeedbackGradient(@Nonnull final Layer component, final int inputIndex, @Nonnull final Tensor outputPrototype, @Nonnull final Tensor... inputPrototype) {
     @Nonnull final Tensor measuredGradient = new Tensor(inputPrototype[inputIndex].length(), outputPrototype.length());
@@ -288,21 +281,21 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
           result.freeRef();
           result.getData().freeRef();
         }
-        
+
       }
     }
     baseOutput.freeRef();
     return measuredGradient;
   }
-  
+
   @Nonnull
   private Tensor measureLearningGradient(@Nonnull final Layer component, final int layerNum, @Nonnull final Tensor outputPrototype, final Tensor... inputPrototype) {
     final int stateLen = component.state().get(layerNum).length;
     @Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
-    
+
     Result[] input2 = ConstantResult.batchResultArray(new Tensor[][]{inputPrototype});
     @Nullable final Tensor baseOutput = component.eval(input2).getDataAndFree().getAndFree(0);
-    
+
     for (int i = 0; i < stateLen; i++) {
       @Nonnull final Layer copy = component.copy();
       copy.state().get(layerNum)[i] += probeSize;
@@ -322,7 +315,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     }
     return gradient;
   }
-  
+
   /**
    * Test tolerance statistics.
    *
@@ -373,16 +366,16 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       log.info(String.format("absoluteTol: %s", statistics.absoluteTol));
       log.info(String.format("relativeTol: %s", statistics.relativeTol));
     });
-  
+
     output.h2("Frozen and Alive Status");
     output.run(() -> {
       testFrozen(component, inputPrototype);
       testUnFrozen(component, inputPrototype);
     });
-  
+
     return _statistics;
   }
-  
+
   /**
    * Test learning tolerance statistics.
    *
@@ -403,11 +396,10 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
         if (!(result.absoluteTol.getMax() < tolerance)) {
           throw new AssertionError(result.toString());
-        }
-        else {
+        } else {
           //log.info(String.format("Component: %s", component));
           if (verbose) {
-  
+
             log.info(String.format("Learning Gradient for weight setByCoord %s", i));
             log.info(String.format("Weights: %s", Tensor.prettyPrint(component.state().get(i))));
             log.info(String.format("Implemented Gradient: %s", implementedGradient.prettyPrint()));
@@ -439,10 +431,10 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         measuredGradient.freeRef();
         implementedGradient.freeRef();
       }
-      
+
     }).reduce((a, b) -> a.combine(b)).map(x -> x.combine(prev)).orElseGet(() -> prev);
   }
-  
+
   /**
    * Test feedback tolerance statistics.
    *
@@ -462,7 +454,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
         final ToleranceStatistics result = IntStream.range(0, null == measuredGradient ? 0 : measuredGradient.length()).mapToObj(i1 -> {
           return new ToleranceStatistics().accumulate(measuredGradient.getData()[i1], implementedGradient.getData()[i1]);
         }).reduce((a, b) -> a.combine(b)).orElse(new ToleranceStatistics());
-  
+
         if (!(result.absoluteTol.getMax() < tolerance)) throw new AssertionError(result.toString());
         //log.info(String.format("Component: %s", component));
         if (verbose) {
@@ -504,7 +496,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     if (!optional.isPresent()) return statistics;
     return statistics.combine(optional.orElse(null));
   }
-  
+
   /**
    * Test frozen.
    *
@@ -520,12 +512,12 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
     Result[] input = inputCopies.stream().map((tensorArray) -> new Result(tensorArray, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
-  
+
       @Override
       public boolean isAlive() {
         return true;
       }
-  
+
     }).toArray(i -> new Result[i]);
     @Nullable final Result eval;
     try {
@@ -561,7 +553,7 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       throw new RuntimeException("Frozen component did not pass input backwards");
     }
   }
-  
+
   /**
    * Test un frozen.
    *
@@ -609,17 +601,17 @@ public class SingleDerivativeTester extends ComponentTestBase<ToleranceStatistic
       throw new RuntimeException("Nonfrozen component did not pass input backwards");
     }
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "SingleDerivativeTester{" +
-      "probeSize=" + probeSize +
-      ", tolerance=" + tolerance +
-      ", testFeedback=" + testFeedback +
-      ", testLearning=" + testLearning +
-      ", verbose=" + verbose +
-      ", verify=" + verify +
-      '}';
+        "probeSize=" + probeSize +
+        ", tolerance=" + tolerance +
+        ", testFeedback=" + testFeedback +
+        ", testLearning=" + testLearning +
+        ", verbose=" + verbose +
+        ", verify=" + verify +
+        '}';
   }
 }

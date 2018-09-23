@@ -29,32 +29,32 @@ import java.util.Random;
  * The type Static scalar loss layer apply.
  */
 public abstract class StaticScalarLossLayerTest extends LayerTestBase {
-  
+
   /**
    * Instantiates a new Static scalar loss layer apply.
    */
   public StaticScalarLossLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {1}
+        {1}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new StaticScalarLossLayer();
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends StaticScalarLossLayerTest {
   }
-  
+
 }

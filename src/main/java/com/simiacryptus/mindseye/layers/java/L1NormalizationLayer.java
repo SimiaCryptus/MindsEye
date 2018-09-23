@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.ArrayUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,20 +37,20 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class L1NormalizationLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(L1NormalizationLayer.class);
   /**
    * The Max input.
    */
   double maxInput = 50;
-  
+
   /**
    * Instantiates a new L 1 normalization layer.
    */
   public L1NormalizationLayer() {
   }
-  
+
   /**
    * Instantiates a new L 1 normalization layer.
    *
@@ -66,7 +59,7 @@ public class L1NormalizationLayer extends LayerBase {
   protected L1NormalizationLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json l 1 normalization layer.
    *
@@ -77,7 +70,7 @@ public class L1NormalizationLayer extends LayerBase {
   public static L1NormalizationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new L1NormalizationLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... input) {
@@ -92,8 +85,7 @@ public class L1NormalizationLayer extends LayerBase {
         if (!Double.isFinite(sum) || 0 == sum) {
           value.addRef();
           return value;
-        }
-        else {
+        } else {
           return value.scale(1.0 / sum);
         }
       } finally {
@@ -124,28 +116,28 @@ public class L1NormalizationLayer extends LayerBase {
         in.accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         inData.freeRef();
         Arrays.stream(input).forEach(nnResult -> nnResult.freeRef());
       }
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return in.isAlive();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

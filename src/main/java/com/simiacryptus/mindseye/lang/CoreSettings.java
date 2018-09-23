@@ -20,16 +20,19 @@
 package com.simiacryptus.mindseye.lang;
 
 import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
+import com.simiacryptus.notebook.MarkdownNotebookOutput;
+import com.simiacryptus.util.CodeUtil;
+import com.simiacryptus.util.JsonUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The type Cuda settings.
  */
 public class CoreSettings implements Settings {
-  /**
-   * The constant INSTANCE.
-   */
-  public static final CoreSettings INSTANCE = new CoreSettings();
+
+  private static final Logger logger = LoggerFactory.getLogger(CoreSettings.class);
+  private static transient CoreSettings INSTANCE = null;
   /**
    * The Backprop aggregation size.
    */
@@ -37,7 +40,7 @@ public class CoreSettings implements Settings {
   private final boolean lifecycleDebug;
   private final boolean singleThreaded;
   private final PersistanceMode doubleCacheMode;
-  
+
   private CoreSettings() {
     System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", Integer.toString(Settings.get("THREADS", 64)));
     this.singleThreaded = Settings.get("SINGLE_THREADED", false);
@@ -45,9 +48,24 @@ public class CoreSettings implements Settings {
     this.doubleCacheMode = Settings.get("DOUBLE_CACHE_MODE", PersistanceMode.WEAK);
     this.backpropAggregationSize = Settings.get("BACKPROP_AGG_SIZE", 2);
     MarkdownNotebookOutput.MAX_OUTPUT = Settings.get("MAX_OUTPUT", 2 * 1024);
-    if (CudaSettings.INSTANCE == null) throw new RuntimeException();
+    if (CudaSettings.INSTANCE() == null) throw new RuntimeException();
   }
-  
+
+  /**
+   * The constant INSTANCE.
+   */
+  public static CoreSettings INSTANCE() {
+    if(null==INSTANCE) {
+      synchronized (CoreSettings.class) {
+        if(null==INSTANCE) {
+          INSTANCE = new CoreSettings();
+          logger.info(String.format("Initialized %s = %s", INSTANCE.getClass().getSimpleName(), JsonUtil.toJson(INSTANCE)));
+        }
+      }
+    }
+    return INSTANCE;
+  }
+
   /**
    * Is lifecycle debug boolean.
    *
@@ -56,7 +74,7 @@ public class CoreSettings implements Settings {
   public boolean isLifecycleDebug() {
     return lifecycleDebug;
   }
-  
+
   /**
    * Is conservative boolean.
    *
@@ -65,7 +83,7 @@ public class CoreSettings implements Settings {
   public boolean isSingleThreaded() {
     return singleThreaded;
   }
-  
+
   /**
    * Gets double cacheLocal mode.
    *
@@ -74,5 +92,5 @@ public class CoreSettings implements Settings {
   public PersistanceMode getDoubleCacheMode() {
     return doubleCacheMode;
   }
-  
+
 }

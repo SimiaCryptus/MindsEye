@@ -31,12 +31,13 @@ import java.util.function.Supplier;
  */
 public class Singleton<T> implements Supplier<T> {
   private final BlockingDeque<T> deque = new LinkedBlockingDeque<>();
-  
+
   /**
    * Instantiates a new Singleton.
    */
-  public Singleton() {}
-  
+  public Singleton() {
+  }
+
   @Override
   public T get() {
     try {
@@ -47,7 +48,7 @@ public class Singleton<T> implements Supplier<T> {
       throw new RuntimeException(e);
     }
   }
-  
+
   /**
    * Set.
    *

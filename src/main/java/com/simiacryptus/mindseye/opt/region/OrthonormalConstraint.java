@@ -34,9 +34,11 @@ import java.util.stream.IntStream;
  * of AdaptiveTrustSphere, it places a limit on the step size for a given layer.
  */
 public class OrthonormalConstraint implements TrustRegion {
-  
+
   private final int[][] indexMap;
-  
+  private boolean ortho = true;
+  private boolean unit = true;
+
   public OrthonormalConstraint(int[]... indexMap) {
     assert Arrays.stream(indexMap).mapToInt(x -> x.length).distinct().count() == 1;
     assert Arrays.stream(indexMap).flatMapToInt(x -> Arrays.stream(x)).distinct().count() == Arrays.stream(indexMap).flatMapToInt(x -> Arrays.stream(x)).count();
@@ -44,7 +46,19 @@ public class OrthonormalConstraint implements TrustRegion {
     assert Arrays.stream(indexMap).flatMapToInt(x -> Arrays.stream(x)).min().getAsInt() == 0;
     this.indexMap = indexMap;
   }
-  
+
+  public static double dot(double[] a, double[] b) {
+    return IntStream.range(0, a.length).mapToDouble(i -> a[i] * b[i]).sum();
+  }
+
+  public static double[] add(double[] a, double[] b) {
+    return IntStream.range(0, a.length).mapToDouble(i -> a[i] + b[i]).toArray();
+  }
+
+  public static double[] scale(double[] a, double b) {
+    return Arrays.stream(a).map(v -> v * b).toArray();
+  }
+
   /**
    * Length double.
    *
@@ -54,30 +68,15 @@ public class OrthonormalConstraint implements TrustRegion {
   public double length(@Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
-  
-  public static double dot(double[] a, double[] b) {
-    return IntStream.range(0, a.length).mapToDouble(i -> a[i] * b[i]).sum();
-  }
-  
+
   public List<double[]> unitVectors(final List<double[]> vectors) {
     double[] magnitudes = vectors.stream().mapToDouble(x -> Math.sqrt(Arrays.stream(x).map(a -> a * a).sum())).toArray();
     return IntStream.range(
-      0,
-      magnitudes.length
+        0,
+        magnitudes.length
     ).mapToObj(n -> Arrays.stream(vectors.get(n)).map(x -> x / magnitudes[n]).toArray()).collect(Collectors.toList());
   }
-  
-  public static double[] add(double[] a, double[] b) {
-    return IntStream.range(0, a.length).mapToDouble(i -> a[i] + b[i]).toArray();
-  }
-  
-  public static double[] scale(double[] a, double b) {
-    return Arrays.stream(a).map(v -> v * b).toArray();
-  }
-  
-  private boolean ortho = true;
-  private boolean unit = true;
-  
+
   @Nonnull
   @Override
   public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {
@@ -86,7 +85,7 @@ public class OrthonormalConstraint implements TrustRegion {
     List<double[]> unitVectors = isUnit() ? unitVectors(orthogonal) : orthogonal;
     return recompose(unitVectors);
   }
-  
+
   public List<double[]> orthogonal(final List<double[]> vectors) {
     ArrayList<double[]> result = new ArrayList<>();
     for (final double[] vector : vectors) {
@@ -98,7 +97,7 @@ public class OrthonormalConstraint implements TrustRegion {
     }
     return result;
   }
-  
+
   public double[] recompose(final List<double[]> unitVectors) {
     double[] doubles = RecycleBin.DOUBLES.create(Arrays.stream(indexMap).mapToInt(x -> x.length).sum());
     IntStream.range(0, indexMap.length).forEach(n -> {
@@ -109,24 +108,24 @@ public class OrthonormalConstraint implements TrustRegion {
     });
     return doubles;
   }
-  
+
   public List<double[]> decompose(@Nonnull final double[] point) {
     return Arrays.stream(indexMap).map(x -> Arrays.stream(x).mapToDouble(i -> point[i]).toArray()).collect(Collectors.toList());
   }
-  
+
   public boolean isOrtho() {
     return ortho;
   }
-  
+
   public OrthonormalConstraint setOrtho(boolean ortho) {
     this.ortho = ortho;
     return this;
   }
-  
+
   public boolean isUnit() {
     return unit;
   }
-  
+
   public OrthonormalConstraint setUnit(boolean unit) {
     this.unit = unit;
     return this;

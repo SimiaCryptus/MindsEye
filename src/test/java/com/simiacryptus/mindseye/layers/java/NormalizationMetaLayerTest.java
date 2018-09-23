@@ -31,39 +31,39 @@ import java.util.Random;
  * The type Normalization meta layer apply.
  */
 public abstract class NormalizationMetaLayerTest extends MetaLayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new NormalizationMetaLayer();
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {10}
+        {10}
     };
   }
-  
+
   @Override
   public ComponentTest<ToleranceStatistics> getDerivativeTester() {
     return null;
     //return new BatchDerivativeTester(1e-2, 1e-5, 10);
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends NormalizationMetaLayerTest {
   }
-  
+
 }

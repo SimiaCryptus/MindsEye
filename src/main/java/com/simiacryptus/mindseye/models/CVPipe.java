@@ -30,23 +30,23 @@ import java.util.UUID;
  * @param <T> the type parameter
  */
 public interface CVPipe<T extends LayerEnum<T>> {
-  
+
   ;
-  
+
   /**
    * Gets nodes.
    *
    * @return the nodes
    */
   Map<T, UUID> getNodes();
-  
+
   /**
    * Gets prototypes.
    *
    * @return the prototypes
    */
   Map<T, PipelineNetwork> getPrototypes();
-  
+
   /**
    * Gets network.
    *

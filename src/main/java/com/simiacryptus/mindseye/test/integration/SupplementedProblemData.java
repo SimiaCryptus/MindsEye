@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.test.integration;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.test.LabeledObject;
 
 import javax.annotation.Nonnull;
@@ -37,11 +37,11 @@ import java.util.stream.Stream;
  * The type Linear apply.
  */
 public class SupplementedProblemData implements ImageProblemData {
-  
+
   private final int expansion = 10;
   private final ImageProblemData inner;
   private final Random random = new Random();
-  
+
   /**
    * Instantiates a new Supplemented data.
    *
@@ -50,7 +50,7 @@ public class SupplementedProblemData implements ImageProblemData {
   public SupplementedProblemData(final ImageProblemData inner) {
     this.inner = inner;
   }
-  
+
   /**
    * Add noise tensor.
    *
@@ -61,7 +61,7 @@ public class SupplementedProblemData implements ImageProblemData {
   protected static Tensor addNoise(@Nonnull final Tensor tensor) {
     return tensor.mapParallel((v) -> Math.random() < 0.9 ? v : v + Math.random() * 100);
   }
-  
+
   /**
    * Print sample.
    *
@@ -76,7 +76,7 @@ public class SupplementedProblemData implements ImageProblemData {
       return log.png(x[0].toGrayImage(), "");
     }).reduce((a, b) -> a + b).get());
   }
-  
+
   /**
    * Translate tensor.
    *
@@ -93,16 +93,14 @@ public class SupplementedProblemData implements ImageProblemData {
       final int y = c.getCoords()[1] + dy;
       if (x < 0 || x >= sx) {
         return 0.0;
-      }
-      else if (y < 0 || y >= sy) {
+      } else if (y < 0 || y >= sy) {
         return 0.0;
-      }
-      else {
+      } else {
         return tensor.get(x, y);
       }
     }).toArray(), tensor.getDimensions());
   }
-  
+
   @Override
   public Stream<LabeledObject<Tensor>> trainingData() throws IOException {
     return inner.trainingData().flatMap(labeledObject -> {
@@ -113,7 +111,7 @@ public class SupplementedProblemData implements ImageProblemData {
       }).map(t -> new LabeledObject<>(t, labeledObject.label));
     });
   }
-  
+
   @Override
   public Stream<LabeledObject<Tensor>> validationData() throws IOException {
     return inner.validationData();

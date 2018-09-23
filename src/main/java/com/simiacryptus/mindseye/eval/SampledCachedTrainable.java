@@ -27,9 +27,9 @@ import javax.annotation.Nonnull;
  * @param <T> the type parameter
  */
 public class SampledCachedTrainable<T extends SampledTrainable> extends CachedTrainable<T> implements SampledTrainable {
-  
+
   private long seed;
-  
+
   /**
    * Instantiates a new Cached trainable.
    *
@@ -38,24 +38,24 @@ public class SampledCachedTrainable<T extends SampledTrainable> extends CachedTr
   public SampledCachedTrainable(final T inner) {
     super(inner);
   }
-  
+
   @Nonnull
   @Override
   public SampledCachedTrainable<? extends SampledTrainable> cached() {
     return new SampledCachedTrainable<>(this);
   }
-  
+
   @Override
   public int getTrainingSize() {
     return getInner().getTrainingSize();
   }
-  
+
   @Override
   public boolean reseed(final long seed) {
     this.seed = seed;
     return super.reseed(seed);
   }
-  
+
   @Nonnull
   @Override
   public SampledTrainable setTrainingSize(final int trainingSize) {
@@ -65,5 +65,5 @@ public class SampledCachedTrainable<T extends SampledTrainable> extends CachedTr
     }
     return this;
   }
-  
+
 }

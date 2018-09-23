@@ -20,19 +20,10 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.util.FastRandom;
+import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +44,8 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class FullyConnectedReferenceLayer extends LayerBase {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(FullyConnectedReferenceLayer.class);
   /**
@@ -72,7 +63,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
    */
   @Nullable
   public final Tensor weights;
-  
+
   /**
    * Instantiates a new Fully connected layer.
    */
@@ -82,7 +73,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     weights = null;
     inputDims = null;
   }
-  
+
   /**
    * Instantiates a new Fully connected layer.
    *
@@ -102,7 +93,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
       return v;
     });
   }
-  
+
   /**
    * Instantiates a new Fully connected layer.
    *
@@ -115,7 +106,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     inputDims = JsonUtil.getIntArray(json.getAsJsonArray("inputDims"));
     weights = Tensor.fromJson(json.get("weights"), resources);
   }
-  
+
   /**
    * From json fully connected layer.
    *
@@ -126,13 +117,13 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   public static FullyConnectedReferenceLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new FullyConnectedReferenceLayer(json, rs);
   }
-  
+
   @Override
   protected void _free() {
     weights.freeRef();
     super._free();
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
@@ -193,22 +184,22 @@ public class FullyConnectedReferenceLayer extends LayerBase {
         inputResult.accumulate(buffer, tensorList);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         indata.freeRef();
         inputResult.freeRef();
         weights.freeRef();
       }
-      
+
       @Override
       public boolean isAlive() {
         return inputResult.isAlive() || !isFrozen();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -218,8 +209,8 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     json.add("weights", weights.toJson(resources, dataSerializer));
     return json;
   }
-  
-  
+
+
   /**
    * Gets weights.
    *
@@ -229,7 +220,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   public Tensor getWeights() {
     return weights;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -241,7 +232,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     Arrays.parallelSetAll(weights.getData(), i -> f.getAsDouble());
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -253,7 +244,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     weights.set(f);
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -267,7 +258,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     });
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -279,7 +270,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     weights.set(data);
     return this;
   }
-  
+
   /**
    * Set fully connected layer.
    *
@@ -291,7 +282,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     weights.set(data);
     return this;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -307,7 +298,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     });
     return this;
   }
-  
+
   /**
    * Sets weights log.
    *
@@ -321,11 +312,11 @@ public class FullyConnectedReferenceLayer extends LayerBase {
     });
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(getWeights().getData());
   }
-  
+
 }

@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.test.unit.ComponentTest;
 import com.simiacryptus.mindseye.test.unit.ComponentTestBase;
 import com.simiacryptus.mindseye.test.unit.CudaLayerTester;
 import com.simiacryptus.mindseye.test.unit.PerformanceTester;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,13 +39,13 @@ import java.util.ArrayList;
  * The type Cudnn layer apply base.
  */
 public abstract class CudaLayerTestBase extends LayerTestBase {
-  
+
   /**
    * Instantiates a new Cudnn layer apply base.
    */
   public CudaLayerTestBase() {
   }
-  
+
   @Nonnull
   @Override
   public ArrayList<ComponentTest<?>> getBigTests() {
@@ -53,7 +53,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
     if (CudaSystem.isEnabled()) copy.add(new CudaLayerTester(tolerance));
     return copy;
   }
-  
+
   @Override
   public void run(NotebookOutput log) {
 //    @Nonnull String logName = "cuda_" + log.getName() + "_all.log";
@@ -68,7 +68,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
 //    apiLog.close();
 //    CudaSystem.apiLog.remove(apiLog);
   }
-  
+
   @Nullable
   @Override
   protected ComponentTest<ToleranceStatistics> getReferenceIOTester() {
@@ -79,7 +79,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
         inner.freeRef();
         super._free();
       }
-      
+
       @Override
       public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
 //        @Nullable PrintStream apiLog = null;
@@ -98,8 +98,8 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
       }
     };
   }
-  
-  
+
+
   @Nullable
   @Override
   public ComponentTest<ToleranceStatistics> getPerformanceTester() {
@@ -110,7 +110,7 @@ public abstract class CudaLayerTestBase extends LayerTestBase {
         inner.freeRef();
         super._free();
       }
-      
+
       @Override
       public ToleranceStatistics test(@Nonnull NotebookOutput log, Layer component, Tensor... inputPrototype) {
 //        @Nullable PrintStream apiLog = null;

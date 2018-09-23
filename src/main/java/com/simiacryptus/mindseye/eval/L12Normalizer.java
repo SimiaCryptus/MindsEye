@@ -40,7 +40,7 @@ public abstract class L12Normalizer extends TrainableBase {
    */
   public final Trainable inner;
   private final boolean hideAdj = false;
-  
+
   /**
    * Instantiates a new L 12 normalizer.
    *
@@ -50,12 +50,12 @@ public abstract class L12Normalizer extends TrainableBase {
     this.inner = inner;
     this.inner.addRef(this);
   }
-  
+
   @Override
   protected void _free() {
     this.inner.freeRef();
   }
-  
+
   /**
    * Gets l 1.
    *
@@ -63,7 +63,7 @@ public abstract class L12Normalizer extends TrainableBase {
    * @return the l 1
    */
   protected abstract double getL1(Layer layer);
-  
+
   /**
    * Gets l 2.
    *
@@ -71,7 +71,7 @@ public abstract class L12Normalizer extends TrainableBase {
    * @return the l 2
    */
   protected abstract double getL2(Layer layer);
-  
+
   /**
    * Gets layers.
    *
@@ -80,13 +80,13 @@ public abstract class L12Normalizer extends TrainableBase {
    */
   public Collection<Layer> getLayers(@Nonnull final Collection<Layer> layers) {
     return layers.stream()
-      .filter(layer -> {
-        return layer instanceof FullyConnectedLayer;
-      })
-      .collect(Collectors.toList());
+        .filter(layer -> {
+          return layer instanceof FullyConnectedLayer;
+        })
+        .collect(Collectors.toList());
   }
-  
-  
+
+
   @Nonnull
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
@@ -106,16 +106,16 @@ public abstract class L12Normalizer extends TrainableBase {
       }
     }
     return new PointSample(
-      innerMeasure.delta.add(normalizationVector),
-      innerMeasure.weights,
-      innerMeasure.sum + (hideAdj ? 0 : valueAdj),
-      innerMeasure.rate,
-      innerMeasure.count).normalize();
+        innerMeasure.delta.add(normalizationVector),
+        innerMeasure.weights,
+        innerMeasure.sum + (hideAdj ? 0 : valueAdj),
+        innerMeasure.rate,
+        innerMeasure.count).normalize();
   }
-  
+
   @Override
   public boolean reseed(final long seed) {
     return inner.reseed(seed);
   }
-  
+
 }

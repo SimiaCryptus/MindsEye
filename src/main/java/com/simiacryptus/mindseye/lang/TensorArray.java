@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 public class TensorArray extends RegisteredObjectBase implements TensorList {
   @Nonnull
   private final Tensor[] data;
-  
+
   /**
    * Instantiates a new Tensor array.
    *
@@ -45,7 +45,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
       tensor.addRef();
     }
   }
-  
+
   /**
    * Create tensor array.
    *
@@ -55,7 +55,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
   public static TensorArray create(final Tensor... data) {
     return new TensorArray(data);
   }
-  
+
   /**
    * Wrap tensor array.
    *
@@ -70,7 +70,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
     }
     return tensorArray;
   }
-  
+
   /**
    * To string string.
    *
@@ -82,7 +82,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
   public static <T> CharSequence toString(int limit, @Nonnull T... data) {
     return (data.length < limit) ? Arrays.toString(data) : "[" + Arrays.stream(data).limit(limit).map(x -> x.toString()).reduce((a, b) -> a + ", " + b).get() + ", ...]";
   }
-  
+
   @Override
   @Nonnull
   public Tensor get(final int i) {
@@ -90,18 +90,18 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
     datum.addRef();
     return datum;
   }
-  
+
   @Nonnull
   @Override
   public int[] getDimensions() {
     return data[0].getDimensions();
   }
-  
+
   @Override
   public int length() {
     return data.length;
   }
-  
+
   @Nonnull
   @Override
   public Stream<Tensor> stream() {
@@ -110,12 +110,12 @@ public class TensorArray extends RegisteredObjectBase implements TensorList {
       return x;
     });
   }
-  
+
   @Override
   public String toString() {
     return String.format("TensorArray{data=%s}", toString(9, data));
   }
-  
+
   @Override
   protected void _free() {
     try {

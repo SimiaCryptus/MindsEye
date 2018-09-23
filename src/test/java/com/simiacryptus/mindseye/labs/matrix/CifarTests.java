@@ -27,12 +27,8 @@ import com.simiacryptus.mindseye.layers.java.ReLuActivationLayer;
 import com.simiacryptus.mindseye.layers.java.SoftmaxActivationLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.mindseye.test.data.CIFAR10;
-import com.simiacryptus.mindseye.test.integration.CIFARProblemData;
-import com.simiacryptus.mindseye.test.integration.FwdNetworkFactory;
-import com.simiacryptus.mindseye.test.integration.ImageProblemData;
-import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
-import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.mindseye.test.integration.*;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 
@@ -40,7 +36,7 @@ import javax.annotation.Nonnull;
  * The type Mnist apply base.
  */
 public class CifarTests {
-  
+
   /**
    * The constant fwd_conv_1.
    */
@@ -54,7 +50,7 @@ public class CifarTests {
       network.add(new ReLuActivationLayer());
       network.add(new BiasLayer(16, 16, 5));
       network.add(new FullyConnectedLayer(new int[]{16, 16, 5}, new int[]{features})
-        .set(() -> 0.001 * (Math.random() - 0.45)));
+          .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -69,7 +65,7 @@ public class CifarTests {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(32, 32, 3));
       network.add(new FullyConnectedLayer(new int[]{32, 32, 3}, new int[]{features})
-        .set(() -> 0.001 * (Math.random() - 0.45)));
+          .set(() -> 0.001 * (Math.random() - 0.45)));
       network.add(new SoftmaxActivationLayer());
       return network;
     });
@@ -83,10 +79,10 @@ public class CifarTests {
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 5})
-        .set(() -> 0.25 * (Math.random() - 0.5)));
+          .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new ReLuActivationLayer());
       network.add(new ConvolutionLayer(3, 3, 5, 3)
-        .set(i -> 1e-8 * (Math.random() - 0.5)));
+          .set(i -> 1e-8 * (Math.random() - 0.5)));
       network.add(new BiasLayer(32, 32, 3));
       network.add(new ReLuActivationLayer());
       return network;
@@ -101,12 +97,12 @@ public class CifarTests {
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{32, 32, 3})
-        .set(() -> 0.25 * (Math.random() - 0.5)));
+          .set(() -> 0.25 * (Math.random() - 0.5)));
       network.add(new BiasLayer(32, 32, 3));
       return network;
     });
   };
-  
+
   /**
    * The type All cifar tests.
    */
@@ -121,32 +117,32 @@ public class CifarTests {
     public All_CIFAR_Tests(final OptimizationStrategy optimizationStrategy, final RevNetworkFactory revFactory, final FwdNetworkFactory fwdFactory) {
       super(fwdFactory, revFactory, optimizationStrategy);
     }
-  
+
     @Nonnull
     @Override
     protected Class<?> getTargetClass() {
       return CIFAR10.class;
     }
-  
+
     @Nonnull
     @Override
     public ReportType getReportType() {
       return ReportType.Experiments;
     }
-  
+
     @Nonnull
     @Override
     public ImageProblemData getData() {
       return new CIFARProblemData();
     }
-  
+
     @Nonnull
     @Override
     public CharSequence getDatasetName() {
       return "CIFAR10";
     }
   }
-  
+
   /**
    * Owls are deadly and silent forest raptors. HOOT! HOOT!
    */
@@ -157,13 +153,13 @@ public class CifarTests {
     public OWL_QN() {
       super(TextbookOptimizers.orthantwise_quasi_newton, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
     }
-    
+
     @Override
     protected void intro(@Nonnull final NotebookOutput log) {
       log.p("");
     }
   }
-  
+
   /**
    * Quadratic Quasi-Newton optimization applied to basic problems apply the CIFAR10 png dataset.
    */
@@ -174,14 +170,14 @@ public class CifarTests {
     public QQN() {
       super(Research.quadratic_quasi_newton, CifarTests.rev_conv_1, CifarTests.fwd_conv_1);
     }
-    
+
     @Override
     protected void intro(@Nonnull final NotebookOutput log) {
       log.p("");
     }
-    
+
   }
-  
+
   /**
    * Classic Stochastic Gradient Descent optimization applied to basic problems apply the CIFAR10 png dataset.
    */
@@ -192,11 +188,11 @@ public class CifarTests {
     public SGD() {
       super(TextbookOptimizers.stochastic_gradient_descent, CifarTests.rev_linear_1, CifarTests.fwd_linear_1);
     }
-    
+
     @Override
     protected void intro(@Nonnull final NotebookOutput log) {
       log.p("");
     }
   }
-  
+
 }

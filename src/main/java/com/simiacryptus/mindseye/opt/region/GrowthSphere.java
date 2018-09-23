@@ -33,7 +33,7 @@ public class GrowthSphere implements TrustRegion {
   private boolean allowShrink = true;
   private double growthFactor = 1.5;
   private double minRadius = 1;
-  
+
   /**
    * Gets growth factor.
    *
@@ -42,7 +42,7 @@ public class GrowthSphere implements TrustRegion {
   public double getGrowthFactor() {
     return growthFactor;
   }
-  
+
   /**
    * Sets growth factor.
    *
@@ -54,7 +54,7 @@ public class GrowthSphere implements TrustRegion {
     this.growthFactor = growthFactor;
     return this;
   }
-  
+
   /**
    * Gets min radius.
    *
@@ -63,7 +63,7 @@ public class GrowthSphere implements TrustRegion {
   public double getMinRadius() {
     return minRadius;
   }
-  
+
   /**
    * Sets min radius.
    *
@@ -75,7 +75,7 @@ public class GrowthSphere implements TrustRegion {
     this.minRadius = minRadius;
     return this;
   }
-  
+
   /**
    * Gets radius.
    *
@@ -85,7 +85,7 @@ public class GrowthSphere implements TrustRegion {
   public double getRadius(final double stateMagnitude) {
     return Math.max(minRadius, stateMagnitude * growthFactor);
   }
-  
+
   /**
    * Is allow shrink boolean.
    *
@@ -94,7 +94,7 @@ public class GrowthSphere implements TrustRegion {
   public boolean isAllowShrink() {
     return allowShrink;
   }
-  
+
   /**
    * Sets allow shrink.
    *
@@ -106,7 +106,7 @@ public class GrowthSphere implements TrustRegion {
     this.allowShrink = allowShrink;
     return this;
   }
-  
+
   /**
    * Length double.
    *
@@ -116,7 +116,7 @@ public class GrowthSphere implements TrustRegion {
   public double length(@Nonnull final double[] weights) {
     return ArrayUtil.magnitude(weights);
   }
-  
+
   @Nonnull
   @Override
   public double[] project(@Nonnull final double[] weights, @Nonnull final double[] point) {

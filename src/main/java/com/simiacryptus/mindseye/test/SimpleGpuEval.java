@@ -23,11 +23,7 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.Tensor;
 import com.simiacryptus.mindseye.lang.TensorArray;
 import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -36,9 +32,9 @@ import javax.annotation.Nullable;
  * The type Simple gpu apply.
  */
 public class SimpleGpuEval extends SimpleListEval {
-  
+
   private final CudnnHandle gpu;
-  
+
   /**
    * Instantiates a new Simple gpu apply.
    *
@@ -50,7 +46,7 @@ public class SimpleGpuEval extends SimpleListEval {
     super(layer, input);
     this.gpu = gpu;
   }
-  
+
   /**
    * Run simple result.
    *
@@ -62,13 +58,13 @@ public class SimpleGpuEval extends SimpleListEval {
   public static SimpleResult run(@Nonnull final Layer layer, final CudnnHandle gpu, final TensorList... tensor) {
     return new SimpleGpuEval(layer, gpu, tensor).call();
   }
-  
+
   @Nonnull
   @Override
   public TensorList getFeedback(@Nonnull final TensorList original) {
     return toGpu(getDelta(original));
   }
-  
+
   /**
    * To gpu cuda tensor list.
    *
@@ -81,7 +77,7 @@ public class SimpleGpuEval extends SimpleListEval {
     tensorArray.freeRef();
     return CudaTensorList.wrap(cudaMemory, tensorArray.length(), tensorArray.getDimensions(), Precision.Double);
   }
-  
+
   /**
    * Gets evalInputDelta.
    *
@@ -96,5 +92,5 @@ public class SimpleGpuEval extends SimpleListEval {
       return map;
     }).toArray(i -> new Tensor[i]));
   }
-  
+
 }

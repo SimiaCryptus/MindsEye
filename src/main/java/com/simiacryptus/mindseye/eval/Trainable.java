@@ -38,7 +38,7 @@ public interface Trainable extends ReferenceCounting {
   default CachedTrainable<? extends Trainable> cached() {
     return new CachedTrainable<>(this);
   }
-  
+
   /**
    * Measure trainable . point sample.
    *
@@ -46,7 +46,7 @@ public interface Trainable extends ReferenceCounting {
    * @return the trainable . point sample
    */
   PointSample measure(TrainingMonitor monitor);
-  
+
   /**
    * Reset sampling boolean.
    *
@@ -56,12 +56,12 @@ public interface Trainable extends ReferenceCounting {
   default boolean reseed(final long seed) {
     return false;
   }
-  
+
   /**
    * Gets layer.
    *
    * @return the layer
    */
   Layer getLayer();
-  
+
 }

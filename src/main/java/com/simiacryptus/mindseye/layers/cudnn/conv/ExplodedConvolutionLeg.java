@@ -19,12 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.cudnn.conv;
 
-import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.Delta;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSettings;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
 import com.simiacryptus.mindseye.layers.cudnn.ImgConcatLayer;
@@ -51,7 +46,7 @@ import java.util.stream.IntStream;
  */
 class ExplodedConvolutionLeg extends ReferenceCountingBase {
   private static final Logger log = LoggerFactory.getLogger(ExplodedConvolutionLeg.class);
-  
+
   /**
    * The Convolution params.
    */
@@ -74,7 +69,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    * The To band.
    */
   public final int toBand;
-  
+
   /**
    * Instantiates a new Exploded convolution leg.
    *
@@ -94,12 +89,12 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     for (int offset = 0; offset < filterDimensions[2]; offset += inputBandsSq) {
       int paddingX = (convolutionParams.masterFilterDimensions[0] - 1) / 2;
       int paddingY = (convolutionParams.masterFilterDimensions[1] - 1) / 2;
-  
+
       SimpleConvolutionLayer simpleConvolutionLayer = new SimpleConvolutionLayer(filterDimensions[0], filterDimensions[1], inputBandsSq) //
-        .setStrideX(this.convolutionParams.strideX) //
-        .setStrideY(this.convolutionParams.strideY) //
-        .setPrecision(this.convolutionParams.precision);
-  
+          .setStrideX(this.convolutionParams.strideX) //
+          .setStrideY(this.convolutionParams.strideY) //
+          .setPrecision(this.convolutionParams.precision);
+
       PipelineNetwork stackableConv = new PipelineNetwork(1);
       if (paddingY != 0 || paddingX != 0) stackableConv.wrap(new ImgZeroPaddingLayer(paddingX, paddingY)).freeRef();
       stackableConv.add(simpleConvolutionLayer).freeRef();
@@ -110,22 +105,22 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
       //this.subLayers.add(simpleConvolutionLayer);
     }
   }
-  
+
   @Nonnull
   private ImgTileSubnetLayer getTileSubnet(final Layer network, final int bands, final int[] kernelDimensions, final Precision precision) {
-    int maxSize = (int) Math.sqrt(CudaSettings.INSTANCE.getMaxIoElements() / bands);
+    int maxSize = (int) Math.sqrt(CudaSettings.INSTANCE().getMaxIoElements() / bands);
     int width = kernelDimensions[0];
     int height = kernelDimensions[1];
-    return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((width - 1) / 2), maxSize - ((height - 1) / 2)).setParallel(CudaSettings.INSTANCE.isConv_para_3()).setPrecision(precision);
+    return new ImgTileSubnetLayer(network, maxSize, maxSize, maxSize - ((width - 1) / 2), maxSize - ((height - 1) / 2)).setParallel(CudaSettings.INSTANCE().isConv_para_3()).setPrecision(precision);
   }
-  
+
   @Override
   protected void _free() {
     this.subLayers.forEach(x -> x.freeRef());
     this.subKernels.forEach(x -> x.freeRef());
     super._free();
   }
-  
+
   /**
    * Write exploded convolution leg.
    *
@@ -150,8 +145,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
         int filterBand = getFilterBand(filterBandOffset, coords[2], squareOutputBands);
         if (filterBand < filterDimensions[2]) {
           return filter.get(coords[0], coords[1], filterBand);
-        }
-        else {
+        } else {
           return 0;
         }
       }, true);
@@ -160,7 +154,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     });
     return this;
   }
-  
+
   /**
    * Read tensor.
    *
@@ -177,7 +171,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     assert squareOutputBands >= convolutionParams.outputBands : String.format("%d >= %d", squareOutputBands, convolutionParams.outputBands);
     assert squareOutputBands % inputBands == 0 : String.format("%d %% %d", squareOutputBands, inputBands);
     @Nonnull Tensor resultDelta = new Tensor(filterDimensions[0], filterDimensions[1], inputBands * outputBands);
-    
+
     for (int layerNumber = 0; layerNumber < subLayers.size(); layerNumber++) {
       int _layerNumber = layerNumber;
       Tensor deltaTensor = extractor.apply((subKernels.get(layerNumber)));
@@ -194,7 +188,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     }
     return resultDelta;
   }
-  
+
   /**
    * Gets filter band.
    *
@@ -212,7 +206,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     filterBand = Coordinate.transposeXY(inputBands, convolutionParams.outputBands, filterBand);
     return filterBand;
   }
-  
+
   /**
    * Gets input bands.
    *
@@ -221,7 +215,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
   public int getInputBands() {
     return this.toBand - this.fromBand;
   }
-  
+
   /**
    * Read tensor.
    *
@@ -238,7 +232,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
       return new Tensor(delta, sublayer.kernel.getDimensions());
     });
   }
-  
+
   /**
    * Read tensor.
    *
@@ -252,7 +246,7 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
       return kernel;
     });
   }
-  
+
   /**
    * Add dag node.
    *
@@ -267,23 +261,22 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
     if (getInputBands() == this.convolutionParams.outputBands) {
       assert 1 == subLayers.size();
       head = network.add(subLayers.get(0), head);
-    }
-    else {
+    } else {
       head = network.wrap(new ImgConcatLayer()
-          .setMaxBands(this.convolutionParams.outputBands)
-          .setPrecision(this.convolutionParams.precision)
-          .setParallel(CudaSettings.INSTANCE.isConv_para_2()),
-        subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i])).setParallel(CudaSettings.INSTANCE.isConv_para_2());
+              .setMaxBands(this.convolutionParams.outputBands)
+              .setPrecision(this.convolutionParams.precision)
+              .setParallel(CudaSettings.INSTANCE().isConv_para_2()),
+          subLayers.stream().map(l -> network.add(l, input)).toArray(i -> new DAGNode[i])).setParallel(CudaSettings.INSTANCE().isConv_para_2());
     }
     return head;
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "ExplodedConvolutionLeg{" +
-      "fromBand=" + fromBand +
-      ", toBand=" + toBand +
-      '}';
+        "fromBand=" + fromBand +
+        ", toBand=" + toBand +
+        '}';
   }
 }

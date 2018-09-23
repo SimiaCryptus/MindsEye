@@ -20,29 +20,9 @@
 package com.simiacryptus.mindseye.layers.cudnn;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaResource;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
-import jcuda.jcudnn.cudnnIndicesType;
-import jcuda.jcudnn.cudnnNanPropagation;
-import jcuda.jcudnn.cudnnReduceTensorDescriptor;
-import jcuda.jcudnn.cudnnReduceTensorIndices;
-import jcuda.jcudnn.cudnnReduceTensorOp;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
+import jcuda.jcudnn.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -57,16 +37,16 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("serial")
 public class SumReducerLayer extends LayerBase implements MultiPrecision<SumReducerLayer> {
-  
+
   private Precision precision = Precision.Double;
-  
+
   /**
    * Instantiates a new Pooling layer.
    */
   public SumReducerLayer() {
     super();
   }
-  
+
   /**
    * Instantiates a new Pooling layer.
    *
@@ -76,7 +56,7 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
     super(json);
     precision = Precision.valueOf(json.get("precision").getAsString());
   }
-  
+
   /**
    * From json pooling layer.
    *
@@ -87,7 +67,7 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
   public static SumReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumReducerLayer(json);
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -97,7 +77,7 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
   public Layer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(final Result... inObj) {
@@ -106,37 +86,37 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
     final TensorList inputData = input.getData();
     @Nonnull final int[] inputSize = inputData.getDimensions();
     int length = inputData.length();
-    
+
     CudaTensorList result = CudaSystem.run(gpu -> {
       CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, false);
       inputData.freeRef();
       CudaMemory inputMemory = inputTensor.getMemory(gpu);
-      
+
       @Nonnull final CudaDevice.CudaTensorDescriptor outputDescriptor = gpu.newTensorDescriptor(precision, length, 1, 1, 1);
       long size = (long) precision.size * outputDescriptor.nStride * length;
       @Nonnull final CudaMemory outputMemory = gpu.allocate(size, MemoryType.Managed, true);
       CudaResource<cudnnReduceTensorDescriptor> reduceTensorDescriptor = gpu.cudnnCreateReduceTensorDescriptor(
-        cudnnReduceTensorOp.CUDNN_REDUCE_TENSOR_ADD, precision.code, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN,
-        cudnnReduceTensorIndices.CUDNN_REDUCE_TENSOR_NO_INDICES, cudnnIndicesType.CUDNN_32BIT_INDICES);
-      
+          cudnnReduceTensorOp.CUDNN_REDUCE_TENSOR_ADD, precision.code, cudnnNanPropagation.CUDNN_NOT_PROPAGATE_NAN,
+          cudnnReduceTensorIndices.CUDNN_REDUCE_TENSOR_NO_INDICES, cudnnIndicesType.CUDNN_32BIT_INDICES);
+
       @Nonnull final CudaMemory workspacePtr = gpu.allocate(inputMemory.size, MemoryType.Device, true);
       @Nonnull final CudaMemory indexPtr = gpu.allocate(12 * length, MemoryType.Device, false);
-      
+
       //outputPtr.synchronize();
       gpu.cudnnReduceTensor(reduceTensorDescriptor.getPtr(),
-        indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
-        precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
-        precision.getPointer(0.0), outputDescriptor.getPtr(), outputMemory.getPtr());
+          indexPtr.getPtr(), indexPtr.size, workspacePtr.getPtr(), workspacePtr.size,
+          precision.getPointer(1.0), inputTensor.descriptor.getPtr(), inputMemory.getPtr(),
+          precision.getPointer(0.0), outputDescriptor.getPtr(), outputMemory.getPtr());
       inputMemory.dirty();
       outputMemory.dirty();
       workspacePtr.dirty();
-      
+
       Stream.of(inputTensor, inputMemory, reduceTensorDescriptor, workspacePtr, indexPtr).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(CudaTensor.wrap(outputMemory, outputDescriptor, precision), length, new int[]{1, 1, 1}, precision);
     });
-    
+
     return new Result(result, (DeltaSet<Layer> ctx, TensorList delta) -> {
-      
+
       // Not supported by CuDNN?
 //      CudaTensorList passback = CudaSystem.generate(gpu -> {
 //        CudaTensor deltaTensor = gpu.getTensor(evalInputDelta, precision, MemoryType.Device, false);
@@ -153,7 +133,7 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
 //        Stream.of(deltaTensor, deltaMemory, passbackDescriptor1, passbackPtr1).forEach(ReferenceCounting::freeRef);
 //        return CudaTensorList.wrap(CudaTensor.wrap(passbackPtr1, passbackDescriptor1, precision), length, inputSize, precision);
 //      });
-  
+
       TensorList passback = TensorArray.wrap(IntStream.range(0, length).mapToObj(i -> {
         Tensor tensor = delta.get(i);
         Tensor tensor1 = new Tensor(inputSize).setAll(tensor.get(0));
@@ -169,7 +149,7 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
       }
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -177,24 +157,24 @@ public class SumReducerLayer extends LayerBase implements MultiPrecision<SumRedu
     json.addProperty("precision", precision.name());
     return json;
   }
-  
-  
+
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public SumReducerLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
 }

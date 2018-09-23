@@ -28,7 +28,7 @@ public class TrainingMonitor {
    */
   public void clear() {
   }
-  
+
   /**
    * This callback intercepts log messages describing the ongoing training process.
    *
@@ -36,7 +36,7 @@ public class TrainingMonitor {
    */
   public void log(final String msg) {
   }
-  
+
   /**
    * This callback is executed periodically, between each line-search process. While processing, the training process is
    * blocked.

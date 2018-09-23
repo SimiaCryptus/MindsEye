@@ -39,12 +39,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @SuppressWarnings("serial")
 public class ImgTileSubnetLayer extends WrapperLayer {
-  
+
   private final int height;
   private final int width;
   private final int strideX;
   private final int strideY;
-  
+
   /**
    * Instantiates a new Rescaled subnet layer.
    *
@@ -61,7 +61,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
     this.strideX = strideX;
     this.strideY = strideY;
   }
-  
+
   /**
    * Instantiates a new Img tile subnet layer.
    *
@@ -72,7 +72,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   public ImgTileSubnetLayer(final Layer subnetwork, final int width, final int height) {
     this(subnetwork, width, height, width, height);
   }
-  
+
   /**
    * Instantiates a new Rescaled subnet layer.
    *
@@ -87,7 +87,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
     strideY = json.getAsJsonPrimitive("strideY").getAsInt();
     JsonObject subnetwork = json.getAsJsonObject("subnetwork");
   }
-  
+
   /**
    * From json rescaled subnet layer.
    *
@@ -98,7 +98,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSubnetLayer(json, rs);
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(@Nonnull final Result... inObj) {
@@ -131,7 +131,8 @@ public class ImgTileSubnetLayer extends WrapperLayer {
           if (passbacks.incrementAndGet() == rows * cols) {
             passbacks.set(0);
             ImgTileAssemblyLayer imgTileAssemblyLayer = new ImgTileAssemblyLayer(cols, rows);
-            TensorList reassembled = imgTileAssemblyLayer.evalAndFree(Arrays.stream(passback).map(t -> new Result(t, (c2, d2) -> {})).toArray(i -> new Result[i])).getDataAndFree();
+            TensorList reassembled = imgTileAssemblyLayer.evalAndFree(Arrays.stream(passback).map(t -> new Result(t, (c2, d2) -> {
+            })).toArray(i -> new Result[i])).getDataAndFree();
             imgTileAssemblyLayer.freeRef();
             input.accumulate(ctx, reassembled);
           }
@@ -154,7 +155,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
     imgTileAssemblyLayer.freeRef();
     return result;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -165,12 +166,12 @@ public class ImgTileSubnetLayer extends WrapperLayer {
     json.addProperty("strideY", strideY);
     return json;
   }
-  
-  
+
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return new ArrayList<>();
   }
-  
+
 }

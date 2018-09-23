@@ -25,9 +25,9 @@ import com.simiacryptus.mindseye.test.NotebookReportBase;
 import com.simiacryptus.mindseye.test.TestUtil;
 import com.simiacryptus.mindseye.test.unit.SerializationTest;
 import com.simiacryptus.mindseye.test.unit.TrainingTester;
+import com.simiacryptus.notebook.MarkdownNotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.MarkdownNotebookOutput;
-import com.simiacryptus.util.io.NotebookOutput;
 import com.simiacryptus.util.test.SysOutInterceptor;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
@@ -48,15 +48,15 @@ public abstract class NLayerTest {
   static {
     SysOutInterceptor.INSTANCE.init();
   }
-  
-  
+
+
   /**
    * The Dim list.
    */
   @Nonnull
   final List<int[]> dimList;
-  
-  
+
+
   /**
    * Instantiates a new N layer apply.
    *
@@ -65,7 +65,7 @@ public abstract class NLayerTest {
   public NLayerTest(final int[]... dimList) {
     this.dimList = Arrays.asList(dimList);
   }
-  
+
   /**
    * Add layer.
    *
@@ -74,7 +74,7 @@ public abstract class NLayerTest {
    * @param out     the dims
    */
   public abstract void addLayer(PipelineNetwork network, int[] in, int[] out);
-  
+
   /**
    * Build network nn layer.
    *
@@ -93,7 +93,7 @@ public abstract class NLayerTest {
     }
     return network;
   }
-  
+
   /**
    * Concat int [ ] [ ].
    *
@@ -104,7 +104,7 @@ public abstract class NLayerTest {
   public int[][] concat(final int[] a, @Nonnull final List<int[]> b) {
     return Stream.concat(Stream.of(a), b.stream()).toArray(i -> new int[i][]);
   }
-  
+
   /**
    * Get input dims int [ ] [ ].
    *
@@ -112,7 +112,7 @@ public abstract class NLayerTest {
    */
   @Nonnull
   public abstract int[] getInputDims();
-  
+
   /**
    * Graphviz.
    *
@@ -124,11 +124,11 @@ public abstract class NLayerTest {
       log.p("This is a network apply the following layout:");
       log.eval(() -> {
         return Graphviz.fromGraph(TestUtil.toGraph((DAGNetwork) layer))
-          .height(400).width(600).render(Format.PNG).toImage();
+            .height(400).width(600).render(Format.PNG).toImage();
       });
     }
   }
-  
+
   /**
    * Random double.
    *
@@ -137,7 +137,7 @@ public abstract class NLayerTest {
   public double random() {
     return Math.round(1000.0 * (Util.R.get().nextDouble() - 0.5)) / 250.0;
   }
-  
+
   /**
    * Random tensor [ ].
    *
@@ -147,7 +147,7 @@ public abstract class NLayerTest {
   public Tensor[] randomize(@Nonnull final int[][] inputDims) {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(this::random)).toArray(i -> new Tensor[i]);
   }
-  
+
   /**
    * Test.
    *
@@ -159,14 +159,14 @@ public abstract class NLayerTest {
       test(log);
     }
   }
-  
+
   /**
    * Test.
    *
    * @param log the log
    */
   public void test(@Nonnull final NotebookOutput log) {
-  
+
     log.h1("%s", getClass().getSimpleName());
     @Nonnull final int[] inputDims = getInputDims();
     @Nonnull final ArrayList<int[]> workingSpec = new ArrayList<>();
@@ -177,7 +177,7 @@ public abstract class NLayerTest {
       test(log, layer, inputDims);
     }
   }
-  
+
   /**
    * Test double.
    *
@@ -193,5 +193,5 @@ public abstract class NLayerTest {
     new SerializationTest().test(log, component, randomize);
     return new TrainingTester().test(log, component, randomize);
   }
-  
+
 }

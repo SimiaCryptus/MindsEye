@@ -38,7 +38,7 @@ import static jcuda.runtime.cudaMemcpyKind.cudaMemcpyDeviceToHost;
  * A GPU memory segment
  */
 public class CudaMemory extends CudaResourceBase<CudaPointer> {
-  
+
   /**
    * The constant METRICS.
    */
@@ -66,7 +66,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   private final int deviceId;
   private final MemoryType type;
   private long writtenAt = System.nanoTime();
-  
+
   /**
    * Instantiates a new Cuda ptr.
    *
@@ -74,8 +74,10 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @param size the size
    * @param type the type
    */
-  CudaMemory(final CudaDevice gpu, final long size, @Nonnull MemoryType type) {this(size, type, gpu.acquire(size, type, 1), gpu.getDeviceId());}
-  
+  CudaMemory(final CudaDevice gpu, final long size, @Nonnull MemoryType type) {
+    this(size, type, gpu.acquire(size, type, 1), gpu.getDeviceId());
+  }
+
   /**
    * Instantiates a new Cuda ptr.
    *
@@ -90,7 +92,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     this.deviceId = deviceId;
     this.type = type;
   }
-  
+
   /**
    * Clear memory.
    *
@@ -104,7 +106,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     }
     return totalFreed;
   }
-  
+
   /**
    * Clear memory double.
    *
@@ -127,7 +129,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     logLoad();
     return totalFreed;
   }
-  
+
   /**
    * Evict memory long.
    *
@@ -140,14 +142,14 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     double tensorListsFreed = CudaTensorList.evictToHeap(deviceId);
     return tensorListsFreed + bytes;
   }
-  
+
   private static void logLoad() {
     logger.info(String.format("Current Load: %s", METRICS.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
       return String.format("%e / %e", (double) e.getValue().activeMemory.get(), (double) e.getValue().usedMemory.get());
     }))));
   }
-  
-  
+
+
   /**
    * Gets gpu stats.
    *
@@ -157,7 +159,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   public static DeviceMetrics getGpuStats(final int deviceId) {
     return CudaMemory.METRICS.computeIfAbsent(deviceId, device -> new DeviceMetrics());
   }
-  
+
   /**
    * From device double tensor.
    *
@@ -187,7 +189,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     }
     return tensor;
   }
-  
+
   /**
    * Copy to cuda ptr.
    *
@@ -201,8 +203,8 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     CudaSystem.cudaMemcpy(copy.getPtr(), this.getPtr(), size, cudaMemcpyKind.cudaMemcpyDeviceToDevice);
     return copy;
   }
-  
-  
+
+
   /**
    * Free.
    */
@@ -212,7 +214,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     if (null != threadHandle) threadHandle.cleanupNative.add(this);
     else release();
   }
-  
+
   @Override
   public void release() {
     if (ptr.getByteOffset() != 0) return;
@@ -223,7 +225,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
       CudaMemory.getGpuStats(deviceId).activeMemory.addAndGet(-size);
     }
   }
-  
+
   /**
    * Read cuda ptr.
    *
@@ -232,8 +234,10 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the cuda ptr
    */
   @Nonnull
-  public CudaMemory read(@Nonnull final Precision precision, @Nonnull final double[] destination) {return read(precision, destination, 0);}
-  
+  public CudaMemory read(@Nonnull final Precision precision, @Nonnull final double[] destination) {
+    return read(precision, destination, 0);
+  }
+
   /**
    * Read cuda ptr.
    *
@@ -253,8 +257,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
       for (int i = 0; i < destination.length; i++) {
         destination[i] = data[i];
       }
-    }
-    else {
+    } else {
       synchronize();
       CudaSystem.run(gpu -> {
         CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyKind.cudaMemcpyDeviceToHost);
@@ -263,7 +266,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     }
     return this;
   }
-  
+
   /**
    * Read cuda ptr.
    *
@@ -272,8 +275,10 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the cuda ptr
    */
   @Nonnull
-  public CudaMemory read(@Nonnull final Precision precision, @Nonnull final float[] destination) {return read(precision, destination, 0);}
-  
+  public CudaMemory read(@Nonnull final Precision precision, @Nonnull final float[] destination) {
+    return read(precision, destination, 0);
+  }
+
   /**
    * Read cuda ptr.
    *
@@ -293,15 +298,14 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
       for (int i = 0; i < destination.length; i++) {
         destination[i] = (float) data[i];
       }
-    }
-    else {
+    } else {
       synchronize();
       CudaSystem.cudaMemcpy(precision.getPointer(destination), getPtr().withByteOffset((long) offset * precision.size), (long) destination.length * precision.size, cudaMemcpyDeviceToHost);
       CudaMemory.getGpuStats(deviceId).memoryReads.addAndGet((long) destination.length * precision.size);
     }
     return this;
   }
-  
+
   /**
    * Write cuda ptr.
    *
@@ -310,8 +314,10 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the cuda ptr
    */
   @Nonnull
-  public CudaMemory write(@Nonnull final Precision precision, @Nonnull final double[] data) {return write(precision, data, 0);}
-  
+  public CudaMemory write(@Nonnull final Precision precision, @Nonnull final double[] data) {
+    return write(precision, data, 0);
+  }
+
   /**
    * Write cuda ptr.
    *
@@ -329,7 +335,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     CudaMemory.getGpuStats(deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
     return this;
   }
-  
+
   /**
    * Write cuda ptr.
    *
@@ -338,8 +344,10 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
    * @return the cuda ptr
    */
   @Nonnull
-  public CudaMemory write(@Nonnull final Precision precision, @Nonnull final float[] data) {return write(precision, data, 0);}
-  
+  public CudaMemory write(@Nonnull final Precision precision, @Nonnull final float[] data) {
+    return write(precision, data, 0);
+  }
+
   /**
    * Write cuda ptr.
    *
@@ -356,7 +364,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     CudaMemory.getGpuStats(deviceId).memoryWrites.addAndGet((long) data.length * precision.size);
     return this;
   }
-  
+
   /**
    * Gets device id.
    *
@@ -365,7 +373,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   public int getDeviceId() {
     return deviceId;
   }
-  
+
   /**
    * Gets type.
    *
@@ -375,7 +383,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
   public MemoryType getType() {
     return type;
   }
-  
+
   /**
    * Clear cuda ptr.
    *
@@ -386,7 +394,7 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     CudaSystem.cudaMemset(getPtr(), 0, size);
     return this;
   }
-  
+
   /**
    * With byte offset cuda memory.
    *
@@ -404,13 +412,13 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
       protected void _free() {
         baseMemorySegment.freeRef();
       }
-      
+
       @Override
       public void release() {
       }
     };
   }
-  
+
   /**
    * Dirty cuda memory.
    *
@@ -421,12 +429,12 @@ public class CudaMemory extends CudaResourceBase<CudaPointer> {
     writtenAt = System.nanoTime();
     return this;
   }
-  
+
   /**
    * Synchronize.
    */
   public void synchronize() {
     if (deviceId >= 0) CudaSystem.synchronize(writtenAt, deviceId);
   }
-  
+
 }

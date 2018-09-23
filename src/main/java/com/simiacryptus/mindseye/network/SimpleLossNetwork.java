@@ -31,8 +31,8 @@ import javax.annotation.Nullable;
  */
 @SuppressWarnings("serial")
 public class SimpleLossNetwork extends SupervisedNetwork {
-  
-  
+
+
   /**
    * The Loss node.
    */
@@ -43,7 +43,7 @@ public class SimpleLossNetwork extends SupervisedNetwork {
    */
   @Nullable
   public final DAGNode studentNode;
-  
+
   /**
    * Instantiates a new Simple loss network.
    *
@@ -55,7 +55,7 @@ public class SimpleLossNetwork extends SupervisedNetwork {
     studentNode = add(student, getInput(0));
     lossNode = add(loss, studentNode, getInput(1));
   }
-  
+
   @Override
   public DAGNode getHead() {
     return lossNode;

@@ -20,12 +20,7 @@
 package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.DoubleBuffer;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.PointSample;
-import com.simiacryptus.mindseye.lang.State;
-import com.simiacryptus.mindseye.lang.StateSet;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -40,9 +35,9 @@ import java.util.stream.Collectors;
  * This wrapper adds extra logging to the orientation step.
  */
 public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSearchCursor> {
-  
+
   private final OrientationStrategy<? extends LineSearchCursor> inner;
-  
+
   /**
    * Instantiates a new Describe orientation wrapper.
    *
@@ -51,7 +46,7 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
   public DescribeOrientationWrapper(final OrientationStrategy<? extends LineSearchCursor> inner) {
     this.inner = inner;
   }
-  
+
   /**
    * Gets id.
    *
@@ -68,7 +63,7 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
 //    }
 //    return x.layer.toStream();
   }
-  
+
   /**
    * Render string.
    *
@@ -81,7 +76,7 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
     @Nonnull final CharSequence deltaString = Arrays.toString(dirDelta.getDelta());
     return String.format("pos: %s\nvec: %s", weightString, deltaString);
   }
-  
+
   /**
    * Render string.
    *
@@ -91,25 +86,24 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    */
   public static CharSequence render(@Nonnull final StateSet<Layer> weights, @Nonnull final DeltaSet<Layer> direction) {
     final Map<CharSequence, CharSequence> data = weights.stream()
-      .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
-      .collect(Collectors.toMap(x -> x.getKey(), (@Nonnull final Map.Entry<CharSequence, List<State<Layer>>> list) -> {
-        final List<State<Layer>> deltaList = list.getValue();
-        if (1 == deltaList.size()) {
-          final State<Layer> weightDelta = deltaList.get(0);
-          return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
-        }
-        else {
-          return deltaList.stream().map(weightDelta -> {
+        .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
+        .collect(Collectors.toMap(x -> x.getKey(), (@Nonnull final Map.Entry<CharSequence, List<State<Layer>>> list) -> {
+          final List<State<Layer>> deltaList = list.getValue();
+          if (1 == deltaList.size()) {
+            final State<Layer> weightDelta = deltaList.get(0);
             return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
-          }).limit(10)
-            .reduce((a, b) -> a + "\n" + b).orElse("");
-        }
-      }));
+          } else {
+            return deltaList.stream().map(weightDelta -> {
+              return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
+            }).limit(10)
+                .reduce((a, b) -> a + "\n" + b).orElse("");
+          }
+        }));
     return data.entrySet().stream().map(e -> String.format("%s = %s", e.getKey(), e.getValue()))
-      .map(str -> str.replaceAll("\n", "\n\t"))
-      .reduce((a, b) -> a + "\n" + b).orElse("");
+        .map(str -> str.replaceAll("\n", "\n\t"))
+        .reduce((a, b) -> a + "\n" + b).orElse("");
   }
-  
+
   @Override
   public LineSearchCursor orient(final Trainable subject, final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
@@ -118,19 +112,18 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
       @Nonnull final StateSet<Layer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       final CharSequence asString = DescribeOrientationWrapper.render(weights, direction);
       monitor.log(String.format("Orientation Details: %s", asString));
-    }
-    else {
+    } else {
       monitor.log(String.format("Non-simple cursor: %s", cursor));
     }
     return cursor;
   }
-  
+
   @Override
   public void reset() {
     inner.reset();
   }
-  
-  
+
+
   @Override
   protected void _free() {
     this.inner.freeRef();

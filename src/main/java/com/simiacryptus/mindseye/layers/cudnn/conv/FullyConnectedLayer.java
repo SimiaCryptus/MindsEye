@@ -20,11 +20,7 @@
 package com.simiacryptus.mindseye.layers.cudnn.conv;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.lang.*;
 import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
 import com.simiacryptus.mindseye.lang.cudnn.MultiPrecision;
 import com.simiacryptus.mindseye.lang.cudnn.Precision;
@@ -33,8 +29,8 @@ import com.simiacryptus.mindseye.layers.java.FullyConnectedReferenceLayer;
 import com.simiacryptus.mindseye.layers.java.ReshapeLayer;
 import com.simiacryptus.mindseye.network.PipelineNetwork;
 import com.simiacryptus.util.FastRandom;
+import com.simiacryptus.util.JsonUtil;
 import com.simiacryptus.util.Util;
-import com.simiacryptus.util.io.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,10 +60,10 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   public final int[] outputDims;
   @Nullable
   private final Tensor weights;
-  
+
   private Precision precision = Precision.Double;
   private int batchBands = 0;
-  
+
   /**
    * Instantiates a new Img eval layer.
    */
@@ -76,7 +72,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     weights = null;
     inputDims = null;
   }
-  
+
   /**
    * Instantiates a new Fully connected layer.
    *
@@ -96,7 +92,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
       return v;
     });
   }
-  
+
   /**
    * Instantiates a new Img eval layer.
    *
@@ -111,7 +107,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     weights = data;
     this.precision = Precision.valueOf(json.getAsJsonPrimitive("precision").getAsString());
   }
-  
+
   /**
    * From json img eval layer.
    *
@@ -122,7 +118,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   public static FullyConnectedLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new FullyConnectedLayer(json, rs);
   }
-  
+
   /**
    * Sets weights.
    *
@@ -134,7 +130,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     weights.set(data);
     return this;
   }
-  
+
   /**
    * Set fully connected layer.
    *
@@ -146,7 +142,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     weights.set(data);
     return this;
   }
-  
+
   /**
    * Sets weights log.
    *
@@ -158,7 +154,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     getWeights().setByCoord(c -> (FastRandom.INSTANCE.random() - 0.5) * Math.pow(10, value));
     return this;
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -168,7 +164,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   public Layer getCompatibilityLayer() {
     return new FullyConnectedReferenceLayer(inputDims, outputDims).set(getWeights());
   }
-  
+
   @Nullable
   @Override
   public Result evalAndFree(final Result... inObj) {
@@ -178,7 +174,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     explode.freeRef();
     return eval;
   }
-  
+
   /**
    * Explode pipeline network.
    *
@@ -192,10 +188,10 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     network.wrap(new ReshapeLayer(1, 1, inputVol)).freeRef();
     @Nullable Tensor tensor = this.weights.reshapeCast(1, 1, inputVol * outVol);
     @Nonnull ConvolutionLayer convolutionLayer = new ConvolutionLayer(1, 1, inputVol, outVol)
-      .set(tensor)
-      .setBatchBands(getBatchBands());
+        .set(tensor)
+        .setBatchBands(getBatchBands());
     @Nonnull ExplodedConvolutionGrid grid = convolutionLayer
-      .getExplodedNetwork();
+        .getExplodedNetwork();
     convolutionLayer.freeRef();
     tensor.freeRef();
     grid.add(network.getHead());
@@ -204,7 +200,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     network.setName(getName());
     return network;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -216,25 +212,25 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     json.addProperty("precision", precision.name());
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList(getWeights().getData());
   }
-  
+
   @Override
   public Precision getPrecision() {
     return precision;
   }
-  
+
   @Nonnull
   @Override
   public FullyConnectedLayer setPrecision(final Precision precision) {
     this.precision = precision;
     return this;
   }
-  
+
   /**
    * The Weights.
    *
@@ -244,7 +240,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   public Tensor getWeights() {
     return weights;
   }
-  
+
   /**
    * Sets weights.
    *
@@ -256,7 +252,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
     Arrays.parallelSetAll(getWeights().getData(), i -> f.getAsDouble());
     return this;
   }
-  
+
   /**
    * Gets batch bands.
    *
@@ -265,7 +261,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   public int getBatchBands() {
     return batchBands;
   }
-  
+
   /**
    * Sets batch bands.
    *

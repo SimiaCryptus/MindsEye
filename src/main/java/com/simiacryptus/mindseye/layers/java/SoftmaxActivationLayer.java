@@ -20,15 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,20 +38,20 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class SoftmaxActivationLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(SoftmaxActivationLayer.class);
   /**
    * The Max input.
    */
   double maxInput = 50;
-  
+
   /**
    * Instantiates a new Softmax activation layer.
    */
   public SoftmaxActivationLayer() {
   }
-  
+
   /**
    * Instantiates a new Softmax activation layer.
    *
@@ -68,7 +60,7 @@ public class SoftmaxActivationLayer extends LayerBase {
   protected SoftmaxActivationLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json softmax activation layer.
    *
@@ -79,7 +71,7 @@ public class SoftmaxActivationLayer extends LayerBase {
   public static SoftmaxActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SoftmaxActivationLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -90,7 +82,7 @@ public class SoftmaxActivationLayer extends LayerBase {
     final Tensor[] outputA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
       @Nullable final Tensor input = inObj[0].getData().get(dataIndex);
       assert 1 < input.length() : "input.length() = " + input.length();
-  
+
       @Nullable final Tensor exp;
       final DoubleSummaryStatistics summaryStatistics = DoubleStream.of(input.getData()).filter(x -> Double.isFinite(x)).summaryStatistics();
       final double max = summaryStatistics.getMax();
@@ -137,27 +129,27 @@ public class SoftmaxActivationLayer extends LayerBase {
         inObj[0].accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(expA).forEach(ReferenceCounting::freeRef);
         Arrays.stream(inObj).forEach(ReferenceCounting::freeRef);
       }
-      
+
       @Override
       public boolean isAlive() {
         return inObj[0].isAlive();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

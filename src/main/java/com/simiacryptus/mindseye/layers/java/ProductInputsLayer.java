@@ -20,14 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,13 +34,13 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class ProductInputsLayer extends LayerBase {
-  
+
   /**
    * Instantiates a new Product inputs layer.
    */
   public ProductInputsLayer() {
   }
-  
+
   /**
    * Instantiates a new Product inputs layer.
    *
@@ -56,7 +49,7 @@ public class ProductInputsLayer extends LayerBase {
   protected ProductInputsLayer(@Nonnull final JsonObject id) {
     super(id);
   }
-  
+
   /**
    * From json product inputs layer.
    *
@@ -67,7 +60,7 @@ public class ProductInputsLayer extends LayerBase {
   public static ProductInputsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ProductInputsLayer(json);
   }
-  
+
   @Nonnull
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -87,14 +80,14 @@ public class ProductInputsLayer extends LayerBase {
       return data;
     }).reduce((l, r) -> {
       TensorArray productArray = TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
-        .mapToObj(i1 -> {
-          @Nullable final Tensor left = l.get(1 == l.length() ? 0 : i1);
-          @Nullable final Tensor right = r.get(1 == r.length() ? 0 : i1);
-          Tensor product = Tensor.product(left, right);
-          left.freeRef();
-          right.freeRef();
-          return product;
-        }).toArray(i -> new Tensor[i]));
+          .mapToObj(i1 -> {
+            @Nullable final Tensor left = l.get(1 == l.length() ? 0 : i1);
+            @Nullable final Tensor right = r.get(1 == r.length() ? 0 : i1);
+            Tensor product = Tensor.product(left, right);
+            left.freeRef();
+            right.freeRef();
+            return product;
+          }).toArray(i -> new Tensor[i]));
       l.freeRef();
       r.freeRef();
       return productArray;
@@ -107,14 +100,14 @@ public class ProductInputsLayer extends LayerBase {
             return tensorList;
           }).reduce((l, r) -> {
             TensorArray productList = TensorArray.wrap(IntStream.range(0, Math.max(l.length(), r.length())).parallel()
-              .mapToObj(j -> {
-                @Nullable final Tensor left = l.get(1 == l.length() ? 0 : j);
-                @Nullable final Tensor right = r.get(1 == r.length() ? 0 : j);
-                Tensor product = Tensor.product(left, right);
-                left.freeRef();
-                right.freeRef();
-                return product;
-              }).toArray(j -> new Tensor[j]));
+                .mapToObj(j -> {
+                  @Nullable final Tensor left = l.get(1 == l.length() ? 0 : j);
+                  @Nullable final Tensor right = r.get(1 == r.length() ? 0 : j);
+                  Tensor product = Tensor.product(left, right);
+                  left.freeRef();
+                  right.freeRef();
+                  return product;
+                }).toArray(j -> new Tensor[j]));
             l.freeRef();
             r.freeRef();
             return productList;
@@ -131,11 +124,11 @@ public class ProductInputsLayer extends LayerBase {
           }
           if (1 == Tensor.length(inputData.getDimensions()) && 1 < Tensor.length(passback.getDimensions())) {
             TensorArray newValue = TensorArray.wrap(passback.stream()
-              .map((a) -> {
-                @Nonnull Tensor b = new Tensor(a.sum());
-                a.freeRef();
-                return b;
-              }).toArray(i -> new Tensor[i]));
+                .map((a) -> {
+                  @Nonnull Tensor b = new Tensor(a.sum());
+                  a.freeRef();
+                  return b;
+                }).toArray(i -> new Tensor[i]));
             passback.freeRef();
             passback = newValue;
           }
@@ -143,8 +136,8 @@ public class ProductInputsLayer extends LayerBase {
         }
       }
     }) {
-      
-      
+
+
       @Override
       public boolean isAlive() {
         for (@Nonnull final Result element : inObj)
@@ -153,22 +146,22 @@ public class ProductInputsLayer extends LayerBase {
           }
         return false;
       }
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
         Arrays.stream(inObj).forEach(x -> x.getData().freeRef());
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     return super.getJsonStub();
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

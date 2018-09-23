@@ -36,12 +36,12 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ProductInputsLayer();
   }
-  
+
   @Override
   public ComponentTest<TrainingTester.ComponentResult> getTrainingTester() {
     return new TrainingTester().setRandomizationMode(TrainingTester.RandomizationMode.Random);
   }
-  
+
   /**
    * Multiply one multivariate input apply a univariate input
    */
@@ -50,35 +50,35 @@ public abstract class ProductInputsLayerTest extends LayerTestBase {
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {3}, {1}
+          {3}, {1}
       };
     }
   }
-  
+
   /**
    * Multiply three multivariate inputs
    */
   public static class NNNTest extends ProductInputsLayerTest {
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {3}, {3}, {3}
+          {3}, {3}, {3}
       };
     }
   }
-  
+
   /**
    * Multiply two multivariate inputs
    */
   public static class NNTest extends ProductInputsLayerTest {
-  
+
     @Nonnull
     @Override
     public int[][] getSmallDims(Random random) {
       return new int[][]{
-        {3}, {3}
+          {3}, {3}
       };
     }
   }

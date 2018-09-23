@@ -46,19 +46,19 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    * The Log.
    */
   static final Logger log = LoggerFactory.getLogger(SimpleConvolutionLayer.class);
-  
+
   /**
    * The Map.
    */
   @Nonnull
   protected final ConcurrentHashMap<K, T> map = new ConcurrentHashMap<>();
-  
+
   /**
    * Instantiates a new Delta setByCoord.
    */
   public DoubleBufferSet() {
   }
-  
+
   /**
    * Instantiates a new Delta setByCoord.
    *
@@ -67,7 +67,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   public DoubleBufferSet(@Nonnull final DoubleBufferSet<K, T> toCopy) {
     this(toCopy.map);
   }
-  
+
   /**
    * Instantiates a new Delta setByCoord.
    *
@@ -80,7 +80,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
       v.addRef(this);
     });
   }
-  
+
   /**
    * Copy evalInputDelta setByCoord.
    *
@@ -91,7 +91,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   public DoubleBufferSet<K, T> copy() {
     return map(x -> (T) x.copy());
   }
-  
+
   /**
    * Factory t.
    *
@@ -100,7 +100,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    * @return the t
    */
   protected abstract T factory(final K layer, final double[] target);
-  
+
   /**
    * Get evalInputDelta.
    *
@@ -114,7 +114,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     assert delta.target == ptr;
     return delta;
   }
-  
+
   /**
    * Get t.
    *
@@ -138,7 +138,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
       return v;
     }
   }
-  
+
   /**
    * Get evalInputDelta.
    *
@@ -149,7 +149,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   public T get(final K layer, @Nonnull final Tensor ptr) {
     return get(layer, ptr.getData());
   }
-  
+
   /**
    * Gets buildMap.
    *
@@ -159,7 +159,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   public ConcurrentHashMap<K, T> getMap() {
     return map;
   }
-  
+
   /**
    * Map evalInputDelta setByCoord.
    *
@@ -178,7 +178,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     newMap.values().forEach(x -> x.freeRef());
     return delegate;
   }
-  
+
   /**
    * Stream stream.
    *
@@ -187,7 +187,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   public Stream<T> stream() {
     return map.values().stream().filter(n -> null != n).distinct().sorted(Comparator.comparing(y -> System.identityHashCode(y.target)));
   }
-  
+
   @Override
   protected void _free() {
     map.forEach((k, v) -> {
@@ -196,13 +196,13 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     });
     map.clear();
   }
-  
+
   /**
    * The type Delegate.
    */
   protected class Delegate extends DoubleBufferSet<K, T> {
     private final DoubleBufferSet<K, T> parent;
-  
+
     /**
      * Instantiates a new Delegate.
      *
@@ -211,7 +211,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     public Delegate(final DoubleBufferSet<K, T> parent) {
       this(parent, new HashMap<>());
     }
-  
+
     /**
      * Instantiates a new Delegate.
      *
@@ -222,7 +222,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
       super(newMap);
       this.parent = parent;
     }
-    
+
     @Override
     protected T factory(final K layer, final double[] target) {
       return parent.factory(layer, target);

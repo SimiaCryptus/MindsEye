@@ -19,24 +19,12 @@
 
 package com.simiacryptus.mindseye.test.unit;
 
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.ReferenceCounting;
-import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudaDevice;
-import com.simiacryptus.mindseye.lang.cudnn.CudaMemory;
-import com.simiacryptus.mindseye.lang.cudnn.CudaSystem;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensor;
-import com.simiacryptus.mindseye.lang.cudnn.CudaTensorList;
-import com.simiacryptus.mindseye.lang.cudnn.CudnnHandle;
-import com.simiacryptus.mindseye.lang.cudnn.MemoryType;
-import com.simiacryptus.mindseye.lang.cudnn.Precision;
+import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.lang.cudnn.*;
 import com.simiacryptus.mindseye.test.SimpleGpuEval;
 import com.simiacryptus.mindseye.test.SimpleResult;
 import com.simiacryptus.mindseye.test.ToleranceStatistics;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,10 +43,10 @@ import java.util.stream.Stream;
  */
 public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   private static final Logger logger = LoggerFactory.getLogger(CudaLayerTester.class);
-  
+
   private final double tolerance;
   private int batchSize = 1;
-  
+
   /**
    * Instantiates a new Batching tester.
    *
@@ -67,7 +55,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   public CudaLayerTester(final double tolerance) {
     this.tolerance = tolerance;
   }
-  
+
   /**
    * Test tolerance statistics.
    *
@@ -91,7 +79,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     }
     return statistics;
   }
-  
+
   /**
    * Gets randomize.
    *
@@ -100,7 +88,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   public double getRandom() {
     return 5 * (Math.random() - 0.5);
   }
-  
+
   /**
    * Test inter gpu tolerance statistics.
    *
@@ -115,8 +103,8 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     log.p("This layer should be able to apply using a GPU context other than the one used to create the inputs.");
     return log.eval(() -> {
       final TensorList[] heapInput = Arrays.stream(inputPrototype).map(t ->
-        TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
-          .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
+          TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
+              .toArray(i -> new Tensor[i]))).toArray(i -> new TensorList[i]);
       logger.info("Input: " + Arrays.stream(heapInput).flatMap(x -> x.stream()).map(tensor -> {
         String prettyPrint = tensor.prettyPrint();
         tensor.freeRef();
@@ -145,7 +133,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       }
     });
   }
-  
+
   /**
    * Test nonstandard bounds tolerance statistics.
    *
@@ -162,7 +150,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       Tensor[] randomized = Arrays.stream(inputPrototype).map(x -> x.map(v -> getRandom())).toArray(i -> new Tensor[i]);
       logger.info("Input: " + Arrays.stream(randomized).map(Tensor::prettyPrint).collect(Collectors.toList()));
       Precision precision = Precision.Double;
-  
+
       TensorList[] controlInput = CudaSystem.run(gpu -> {
         return Arrays.stream(randomized).map(original -> {
           TensorArray data = TensorArray.create(original);
@@ -174,7 +162,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       @Nonnull final SimpleResult controlResult = CudaSystem.run(gpu -> {
         return SimpleGpuEval.run(reference, gpu, controlInput);
       }, 1);
-  
+
       final TensorList[] irregularInput = CudaSystem.run(gpu -> {
         return Arrays.stream(randomized).map(original -> {
           return buildIrregularCudaTensor(gpu, precision, original);
@@ -183,7 +171,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       @Nonnull final SimpleResult testResult = CudaSystem.run(gpu -> {
         return SimpleGpuEval.run(reference, gpu, irregularInput);
       }, 1);
-      
+
       try {
         ToleranceStatistics compareOutput = compareOutput(controlResult, testResult);
         ToleranceStatistics compareDerivatives = compareDerivatives(controlResult, testResult);
@@ -197,7 +185,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       }
     });
   }
-  
+
   /**
    * Test nonstandard bounds backprop tolerance statistics.
    *
@@ -249,7 +237,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
       }
     });
   }
-  
+
   /**
    * Copy tensor list [ ].
    *
@@ -259,7 +247,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   public TensorList[] copy(final TensorList[] controlInput) {
     return Arrays.stream(controlInput).map(x -> x.copy()).toArray(i -> new TensorList[i]);
   }
-  
+
   /**
    * Build irregular cuda tensor cuda tensor list.
    *
@@ -276,12 +264,12 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     int width = inputSize.length < 1 ? 1 : inputSize[0];
     final int listLength = 1;
     final int elementLength = data.getElements();
-  
+
     MemoryType memoryType = MemoryType.Managed;
     @Nonnull final CudaMemory ptr0 = gpu.allocate((long) elementLength * listLength * precision.size, memoryType, false);
     @Nonnull final CudaDevice.CudaTensorDescriptor descriptor0 = gpu.newTensorDescriptor(precision,
-      listLength, channels, height, width,
-      channels * height * width, height * width, width, 1);
+        listLength, channels, height, width,
+        channels * height * width, height * width, width, 1);
     for (int i = 0; i < listLength; i++) {
       Tensor tensor = data.get(i);
       assert null != data;
@@ -297,11 +285,11 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     int h = r.nextInt(5);
     @Nonnull final CudaMemory ptr1 = gpu.allocate((long) (channels + c) * (height + v) * (width + h) * listLength * precision.size, memoryType, false);
     @Nonnull final CudaDevice.CudaTensorDescriptor descriptor1 = gpu.newTensorDescriptor(precision,
-      listLength, channels, height, width,
-      (height + v) * (width + h) * (channels + c), (height + v) * (width + h), width + h, 1);
+        listLength, channels, height, width,
+        (height + v) * (width + h) * (channels + c), (height + v) * (width + h), width + h, 1);
     gpu.cudnnTransformTensor(
-      precision.getPointer(1.0), descriptor0.getPtr(), ptr0.getPtr(),
-      precision.getPointer(0.0), descriptor1.getPtr(), ptr1.getPtr()
+        precision.getPointer(1.0), descriptor0.getPtr(), ptr0.getPtr(),
+        precision.getPointer(0.0), descriptor1.getPtr(), ptr1.getPtr()
     );
     assert CudaDevice.isThreadDeviceId(gpu.getDeviceId());
     ptr0.dirty();
@@ -310,7 +298,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     ptr0.freeRef();
     return CudaTensorList.wrap(CudaTensor.wrap(ptr1, descriptor1, precision), 1, original.getDimensions(), precision);
   }
-  
+
   /**
    * Compare derivatives tolerance statistics.
    *
@@ -324,7 +312,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     derivativeAgreement = derivativeAgreement.combine(compareLayerDerivatives(expected, actual));
     return derivativeAgreement;
   }
-  
+
   /**
    * Compare layer derivatives tolerance statistics.
    *
@@ -342,8 +330,8 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
         return statistics;
       };
       return Stream.concat(
-        actual.getLayerDerivative().getMap().keySet().stream(),
-        expected.getLayerDerivative().getMap().keySet().stream()
+          actual.getLayerDerivative().getMap().keySet().stream(),
+          expected.getLayerDerivative().getMap().keySet().stream()
       ).distinct().map(compareInputDerivative).reduce((a, b) -> a.combine(b));
     }).filter(x -> x.isPresent()).map(x -> x.get()).reduce((a, b) -> a.combine(b)).orElse(null);
     if (null != derivativeAgreement && !(derivativeAgreement.absoluteTol.getMax() < tolerance)) {
@@ -361,7 +349,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     }
     return derivativeAgreement;
   }
-  
+
   /**
    * Compare input derivatives tolerance statistics.
    *
@@ -397,7 +385,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     }
     return derivativeAgreement;
   }
-  
+
   /**
    * Compare output tolerance statistics.
    *
@@ -409,7 +397,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   public ToleranceStatistics compareOutput(final SimpleResult expected, final SimpleResult actual) {
     return compareOutput(expected.getOutput(), actual.getOutput());
   }
-  
+
   /**
    * Compare output tolerance statistics.
    *
@@ -420,13 +408,13 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public ToleranceStatistics compareOutput(final TensorList expectedOutput, final TensorList actualOutput) {
     @Nonnull final ToleranceStatistics outputAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
-        Tensor a = expectedOutput.get(batch);
-        Tensor b = actualOutput.get(batch);
-        ToleranceStatistics statistics = new ToleranceStatistics().accumulate(a.getData(), b.getData());
-        a.freeRef();
-        b.freeRef();
-        return statistics;
-      }
+          Tensor a = expectedOutput.get(batch);
+          Tensor b = actualOutput.get(batch);
+          ToleranceStatistics statistics = new ToleranceStatistics().accumulate(a.getData(), b.getData());
+          a.freeRef();
+          b.freeRef();
+          return statistics;
+        }
     ).reduce((a, b) -> a.combine(b)).get();
     if (!(outputAgreement.absoluteTol.getMax() < tolerance)) {
       logger.info("Expected Output: " + expectedOutput.stream().map(x -> {
@@ -443,7 +431,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     }
     return outputAgreement;
   }
-  
+
   /**
    * Gets batch size.
    *
@@ -452,7 +440,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   public int getBatchSize() {
     return batchSize;
   }
-  
+
   /**
    * Sets batch size.
    *
@@ -464,13 +452,13 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
     this.batchSize = batchSize;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return "CudaLayerTester{" +
-      "tolerance=" + tolerance +
-      ", batchSize=" + batchSize +
-      '}';
+        "tolerance=" + tolerance +
+        ", batchSize=" + batchSize +
+        '}';
   }
 }

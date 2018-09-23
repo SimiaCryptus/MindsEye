@@ -20,7 +20,7 @@
 package com.simiacryptus.mindseye.labs.encoding;
 
 import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.stream.Stream;
@@ -45,7 +45,7 @@ public abstract class FindFeatureSpace {
    * The Vectors.
    */
   protected Tensor[] vectors;
-  
+
   /**
    * Instantiates a new Find feature space.
    *
@@ -56,7 +56,7 @@ public abstract class FindFeatureSpace {
     this.log = log;
     this.inputBands = inputBands;
   }
-  
+
   /**
    * Get averages double [ ].
    *
@@ -65,14 +65,14 @@ public abstract class FindFeatureSpace {
   public double[] getAverages() {
     return averages;
   }
-  
+
   /**
    * The Features.
    *
    * @return the features
    */
   public abstract Stream<Tensor[]> getFeatures();
-  
+
   /**
    * Get vectors tensor [ ].
    *
@@ -81,7 +81,7 @@ public abstract class FindFeatureSpace {
   public Tensor[] getVectors() {
     return vectors;
   }
-  
+
   /**
    * Invoke find feature space.
    *

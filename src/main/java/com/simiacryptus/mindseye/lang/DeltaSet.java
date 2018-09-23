@@ -33,13 +33,13 @@ import java.util.stream.Stream;
  * @param <K> the type parameter
  */
 public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, Delta<K>> {
-  
+
   /**
    * Instantiates a new Delta setByCoord.
    */
   public DeltaSet() {
   }
-  
+
   /**
    * Instantiates a new Delta setByCoord.
    *
@@ -49,7 +49,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     super(toCopy);
     assert stream().allMatch(x -> x instanceof Delta);
   }
-  
+
   /**
    * Instantiates a new Delta setByCoord.
    *
@@ -59,7 +59,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     super(collect);
     assert stream().allMatch(x -> x instanceof Delta);
   }
-  
+
   /**
    * Accumulate evalInputDelta setByCoord.
    *
@@ -71,8 +71,8 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     stream().forEach(d -> d.accumulate(alpha));
     return this;
   }
-  
-  
+
+
   /**
    * Add evalInputDelta setByCoord.
    *
@@ -83,7 +83,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   public DeltaSet<K> add(@Nonnull final DeltaSet<K> right) {
     return this.copy().addInPlace(right);
   }
-  
+
   /**
    * Add in place evalInputDelta setByCoord.
    *
@@ -97,7 +97,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     });
     return this;
   }
-  
+
   /**
    * As state state setByCoord.
    *
@@ -114,13 +114,13 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     });
     return returnValue;
   }
-  
+
   @Nonnull
   @Override
   public DeltaSet<K> copy() {
     return this.map(x -> x.copy());
   }
-  
+
   /**
    * Dot double.
    *
@@ -138,19 +138,18 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
       final Delta<K> rValue = right.map.get(key);
       if (null != rValue) {
         return value.dot(rValue);
-      }
-      else {
+      } else {
         return 0;
       }
     }).sum();
   }
-  
+
   @Nonnull
   @Override
   protected Delta<K> factory(@Nonnull final K layer, final double[] target) {
     return new Delta<K>(layer, target);
   }
-  
+
   /**
    * Gets magnitude.
    *
@@ -168,7 +167,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     }).toArray();
     return Math.sqrt(Arrays.stream(elementArray).sum());
   }
-  
+
   @Nonnull
   @Override
   public DeltaSet<K> map(final Function<Delta<K>, Delta<K>> mapper) {
@@ -177,7 +176,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
     map.freeRef();
     return kDeltaSet;
   }
-  
+
   /**
    * Scale evalInputDelta setByCoord.
    *
@@ -188,7 +187,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   public DeltaSet<K> scale(final double f) {
     return map(x -> x.scale(f));
   }
-  
+
   /**
    * Subtract evalInputDelta setByCoord.
    *
@@ -199,7 +198,7 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   public DeltaSet<K> subtract(@Nonnull final DeltaSet<K> right) {
     return this.add(new DeltaSet<K>(right).scale(-1));
   }
-  
+
   /**
    * Unit evalInputDelta setByCoord.
    *
@@ -209,6 +208,6 @@ public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, De
   public DeltaSet<K> unit() {
     return scale(1.0 / getMagnitude());
   }
-  
+
 }
 

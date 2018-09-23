@@ -31,7 +31,7 @@ public class DoubleArrayStatsFacade {
    * The Data.
    */
   private final double[] data;
-  
+
   /**
    * Instantiates a new Double array stats facade.
    *
@@ -40,8 +40,8 @@ public class DoubleArrayStatsFacade {
   public DoubleArrayStatsFacade(final double[] data) {
     this.data = data;
   }
-  
-  
+
+
   /**
    * Length int.
    *
@@ -50,7 +50,7 @@ public class DoubleArrayStatsFacade {
   public int length() {
     return data.length;
   }
-  
+
   /**
    * Rms double.
    *
@@ -59,7 +59,7 @@ public class DoubleArrayStatsFacade {
   public double rms() {
     return Math.sqrt(sumSq() / length());
   }
-  
+
   /**
    * Sum double.
    *
@@ -69,7 +69,7 @@ public class DoubleArrayStatsFacade {
     final DoubleSummaryStatistics statistics = Arrays.stream(data).summaryStatistics();
     return statistics.getSum();
   }
-  
+
   /**
    * Sum sq double.
    *

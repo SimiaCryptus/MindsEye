@@ -29,33 +29,33 @@ import java.util.Random;
  * The type Max meta layer apply.
  */
 public abstract class MaxMetaLayerTest extends MetaLayerTestBase {
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new MaxMetaLayer();
   }
-  
+
   @Nonnull
   @Override
   public int[][] getLargeDims(Random random) {
     return new int[][]{
-      {3}
+        {3}
     };
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends MaxMetaLayerTest {
   }
-  
+
 }

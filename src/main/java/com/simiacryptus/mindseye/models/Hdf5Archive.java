@@ -36,12 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Exception;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -54,7 +49,7 @@ import static org.bytedeco.javacpp.hdf5.*;
  */
 public class Hdf5Archive {
   private static final Logger log = LoggerFactory.getLogger(Hdf5Archive.class);
-  
+
   static {
     try {
       /* This is necessary for the apply to the BytePointer constructor below. */
@@ -63,12 +58,12 @@ public class Hdf5Archive {
       e.printStackTrace();
     }
   }
-  
+
   @Nonnull
   private final H5File file;
   @Nonnull
   private final File filename;
-  
+
   /**
    * Instantiates a new Hdf 5 archive.
    *
@@ -77,7 +72,7 @@ public class Hdf5Archive {
   public Hdf5Archive(@Nonnull String filename) {
     this(new File(filename));
   }
-  
+
   /**
    * Instantiates a new Hdf 5 archive.
    *
@@ -93,11 +88,11 @@ public class Hdf5Archive {
       throw new RuntimeException(e);
     }
   }
-  
+
   private static void print(@Nonnull Hdf5Archive archive, @Nonnull Logger log) {
     printTree(archive, "", false, log);
   }
-  
+
   private static void printTree(@Nonnull Hdf5Archive hdf5, CharSequence prefix, boolean printData, @Nonnull Logger log, @Nonnull String... path) {
     for (CharSequence datasetName : hdf5.getDataSets(path)) {
       @Nullable Tensor tensor = hdf5.readDataSet(datasetName.toString(), path);
@@ -124,7 +119,7 @@ public class Hdf5Archive {
       printTree(hdf5, prefix + "\t", printData, log, concat(path, t));
     }
   }
-  
+
   @Nonnull
   private static String[] concat(@Nonnull CharSequence[] s, String t) {
     @Nonnull String[] strings = new String[s.length + 1];
@@ -132,12 +127,12 @@ public class Hdf5Archive {
     strings[s.length] = t;
     return strings;
   }
-  
+
   @Override
   public String toString() {
     return String.format("Hdf5Archive{%s}", file);
   }
-  
+
   @Nonnull
   private Group[] openGroups(@Nonnull CharSequence... groups) {
     @Nonnull Group[] groupArray = new Group[groups.length];
@@ -147,13 +142,13 @@ public class Hdf5Archive {
     }
     return groupArray;
   }
-  
+
   private void closeGroups(@Nonnull Group[] groupArray) {
     for (int i = groupArray.length - 1; i >= 0; i--) {
       groupArray[i].deallocate();
     }
   }
-  
+
   /**
    * Read data setBytes as ND4J array from group path.
    *
@@ -171,7 +166,7 @@ public class Hdf5Archive {
     closeGroups(groupArray);
     return a;
   }
-  
+
   /**
    * Read JSON-formatted string attribute from group path.
    *
@@ -189,7 +184,7 @@ public class Hdf5Archive {
     closeGroups(groupArray);
     return s;
   }
-  
+
   /**
    * Read string attribute from group path.
    *
@@ -207,7 +202,7 @@ public class Hdf5Archive {
     closeGroups(groupArray);
     return s;
   }
-  
+
   /**
    * Check whether group path contains string attribute.
    *
@@ -224,7 +219,7 @@ public class Hdf5Archive {
     closeGroups(groupArray);
     return b;
   }
-  
+
   /**
    * Gets attributes.
    *
@@ -242,7 +237,7 @@ public class Hdf5Archive {
     closeGroups(groupArray);
     return attributes;
   }
-  
+
   /**
    * Gets attributes.
    *
@@ -259,8 +254,7 @@ public class Hdf5Archive {
       int typeId = attribute.getTypeClass();
       if (typeId == 0) {
         attributes.put(name, getI64(attribute));
-      }
-      else {
+      } else {
         System.out.println(name + " type = " + typeId);
         attributes.put(name, getString(attribute));
       }
@@ -268,16 +262,16 @@ public class Hdf5Archive {
     }
     return attributes;
   }
-  
+
   private long getI64(@Nonnull Attribute attribute) {
     return getI64(attribute, attribute.getIntType(), new byte[8]);
   }
-  
+
   @Nonnull
   private CharSequence getString(@Nonnull Attribute attribute) {
     return getString(attribute, attribute.getVarLenType(), new byte[1024]);
   }
-  
+
   private long getI64(@Nonnull Attribute attribute, DataType dataType, @Nonnull byte[] buffer) {
     @Nonnull BytePointer pointer = new BytePointer(buffer);
     attribute.read(dataType, pointer);
@@ -285,7 +279,7 @@ public class Hdf5Archive {
     ArrayUtils.reverse(buffer);
     return ByteBuffer.wrap(buffer).asLongBuffer().get();
   }
-  
+
   @Nonnull
   private CharSequence getString(@Nonnull Attribute attribute, DataType dataType, @Nonnull byte[] buffer) {
     @Nonnull BytePointer pointer = new BytePointer(buffer);
@@ -294,12 +288,11 @@ public class Hdf5Archive {
     @Nonnull String str = new String(buffer);
     if (str.indexOf('\0') >= 0) {
       return str.substring(0, str.indexOf('\0'));
-    }
-    else {
+    } else {
       return str;
     }
   }
-  
+
   /**
    * Get list of data sets from group path.
    *
@@ -316,7 +309,7 @@ public class Hdf5Archive {
     closeGroups(groupArray);
     return ls;
   }
-  
+
   /**
    * Get list of groups from group path.
    *
@@ -333,7 +326,7 @@ public class Hdf5Archive {
     closeGroups(groupArray);
     return ls;
   }
-  
+
   /**
    * Read data setBytes as ND4J array from HDF5 group.
    *
@@ -407,7 +400,7 @@ public class Hdf5Archive {
     dataset.deallocate();
     return data;
   }
-  
+
   /**
    * Get list of objects apply a given type from a file group.
    *
@@ -426,7 +419,7 @@ public class Hdf5Archive {
     }
     return groups;
   }
-  
+
   /**
    * Read JSON-formatted string attribute.
    *
@@ -466,7 +459,7 @@ public class Hdf5Archive {
     }
     return s;
   }
-  
+
   /**
    * Read attribute as string.
    *
@@ -491,21 +484,21 @@ public class Hdf5Archive {
       attribute.read(vl, attrPointer);
       attrPointer.get(attrBuffer);
       s = new String(attrBuffer);
-      
+
       if (s.endsWith("\u0000")) {
         s = s.replace("\u0000", "");
         break;
       }
-      
+
       bufferSizeMult++;
       if (bufferSizeMult > 100) {
         throw new RuntimeException("Could not read abnormally long HDF5 attribute");
       }
     }
-    
+
     return s;
   }
-  
+
   /**
    * Read string attribute from group path.
    *
@@ -517,7 +510,7 @@ public class Hdf5Archive {
   public CharSequence readAttributeAsFixedLengthString(String attributeName, int bufferSize) {
     return readAttributeAsFixedLengthString(this.file.openAttribute(attributeName), bufferSize);
   }
-  
+
   /**
    * Read attribute of fixed buffer size as string.
    *
@@ -534,12 +527,14 @@ public class Hdf5Archive {
     @Nonnull String s = new String(attrBuffer);
     return s;
   }
-  
+
   /**
    * Print.
    */
-  public void print() {print(log);}
-  
+  public void print() {
+    print(log);
+  }
+
   /**
    * Print.
    *
@@ -548,7 +543,7 @@ public class Hdf5Archive {
   public void print(@Nonnull Logger log) {
     print(this, log);
   }
-  
+
   /**
    * Gets filename.
    *

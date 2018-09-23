@@ -32,9 +32,9 @@ import javax.annotation.Nonnull;
  * @param <T> the type parameter
  */
 public class TrainableWrapper<T extends Trainable> extends ReferenceCountingBase implements TrainableDataMask {
-  
+
   private final T inner;
-  
+
   /**
    * Instantiates a new Trainable wrapper.
    *
@@ -44,13 +44,13 @@ public class TrainableWrapper<T extends Trainable> extends ReferenceCountingBase
     this.inner = inner;
     this.inner.addRef(this);
   }
-  
+
   @Override
   protected void _free() {
     this.inner.freeRef();
     super._free();
   }
-  
+
   /**
    * Gets heapCopy.
    *
@@ -59,39 +59,39 @@ public class TrainableWrapper<T extends Trainable> extends ReferenceCountingBase
   public T getInner() {
     return inner;
   }
-  
+
   @Override
   public boolean[] getMask() {
     return ((TrainableDataMask) inner).getMask();
   }
-  
+
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     return inner.measure(monitor);
   }
-  
+
   @Override
   public boolean reseed(final long seed) {
     return getInner().reseed(seed);
   }
-  
+
   @Override
   public Layer getLayer() {
     return inner.getLayer();
   }
-  
+
   @Nonnull
   @Override
   public TrainableDataMask setMask(final boolean... mask) {
     ((TrainableDataMask) inner).setMask(mask);
     return this;
   }
-  
+
   @Nonnull
   @Override
   public String toString() {
     return getClass().getSimpleName() + "{" +
-      "heapCopy=" + inner +
-      '}';
+        "heapCopy=" + inner +
+        '}';
   }
 }

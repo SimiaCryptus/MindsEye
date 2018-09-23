@@ -20,15 +20,7 @@
 package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.Coordinate;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +38,8 @@ import java.util.stream.IntStream;
  */
 @SuppressWarnings("serial")
 public class AvgMetaLayer extends LayerBase {
-  
-  
+
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(AvgMetaLayer.class);
   /**
@@ -56,13 +48,13 @@ public class AvgMetaLayer extends LayerBase {
   @Nullable
   public Tensor lastResult;
   private int minBatchCount = 1;
-  
+
   /**
    * Instantiates a new Avg meta layer.
    */
   public AvgMetaLayer() {
   }
-  
+
   /**
    * Instantiates a new Avg meta layer.
    *
@@ -74,7 +66,7 @@ public class AvgMetaLayer extends LayerBase {
     lastResult = Tensor.fromJson(json.get("lastResult"), resources);
     minBatchCount = json.get("minBatchCount").getAsInt();
   }
-  
+
   /**
    * From json avg meta layer.
    *
@@ -85,13 +77,13 @@ public class AvgMetaLayer extends LayerBase {
   public static AvgMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AvgMetaLayer(json, rs);
   }
-  
+
   @Override
   protected void _free() {
     if (null != lastResult) lastResult.freeRef();
     super._free();
   }
-  
+
   @Nonnull
   @Override
   public Result eval(final Result... inObj) {
@@ -103,14 +95,14 @@ public class AvgMetaLayer extends LayerBase {
     boolean passback;
     if (null == lastResult || inputData.length() > minBatchCount) {
       @Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
-        IntStream.range(0, itemCnt)
-          .mapToDouble(dataIndex -> {
-            Tensor tensor = inputData.get(dataIndex);
-            double v = tensor.get(c);
-            tensor.freeRef();
-            return v;
-          })
-          .sum() / itemCnt;
+          IntStream.range(0, itemCnt)
+              .mapToDouble(dataIndex -> {
+                Tensor tensor = inputData.get(dataIndex);
+                double v = tensor.get(c);
+                tensor.freeRef();
+                return v;
+              })
+              .sum() / itemCnt;
       Tensor tensor = inputData.get(0);
       thisResult = tensor.mapCoords(f);
       tensor.freeRef();
@@ -118,8 +110,7 @@ public class AvgMetaLayer extends LayerBase {
       if (null != lastResult) lastResult.freeRef();
       lastResult = thisResult;
       lastResult.addRef();
-    }
-    else {
+    } else {
       passback = false;
       thisResult = lastResult;
       thisResult.freeRef();
@@ -139,22 +130,22 @@ public class AvgMetaLayer extends LayerBase {
         input.accumulate(buffer, tensorArray);
       }
     }) {
-      
-      
+
+
       @Override
       public boolean isAlive() {
         return input.isAlive();
       }
-      
+
       @Override
       protected void _free() {
         thisResult.freeRef();
         input.freeRef();
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, @Nonnull DataSerializer dataSerializer) {
@@ -165,7 +156,7 @@ public class AvgMetaLayer extends LayerBase {
     json.addProperty("minBatchCount", minBatchCount);
     return json;
   }
-  
+
   /**
    * The Min batch count.
    *
@@ -174,7 +165,7 @@ public class AvgMetaLayer extends LayerBase {
   public int getMinBatchCount() {
     return minBatchCount;
   }
-  
+
   /**
    * Sets min batch count.
    *
@@ -186,7 +177,7 @@ public class AvgMetaLayer extends LayerBase {
     this.minBatchCount = minBatchCount;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {

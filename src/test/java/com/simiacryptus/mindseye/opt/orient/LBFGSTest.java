@@ -29,7 +29,7 @@ import com.simiacryptus.mindseye.opt.MnistTestBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.ValidatingTrainer;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
@@ -38,27 +38,27 @@ import java.util.concurrent.TimeUnit;
  * The type Lbfgs apply.
  */
 public class LBFGSTest extends MnistTestBase {
-  
+
   @Override
   public void train(@Nonnull final NotebookOutput log, @Nonnull final Layer network, @Nonnull final Tensor[][] trainingData, final TrainingMonitor monitor) {
     log.eval(() -> {
       @Nonnull final SimpleLossNetwork supervisedNetwork = new SimpleLossNetwork(network, new EntropyLossLayer());
       @Nonnull ValidatingTrainer trainer = new ValidatingTrainer(
-        new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
-        new ArrayTrainable(trainingData, supervisedNetwork).cached()
+          new SampledArrayTrainable(trainingData, supervisedNetwork, 1000, 10000),
+          new ArrayTrainable(trainingData, supervisedNetwork).cached()
       )
-        .setMonitor(monitor);
+          .setMonitor(monitor);
       trainer.getRegimen().get(0)
-        //.setOrientation(new ValidatingOrientationWrapper(new LBFGS()))
-        .setOrientation(new LBFGS())
-        .setLineSearchFactory(name -> name.toString().contains("LBFGS") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch());
+          //.setOrientation(new ValidatingOrientationWrapper(new LBFGS()))
+          .setOrientation(new LBFGS())
+          .setLineSearchFactory(name -> name.toString().contains("LBFGS") ? new QuadraticSearch().setCurrentRate(1.0) : new QuadraticSearch());
       return trainer
-        .setTimeout(5, TimeUnit.MINUTES)
-        .setMaxIterations(500)
-        .run();
+          .setTimeout(5, TimeUnit.MINUTES)
+          .setMaxIterations(500)
+          .run();
     });
   }
-  
+
   @Nonnull
   @Override
   protected Class<?> getTargetClass() {

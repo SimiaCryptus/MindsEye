@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * The type Backprop kernel.
  */
 public final class BackpropKernel extends Kernel {
-  
+
   /**
    * The Input.
    */
@@ -64,13 +64,13 @@ public final class BackpropKernel extends Kernel {
    */
   @Nullable
   public double[] weights;
-  
+
   /**
    * Instantiates a new Backprop kernel.
    */
   public BackpropKernel() {
   }
-  
+
   /**
    * Exe.
    *
@@ -82,13 +82,13 @@ public final class BackpropKernel extends Kernel {
     assert kernelSize[0] * kernelSize[1] * kernelSize[2] == weights.length;
     execute(device.createRange(input.length));
   }
-  
+
   @Override
   public void run() {
     final int i = getGlobalId();
     input[i] = run(i);
   }
-  
+
   /**
    * Run double.
    *
@@ -103,7 +103,7 @@ public final class BackpropKernel extends Kernel {
     final int i2 = i % is2 / is1;
     final int i1 = i % is1 / is0;
     final int i0 = i % is0;
-    
+
     double accum = 0;
     for (int k = 0; k < weights.length; k++) {
       if (0. != weights[k]) {
@@ -113,7 +113,7 @@ public final class BackpropKernel extends Kernel {
         final int k2 = k % ks2 / ks1;
         final int k1 = k % ks1 / ks0;
         final int k0 = k % ks0;
-  
+
         final int o2 = k2 - i2 * outputSize[2];
         if (o2 >= 0 && o2 < outputSize[2]) {
           final int o1 = i1 + k1 - kernelOffset[1];

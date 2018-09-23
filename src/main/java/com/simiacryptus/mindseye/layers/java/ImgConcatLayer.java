@@ -21,14 +21,7 @@ package com.simiacryptus.mindseye.layers.java;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.simiacryptus.mindseye.lang.DataSerializer;
-import com.simiacryptus.mindseye.lang.DeltaSet;
-import com.simiacryptus.mindseye.lang.Layer;
-import com.simiacryptus.mindseye.lang.LayerBase;
-import com.simiacryptus.mindseye.lang.Result;
-import com.simiacryptus.mindseye.lang.Tensor;
-import com.simiacryptus.mindseye.lang.TensorArray;
-import com.simiacryptus.mindseye.lang.TensorList;
+import com.simiacryptus.mindseye.lang.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,18 +37,18 @@ import java.util.Map;
  */
 @SuppressWarnings("serial")
 public class ImgConcatLayer extends LayerBase {
-  
+
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ImgConcatLayer.class);
   private int maxBands;
-  
+
   /**
    * Instantiates a new Img eval layer.
    */
   public ImgConcatLayer() {
     setMaxBands(0);
   }
-  
+
   /**
    * Instantiates a new Img eval layer.
    *
@@ -66,7 +59,7 @@ public class ImgConcatLayer extends LayerBase {
     JsonElement maxBands = json.get("maxBands");
     if (null != maxBands) setMaxBands(maxBands.getAsInt());
   }
-  
+
   /**
    * From json img eval layer.
    *
@@ -77,7 +70,7 @@ public class ImgConcatLayer extends LayerBase {
   public static ImgConcatLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgConcatLayer(json);
   }
-  
+
   @Nullable
   @Override
   public Result eval(@Nonnull final Result... inObj) {
@@ -90,7 +83,7 @@ public class ImgConcatLayer extends LayerBase {
     if (maxBands > 0) outputDims[2] = Math.min(maxBands, outputDims[2]);
     assert Arrays.stream(inObj).allMatch(x -> x.getData().getDimensions()[0] == outputDims[0]) : "Inputs must be same size";
     assert Arrays.stream(inObj).allMatch(x -> x.getData().getDimensions()[1] == outputDims[1]) : "Inputs must be same size";
-  
+
     @Nonnull final List<Tensor> outputTensors = new ArrayList<>();
     for (int b = 0; b < numBatches; b++) {
       @Nonnull final Tensor outputTensor = new Tensor(outputDims);
@@ -107,7 +100,7 @@ public class ImgConcatLayer extends LayerBase {
     }
     return new Result(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
       assert numBatches == data.length();
-  
+
       @Nonnull final List<Tensor[]> splitBatches = new ArrayList<>();
       for (int b = 0; b < numBatches; b++) {
         @Nullable final Tensor tensor = data.get(b);
@@ -123,7 +116,7 @@ public class ImgConcatLayer extends LayerBase {
         tensor.freeRef();
         splitBatches.add(outputTensors2);
       }
-  
+
       @Nonnull final Tensor[][] splitData = new Tensor[inObj.length][];
       for (int i = 0; i < splitData.length; i++) {
         splitData[i] = new Tensor[numBatches];
@@ -133,18 +126,18 @@ public class ImgConcatLayer extends LayerBase {
           splitData[i][b] = splitBatches.get(b)[i];
         }
       }
-      
+
       for (int i = 0; i < inObj.length; i++) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(splitData[i]);
         inObj[i].accumulate(buffer, tensorArray);
       }
     }) {
-      
+
       @Override
       protected void _free() {
         Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
       }
-      
+
       @Override
       public boolean isAlive() {
         for (@Nonnull final Result element : inObj)
@@ -153,10 +146,10 @@ public class ImgConcatLayer extends LayerBase {
           }
         return false;
       }
-      
+
     };
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -164,13 +157,13 @@ public class ImgConcatLayer extends LayerBase {
     json.addProperty("maxBands", maxBands);
     return json;
   }
-  
+
   @Nonnull
   @Override
   public List<double[]> state() {
     return Arrays.asList();
   }
-  
+
   /**
    * Gets max bands.
    *
@@ -179,7 +172,7 @@ public class ImgConcatLayer extends LayerBase {
   public int getMaxBands() {
     return maxBands;
   }
-  
+
   /**
    * Sets max bands.
    *

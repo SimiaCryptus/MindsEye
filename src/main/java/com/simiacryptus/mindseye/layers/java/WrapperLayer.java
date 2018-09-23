@@ -37,14 +37,14 @@ import java.util.Map;
 public abstract class WrapperLayer extends LayerBase {
   @Nullable
   private Layer inner;
-  
+
   /**
    * Instantiates a new Wrapper layer.
    */
   protected WrapperLayer() {
     inner = null;
   }
-  
+
   /**
    * Instantiates a new Wrapper layer.
    *
@@ -55,7 +55,7 @@ public abstract class WrapperLayer extends LayerBase {
     super(json);
     this.inner = Layer.fromJson(json.getAsJsonObject("inner"), rs);
   }
-  
+
   /**
    * Instantiates a new Wrapper layer.
    *
@@ -65,19 +65,19 @@ public abstract class WrapperLayer extends LayerBase {
     this.inner = inner;
     this.inner.addRef();
   }
-  
+
   @Override
   protected void _free() {
     if (null != this.inner) this.inner.freeRef();
     super._free();
   }
-  
+
   @Nullable
   @Override
   public Result eval(final Result... array) {
     return inner.eval(array);
   }
-  
+
   /**
    * The Inner.
    */
@@ -90,7 +90,7 @@ public abstract class WrapperLayer extends LayerBase {
   public final Layer getInner() {
     return inner;
   }
-  
+
   /**
    * Sets inner.
    *
@@ -101,7 +101,7 @@ public abstract class WrapperLayer extends LayerBase {
     this.inner = inner;
     return this;
   }
-  
+
   @Nonnull
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
@@ -109,13 +109,13 @@ public abstract class WrapperLayer extends LayerBase {
     json.add("inner", getInner().getJson(resources, dataSerializer));
     return json;
   }
-  
+
   @Override
   public boolean isFrozen() {
     if (null == inner) return true;
     return inner.isFrozen();
   }
-  
+
   @Nonnull
   @Override
   public Layer setFrozen(final boolean frozen) {
@@ -123,7 +123,7 @@ public abstract class WrapperLayer extends LayerBase {
     inner.setFrozen(frozen);
     return this;
   }
-  
+
   @Nullable
   @Override
   public List<double[]> state() {

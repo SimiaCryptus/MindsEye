@@ -30,47 +30,47 @@ import java.util.Random;
  * The type Img crop layer apply.
  */
 public abstract class ImgTileAssemblyLayerTest extends CudaLayerTestBase {
-  
+
   /**
    * Instantiates a new Img crop layer apply.
    */
   public ImgTileAssemblyLayerTest() {
     validateBatchExecution = false;
   }
-  
+
   @Nonnull
   @Override
   public int[][] getSmallDims(Random random) {
     return new int[][]{
-      {2, 2, 1}, {1, 2, 1}, {2, 2, 1}, {1, 2, 1}, {2, 1, 1}, {1, 1, 1}
+        {2, 2, 1}, {1, 2, 1}, {2, 2, 1}, {1, 2, 1}, {2, 1, 1}, {1, 1, 1}
 //      {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}, {3, 3, 1}
     };
   }
-  
+
   @Override
   public int[][] getLargeDims(final Random random) {
     return new int[][]{
-      {200, 200, 100}, {100, 200, 100}, {200, 200, 100}, {100, 200, 100}, {200, 100, 100}, {100, 100, 100}
+        {200, 200, 100}, {100, 200, 100}, {200, 200, 100}, {100, 200, 100}, {200, 100, 100}, {100, 100, 100}
     };
-    
+
   }
-  
+
   @Nonnull
   @Override
   public Layer getLayer(final int[][] inputSize, Random random) {
     return new ImgTileAssemblyLayer(2, 3);
   }
-  
+
   @Nullable
   @Override
   public Class<? extends Layer> getReferenceLayerClass() {
     return com.simiacryptus.mindseye.layers.java.ImgTileAssemblyLayer.class;
   }
-  
+
   /**
    * Basic Test
    */
   public static class Basic extends ImgTileAssemblyLayerTest {
   }
-  
+
 }

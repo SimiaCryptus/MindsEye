@@ -20,14 +20,8 @@
 package com.simiacryptus.mindseye.labs.matrix;
 
 import com.simiacryptus.mindseye.test.NotebookReportBase;
-import com.simiacryptus.mindseye.test.integration.AutoencodingProblem;
-import com.simiacryptus.mindseye.test.integration.ClassifyProblem;
-import com.simiacryptus.mindseye.test.integration.EncodingProblem;
-import com.simiacryptus.mindseye.test.integration.FwdNetworkFactory;
-import com.simiacryptus.mindseye.test.integration.ImageProblemData;
-import com.simiacryptus.mindseye.test.integration.OptimizationStrategy;
-import com.simiacryptus.mindseye.test.integration.RevNetworkFactory;
-import com.simiacryptus.util.io.NotebookOutput;
+import com.simiacryptus.mindseye.test.integration.*;
+import com.simiacryptus.notebook.NotebookOutput;
 import com.simiacryptus.util.test.TestCategories;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -61,7 +55,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    * The Batch size.
    */
   protected int batchSize = 1000;
-  
+
   /**
    * Instantiates a new All training tests.
    *
@@ -74,7 +68,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
     this.revFactory = revFactory;
     this.optimizationStrategy = optimizationStrategy;
   }
-  
+
   /**
    * Autoencoder allocationOverflow.
    *
@@ -85,7 +79,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
     intro(log);
     new AutoencodingProblem(fwdFactory, optimizationStrategy, revFactory, getData(), 100, 0.8).setTimeoutMinutes(timeoutMinutes).run(log);
   }
-  
+
   /**
    * Autoencoder apply.
    *
@@ -97,7 +91,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   public void autoencoder_test() {
     run(this::autoencoder_test, getClass().getSimpleName(), "Autoencoder");
   }
-  
+
   /**
    * Classification allocationOverflow.
    *
@@ -108,7 +102,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   public void classification_test() {
     run(this::classification_test, getClass().getSimpleName(), "Classification");
   }
-  
+
   /**
    * Classification allocationOverflow.
    *
@@ -119,7 +113,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
     intro(log);
     new ClassifyProblem(fwdFactory, optimizationStrategy, getData(), 100).setBatchSize(batchSize).setTimeoutMinutes(timeoutMinutes).run(log);
   }
-  
+
   /**
    * Encoding allocationOverflow.
    *
@@ -131,7 +125,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
   public void encoding_test() {
     run(this::encoding_test, getClass().getSimpleName(), "Encoding");
   }
-  
+
   /**
    * Encoding allocationOverflow.
    *
@@ -142,7 +136,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
     intro(log);
     new EncodingProblem(revFactory, optimizationStrategy, getData(), 10).setTimeoutMinutes(timeoutMinutes).run(log);
   }
-  
+
   @Override
   public void printHeader(NotebookOutput log) {
     @Nullable CharSequence fwdFactory_javadoc = printHeader(log, fwdFactory.getClass(), "fwd");
@@ -153,14 +147,14 @@ public abstract class AllTrainingTests extends NotebookReportBase {
     log.p("_Reverse Strategy Javadoc_: " + revFactory_javadoc);
     log.p("_Optimization Strategy Javadoc_: " + optimizationStrategy_javadoc);
   }
-  
+
   /**
    * Intro.
    *
    * @param log the log
    */
   protected abstract void intro(NotebookOutput log);
-  
+
   /**
    * Gets data.
    *
@@ -168,7 +162,7 @@ public abstract class AllTrainingTests extends NotebookReportBase {
    */
   @Nonnull
   public abstract ImageProblemData getData();
-  
+
   /**
    * Gets dataset name.
    *

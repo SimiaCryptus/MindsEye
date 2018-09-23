@@ -41,7 +41,7 @@ public enum Precision {
    * Float precision.
    */
   Float(cudnnDataType.CUDNN_DATA_FLOAT, Sizeof.FLOAT);
-  
+
   /**
    * The Code.
    */
@@ -50,12 +50,12 @@ public enum Precision {
    * The Size.
    */
   public final int size;
-  
+
   Precision(final int code, final int size) {
     this.code = code;
     this.size = size;
   }
-  
+
   /**
    * Get doubles double [ ].
    *
@@ -65,7 +65,7 @@ public enum Precision {
   public static double[] getDoubles(@Nonnull final float[] data) {
     return copy(data, new double[data.length]);
   }
-  
+
   /**
    * Copy double [ ].
    *
@@ -79,7 +79,7 @@ public enum Precision {
     }
     return doubles;
   }
-  
+
   /**
    * Get floats float [ ].
    *
@@ -89,7 +89,7 @@ public enum Precision {
   public static float[] getFloats(@Nonnull final double[] data) {
     return copy(data, new float[data.length]);
   }
-  
+
   /**
    * Copy float [ ].
    *
@@ -103,7 +103,7 @@ public enum Precision {
     }
     return to;
   }
-  
+
   /**
    * Copy.
    *
@@ -116,7 +116,7 @@ public enum Precision {
     else if (precision == Double) copyDoubles(from, to);
     else throw new RuntimeException();
   }
-  
+
   /**
    * Copy.
    *
@@ -129,7 +129,7 @@ public enum Precision {
     else if (precision == Double) copyDoubles(from, to);
     else throw new RuntimeException();
   }
-  
+
   /**
    * Copy doubles.
    *
@@ -143,7 +143,7 @@ public enum Precision {
       outBuffer.put(inBuffer.get());
     }
   }
-  
+
   /**
    * Copy doubles.
    *
@@ -157,7 +157,7 @@ public enum Precision {
       outBuffer.put(inBuffer.get());
     }
   }
-  
+
   /**
    * Copy floats.
    *
@@ -171,7 +171,7 @@ public enum Precision {
       outBuffer.put((float) inBuffer.get());
     }
   }
-  
+
   /**
    * Copy floats.
    *
@@ -185,7 +185,7 @@ public enum Precision {
       outBuffer.put(inBuffer.get());
     }
   }
-  
+
   /**
    * Gets compatibility layer.
    *
@@ -195,7 +195,7 @@ public enum Precision {
   public Layer getCompatibilityLayer() {
     throw new RuntimeException("Not Implemented");
   }
-  
+
   /**
    * Gets pointer.
    *
@@ -212,7 +212,7 @@ public enum Precision {
         throw new IllegalStateException();
     }
   }
-  
+
   /**
    * Gets pointer.
    *
@@ -229,5 +229,5 @@ public enum Precision {
         throw new IllegalStateException();
     }
   }
-  
+
 }
