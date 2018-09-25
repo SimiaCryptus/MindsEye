@@ -53,6 +53,8 @@ public class CoreSettings implements Settings {
 
   /**
    * The constant INSTANCE.
+   *
+   * @return the core settings
    */
   public static CoreSettings INSTANCE() {
     if(null==INSTANCE) {

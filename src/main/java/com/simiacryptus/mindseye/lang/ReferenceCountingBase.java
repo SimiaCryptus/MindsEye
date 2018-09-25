@@ -85,10 +85,23 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     return obj.referenceReport(includeCaller, obj.isFinalized());
   }
 
+  /**
+   * Remove suffix stack trace element [ ].
+   *
+   * @param stack  the stack
+   * @param prefix the prefix
+   * @return the stack trace element [ ]
+   */
   public static StackTraceElement[] removeSuffix(final StackTraceElement[] stack, final Collection<StackTraceElement> prefix) {
     return Arrays.stream(stack).limit(stack.length - prefix.size()).toArray(i -> new StackTraceElement[i]);
   }
 
+  /**
+   * Find common prefix list.
+   *
+   * @param reversedStacks the reversed stacks
+   * @return the list
+   */
   public static List<StackTraceElement> findCommonPrefix(final List<List<StackTraceElement>> reversedStacks) {
     if (0 == reversedStacks.size()) return null;
     List<StackTraceElement> protoprefix = reversedStacks.get(0);
@@ -101,11 +114,25 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     return protoprefix;
   }
 
+  /**
+   * Reverse copy list.
+   *
+   * @param <T> the type parameter
+   * @param x   the x
+   * @return the list
+   */
   public static <T> List<T> reverseCopy(final List<T> x) {
     if (null == x) return Arrays.asList();
     return IntStream.range(0, x.size()).map(i -> (x.size() - 1) - i).mapToObj(i -> x.get(i)).collect(Collectors.toList());
   }
 
+  /**
+   * Reverse copy list.
+   *
+   * @param <T> the type parameter
+   * @param x   the x
+   * @return the list
+   */
   public static <T> List<T> reverseCopy(final T[] x) {
     return IntStream.range(0, x.length).map(i -> (x.length - 1) - i).mapToObj(i -> x[i]).collect(Collectors.toList());
   }

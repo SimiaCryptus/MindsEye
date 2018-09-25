@@ -314,19 +314,41 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
     return this;
   }
 
+  /**
+   * Gets pos.
+   *
+   * @return the pos
+   */
   public double getxPos() {
     return xPos;
   }
 
+  /**
+   * Gets pos.
+   *
+   * @return the pos
+   */
   public double getyPos() {
     return yPos;
   }
 
+  /**
+   * Sets x pos.
+   *
+   * @param xPos the x pos
+   * @return the x pos
+   */
   public ImgTileCycleLayer setXPos(double xPos) {
     this.xPos = xPos;
     return this;
   }
 
+  /**
+   * Sets y pos.
+   *
+   * @param yPos the y pos
+   * @return the y pos
+   */
   public ImgTileCycleLayer setYPos(double yPos) {
     this.yPos = yPos;
     return this;

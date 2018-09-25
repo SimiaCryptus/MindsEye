@@ -63,6 +63,12 @@ public class Result extends ReferenceCountingBase {
     return delta;
   }
 
+  /**
+   * Copy double [ ].
+   *
+   * @param delta the delta
+   * @return the double [ ]
+   */
   public double[] copy(double[] delta) {
     delta = Arrays.copyOf(delta, delta.length);
     return delta;

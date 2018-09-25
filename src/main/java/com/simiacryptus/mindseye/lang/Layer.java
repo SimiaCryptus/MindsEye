@@ -121,12 +121,24 @@ public interface Layer extends ReferenceCounting, Serializable {
     );
   }
 
+  /**
+   * Free and then pipeline network.
+   *
+   * @param append the append
+   * @return the pipeline network
+   */
   default PipelineNetwork freeAndThen(Layer append) {
     PipelineNetwork build = andThen(append);
     this.freeRef();
     return build;
   }
 
+  /**
+   * And then wrap pipeline network.
+   *
+   * @param append the append
+   * @return the pipeline network
+   */
   default PipelineNetwork andThenWrap(Layer append) {
     assert append.assertAlive();
     assert assertAlive();
@@ -138,6 +150,12 @@ public interface Layer extends ReferenceCounting, Serializable {
     return wrap;
   }
 
+  /**
+   * Free and then wrap pipeline network.
+   *
+   * @param append the append
+   * @return the pipeline network
+   */
   default PipelineNetwork freeAndThenWrap(Layer append) {
     assert append.assertAlive();
     PipelineNetwork build = PipelineNetwork.wrap(1,
@@ -419,6 +437,11 @@ public interface Layer extends ReferenceCounting, Serializable {
   @Nullable
   List<double[]> state();
 
+  /**
+   * Copy and free layer.
+   *
+   * @return the layer
+   */
   default Layer copyAndFree() {
     Layer copy = copy();
     freeRef();

@@ -80,9 +80,11 @@ public class ImgTileAssemblyLayer extends LayerBase {
    * @param outputData the output data
    * @param offsetX    the position x
    * @param offsetY    the position y
-   * @param paddingX
-   * @param paddingY
-   * @param toroidal
+   * @param paddingX   the padding x
+   * @param paddingY   the padding y
+   * @param toroidal   the toroidal
+   * @param rowF       the row f
+   * @param colF       the col f
    * @return the tensor
    */
   @Nonnull
@@ -303,37 +305,81 @@ public class ImgTileAssemblyLayer extends LayerBase {
   }
 
 
+  /**
+   * Gets padding x.
+   *
+   * @return the padding x
+   */
   public int getPaddingX() {
     return paddingX;
   }
 
+  /**
+   * Sets padding x.
+   *
+   * @param paddingX the padding x
+   * @return the padding x
+   */
   public ImgTileAssemblyLayer setPaddingX(int paddingX) {
     this.paddingX = paddingX;
     return this;
   }
 
+  /**
+   * Gets padding y.
+   *
+   * @return the padding y
+   */
   public int getPaddingY() {
     return paddingY;
   }
 
+  /**
+   * Sets padding y.
+   *
+   * @param paddingY the padding y
+   * @return the padding y
+   */
   public ImgTileAssemblyLayer setPaddingY(int paddingY) {
     this.paddingY = paddingY;
     return this;
   }
 
+  /**
+   * Gets offset x.
+   *
+   * @return the offset x
+   */
   public int getOffsetX() {
     return offsetX;
   }
 
+  /**
+   * Sets offset x.
+   *
+   * @param offsetX the offset x
+   * @return the offset x
+   */
   public ImgTileAssemblyLayer setOffsetX(int offsetX) {
     this.offsetX = offsetX;
     return this;
   }
 
+  /**
+   * Gets offset y.
+   *
+   * @return the offset y
+   */
   public int getOffsetY() {
     return offsetY;
   }
 
+  /**
+   * Sets offset y.
+   *
+   * @param offsetY the offset y
+   * @return the offset y
+   */
   public ImgTileAssemblyLayer setOffsetY(int offsetY) {
     this.offsetY = offsetY;
     return this;

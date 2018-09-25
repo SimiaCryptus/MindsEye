@@ -65,6 +65,9 @@ public abstract class ImgTileCycleLayerTest extends CudaLayerTestBase {
   }
 
 
+  /**
+   * The type One third.
+   */
   public static class OneThird extends ImgTileCycleLayerTest {
 
     @Nonnull

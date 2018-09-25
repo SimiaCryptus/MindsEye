@@ -36,6 +36,9 @@ import java.util.UUID;
  */
 public class CVPipe_VGG19 implements CVPipe<CVPipe_VGG19.Layer> {
 
+  /**
+   * The constant logger.
+   */
   public static final Logger logger = LoggerFactory.getLogger(CVPipe_VGG19.class);
   /**
    * The constant INSTANCE.

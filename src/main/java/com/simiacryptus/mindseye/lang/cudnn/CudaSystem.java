@@ -1258,6 +1258,11 @@ public class CudaSystem {
     });
   }
 
+  /**
+   * Gets cached device count.
+   *
+   * @return the cached device count
+   */
   public static int getCachedDeviceCount() {
     if(null == cachedDeviceCount) {
       synchronized (CudaSystem.class) {

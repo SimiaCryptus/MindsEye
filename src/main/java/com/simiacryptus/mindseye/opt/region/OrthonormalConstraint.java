@@ -39,6 +39,11 @@ public class OrthonormalConstraint implements TrustRegion {
   private boolean ortho = true;
   private boolean unit = true;
 
+  /**
+   * Instantiates a new Orthonormal constraint.
+   *
+   * @param indexMap the index map
+   */
   public OrthonormalConstraint(int[]... indexMap) {
     assert Arrays.stream(indexMap).mapToInt(x -> x.length).distinct().count() == 1;
     assert Arrays.stream(indexMap).flatMapToInt(x -> Arrays.stream(x)).distinct().count() == Arrays.stream(indexMap).flatMapToInt(x -> Arrays.stream(x)).count();
@@ -47,14 +52,35 @@ public class OrthonormalConstraint implements TrustRegion {
     this.indexMap = indexMap;
   }
 
+  /**
+   * Dot double.
+   *
+   * @param a the a
+   * @param b the b
+   * @return the double
+   */
   public static double dot(double[] a, double[] b) {
     return IntStream.range(0, a.length).mapToDouble(i -> a[i] * b[i]).sum();
   }
 
+  /**
+   * Add double [ ].
+   *
+   * @param a the a
+   * @param b the b
+   * @return the double [ ]
+   */
   public static double[] add(double[] a, double[] b) {
     return IntStream.range(0, a.length).mapToDouble(i -> a[i] + b[i]).toArray();
   }
 
+  /**
+   * Scale double [ ].
+   *
+   * @param a the a
+   * @param b the b
+   * @return the double [ ]
+   */
   public static double[] scale(double[] a, double b) {
     return Arrays.stream(a).map(v -> v * b).toArray();
   }
@@ -69,6 +95,12 @@ public class OrthonormalConstraint implements TrustRegion {
     return ArrayUtil.magnitude(weights);
   }
 
+  /**
+   * Unit vectors list.
+   *
+   * @param vectors the vectors
+   * @return the list
+   */
   public List<double[]> unitVectors(final List<double[]> vectors) {
     double[] magnitudes = vectors.stream().mapToDouble(x -> Math.sqrt(Arrays.stream(x).map(a -> a * a).sum())).toArray();
     return IntStream.range(
@@ -86,6 +118,12 @@ public class OrthonormalConstraint implements TrustRegion {
     return recompose(unitVectors);
   }
 
+  /**
+   * Orthogonal list.
+   *
+   * @param vectors the vectors
+   * @return the list
+   */
   public List<double[]> orthogonal(final List<double[]> vectors) {
     ArrayList<double[]> result = new ArrayList<>();
     for (final double[] vector : vectors) {
@@ -98,6 +136,12 @@ public class OrthonormalConstraint implements TrustRegion {
     return result;
   }
 
+  /**
+   * Recompose double [ ].
+   *
+   * @param unitVectors the unit vectors
+   * @return the double [ ]
+   */
   public double[] recompose(final List<double[]> unitVectors) {
     double[] doubles = RecycleBin.DOUBLES.create(Arrays.stream(indexMap).mapToInt(x -> x.length).sum());
     IntStream.range(0, indexMap.length).forEach(n -> {
@@ -109,23 +153,51 @@ public class OrthonormalConstraint implements TrustRegion {
     return doubles;
   }
 
+  /**
+   * Decompose list.
+   *
+   * @param point the point
+   * @return the list
+   */
   public List<double[]> decompose(@Nonnull final double[] point) {
     return Arrays.stream(indexMap).map(x -> Arrays.stream(x).mapToDouble(i -> point[i]).toArray()).collect(Collectors.toList());
   }
 
+  /**
+   * Is ortho boolean.
+   *
+   * @return the boolean
+   */
   public boolean isOrtho() {
     return ortho;
   }
 
+  /**
+   * Sets ortho.
+   *
+   * @param ortho the ortho
+   * @return the ortho
+   */
   public OrthonormalConstraint setOrtho(boolean ortho) {
     this.ortho = ortho;
     return this;
   }
 
+  /**
+   * Is unit boolean.
+   *
+   * @return the boolean
+   */
   public boolean isUnit() {
     return unit;
   }
 
+  /**
+   * Sets unit.
+   *
+   * @param unit the unit
+   * @return the unit
+   */
   public OrthonormalConstraint setUnit(boolean unit) {
     this.unit = unit;
     return this;

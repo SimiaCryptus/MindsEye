@@ -70,7 +70,7 @@ public class ImgTileSelectLayer extends LayerBase {
    * @param sizeY     the size y
    * @param positionX the position x
    * @param positionY the position y
-   * @param toroidal
+   * @param toroidal  the toroidal
    */
   public ImgTileSelectLayer(final int sizeX, final int sizeY, final int positionX, final int positionY, final boolean toroidal) {
     super();
@@ -102,7 +102,7 @@ public class ImgTileSelectLayer extends LayerBase {
    * @param outputData the output data
    * @param posX       the pos x
    * @param posY       the pos y
-   * @param toroidal
+   * @param toroidal   the toroidal
    * @return the tensor
    */
   @Nonnull
@@ -161,11 +161,14 @@ public class ImgTileSelectLayer extends LayerBase {
   /**
    * To tiles tensor [ ].
    *
+   * @param log     the log
    * @param canvas  the canvas
    * @param width   the width
    * @param height  the height
    * @param strideX the stride x
    * @param strideY the stride y
+   * @param offsetX the offset x
+   * @param offsetY the offset y
    * @return the tensor [ ]
    */
   @Nonnull

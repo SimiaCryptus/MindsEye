@@ -34,6 +34,12 @@ public class BisectionSearch implements LineSearchStrategy {
   private double zeroTol = 1e-20;
   private double spanTol = 1e-3;
 
+  /**
+   * Gets point and free.
+   *
+   * @param iterate the iterate
+   * @return the point and free
+   */
   @Nonnull
   public static PointSample getPointAndFree(final LineSearchPoint iterate) {
     PointSample point = iterate.point;
@@ -142,6 +148,15 @@ public class BisectionSearch implements LineSearchStrategy {
     return getPointAndFree(iterate(cursor, monitor, leftX, rightX));
   }
 
+  /**
+   * Iterate line search point.
+   *
+   * @param cursor  the cursor
+   * @param monitor the monitor
+   * @param leftX   the left x
+   * @param rightX  the right x
+   * @return the line search point
+   */
   public LineSearchPoint iterate(@Nonnull final LineSearchCursor cursor, @Nonnull final TrainingMonitor monitor, double leftX, double rightX) {
     LineSearchPoint searchPoint = null;
     int loopCount = 0;

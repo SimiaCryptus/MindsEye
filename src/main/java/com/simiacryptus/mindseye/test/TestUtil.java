@@ -1086,12 +1086,24 @@ public class TestUtil {
       Desktop.getDesktop().browse(uri);
   }
 
+  /**
+   * Shuffle list.
+   *
+   * @param <T>  the type parameter
+   * @param list the list
+   * @return the list
+   */
   public static <T> List<T> shuffle(final List<T> list) {
     ArrayList<T> copy = new ArrayList<>(list);
     Collections.shuffle(copy);
     return copy;
   }
 
+  /**
+   * Add global handlers.
+   *
+   * @param httpd the httpd
+   */
   public static void addGlobalHandlers(final FileHTTPD httpd) {
     if (null != httpd) {
       httpd.addGET("gpu.json", "text/json", out -> {
@@ -1115,6 +1127,11 @@ public class TestUtil {
     }
   }
 
+  /**
+   * Gets stack info.
+   *
+   * @return the stack info
+   */
   public static Map<String, List<String>> getStackInfo() {
     return Thread.getAllStackTraces().entrySet().stream().collect(Collectors.toMap(entry -> {
       Thread key = entry.getKey();

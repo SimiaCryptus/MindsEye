@@ -1108,6 +1108,11 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return toString(true);
   }
 
+  /**
+   * Pretty print and free string.
+   *
+   * @return the string
+   */
   public String prettyPrintAndFree() {
     String prettyPrint = prettyPrint();
     freeRef();
@@ -1795,12 +1800,22 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     });
   }
 
+  /**
+   * To image and free buffered image.
+   *
+   * @return the buffered image
+   */
   public BufferedImage toImageAndFree() {
     BufferedImage image = toImage();
     freeRef();
     return image;
   }
 
+  /**
+   * Copy and free tensor.
+   *
+   * @return the tensor
+   */
   public Tensor copyAndFree() {
     if (currentRefCount() == 1) return this;
     Tensor copy = copy();
@@ -1808,6 +1823,13 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     return copy;
   }
 
+  /**
+   * Resize as img tensor.
+   *
+   * @param width  the width
+   * @param height the height
+   * @return the tensor
+   */
   public Tensor resizeAsImg(final int width, final int height) {
     if (getDimensions()[0] == width && getDimensions()[1] == height) {
       addRef();

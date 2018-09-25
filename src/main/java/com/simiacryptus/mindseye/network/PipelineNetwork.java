@@ -112,6 +112,13 @@ public class PipelineNetwork extends DAGNetwork {
     return pipelineNetwork;
   }
 
+  /**
+   * Wrap pipeline network.
+   *
+   * @param inputs the inputs
+   * @param layers the layers
+   * @return the pipeline network
+   */
   public static PipelineNetwork wrap(final int inputs, final Layer... layers) {
     PipelineNetwork pipelineNetwork = new PipelineNetwork(inputs);
     for (final Layer layer : layers) {
@@ -238,6 +245,12 @@ public class PipelineNetwork extends DAGNetwork {
     return super.wrap(new ValueLayer(tensor));
   }
 
+  /**
+   * Const value wrap dag node.
+   *
+   * @param tensor the tensor
+   * @return the dag node
+   */
   @Nullable
   public DAGNode constValueWrap(final Tensor tensor) {
     DAGNode node = constValue(tensor);

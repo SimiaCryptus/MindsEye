@@ -134,6 +134,11 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     return Arrays.stream(array).summaryStatistics().getSum();
   }
 
+  /**
+   * Get delta and free double [ ].
+   *
+   * @return the double [ ]
+   */
   @Nullable
   public double[] getDeltaAndFree() {
     double[] delta = getDelta();

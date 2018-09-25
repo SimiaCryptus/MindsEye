@@ -41,6 +41,8 @@ public interface ReferenceCounting {
 
   /**
    * Add ref.
+   *
+   * @return the reference counting base
    */
   ReferenceCountingBase addRef();
 

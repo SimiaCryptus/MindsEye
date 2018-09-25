@@ -38,6 +38,9 @@ public class CudaSettings implements Settings {
   private static final Logger logger = LoggerFactory.getLogger(CudaSettings.class);
 
   private static transient CudaSettings INSTANCE = null;
+  /**
+   * The Default devices.
+   */
   public final String defaultDevices;
   /**
    * The Memory cacheLocal mode.
@@ -62,6 +65,11 @@ public class CudaSettings implements Settings {
   private final int memoryCacheTTL;
   private final boolean convolutionCache;
 
+  /**
+   * Instance cuda settings.
+   *
+   * @return the cuda settings
+   */
   public static CudaSettings INSTANCE() {
     if(null==INSTANCE) {
       synchronized (CudaSettings.class) {
