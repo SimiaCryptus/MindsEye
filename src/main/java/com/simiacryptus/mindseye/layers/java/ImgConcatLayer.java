@@ -27,10 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Concatenates two or more images apply the same resolution so the output contains all input color bands.
@@ -43,14 +40,14 @@ public class ImgConcatLayer extends LayerBase {
   private int maxBands;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   public ImgConcatLayer() {
     setMaxBands(0);
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    */
@@ -61,11 +58,11 @@ public class ImgConcatLayer extends LayerBase {
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ImgConcatLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgConcatLayer(json);
@@ -98,7 +95,7 @@ public class ImgConcatLayer extends LayerBase {
       }
       outputTensors.add(outputTensor);
     }
-    return new Result(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(outputTensors.toArray(new Tensor[]{})), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       assert numBatches == data.length();
 
       @Nonnull final List<Tensor[]> splitBatches = new ArrayList<>();

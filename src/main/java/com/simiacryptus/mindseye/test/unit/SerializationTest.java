@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -81,7 +82,7 @@ public class SerializationTest extends ComponentTestBase<ToleranceStatistics> {
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput log, @Nonnull final Layer layer, final Tensor... inputPrototype) {
     log.h1("Serialization");
-    log.p("This apply will demonstrate the layer's JSON serialization, and verify deserialization integrity.");
+    log.p("This apply will demonstrate the key's JSON serialization, and verify deserialization integrity.");
 
     String prettyPrint = "";
     log.h2("Raw Json");

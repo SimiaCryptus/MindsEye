@@ -25,10 +25,7 @@ import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -46,7 +43,7 @@ public class ImgTileSelectLayer extends LayerBase {
   private final int positionY;
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param sizeX     the size x
    * @param sizeY     the size y
@@ -64,7 +61,7 @@ public class ImgTileSelectLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param sizeX     the size x
    * @param sizeY     the size y
@@ -82,7 +79,7 @@ public class ImgTileSelectLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param json the json
    */
@@ -148,11 +145,11 @@ public class ImgTileSelectLayer extends LayerBase {
   }
 
   /**
-   * From json img crop layer.
+   * From json img crop key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img crop layer
+   * @return the img crop key
    */
   public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSelectLayer(json);
@@ -230,7 +227,7 @@ public class ImgTileSelectLayer extends LayerBase {
           inputData.freeRef();
           return outputData;
         })
-        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList error) -> {
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
             .mapToObj(dataIndex -> {

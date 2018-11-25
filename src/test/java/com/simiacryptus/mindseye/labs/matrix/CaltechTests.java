@@ -40,7 +40,7 @@ public class CaltechTests {
    */
   @Nonnull
   public static FwdNetworkFactory fwd_conv_1 = (log, features) -> {
-    log.p("The png-to-vector network is a single layer convolutional:");
+    log.p("The png-to-vector network is a single key convolutional:");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
 
@@ -82,7 +82,7 @@ public class CaltechTests {
    */
   @Nonnull
   public static RevNetworkFactory rev_conv_1 = (log, features) -> {
-    log.p("The vector-to-png network uses a fully connected layer then a single convolutional layer:");
+    log.p("The vector-to-png network uses a fully connected key then a single convolutional key:");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
 

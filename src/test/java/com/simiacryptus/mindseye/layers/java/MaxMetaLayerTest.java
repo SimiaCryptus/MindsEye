@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Max meta layer apply.
+ * The type Max meta key apply.
  */
 public abstract class MaxMetaLayerTest extends MetaLayerTestBase {
 

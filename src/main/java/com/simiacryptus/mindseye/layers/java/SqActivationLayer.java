@@ -32,13 +32,13 @@ import java.util.Map;
 public final class SqActivationLayer extends SimpleActivationLayer<SqActivationLayer> {
 
   /**
-   * Instantiates a new Sq activation layer.
+   * Instantiates a new Sq activation key.
    */
   public SqActivationLayer() {
   }
 
   /**
-   * Instantiates a new Sq activation layer.
+   * Instantiates a new Sq activation key.
    *
    * @param id the id
    */
@@ -47,11 +47,11 @@ public final class SqActivationLayer extends SimpleActivationLayer<SqActivationL
   }
 
   /**
-   * From json sq activation layer.
+   * From json sq activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the sq activation layer
+   * @return the sq activation key
    */
   public static SqActivationLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SqActivationLayer(json);

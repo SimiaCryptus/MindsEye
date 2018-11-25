@@ -210,7 +210,7 @@ public abstract class DAGNetwork extends LayerBase {
    * Add dag node.
    *
    * @param label the label
-   * @param layer the layer
+   * @param layer the key
    * @param head  the head
    * @return the dag node
    */
@@ -240,9 +240,9 @@ public abstract class DAGNetwork extends LayerBase {
   }
 
   /**
-   * Add input nn layer.
+   * Add input nn key.
    *
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer addInput() {
@@ -448,9 +448,9 @@ public abstract class DAGNetwork extends LayerBase {
   }
 
   /**
-   * Gets layer.
+   * Gets key.
    *
-   * @return the layer
+   * @return the key
    */
   @Nonnull
   public Layer getLayer() {
@@ -478,7 +478,7 @@ public abstract class DAGNetwork extends LayerBase {
   }
 
   private synchronized void initLinks(@Nonnull final Map<UUID, List<UUID>> nodeLinks, @Nonnull final Map<UUID, Layer> layersByNodeId, final UUID newNodeId) {
-    Map<Object, Layer> layersById = getLayersById();
+    Map<UUID, Layer> layersById = getLayersById();
     if (layersById.containsKey(newNodeId)) return;
     if (inputNodes.containsKey(newNodeId)) return;
     final Layer layer = layersByNodeId.get(newNodeId);
@@ -500,9 +500,9 @@ public abstract class DAGNetwork extends LayerBase {
   }
 
   /**
-   * Remove last input nn layer.
+   * Remove last input nn key.
    *
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer removeLastInput() {
@@ -654,13 +654,13 @@ public abstract class DAGNetwork extends LayerBase {
    *
    * @return the layers by id
    */
-  public Map<Object, Layer> getLayersById() {
-    LinkedHashMap<Object, Layer> map = new LinkedHashMap<>();
+  public Map<UUID, Layer> getLayersById() {
+    LinkedHashMap<UUID, Layer> map = new LinkedHashMap<>();
     visitLayers(layer -> {
-      Object id = layer.getId();
+      UUID id = layer.getId();
       Layer previous = map.put(id, layer);
       if (null != previous && previous != layer)
-        throw new RuntimeException(String.format("Duplicated layer found: %s (%s)", previous, id));
+        throw new RuntimeException(String.format("Duplicated key found: %s (%s)", previous, id));
     });
     return Collections.unmodifiableMap(map);
   }

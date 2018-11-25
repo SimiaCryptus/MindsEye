@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * The type Sign reducer layer.
+ * The type Sign reducer key.
  */
 @SuppressWarnings("serial")
 public class SignReducerLayer extends DAGNetwork {
@@ -41,7 +41,7 @@ public class SignReducerLayer extends DAGNetwork {
   private final DAGNode head;
 
   /**
-   * Instantiates a new Sign reducer layer.
+   * Instantiates a new Sign reducer key.
    */
   public SignReducerLayer() {
     super(1);
@@ -58,7 +58,7 @@ public class SignReducerLayer extends DAGNetwork {
   }
 
   /**
-   * Instantiates a new Sign reducer layer.
+   * Instantiates a new Sign reducer key.
    *
    * @param json the json
    * @param rs   the rs
@@ -69,11 +69,11 @@ public class SignReducerLayer extends DAGNetwork {
   }
 
   /**
-   * From json nn layer.
+   * From json nn key.
    *
    * @param inner the heapCopy
    * @param rs    the rs
-   * @return the nn layer
+   * @return the nn key
    */
   public static Layer fromJson(@Nonnull final JsonObject inner, Map<CharSequence, byte[]> rs) {
     return new SignReducerLayer(inner, rs);

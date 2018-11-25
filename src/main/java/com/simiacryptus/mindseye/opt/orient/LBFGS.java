@@ -21,7 +21,6 @@ package com.simiacryptus.mindseye.opt.orient;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
-import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -83,7 +82,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
   }
 
   @Nonnull
-  private SimpleLineSearchCursor cursor(final Trainable subject, @Nonnull final PointSample measurement, final String type, final DeltaSet<Layer> result) {
+  private SimpleLineSearchCursor cursor(final Trainable subject, @Nonnull final PointSample measurement, final String type, final DeltaSet<UUID> result) {
     return new SimpleLineSearchCursor(subject, measurement, result) {
       @Override
       public LineSearchPoint step(final double t, @Nonnull final TrainingMonitor monitor) {
@@ -145,8 +144,8 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
    * @return the evalInputDelta setBytes
    */
   @Nullable
-  protected DeltaSet<Layer> lbfgs(@Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor, @Nonnull final List<PointSample> history) {
-    @Nonnull final DeltaSet<Layer> result = measurement.delta.scale(-1);
+  protected DeltaSet<UUID> lbfgs(@Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor, @Nonnull final List<PointSample> history) {
+    @Nonnull final DeltaSet<UUID> result = measurement.delta.scale(-1);
     if (history.size() > minHistory) {
       if (lbfgs(measurement, monitor, history, result)) {
         setHistory(monitor, history);
@@ -178,16 +177,16 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     return this;
   }
 
-  private boolean lbfgs(@Nonnull PointSample measurement, @Nonnull TrainingMonitor monitor, @Nonnull List<PointSample> history, @Nonnull DeltaSet<Layer> direction) {
+  private boolean lbfgs(@Nonnull PointSample measurement, @Nonnull TrainingMonitor monitor, @Nonnull List<PointSample> history, @Nonnull DeltaSet<UUID> direction) {
     try {
-      @Nonnull DeltaSet<Layer> p = measurement.delta.copy();
+      @Nonnull DeltaSet<UUID> p = measurement.delta.copy();
       if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
         throw new IllegalStateException("Non-finite value");
       }
       @Nonnull final double[] alphas = new double[history.size()];
       for (int i = history.size() - 2; i >= 0; i--) {
-        @Nonnull final DeltaSet<Layer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
-        @Nonnull final DeltaSet<Layer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
+        @Nonnull final DeltaSet<UUID> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
+        @Nonnull final DeltaSet<UUID> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         final double denominator = sd.dot(yd);
         if (0 == denominator) {
           throw new IllegalStateException("Orientation vanished.");
@@ -198,15 +197,15 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
           throw new IllegalStateException("Non-finite value");
         }
       }
-      @Nonnull final DeltaSet<Layer> sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
-      @Nonnull final DeltaSet<Layer> yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
+      @Nonnull final DeltaSet<UUID> sk = history.get(history.size() - 1).weights.subtract(history.get(history.size() - 2).weights);
+      @Nonnull final DeltaSet<UUID> yk = history.get(history.size() - 1).delta.subtract(history.get(history.size() - 2).delta);
       p = p.scale(sk.dot(yk) / yk.dot(yk));
       if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
         throw new IllegalStateException("Non-finite value");
       }
       for (int i = 0; i < history.size() - 1; i++) {
-        @Nonnull final DeltaSet<Layer> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
-        @Nonnull final DeltaSet<Layer> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
+        @Nonnull final DeltaSet<UUID> sd = history.get(i + 1).weights.subtract(history.get(i).weights);
+        @Nonnull final DeltaSet<UUID> yd = history.get(i + 1).delta.subtract(history.get(i).delta);
         final double beta = p.dot(yd) / sd.dot(yd);
         p = p.add(sd.scale(alphas[i] - beta));
         if (!p.stream().parallel().allMatch(y -> Arrays.stream(y.getDelta()).allMatch(d -> Double.isFinite(d)))) {
@@ -227,8 +226,8 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
   }
 
-  private void copy(@Nonnull DeltaSet<Layer> from, @Nonnull DeltaSet<Layer> to) {
-    for (@Nonnull final Map.Entry<Layer, Delta<Layer>> e : to.getMap().entrySet()) {
+  private void copy(@Nonnull DeltaSet<UUID> from, @Nonnull DeltaSet<UUID> to) {
+    for (@Nonnull final Map.Entry<UUID, Delta<UUID>> e : to.getMap().entrySet()) {
       @Nullable final double[] delta = from.getMap().get(e.getKey()).getDelta();
       Arrays.setAll(e.getValue().getDelta(), j -> delta[j]);
     }
@@ -247,10 +246,10 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
 
     addToHistory(measurement, monitor);
     @Nonnull final List<PointSample> history = Arrays.asList(this.history.toArray(new PointSample[]{}));
-    @Nullable final DeltaSet<Layer> result = lbfgs(measurement, monitor, history);
+    @Nullable final DeltaSet<UUID> result = lbfgs(measurement, monitor, history);
     SimpleLineSearchCursor returnValue;
     if (null == result) {
-      @Nonnull DeltaSet<Layer> scale = measurement.delta.scale(-1);
+      @Nonnull DeltaSet<UUID> scale = measurement.delta.scale(-1);
       returnValue = cursor(subject, measurement, "GD", scale);
       scale.freeRef();
     } else {
@@ -301,13 +300,13 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
      * @param gradient    the gradient
      * @param quasinewton the quasinewton
      */
-    public Stats(@Nonnull DeltaSet<Layer> gradient, @Nonnull DeltaSet<Layer> quasinewton) {
+    public Stats(@Nonnull DeltaSet<UUID> gradient, @Nonnull DeltaSet<UUID> quasinewton) {
       mag = Math.sqrt(quasinewton.dot(quasinewton));
       magGrad = Math.sqrt(gradient.dot(gradient));
       dot = gradient.dot(quasinewton) / (mag * magGrad);
       anglesPerLayer = gradient.getMap().entrySet().stream()
-          .filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
-          .map((@Nonnull final Map.Entry<Layer, Delta<Layer>> e) -> {
+          //.filter(e -> !(e.getKey() instanceof PlaceholderLayer)) // This would be too verbose
+          .map((@Nonnull final Map.Entry<UUID, Delta<UUID>> e) -> {
             @Nullable final double[] lbfgsVector = gradient.getMap().get(e.getKey()).getDelta();
             for (int index = 0; index < lbfgsVector.length; index++) {
               lbfgsVector[index] = Double.isFinite(lbfgsVector[index]) ? lbfgsVector[index] : 0;
@@ -320,7 +319,7 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
             final double gradientMagnitude = ArrayUtil.magnitude(gradientVector);
             if (!Double.isFinite(gradientMagnitude)) throw new IllegalStateException();
             if (!Double.isFinite(lbfgsMagnitude)) throw new IllegalStateException();
-            final CharSequence layerName = gradient.getMap().get(e.getKey()).layer.getName();
+            final CharSequence layerName = gradient.getMap().get(e.getKey()).key.toString();
             if (gradientMagnitude == 0.0) {
               return String.format("%s = %.3e", layerName, lbfgsMagnitude);
             } else {
@@ -364,9 +363,9 @@ public class LBFGS extends OrientationStrategyBase<SimpleLineSearchCursor> {
     }
 
     /**
-     * Gets angles per layer.
+     * Gets angles per key.
      *
-     * @return the angles per layer
+     * @return the angles per key
      */
     public List<CharSequence> getAnglesPerLayer() {
       return anglesPerLayer;

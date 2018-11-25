@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -41,13 +42,13 @@ public class AvgReducerLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
 
   /**
-   * Instantiates a new Avg reducer layer.
+   * Instantiates a new Avg reducer key.
    */
   public AvgReducerLayer() {
   }
 
   /**
-   * Instantiates a new Avg reducer layer.
+   * Instantiates a new Avg reducer key.
    *
    * @param id the id
    */
@@ -56,11 +57,11 @@ public class AvgReducerLayer extends LayerBase {
   }
 
   /**
-   * From json avg reducer layer.
+   * From json avg reducer key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the avg reducer layer
+   * @return the avg reducer key
    */
   public static AvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AvgReducerLayer(json);
@@ -82,7 +83,7 @@ public class AvgReducerLayer extends LayerBase {
         tensor.freeRef();
       }
       return sum;
-    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       for (@Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
           TensorList inData = in_l.getData();

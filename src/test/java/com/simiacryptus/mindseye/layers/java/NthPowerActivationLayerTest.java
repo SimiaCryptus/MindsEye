@@ -22,7 +22,7 @@ package com.simiacryptus.mindseye.layers.java;
 import com.simiacryptus.mindseye.test.unit.SingleDerivativeTester;
 
 /**
- * The type Nth power activation layer apply.
+ * The type Nth power activation key apply.
  */
 public class NthPowerActivationLayerTest {
 

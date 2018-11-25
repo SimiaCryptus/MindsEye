@@ -42,9 +42,9 @@ public class ConvPipelineTest extends PipelineTest {
   }
 
   /**
-   * Build list 1 nn layer [ ].
+   * Build list 1 nn key [ ].
    *
-   * @return the nn layer [ ]
+   * @return the nn key [ ]
    */
   public static Layer[] buildList_1() {
     @Nonnull final ArrayList<Layer> network = new ArrayList<Layer>();

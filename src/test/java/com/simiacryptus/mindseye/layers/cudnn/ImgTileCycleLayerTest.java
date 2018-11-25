@@ -26,12 +26,12 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer apply.
+ * The type Img crop key apply.
  */
 public abstract class ImgTileCycleLayerTest extends CudaLayerTestBase {
 
   /**
-   * Instantiates a new Img crop layer apply.
+   * Instantiates a new Img crop key apply.
    */
   public ImgTileCycleLayerTest() {
     validateBatchExecution = false;

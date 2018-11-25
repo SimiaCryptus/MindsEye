@@ -89,11 +89,11 @@ public abstract class DeepConvolution extends NLayerTest {
   }
 
   /**
-   * The type Four layer.
+   * The type Four key.
    */
   public static class ExpandPipeline extends DeepConvolution {
     /**
-     * Instantiates a new Four layer.
+     * Instantiates a new Four key.
      */
     public ExpandPipeline() {
       super(3,
@@ -107,11 +107,11 @@ public abstract class DeepConvolution extends NLayerTest {
   }
 
   /**
-   * The type Four layer.
+   * The type Four key.
    */
   public static class NarrowingPipeline extends DeepConvolution {
     /**
-     * Instantiates a new Four layer.
+     * Instantiates a new Four key.
      */
     public NarrowingPipeline() {
       super(3,
@@ -125,11 +125,11 @@ public abstract class DeepConvolution extends NLayerTest {
   }
 
   /**
-   * The type Four layer.
+   * The type Four key.
    */
   public static class SigmoidPipeline extends DeepConvolution {
     /**
-     * Instantiates a new Four layer.
+     * Instantiates a new Four key.
      */
     public SigmoidPipeline() {
       super(3,
@@ -150,11 +150,11 @@ public abstract class DeepConvolution extends NLayerTest {
   }
 
   /**
-   * The type Four layer.
+   * The type Four key.
    */
   public static class UniformPipeline extends DeepConvolution {
     /**
-     * Instantiates a new Four layer.
+     * Instantiates a new Four key.
      */
     public UniformPipeline() {
       super(3,

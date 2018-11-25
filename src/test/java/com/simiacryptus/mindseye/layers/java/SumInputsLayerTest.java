@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Sum inputs layer apply.
+ * The type Sum inputs key apply.
  */
 public class SumInputsLayerTest {
   /**

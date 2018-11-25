@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Std dev meta layer apply.
+ * The type Std dev meta key apply.
  */
 public abstract class StdDevMetaLayerTest extends MetaLayerTestBase {
 
   /**
-   * Instantiates a new Std dev meta layer apply.
+   * Instantiates a new Std dev meta key apply.
    */
   public StdDevMetaLayerTest() {
     super();

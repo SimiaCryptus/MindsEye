@@ -39,6 +39,7 @@ import com.simiacryptus.mindseye.opt.orient.RecursiveSubspace;
 import com.simiacryptus.mindseye.test.ProblemRun;
 import com.simiacryptus.mindseye.test.StepRecord;
 import com.simiacryptus.mindseye.test.TestUtil;
+import com.simiacryptus.mindseye.test.ToleranceStatistics;
 import com.simiacryptus.notebook.NotebookOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,11 +271,11 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
   }
 
   /**
-   * Shuffle nn layer.
+   * Shuffle nn key.
    *
    * @param random        the randomize
    * @param testComponent the apply component
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   private Layer shuffle(final Random random, @Nonnull final Layer testComponent) {
@@ -303,8 +304,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
 
   /**
    * Test.
-   *
-   * @param log            the log
+   *  @param log            the log
    * @param component      the component
    * @param inputPrototype the input prototype
    */
@@ -527,7 +527,7 @@ public class TrainingTester extends ComponentTestBase<TrainingTester.ComponentRe
    * @param title         the title
    * @param log           the log
    * @param trainingInput the training input
-   * @param layer         the layer
+   * @param layer         the key
    * @param mask          the mask
    * @return the apply result
    */

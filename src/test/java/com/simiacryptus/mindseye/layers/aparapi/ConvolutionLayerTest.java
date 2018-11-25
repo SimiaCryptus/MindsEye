@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Convolution layer apply.
+ * The type Convolution key apply.
  */
 public abstract class ConvolutionLayerTest extends LayerTestBase {
 

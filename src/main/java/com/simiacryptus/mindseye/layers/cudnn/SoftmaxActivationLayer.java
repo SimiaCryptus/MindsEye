@@ -33,9 +33,10 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * The classic "softmax" layer. All outputs will sum to 1 and be proportional to the log of the input.
+ * The classic "softmax" key. All outputs will sum to 1 and be proportional to the log of the input.
  */
 @SuppressWarnings("serial")
 public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<SoftmaxActivationLayer> {
@@ -45,14 +46,14 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Activation layer.
+   * Instantiates a new Activation key.
    */
   public SoftmaxActivationLayer() {
 
   }
 
   /**
-   * Instantiates a new Activation layer.
+   * Instantiates a new Activation key.
    *
    * @param json the json
    */
@@ -64,11 +65,11 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * From json activation layer.
+   * From json activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the activation layer
+   * @return the activation key
    */
   public static SoftmaxActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SoftmaxActivationLayer(json);
@@ -115,9 +116,9 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -171,7 +172,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
         }
       }, inputData);
       return new Result(CudaTensorList.create(outPtr, length, outputSize, precision),
-          (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+          (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
             if (inputResult.isAlive()) {
               final TensorList data = CudaSystem.run(gpu -> {
                 @Nullable CudaTensor inputTensor;
@@ -230,7 +231,7 @@ public class SoftmaxActivationLayer extends LayerBase implements MultiPrecision<
           }) {
 
         @Override
-        public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+        public final void accumulate(DeltaSet<UUID> buffer, TensorList delta) {
           getAccumulator().accept(buffer, delta);
         }
 

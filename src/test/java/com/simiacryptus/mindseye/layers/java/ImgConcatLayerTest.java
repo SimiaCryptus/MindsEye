@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Img eval layer apply.
+ * The type Img eval key apply.
  */
 public abstract class ImgConcatLayerTest extends LayerTestBase {
 

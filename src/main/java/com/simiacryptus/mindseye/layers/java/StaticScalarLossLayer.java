@@ -29,10 +29,11 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
- * The type Static scalar loss layer.
+ * The type Static scalar loss key.
  */
 @SuppressWarnings("serial")
 public class StaticScalarLossLayer extends LayerBase {
@@ -42,14 +43,14 @@ public class StaticScalarLossLayer extends LayerBase {
   private double target = 0.0;
 
   /**
-   * Instantiates a new Static scalar loss layer.
+   * Instantiates a new Static scalar loss key.
    */
   public StaticScalarLossLayer() {
   }
 
 
   /**
-   * Instantiates a new Static scalar loss layer.
+   * Instantiates a new Static scalar loss key.
    *
    * @param id the id
    */
@@ -58,11 +59,11 @@ public class StaticScalarLossLayer extends LayerBase {
   }
 
   /**
-   * From json static scalar loss layer.
+   * From json static scalar loss key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the static scalar loss layer
+   * @return the static scalar loss key
    */
   public static StaticScalarLossLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StaticScalarLossLayer(json);
@@ -82,7 +83,7 @@ public class StaticScalarLossLayer extends LayerBase {
       final double diff = Math.abs(a.get(0) - getTarget());
       a.freeRef();
       return new Tensor(new double[]{diff}, 1);
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (in0.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           @Nullable final Tensor a = indata.get(dataIndex);

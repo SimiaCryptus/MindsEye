@@ -29,10 +29,11 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
- * The type Scale meta layer.
+ * The type Scale meta key.
  */
 @SuppressWarnings("serial")
 public class ScaleMetaLayer extends LayerBase {
@@ -42,13 +43,13 @@ public class ScaleMetaLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(ScaleMetaLayer.class);
 
   /**
-   * Instantiates a new Scale meta layer.
+   * Instantiates a new Scale meta key.
    */
   public ScaleMetaLayer() {
   }
 
   /**
-   * Instantiates a new Scale meta layer.
+   * Instantiates a new Scale meta key.
    *
    * @param id the id
    */
@@ -57,11 +58,11 @@ public class ScaleMetaLayer extends LayerBase {
   }
 
   /**
-   * From json scale meta layer.
+   * From json scale meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the scale meta layer
+   * @return the scale meta key
    */
   public static ScaleMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ScaleMetaLayer(json);
@@ -76,7 +77,7 @@ public class ScaleMetaLayer extends LayerBase {
     final Tensor[] tensors = IntStream.range(0, itemCnt).mapToObj(dataIndex -> inObj[0].getData().get(dataIndex).mapIndex((v, c) -> v * inObj[1].getData().get(0).get(c))).toArray(i -> new Tensor[i]);
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
-    return new Result(TensorArray.wrap(tensors), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(tensors), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().map(t -> {
           @Nullable Tensor t1 = inObj[1].getData().get(0);

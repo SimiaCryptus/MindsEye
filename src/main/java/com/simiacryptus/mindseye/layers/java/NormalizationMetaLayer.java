@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
- * The type Normalization meta layer.
+ * The type Normalization meta key.
  */
 @SuppressWarnings("serial")
 public class NormalizationMetaLayer extends PipelineNetwork {
@@ -37,7 +37,7 @@ public class NormalizationMetaLayer extends PipelineNetwork {
   private static final Logger log = LoggerFactory.getLogger(NormalizationMetaLayer.class);
 
   /**
-   * Instantiates a new Normalization meta layer.
+   * Instantiates a new Normalization meta key.
    */
   public NormalizationMetaLayer() {
     super(1);
@@ -50,7 +50,7 @@ public class NormalizationMetaLayer extends PipelineNetwork {
   }
 
   /**
-   * Instantiates a new Normalization meta layer.
+   * Instantiates a new Normalization meta key.
    *
    * @param json the json
    * @param rs   the rs
@@ -60,11 +60,11 @@ public class NormalizationMetaLayer extends PipelineNetwork {
   }
 
   /**
-   * From json normalization meta layer.
+   * From json normalization meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the normalization meta layer
+   * @return the normalization meta key
    */
   public static NormalizationMetaLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new NormalizationMetaLayer(json, rs);

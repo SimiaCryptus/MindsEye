@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Cudnn layer apply base.
+ * The type Cudnn key apply base.
  */
 public class CudnnTest extends NotebookReportBase {
 

@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Fully connected layer apply.
+ * The type Fully connected key apply.
  */
 public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
 
@@ -42,7 +42,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
   @Nonnull
   protected final int[] inputDim;
   /**
-   * The Fully connected layer.
+   * The Fully connected key.
    */
   @Nonnull
   protected final FullyConnectedLayer fullyConnectedLayer;
@@ -53,7 +53,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
   protected final Layer layer;
 
   /**
-   * Instantiates a new Fully connected layer allocationOverflow.
+   * Instantiates a new Fully connected key allocationOverflow.
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims
@@ -170,7 +170,7 @@ public abstract class FullyConnectedLayerTest extends CudaLayerTestBase {
   }
 
   /**
-   * Large-dimension test using the size of the largest layer in VGG16
+   * Large-dimension test using the size of the largest key in VGG16
    */
   public static class Big_VGG extends BigTests {
     /**

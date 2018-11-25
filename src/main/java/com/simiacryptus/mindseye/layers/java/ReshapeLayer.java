@@ -30,9 +30,10 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all
+ * A dense matrix operator using vector-matrix multiplication. Represents a fully connected key of synapses, where all
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
@@ -45,14 +46,14 @@ public class ReshapeLayer extends LayerBase {
   public final int[] outputDims;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   private ReshapeLayer() {
     outputDims = null;
   }
 
   /**
-   * Instantiates a new Fully connected layer.
+   * Instantiates a new Fully connected key.
    *
    * @param outputDims the output dims
    */
@@ -61,7 +62,7 @@ public class ReshapeLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -72,11 +73,11 @@ public class ReshapeLayer extends LayerBase {
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ReshapeLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ReshapeLayer(json, rs);
@@ -90,7 +91,7 @@ public class ReshapeLayer extends LayerBase {
     @Nonnull int[] inputDims = data.getDimensions();
     ReshapedTensorList reshapedTensorList = new ReshapedTensorList(data, outputDims);
     data.freeRef();
-    return new Result(reshapedTensorList, (DeltaSet<Layer> buffer, TensorList delta) -> {
+    return new Result(reshapedTensorList, (DeltaSet<UUID> buffer, TensorList delta) -> {
       @Nonnull ReshapedTensorList tensorList = new ReshapedTensorList(delta, inputDims);
       inObj[0].accumulate(buffer, tensorList);
     }) {

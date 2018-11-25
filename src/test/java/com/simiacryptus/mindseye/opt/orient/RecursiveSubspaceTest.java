@@ -83,9 +83,9 @@ public abstract class RecursiveSubspaceTest extends MnistTestBase {
   }
 
   /**
-   * New normalization layer nn layer.
+   * New normalization key nn key.
    *
-   * @return the nn layer
+   * @return the nn key
    */
   @Nullable
   protected Layer newNormalizationLayer() {

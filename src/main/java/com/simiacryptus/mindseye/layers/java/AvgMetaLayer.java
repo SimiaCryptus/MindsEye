@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
@@ -50,13 +51,13 @@ public class AvgMetaLayer extends LayerBase {
   private int minBatchCount = 1;
 
   /**
-   * Instantiates a new Avg meta layer.
+   * Instantiates a new Avg meta key.
    */
   public AvgMetaLayer() {
   }
 
   /**
-   * Instantiates a new Avg meta layer.
+   * Instantiates a new Avg meta key.
    *
    * @param json      the json
    * @param resources the resources
@@ -68,11 +69,11 @@ public class AvgMetaLayer extends LayerBase {
   }
 
   /**
-   * From json avg meta layer.
+   * From json avg meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the avg meta layer
+   * @return the avg meta key
    */
   public static AvgMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AvgMetaLayer(json, rs);
@@ -115,7 +116,7 @@ public class AvgMetaLayer extends LayerBase {
       thisResult = lastResult;
       thisResult.freeRef();
     }
-    return new Result(TensorArray.create(thisResult), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(TensorArray.create(thisResult), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (passback && input.isAlive()) {
         @Nullable final Tensor delta = data.get(0);
         @Nonnull final Tensor feedback[] = new Tensor[itemCnt];

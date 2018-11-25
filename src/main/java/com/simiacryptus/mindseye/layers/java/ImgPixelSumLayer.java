@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -40,7 +41,7 @@ public class ImgPixelSumLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(ImgPixelSumLayer.class);
 
   /**
-   * Instantiates a new Img band scale layer.
+   * Instantiates a new Img band scale key.
    */
   public ImgPixelSumLayer() {
     super();
@@ -48,7 +49,7 @@ public class ImgPixelSumLayer extends LayerBase {
 
 
   /**
-   * Instantiates a new Img band scale layer.
+   * Instantiates a new Img band scale key.
    *
    * @param json the json
    */
@@ -57,11 +58,11 @@ public class ImgPixelSumLayer extends LayerBase {
   }
 
   /**
-   * From json img band scale layer.
+   * From json img band scale key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img band scale layer
+   * @return the img band scale key
    */
   public static ImgPixelSumLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgPixelSumLayer(json);
@@ -94,7 +95,7 @@ public class ImgPixelSumLayer extends LayerBase {
       });
       tensor.freeRef();
       return result;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(delta.stream().map(deltaTensor -> {
           int[] deltaDims = deltaTensor.getDimensions();

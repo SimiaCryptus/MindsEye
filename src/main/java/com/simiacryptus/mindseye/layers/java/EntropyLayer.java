@@ -26,20 +26,20 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
- * The type Entropy layer.
+ * The type Entropy key.
  */
 @SuppressWarnings("serial")
 public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
 
   /**
-   * Instantiates a new Entropy layer.
+   * Instantiates a new Entropy key.
    */
   public EntropyLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Entropy layer.
+   * Instantiates a new Entropy key.
    *
    * @param id the id
    */
@@ -48,11 +48,11 @@ public class EntropyLayer extends SimpleActivationLayer<EntropyLayer> {
   }
 
   /**
-   * From json entropy layer.
+   * From json entropy key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the entropy layer
+   * @return the entropy key
    */
   public static EntropyLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new EntropyLayer(json);

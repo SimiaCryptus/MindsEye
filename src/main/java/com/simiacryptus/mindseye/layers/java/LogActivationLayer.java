@@ -32,13 +32,13 @@ import java.util.Map;
 public final class LogActivationLayer extends SimpleActivationLayer<LogActivationLayer> {
 
   /**
-   * Instantiates a new Log activation layer.
+   * Instantiates a new Log activation key.
    */
   public LogActivationLayer() {
   }
 
   /**
-   * Instantiates a new Log activation layer.
+   * Instantiates a new Log activation key.
    *
    * @param id the id
    */
@@ -47,11 +47,11 @@ public final class LogActivationLayer extends SimpleActivationLayer<LogActivatio
   }
 
   /**
-   * From json log activation layer.
+   * From json log activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the log activation layer
+   * @return the log activation key
    */
   public static LogActivationLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new LogActivationLayer(json);

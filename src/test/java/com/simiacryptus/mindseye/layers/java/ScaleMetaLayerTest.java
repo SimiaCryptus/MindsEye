@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Scale meta layer apply.
+ * The type Scale meta key apply.
  */
 public abstract class ScaleMetaLayerTest extends LayerTestBase {
 
   /**
-   * Instantiates a new Scale meta layer apply.
+   * Instantiates a new Scale meta key apply.
    */
   public ScaleMetaLayerTest() {
     validateBatchExecution = false;

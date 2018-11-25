@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 
 
 /**
- * The type N layer apply.
+ * The type N key apply.
  */
 public abstract class NLayerTest {
   static {
@@ -58,7 +58,7 @@ public abstract class NLayerTest {
 
 
   /**
-   * Instantiates a new N layer apply.
+   * Instantiates a new N key apply.
    *
    * @param dimList the length list
    */
@@ -67,7 +67,7 @@ public abstract class NLayerTest {
   }
 
   /**
-   * Add layer.
+   * Add key.
    *
    * @param network the network
    * @param in      the in
@@ -76,10 +76,10 @@ public abstract class NLayerTest {
   public abstract void addLayer(PipelineNetwork network, int[] in, int[] out);
 
   /**
-   * Build network nn layer.
+   * Build network nn key.
    *
    * @param dimList the length list
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer buildNetwork(@Nonnull final int[]... dimList) {
@@ -117,7 +117,7 @@ public abstract class NLayerTest {
    * Graphviz.
    *
    * @param log   the log
-   * @param layer the layer
+   * @param layer the key
    */
   public void graphviz(@Nonnull final NotebookOutput log, final Layer layer) {
     if (layer instanceof DAGNetwork) {
@@ -148,6 +148,7 @@ public abstract class NLayerTest {
     return Arrays.stream(inputDims).map(dim -> new Tensor(dim).set(this::random)).toArray(i -> new Tensor[i]);
   }
 
+  protected final String reportingFolder = "reports/_reports";
   /**
    * Test.
    *
@@ -155,7 +156,7 @@ public abstract class NLayerTest {
    */
   @Test
   public void test() throws Throwable {
-    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(NotebookReportBase.getTestReportLocation(((Object) this).getClass()), Util.AUTO_BROWSE)) {
+    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(NotebookReportBase.getTestReportLocation(((Object) this).getClass(), reportingFolder), Util.AUTO_BROWSE)) {
       test(log);
     }
   }
@@ -182,7 +183,7 @@ public abstract class NLayerTest {
    * Test double.
    *
    * @param log       the log
-   * @param layer     the layer
+   * @param layer     the key
    * @param inputDims the input dims
    * @return the double
    */

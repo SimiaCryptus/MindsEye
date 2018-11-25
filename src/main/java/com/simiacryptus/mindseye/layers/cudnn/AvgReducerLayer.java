@@ -29,11 +29,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Similar to the pooling layer, but the pool size is always the png size. The output dimensions are always 1x1xN.
+ * Similar to the pooling key, but the pool size is always the png size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
 public class AvgReducerLayer extends LayerBase implements MultiPrecision<AvgReducerLayer> {
@@ -41,14 +42,14 @@ public class AvgReducerLayer extends LayerBase implements MultiPrecision<AvgRedu
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Pooling layer.
+   * Instantiates a new Pooling key.
    */
   public AvgReducerLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Pooling layer.
+   * Instantiates a new Pooling key.
    *
    * @param json the json
    */
@@ -58,20 +59,20 @@ public class AvgReducerLayer extends LayerBase implements MultiPrecision<AvgRedu
   }
 
   /**
-   * From json pooling layer.
+   * From json pooling key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the pooling layer
+   * @return the pooling key
    */
   public static AvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AvgReducerLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -114,7 +115,7 @@ public class AvgReducerLayer extends LayerBase implements MultiPrecision<AvgRedu
       return CudaTensorList.wrap(CudaTensor.wrap(outputMemory, outputDescriptor, precision), length, new int[]{1, 1, 1}, precision);
     });
 
-    return new Result(result, (DeltaSet<Layer> ctx, TensorList delta) -> {
+    return new Result(result, (DeltaSet<UUID> ctx, TensorList delta) -> {
 
       // Not supported by CuDNN?
 //      CudaTensorList passback = CudaSystem.generate(gpu -> {

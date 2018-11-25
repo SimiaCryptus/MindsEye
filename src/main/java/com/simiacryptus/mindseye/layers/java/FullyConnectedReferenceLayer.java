@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleBiFunction;
@@ -39,7 +40,7 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all
+ * A dense matrix operator using vector-matrix multiplication. Represents a fully connected key of synapses, where all
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
@@ -65,7 +66,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   public final Tensor weights;
 
   /**
-   * Instantiates a new Fully connected layer.
+   * Instantiates a new Fully connected key.
    */
   protected FullyConnectedReferenceLayer() {
     super();
@@ -75,7 +76,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Fully connected layer.
+   * Instantiates a new Fully connected key.
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims
@@ -95,7 +96,7 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Fully connected layer.
+   * Instantiates a new Fully connected key.
    *
    * @param json      the json
    * @param resources the resources
@@ -108,11 +109,11 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   }
 
   /**
-   * From json fully connected layer.
+   * From json fully connected key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the fully connected layer
+   * @return the fully connected key
    */
   public static FullyConnectedReferenceLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new FullyConnectedReferenceLayer(json, rs);
@@ -147,9 +148,9 @@ public class FullyConnectedReferenceLayer extends LayerBase {
       });
       input.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
-        final Delta<Layer> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this, getWeights().getData());
+        final Delta<UUID> deltaBuffer = buffer.get(FullyConnectedReferenceLayer.this.getId(), getWeights().getData());
         Tensor[] array = IntStream.range(0, indata.length()).mapToObj(i -> {
           @Nullable final Tensor inputTensor = indata.get(i);
           @Nullable final Tensor deltaTensor = delta.get(i);
@@ -272,10 +273,10 @@ public class FullyConnectedReferenceLayer extends LayerBase {
   }
 
   /**
-   * Set fully connected layer.
+   * Set fully connected key.
    *
    * @param data the data
-   * @return the fully connected layer
+   * @return the fully connected key
    */
   @Nonnull
   public FullyConnectedReferenceLayer set(@Nonnull final Tensor data) {

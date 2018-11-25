@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
@@ -32,7 +33,7 @@ import java.util.stream.Stream;
  */
 public abstract class RegisteredObjectBase extends ReferenceCountingBase {
   private static final Logger logger = LoggerFactory.getLogger(RegisteredObjectBase.class);
-  private static final ConcurrentHashMap<Class<? extends RegisteredObjectBase>, ObjectRecords<RegisteredObjectBase>> cache = new ConcurrentHashMap<>();
+  private static final Map<Class<? extends RegisteredObjectBase>, ObjectRecords<RegisteredObjectBase>> cache = new ConcurrentHashMap<>();
   private static final ScheduledExecutorService maintenanceThread = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
 
   /**

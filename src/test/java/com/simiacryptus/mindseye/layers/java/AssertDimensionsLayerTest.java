@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Assert dimensions layer apply.
+ * The type Assert dimensions key apply.
  */
 public abstract class AssertDimensionsLayerTest extends LayerTestBase {
 

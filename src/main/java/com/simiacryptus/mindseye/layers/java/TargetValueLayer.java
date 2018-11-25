@@ -44,7 +44,7 @@ public class TargetValueLayer extends DAGNetwork {
   private final DAGNode target;
 
   /**
-   * Instantiates a new Target value layer.
+   * Instantiates a new Target value key.
    *
    * @param values the values
    */
@@ -55,7 +55,7 @@ public class TargetValueLayer extends DAGNetwork {
   }
 
   /**
-   * Instantiates a new Target value layer.
+   * Instantiates a new Target value key.
    *
    * @param json the json
    * @param rs   the rs
@@ -67,11 +67,11 @@ public class TargetValueLayer extends DAGNetwork {
   }
 
   /**
-   * From json nn layer.
+   * From json nn key.
    *
    * @param inner the heapCopy
    * @param rs    the rs
-   * @return the nn layer
+   * @return the nn key
    */
   public static Layer fromJson(@Nonnull final JsonObject inner, Map<CharSequence, byte[]> rs) {
     return new TargetValueLayer(inner, rs);

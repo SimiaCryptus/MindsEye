@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Cross product layer apply.
+ * The type Cross product key apply.
  */
 public abstract class CrossProductLayerTest extends LayerTestBase {
 

@@ -130,7 +130,7 @@
 //   * @param values the values
 //   * @return the result
 //   */
-//  protected static SparkTrainable.ReducableResult getResult(@Nonnull final DeltaSet<Layer> delta, @Nonnull final double[] values) {
+//  protected static SparkTrainable.ReducableResult getResult(@Nonnull final DeltaSet<UUID> delta, @Nonnull final double[] values) {
 //    final Map<CharSequence, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
 //      e -> e.getKey().getId().toString(), e -> e.getValue().getDelta()
 //    ));
@@ -157,8 +157,8 @@
 //   * @return the evalInputDelta
 //   */
 //  @Nonnull
-//  protected DeltaSet<Layer> getDelta(@Nonnull final SparkTrainable.ReducableResult reduce) {
-//    @Nonnull final DeltaSet<Layer> xxx = new DeltaSet<Layer>();
+//  protected DeltaSet<UUID> getDelta(@Nonnull final SparkTrainable.ReducableResult reduce) {
+//    @Nonnull final DeltaSet<UUID> xxx = new DeltaSet<UUID>();
 //    final Tensor[] prototype = dataRDD.toJavaRDD().take(1).get(0);
 //    final Result result = network.eval(ConstantResult.batchResultArray(new Tensor[][]{prototype}));
 //    result.accumulate(xxx, 0);
@@ -237,8 +237,8 @@
 //    if (isVerbose()) {
 //      log.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
 //    }
-//    @Nonnull final DeltaSet<Layer> xxx = getDelta(result);
-//    return new PointSample(xxx, new StateSet<Layer>(xxx), result.sum, 0.0, result.count).normalize();
+//    @Nonnull final DeltaSet<UUID> xxx = getDelta(result);
+//    return new PointSample(xxx, new StateSet<UUID>(xxx), result.sum, 0.0, result.count).normalize();
 //  }
 //
 //  @Override
@@ -347,7 +347,7 @@
 //     *
 //     * @param source the source
 //     */
-//    public void accumulate(@Nonnull final DeltaSet<Layer> source) {
+//    public void accumulate(@Nonnull final DeltaSet<UUID> source) {
 //      final Map<CharSequence, Layer> idIndex = source.getMap().entrySet().stream().collect(Collectors.toMap(
 //        e -> e.getKey().getId().toString(), e -> e.getKey()
 //      ));

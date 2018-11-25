@@ -25,7 +25,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Softmax activation layer apply.
+ * The type Softmax activation key apply.
  */
 public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
 
@@ -33,7 +33,7 @@ public abstract class SoftmaxActivationLayerTest extends CudaLayerTestBase {
   private final SoftmaxActivationLayer.SoftmaxMode mode;
 
   /**
-   * Instantiates a new Softmax activation layer test.
+   * Instantiates a new Softmax activation key test.
    *
    * @param algorithm the algorithm
    * @param mode      the mode

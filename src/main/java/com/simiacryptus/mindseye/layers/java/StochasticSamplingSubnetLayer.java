@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 /**
- * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
+ * This key works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
  * across larger png regions.
  */
 @SuppressWarnings("serial")
@@ -48,7 +48,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
   private long layerSeed = System.nanoTime();
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param subnetwork the subnetwork
    * @param samples    the samples
@@ -61,7 +61,7 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
   }
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
@@ -76,11 +76,11 @@ public class StochasticSamplingSubnetLayer extends LayerBase implements Stochast
   }
 
   /**
-   * From json rescaled subnet layer.
+   * From json rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the rescaled subnet layer
+   * @return the rescaled subnet key
    */
   public static StochasticSamplingSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StochasticSamplingSubnetLayer(json, rs);

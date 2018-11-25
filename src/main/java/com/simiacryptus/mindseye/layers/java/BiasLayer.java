@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
@@ -50,7 +51,7 @@ public class BiasLayer extends LayerBase {
   public final double[] bias;
 
   /**
-   * Instantiates a new Bias layer.
+   * Instantiates a new Bias key.
    */
   protected BiasLayer() {
     super();
@@ -58,7 +59,7 @@ public class BiasLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Bias layer.
+   * Instantiates a new Bias key.
    *
    * @param dims the dims
    */
@@ -68,7 +69,7 @@ public class BiasLayer extends LayerBase {
 
 
   /**
-   * Instantiates a new Bias layer.
+   * Instantiates a new Bias key.
    *
    * @param json the json
    */
@@ -78,11 +79,11 @@ public class BiasLayer extends LayerBase {
   }
 
   /**
-   * From json bias layer.
+   * From json bias key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the bias layer
+   * @return the bias key
    */
   public static BiasLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BiasLayer(json);
@@ -109,10 +110,10 @@ public class BiasLayer extends LayerBase {
   }
 
   /**
-   * Add weights bias layer.
+   * Add weights bias key.
    *
    * @param f the f
-   * @return the bias layer
+   * @return the bias key
    */
   @Nonnull
   public BiasLayer addWeights(@Nonnull final DoubleSupplier f) {
@@ -136,9 +137,9 @@ public class BiasLayer extends LayerBase {
           r.freeRef();
           return tensor;
         }).toArray(i -> new Tensor[i])),
-        (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+        (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
           if (!isFrozen()) {
-            final Delta<Layer> deltaBuffer = buffer.get(BiasLayer.this, bias);
+            final Delta<UUID> deltaBuffer = buffer.get(BiasLayer.this.getId(), bias);
             if (1 == bias.length) {
               delta.stream().parallel().forEach(d -> {
                 @Nullable final double[] array = d.getData();
@@ -182,10 +183,10 @@ public class BiasLayer extends LayerBase {
 
 
   /**
-   * Set nn layer.
+   * Set nn key.
    *
    * @param ds the ds
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer set(@Nonnull final double[] ds) {
@@ -230,10 +231,10 @@ public class BiasLayer extends LayerBase {
   }
 
   /**
-   * Set bias layer.
+   * Set bias key.
    *
    * @param tensor the tensor
-   * @return the bias layer
+   * @return the bias key
    */
   @Nonnull
   public BiasLayer set(@Nonnull Tensor tensor) {

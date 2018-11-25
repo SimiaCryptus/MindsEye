@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Binary noise layer apply.
+ * The type Binary noise key apply.
  */
 public abstract class BinaryNoiseLayerTest extends LayerTestBase {
 
   /**
-   * Instantiates a new Binary noise layer apply.
+   * Instantiates a new Binary noise key apply.
    */
   public BinaryNoiseLayerTest() {
     validateBatchExecution = false;

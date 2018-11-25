@@ -246,7 +246,7 @@ public class TestUtil {
    * @param network the network
    */
   public static void extractPerformance(@Nonnull final NotebookOutput log, @Nonnull final DAGNetwork network) {
-    log.p("Per-layer Performance Metrics:");
+    log.p("Per-key Performance Metrics:");
     log.run(() -> {
       @Nonnull final Map<CharSequence, MonitoringWrapperLayer> metrics = new HashMap<>();
       network.visitNodes(node -> {
@@ -279,7 +279,10 @@ public class TestUtil {
   public static void removeInstrumentation(@Nonnull final DAGNetwork network) {
     network.visitNodes(node -> {
       if (node.getLayer() instanceof MonitoringWrapperLayer) {
-        node.setLayer(node.<MonitoringWrapperLayer>getLayer().getInner());
+        Layer layer = node.<MonitoringWrapperLayer>getLayer().getInner();
+        layer.addRef();
+        node.setLayer(layer);
+        layer.freeRef();
       }
     });
   }

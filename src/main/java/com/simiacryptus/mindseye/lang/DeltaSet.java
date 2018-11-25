@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  *
  * @param <K> the type parameter
  */
-public class DeltaSet<K extends ReferenceCounting> extends DoubleBufferSet<K, Delta<K>> {
+public class DeltaSet<K> extends DoubleBufferSet<K, Delta<K>> {
 
   /**
    * Instantiates a new Delta setByCoord.

@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
@@ -66,7 +67,7 @@ public abstract class RecycleBin<T> {
    */
   protected static final Logger logger = LoggerFactory.getLogger(RecycleBin.class);
   private static volatile ScheduledExecutorService garbageTruck;
-  private final ConcurrentHashMap<Long, ConcurrentLinkedDeque<ObjectWrapper>> buckets = new ConcurrentHashMap<>();
+  private final Map<Long, ConcurrentLinkedDeque<ObjectWrapper>> buckets = new ConcurrentHashMap<>();
   private final StackCounter allocations = new StackCounter();
   private final StackCounter frees = new StackCounter();
   private final StackCounter recycle_put = new StackCounter();

@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Img band bias layer apply.
+ * The type Img band bias key apply.
  */
 public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
 
@@ -41,7 +41,7 @@ public abstract class BandAvgReducerLayerTest extends CudaLayerTestBase {
   private final int largeSize;
 
   /**
-   * Instantiates a new Img band bias layer apply.
+   * Instantiates a new Img band bias key apply.
    *
    * @param precision the precision
    * @param alpha     the alphaList

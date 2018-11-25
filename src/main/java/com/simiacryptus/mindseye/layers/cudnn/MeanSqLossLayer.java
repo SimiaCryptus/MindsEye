@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Implements the RMS loss layer (without the final square root). Implemented as a sutnetwork.
+ * Implements the RMS loss key (without the final square root). Implemented as a sutnetwork.
  */
 @SuppressWarnings("serial")
 public class MeanSqLossLayer extends PipelineNetwork {
@@ -42,7 +42,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
   private double alpha = 1.0;
 
   /**
-   * Instantiates a new Mean sq loss layer.
+   * Instantiates a new Mean sq loss key.
    */
   public MeanSqLossLayer() {
     super(2);
@@ -52,7 +52,7 @@ public class MeanSqLossLayer extends PipelineNetwork {
   }
 
   /**
-   * Instantiates a new Mean sq loss layer.
+   * Instantiates a new Mean sq loss key.
    *
    * @param id the id
    * @param rs the rs
@@ -64,11 +64,11 @@ public class MeanSqLossLayer extends PipelineNetwork {
   }
 
   /**
-   * From json mean sq loss layer.
+   * From json mean sq loss key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the mean sq loss layer
+   * @return the mean sq loss key
    */
   public static MeanSqLossLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MeanSqLossLayer(json, rs);

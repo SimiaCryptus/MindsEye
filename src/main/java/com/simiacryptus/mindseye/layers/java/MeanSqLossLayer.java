@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -43,13 +44,13 @@ public class MeanSqLossLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(MeanSqLossLayer.class);
 
   /**
-   * Instantiates a new Mean sq loss layer.
+   * Instantiates a new Mean sq loss key.
    */
   public MeanSqLossLayer() {
   }
 
   /**
-   * Instantiates a new Mean sq loss layer.
+   * Instantiates a new Mean sq loss key.
    *
    * @param id the id
    */
@@ -58,11 +59,11 @@ public class MeanSqLossLayer extends LayerBase {
   }
 
   /**
-   * From json mean sq loss layer.
+   * From json mean sq loss key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the mean sq loss layer
+   * @return the mean sq loss key
    */
   public static MeanSqLossLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MeanSqLossLayer(json);
@@ -91,7 +92,7 @@ public class MeanSqLossLayer extends LayerBase {
       diffs[dataIndex] = r;
       @Nonnull Tensor statsTensor = new Tensor(new double[]{r.sumSq() / r.length()}, 1);
       return statsTensor;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         Stream<Tensor> tensorStream = IntStream.range(0, data.length()).parallel().mapToObj(dataIndex -> {
           @Nullable Tensor tensor = data.get(dataIndex);

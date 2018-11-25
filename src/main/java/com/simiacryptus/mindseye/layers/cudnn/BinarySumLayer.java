@@ -34,11 +34,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
  * Computes a weighted binary sum of two layers. Provides two weighting coefficients, one for each input. This can be
- * used to implement a summation layer, a difference layer, a scaling layer, or any combination.
+ * used to implement a summation key, a difference key, a scaling key, or any combination.
  */
 @SuppressWarnings("serial")
 public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySumLayer> {
@@ -48,14 +49,14 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   private double rightFactor;
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    */
   public BinarySumLayer() {
     this(1.0, 1.0);
   }
 
   /**
-   * Instantiates a new Binary sum layer.
+   * Instantiates a new Binary sum key.
    *
    * @param leftFactor  the left factor
    * @param rightFactor the right factor
@@ -66,7 +67,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   }
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    *
    * @param json the id
    */
@@ -78,20 +79,20 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
   }
 
   /**
-   * From json product inputs layer.
+   * From json product inputs key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the product inputs layer
+   * @return the product inputs key
    */
   public static BinarySumLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BinarySumLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -165,7 +166,7 @@ public class BinarySumLayer extends LayerBase implements MultiPrecision<BinarySu
       CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       Stream.<ReferenceCounting>of(opDescriptor, lPtr, rPtr).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
-    }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, leftData), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
 
       Runnable a = () -> {
         if (inObj[0].isAlive()) {

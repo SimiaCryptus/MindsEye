@@ -26,10 +26,7 @@ import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -42,7 +39,7 @@ public class ImgBandSelectLayer extends LayerBase {
   private final int[] bands;
 
   /**
-   * Instantiates a new Img band select layer.
+   * Instantiates a new Img band select key.
    *
    * @param bands the bands
    */
@@ -52,7 +49,7 @@ public class ImgBandSelectLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img band select layer.
+   * Instantiates a new Img band select key.
    *
    * @param json the json
    */
@@ -66,11 +63,11 @@ public class ImgBandSelectLayer extends LayerBase {
   }
 
   /**
-   * From json img band select layer.
+   * From json img band select key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img band select layer
+   * @return the img band select key
    */
   public static ImgBandSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandSelectLayer(json);
@@ -95,7 +92,7 @@ public class ImgBandSelectLayer extends LayerBase {
         }))
         .toArray(i -> new Tensor[i]));
     outputDims.freeRef();
-    return new Result(wrap, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+    return new Result(wrap, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList error) -> {
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
             .mapToObj(dataIndex -> {

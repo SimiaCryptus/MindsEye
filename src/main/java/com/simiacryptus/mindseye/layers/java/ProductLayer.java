@@ -29,10 +29,11 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
- * The type Product layer.
+ * The type Product key.
  */
 @SuppressWarnings("serial")
 public class ProductLayer extends LayerBase {
@@ -41,13 +42,13 @@ public class ProductLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(ProductLayer.class);
 
   /**
-   * Instantiates a new Product layer.
+   * Instantiates a new Product key.
    */
   public ProductLayer() {
   }
 
   /**
-   * Instantiates a new Product layer.
+   * Instantiates a new Product key.
    *
    * @param id the id
    */
@@ -56,11 +57,11 @@ public class ProductLayer extends LayerBase {
   }
 
   /**
-   * From json product layer.
+   * From json product key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the product layer
+   * @return the product key
    */
   public static ProductLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ProductLayer(json);
@@ -86,7 +87,7 @@ public class ProductLayer extends LayerBase {
       sum_A[dataIndex] = sum;
       return new Tensor(new double[]{sum}, 1);
     }).toArray(i -> new Tensor[i]);
-    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       for (@Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
           @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {

@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Rascaled subnet layer apply.
+ * The type Rascaled subnet key apply.
  */
 public abstract class StochasticSamplingSubnetLayerTest extends LayerTestBase {
 

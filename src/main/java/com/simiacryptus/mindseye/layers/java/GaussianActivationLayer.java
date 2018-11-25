@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
- * This activation layer uses the unit gaussian curve. The maximal response, at x=0, is y=1. At +/- infinity, the value
+ * This activation key uses the unit gaussian curve. The maximal response, at x=0, is y=1. At +/- infinity, the value
  * is zero.
  */
 @SuppressWarnings("serial")
@@ -40,7 +40,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
   private final double stddev;
 
   /**
-   * Instantiates a new Gaussian activation layer.
+   * Instantiates a new Gaussian activation key.
    *
    * @param mean   the mean
    * @param stddev the stddev
@@ -51,7 +51,7 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
   }
 
   /**
-   * Instantiates a new Gaussian activation layer.
+   * Instantiates a new Gaussian activation key.
    *
    * @param id the id
    */
@@ -62,11 +62,11 @@ public final class GaussianActivationLayer extends SimpleActivationLayer<Gaussia
   }
 
   /**
-   * From json gaussian activation layer.
+   * From json gaussian activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the gaussian activation layer
+   * @return the gaussian activation key
    */
   public static GaussianActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GaussianActivationLayer(json);

@@ -31,12 +31,13 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
+ * This key works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
  * across larger png regions.
  */
 @SuppressWarnings("serial")
@@ -48,14 +49,14 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
   private boolean parallel = true;
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    */
   public ImgLinearSubnetLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
@@ -71,11 +72,11 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
   }
 
   /**
-   * From json rescaled subnet layer.
+   * From json rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the rescaled subnet layer
+   * @return the rescaled subnet key
    */
   public static ImgLinearSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgLinearSubnetLayer(json, rs);
@@ -91,12 +92,12 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
   }
 
   /**
-   * Add img linear subnet layer.
+   * Add img linear subnet key.
    *
    * @param from  the from
    * @param to    the to
-   * @param layer the layer
-   * @return the img linear subnet layer
+   * @param layer the key
+   * @return the img linear subnet key
    */
   public ImgLinearSubnetLayer add(final int from, final int to, final Layer layer) {
     getLegs().add(new SubnetLeg(layer, from, to));
@@ -138,7 +139,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
           input.addRef();
           TensorList legData = imgBandSelectLayer.eval(input).getDataAndFree();
           imgBandSelectLayer.freeRef();
-          return leg.inner.evalAndFree(new Result(legData, (DeltaSet<Layer> ctx, TensorList delta) -> {
+          return leg.inner.evalAndFree(new Result(legData, (DeltaSet<UUID> ctx, TensorList delta) -> {
             int[] outputDimensions = delta.getDimensions();
             int[] inputDimensions = inputDims;
             synchronized (passback) {
@@ -270,7 +271,7 @@ public class ImgLinearSubnetLayer extends LayerBase implements MultiPrecision<Im
     }
 
     /**
-     * Instantiates a new Rescaled subnet layer.
+     * Instantiates a new Rescaled subnet key.
      *
      * @param json the json
      * @param rs   the rs

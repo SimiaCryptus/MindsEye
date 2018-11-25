@@ -23,6 +23,7 @@ import com.simiacryptus.mindseye.layers.java.PlaceholderLayer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 /**
@@ -39,13 +40,13 @@ public class MutableResult extends Result {
     super(TensorArray.create(tensors), handler(tensors));
   }
 
-  private static BiConsumer<DeltaSet<Layer>, TensorList> handler(final Tensor[] tensors) {
-    return (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+  private static BiConsumer<DeltaSet<UUID>, TensorList> handler(final Tensor[] tensors) {
+    return (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       for (int index = 0; index < delta.length(); index++) {
         final Tensor dt = delta.get(index);
         @Nullable final double[] p = tensors[index].getData();
         @Nonnull PlaceholderLayer<double[]> layer = new PlaceholderLayer<>(p);
-        buffer.get(layer, p).addInPlace(dt.getData()).freeRef();
+        buffer.get(layer.getId(), p).addInPlace(dt.getData()).freeRef();
         dt.freeRef();
         layer.freeRef();
       }

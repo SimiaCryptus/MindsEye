@@ -34,13 +34,13 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
   private boolean balanced = true;
 
   /**
-   * Instantiates a new Sinewave activation layer.
+   * Instantiates a new Sinewave activation key.
    */
   public SinewaveActivationLayer() {
   }
 
   /**
-   * Instantiates a new Sinewave activation layer.
+   * Instantiates a new Sinewave activation key.
    *
    * @param id the id
    */
@@ -50,11 +50,11 @@ public final class SinewaveActivationLayer extends SimpleActivationLayer<Sinewav
   }
 
   /**
-   * From json sinewave activation layer.
+   * From json sinewave activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the sinewave activation layer
+   * @return the sinewave activation key
    */
   public static SinewaveActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SinewaveActivationLayer(json);

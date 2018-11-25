@@ -32,13 +32,13 @@ import java.util.Map;
 public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivationLayer> {
 
   /**
-   * Instantiates a new Abs activation layer.
+   * Instantiates a new Abs activation key.
    */
   public AbsActivationLayer() {
   }
 
   /**
-   * Instantiates a new Abs activation layer.
+   * Instantiates a new Abs activation key.
    *
    * @param id the id
    */
@@ -47,11 +47,11 @@ public final class AbsActivationLayer extends SimpleActivationLayer<AbsActivatio
   }
 
   /**
-   * From json abs activation layer.
+   * From json abs activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the abs activation layer
+   * @return the abs activation key
    */
   public static AbsActivationLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AbsActivationLayer(json);

@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Entropy loss layer apply.
+ * The type Entropy loss key apply.
  */
 public abstract class EntropyLossLayerTest extends LayerTestBase {
 

@@ -58,9 +58,9 @@ public interface Trainable extends ReferenceCounting {
   }
 
   /**
-   * Gets layer.
+   * Gets key.
    *
-   * @return the layer
+   * @return the key
    */
   Layer getLayer();
 

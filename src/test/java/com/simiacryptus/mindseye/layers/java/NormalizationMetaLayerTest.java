@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Normalization meta layer apply.
+ * The type Normalization meta key apply.
  */
 public abstract class NormalizationMetaLayerTest extends MetaLayerTestBase {
 

@@ -34,14 +34,14 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   private double value = 0;
 
   /**
-   * Instantiates a new Max const layer.
+   * Instantiates a new Max const key.
    */
   public MaxConstLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Max const layer.
+   * Instantiates a new Max const key.
    *
    * @param id the id
    */
@@ -50,11 +50,11 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   }
 
   /**
-   * From json max const layer.
+   * From json max const key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the max const layer
+   * @return the max const key
    */
   @Nonnull
   public static MaxConstLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {

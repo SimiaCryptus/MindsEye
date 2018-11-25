@@ -29,10 +29,11 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
- * Similar to the pooling layer, but the pool size is always the png size. The output dimensions are always 1x1xN.
+ * Similar to the pooling key, but the pool size is always the png size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
 public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<BandAvgReducerLayer> {
@@ -41,14 +42,14 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   private double alpha = 1.0;
 
   /**
-   * Instantiates a new Pooling layer.
+   * Instantiates a new Pooling key.
    */
   public BandAvgReducerLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Pooling layer.
+   * Instantiates a new Pooling key.
    *
    * @param json the json
    */
@@ -59,20 +60,20 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
   }
 
   /**
-   * From json pooling layer.
+   * From json pooling key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the pooling layer
+   * @return the pooling key
    */
   public static BandAvgReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BandAvgReducerLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -114,7 +115,7 @@ public class BandAvgReducerLayer extends LayerBase implements MultiPrecision<Ban
       return CudaTensorList.wrap(CudaTensor.wrap(outputPtr, outputDescriptor, precision), length, new int[]{1, 1, bands}, precision);
     });
     int pixels = inputSize[0] * inputSize[1];
-    return new Result(result, (DeltaSet<Layer> ctx, TensorList delta) -> {
+    return new Result(result, (DeltaSet<UUID> ctx, TensorList delta) -> {
       TensorList passback;
       passback = TensorArray.wrap(delta.stream().map(x -> {
         Tensor tensor = new Tensor(inputSize[0], inputSize[1], inputSize[2])

@@ -27,10 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -47,13 +44,13 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   private boolean parallel;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   private ImgTileAssemblyLayer() {
   }
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param columns the size x
    * @param rows    the size y
@@ -64,7 +61,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -78,20 +75,20 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ImgTileAssemblyLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileAssemblyLayer(json, rs);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -145,7 +142,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
     }, Arrays.stream(inObj).map(Result::getData).toArray());
 
 
-    return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+    return new Result(outputData, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputData.getDimensions())) {
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
       }
@@ -464,7 +461,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
      * The Buffer.
      */
     @Nonnull
-    public final DeltaSet<Layer> buffer;
+    public final DeltaSet<UUID> buffer;
     /**
      * The Error.
      */
@@ -495,7 +492,7 @@ public class ImgTileAssemblyLayer extends LayerBase implements MultiPrecision<Im
      */
     public final int inputIndex;
 
-    private BackpropParams(@Nonnull final Result[] inObj, @Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error, final int[] outputDims, final int[] tileDimensions, final int length, final int positionX, final int totalHeight, final int inputIndex) {
+    private BackpropParams(@Nonnull final Result[] inObj, @Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList error, final int[] outputDims, final int[] tileDimensions, final int length, final int positionX, final int totalHeight, final int inputIndex) {
       this.inObj = inObj;
       this.buffer = buffer;
       this.error = error;

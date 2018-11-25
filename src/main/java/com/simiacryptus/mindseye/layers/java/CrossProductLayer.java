@@ -27,22 +27,23 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
- * The type Cross product layer.
+ * The type Cross product key.
  */
 @SuppressWarnings("serial")
 public class CrossProductLayer extends LayerBase {
 
   /**
-   * Instantiates a new Cross product layer.
+   * Instantiates a new Cross product key.
    */
   public CrossProductLayer() {
   }
 
   /**
-   * Instantiates a new Cross product layer.
+   * Instantiates a new Cross product key.
    *
    * @param id the id
    */
@@ -51,11 +52,11 @@ public class CrossProductLayer extends LayerBase {
   }
 
   /**
-   * From json cross product layer.
+   * From json cross product key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the cross product layer
+   * @return the cross product key
    */
   public static CrossProductLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new CrossProductLayer(json);
@@ -94,7 +95,7 @@ public class CrossProductLayer extends LayerBase {
       });
       tensor.freeRef();
       return result;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (in.isAlive()) {
         assert delta.length() == delta.length();
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(batchIndex -> {

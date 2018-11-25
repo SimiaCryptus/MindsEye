@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A concrete class of the TrustRegion orientation strategy base class, this uses a buildMap collection to store per-layer
+ * A concrete class of the TrustRegion orientation strategy base class, this uses a buildMap collection to store per-key
  * Trust Region configurations.
  */
 public class LayerTrustRegionMap extends TrustRegionStrategy {

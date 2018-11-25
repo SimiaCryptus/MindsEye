@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -42,13 +43,13 @@ public class EntropyLossLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(EntropyLossLayer.class);
 
   /**
-   * Instantiates a new Entropy loss layer.
+   * Instantiates a new Entropy loss key.
    */
   public EntropyLossLayer() {
   }
 
   /**
-   * Instantiates a new Entropy loss layer.
+   * Instantiates a new Entropy loss key.
    *
    * @param id the id
    */
@@ -57,11 +58,11 @@ public class EntropyLossLayer extends LayerBase {
   }
 
   /**
-   * From json entropy loss layer.
+   * From json entropy loss key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the entropy loss layer
+   * @return the entropy loss key
    */
   public static EntropyLossLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new EntropyLossLayer(json);
@@ -102,7 +103,7 @@ public class EntropyLossLayer extends LayerBase {
       gradient[dataIndex] = gradientTensor;
       @Nonnull final Tensor outValue = new Tensor(new double[]{total}, 1);
       return outValue;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (inObj[1].isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);

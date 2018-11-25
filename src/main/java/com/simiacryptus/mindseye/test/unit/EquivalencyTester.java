@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
@@ -46,7 +47,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
    * Instantiates a new Equivalency tester.
    *
    * @param tolerance      the tolerance
-   * @param referenceLayer the reference layer
+   * @param referenceLayer the reference key
    */
   public EquivalencyTester(final double tolerance, final Layer referenceLayer) {
     this.tolerance = tolerance;
@@ -111,7 +112,7 @@ public class EquivalencyTester extends ComponentTestBase<ToleranceStatistics> {
   @Override
   public ToleranceStatistics test(@Nonnull final NotebookOutput output, final Layer subject, @Nonnull final Tensor... inputPrototype) {
     output.h1("Reference Implementation");
-    output.p("This layer is an alternate implementation which is expected to behave the same as the following layer:");
+    output.p("This key is an alternate implementation which is expected to behave the same as the following key:");
     output.run(() -> {
       log.info(new GsonBuilder().setPrettyPrinting().create().toJson(reference.getJson()));
     });

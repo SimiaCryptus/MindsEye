@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Rascaled subnet layer apply.
+ * The type Rascaled subnet key apply.
  */
 public abstract class ReshapeLayerTest extends LayerTestBase {
 
@@ -38,7 +38,7 @@ public abstract class ReshapeLayerTest extends LayerTestBase {
   private final int[] inputDims;
 
   /**
-   * Instantiates a new Reshape layer test.
+   * Instantiates a new Reshape key test.
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims

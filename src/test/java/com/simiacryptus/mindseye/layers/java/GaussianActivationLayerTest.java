@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Gaussian activation layer apply.
+ * The type Gaussian activation key apply.
  */
 public abstract class GaussianActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Gaussian activation layer apply.
+   * Instantiates a new Gaussian activation key apply.
    */
   public GaussianActivationLayerTest() {
     super(new GaussianActivationLayer(0, 1));

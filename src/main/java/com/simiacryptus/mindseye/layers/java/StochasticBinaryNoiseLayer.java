@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 /**
- * The type Binary noise layer.
+ * The type Binary noise key.
  */
 @SuppressWarnings("serial")
 public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticComponent {
@@ -64,14 +64,14 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   private long layerSeed = System.nanoTime();
 
   /**
-   * Instantiates a new Binary noise layer.
+   * Instantiates a new Binary noise key.
    */
   public StochasticBinaryNoiseLayer() {
     this(new int[]{});
   }
 
   /**
-   * Instantiates a new Binary noise layer.
+   * Instantiates a new Binary noise key.
    *
    * @param dimensions the dimensions
    */
@@ -80,7 +80,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   }
 
   /**
-   * Instantiates a new Binary noise layer.
+   * Instantiates a new Binary noise key.
    *
    * @param density    the value
    * @param amplitude  the amplitude
@@ -94,7 +94,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   }
 
   /**
-   * Instantiates a new Binary noise layer.
+   * Instantiates a new Binary noise key.
    *
    * @param json the json
    */
@@ -108,11 +108,11 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
   }
 
   /**
-   * From json binary noise layer.
+   * From json binary noise key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the binary noise layer
+   * @return the binary noise key
    */
   public static StochasticBinaryNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StochasticBinaryNoiseLayer(json);
@@ -130,7 +130,7 @@ public class StochasticBinaryNoiseLayer extends LayerBase implements StochasticC
       m.detach();
       return m;
     });
-    return new Result(TensorArray.create(mask), null);
+    return new Result(TensorArray.create(mask), (a,b)->{});
   }
 
   @Nonnull

@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Product layer apply.
+ * The type Product key apply.
  */
 public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
 
@@ -42,7 +42,7 @@ public abstract class SquareActivationLayerTest extends CudaLayerTestBase {
   private final double alpha;
 
   /**
-   * Instantiates a new Product layer apply.
+   * Instantiates a new Product key apply.
    *
    * @param precision the precision
    * @param alpha     the alphaList

@@ -30,10 +30,11 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
- * This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
+ * This key multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
  * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
@@ -42,13 +43,13 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    */
   public GateBiasLayer() {
   }
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    *
    * @param id the id
    */
@@ -58,20 +59,20 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
   }
 
   /**
-   * From json product inputs layer.
+   * From json product inputs key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the product inputs layer
+   * @return the product inputs key
    */
   public static GateBiasLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GateBiasLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -125,7 +126,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
       opDescriptor.freeRef();
       CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, leftDimensions, precision);
-    }, leftData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, leftData), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (left.isAlive()) {
         delta.addRef();
         left.accumulate(buffer, delta);
@@ -174,7 +175,7 @@ public class GateBiasLayer extends LayerBase implements MultiPrecision<GateBiasL
     }) {
 
       @Override
-      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+      public final void accumulate(DeltaSet<UUID> buffer, TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
 

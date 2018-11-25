@@ -32,7 +32,7 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type Img eval layer apply.
+ * The type Img eval key apply.
  */
 public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
 
@@ -42,7 +42,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   private final int largeSize;
 
   /**
-   * Instantiates a new Img eval layer apply.
+   * Instantiates a new Img eval key apply.
    *
    * @param precision     the precision
    * @param inputs        the inputs
@@ -55,7 +55,7 @@ public abstract class ImgConcatLayerTest extends CudaLayerTestBase {
   }
 
   /**
-   * Instantiates a new Img eval layer apply.
+   * Instantiates a new Img eval key apply.
    *
    * @param precision the precision
    * @param bandSeq   the band seq

@@ -34,7 +34,7 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 /**
- * The type BinarySumLayerTest layer apply.
+ * The type BinarySumLayerTest key apply.
  */
 public abstract class SumInputsLayerTest extends CudaLayerTestBase {
 
@@ -53,7 +53,7 @@ public abstract class SumInputsLayerTest extends CudaLayerTestBase {
   int inputs;
 
   /**
-   * Instantiates a new Product layer apply.
+   * Instantiates a new Product key apply.
    *
    * @param precision  the precision
    * @param inputBands the input bands

@@ -31,7 +31,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
- * The type Binary noise layer.
+ * The type Binary noise key.
  */
 @SuppressWarnings("serial")
 public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
@@ -57,14 +57,14 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
   private boolean enabled = true;
 
   /**
-   * Instantiates a new Binary noise layer.
+   * Instantiates a new Binary noise key.
    */
   public BinaryNoiseLayer() {
     this(0.5);
   }
 
   /**
-   * Instantiates a new Binary noise layer.
+   * Instantiates a new Binary noise key.
    *
    * @param value the value
    */
@@ -74,7 +74,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
   }
 
   /**
-   * Instantiates a new Binary noise layer.
+   * Instantiates a new Binary noise key.
    *
    * @param json the json
    */
@@ -86,11 +86,11 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
   }
 
   /**
-   * From json binary noise layer.
+   * From json binary noise key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the binary noise layer
+   * @return the binary noise key
    */
   public static BinaryNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BinaryNoiseLayer(json);
@@ -111,7 +111,7 @@ public class BinaryNoiseLayer extends LayerBase implements StochasticComponent {
       maskList.add(tensorPrototype.map(v -> FastRandom.INSTANCE.random() < getValue() ? 0 : (1.0 / getValue())));
     }
     @Nonnull final TensorList mask = TensorArray.create(maskList.stream().limit(length).toArray(i -> new Tensor[i]));
-    return new Result(mask, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(mask, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       data.addRef();
       input.accumulate(buffer, data);
     }) {

@@ -23,6 +23,8 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,7 +36,7 @@ import java.util.stream.Stream;
  *
  * @param <K> the type parameter
  */
-public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, State<K>> {
+public class StateSet<K> extends DoubleBufferSet<K, State<K>> {
 
   /**
    * Instantiates a new State setByCoord.
@@ -83,7 +85,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
    * @param right the right
    * @return the state setByCoord
    */
-  public static <K extends ReferenceCounting> StateSet<K> union(@Nonnull final DoubleBufferSet<K, State<K>> left, @Nonnull final DoubleBufferSet<K, State<K>> right) {
+  public static <K> StateSet<K> union(@Nonnull final DoubleBufferSet<K, State<K>> left, @Nonnull final DoubleBufferSet<K, State<K>> right) {
     final Map<K, State<K>> collect = Stream.concat(
         left.map.entrySet().stream(),
         right.map.entrySet().stream()
@@ -91,7 +93,7 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
         Collectors.mapping((@Nonnull final Map.Entry<K, State<K>> x) -> x.getValue(), Collectors.collectingAndThen(
             Collectors.reducing((@Nonnull final State<K> a, @Nonnull final State<K> b) -> {
               assert a.target == b.target;
-              assert a.layer.equals(b.layer);
+              assert a.key.equals(b.key);
               return a;
             }), x -> x.get()))));
     return new StateSet<K>(collect);
@@ -235,14 +237,14 @@ public class StateSet<K extends ReferenceCounting> extends DoubleBufferSet<K, St
   }
 
 
-  /**
-   * Union evalInputDelta setByCoord.
-   *
-   * @param right the right
-   * @return the evalInputDelta setByCoord
-   */
-  @Nonnull
-  public DoubleBufferSet<K, State<K>> union(@Nonnull final DoubleBufferSet<K, State<K>> right) {
-    return StateSet.union(this, right);
-  }
+//  /**
+//   * Union evalInputDelta setByCoord.
+//   *
+//   * @param right the right
+//   * @return the evalInputDelta setByCoord
+//   */
+//  @Nonnull
+//  public DoubleBufferSet<K, State<K>> union(@Nonnull final DoubleBufferSet<K, State<K>> right) {
+//    return StateSet.union(this, right);
+//  }
 }

@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
@@ -46,7 +47,7 @@ public class ReLuActivationLayer extends LayerBase {
   private final Tensor weights;
 
   /**
-   * Instantiates a new Re lu activation layer.
+   * Instantiates a new Re lu activation key.
    */
   public ReLuActivationLayer() {
     super();
@@ -56,7 +57,7 @@ public class ReLuActivationLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Re lu activation layer.
+   * Instantiates a new Re lu activation key.
    *
    * @param json      the json
    * @param resources the resources
@@ -67,11 +68,11 @@ public class ReLuActivationLayer extends LayerBase {
   }
 
   /**
-   * From json re lu activation layer.
+   * From json re lu activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the re lu activation layer
+   * @return the re lu activation key
    */
   public static ReLuActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ReLuActivationLayer(json, rs);
@@ -84,10 +85,10 @@ public class ReLuActivationLayer extends LayerBase {
   }
 
   /**
-   * Add weights re lu activation layer.
+   * Add weights re lu activation key.
    *
    * @param f the f
-   * @return the re lu activation layer
+   * @return the re lu activation key
    */
   @Nonnull
   public ReLuActivationLayer addWeights(@Nonnull final DoubleSupplier f) {
@@ -115,7 +116,7 @@ public class ReLuActivationLayer extends LayerBase {
         }
       }
       return tensor;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).parallel().forEach(dataIndex -> {
           @Nullable Tensor deltaTensor = delta.get(dataIndex);
@@ -127,7 +128,7 @@ public class ReLuActivationLayer extends LayerBase {
           for (int i = 0; i < deltaData.length; i++) {
             weightDeltaData[0] += inputData[i] < 0 ? 0 : deltaData[i] * inputData[i];
           }
-          buffer.get(ReLuActivationLayer.this, weights.getData()).addInPlace(weightDeltaData).freeRef();
+          buffer.get(ReLuActivationLayer.this.getId(), weights.getData()).addInPlace(weightDeltaData).freeRef();
           deltaTensor.freeRef();
           inputTensor.freeRef();
           weightDelta.freeRef();

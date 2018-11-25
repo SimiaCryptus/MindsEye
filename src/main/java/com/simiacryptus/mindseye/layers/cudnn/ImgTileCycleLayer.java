@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Reduces the resolution of the input by selecting a centered window. The output png will have the same number of
@@ -44,13 +45,13 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   public ImgTileCycleLayer() {
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -61,11 +62,11 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ImgTileCycleLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileCycleLayer(json, rs);
@@ -217,9 +218,9 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -247,7 +248,7 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
       inputTensor.freeRef();
       return CudaTensorList.wrap(cudaTensor, length, dimIn, precision);
     }, inputData);
-    return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    return new Result(outputData, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (!Arrays.equals(delta.getDimensions(), outputData.getDimensions())) {
         throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputData.getDimensions()));
       }
@@ -272,7 +273,7 @@ public class ImgTileCycleLayer extends LayerBase implements MultiPrecision<ImgTi
     }) {
 
       @Override
-      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+      public void accumulate(final DeltaSet<UUID> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
 

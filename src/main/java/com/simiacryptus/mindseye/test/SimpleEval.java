@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 
@@ -44,7 +45,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   /**
    * Instantiates a new Simple trainAll.
    *
-   * @param layer the layer
+   * @param layer the key
    * @param input the input
    */
   public SimpleEval(@Nonnull final Layer layer, @Nonnull final Tensor... input) {
@@ -59,7 +60,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
   /**
    * Run simple trainAll.
    *
-   * @param layer  the layer
+   * @param layer  the key
    * @param tensor the tensor
    * @return the simple trainAll
    */
@@ -87,7 +88,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     Tensor[] inputCopy = Arrays.stream(input).map(x -> x.copy()).toArray(i -> new Tensor[i]);
     derivative = Arrays.stream(inputCopy).map(input -> new Tensor(input.getDimensions())).toArray(i -> new Tensor[i]);
     Result[] input = IntStream.range(0, inputCopy.length).mapToObj(i -> {
-      return new Result(TensorArray.create(inputCopy[i]), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+      return new Result(TensorArray.create(inputCopy[i]), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
         data.stream().forEach(t -> {
           derivative[i].addInPlace(t);
           t.freeRef();
@@ -119,7 +120,7 @@ public class SimpleEval extends ReferenceCountingBase implements Callable<Simple
     TensorList evalData = eval.getData();
     TensorList outputTensorList = evalData.copy();
     @Nullable Tensor outputTensor = outputTensorList.get(0);
-    @Nonnull DeltaSet<Layer> deltaSet = new DeltaSet<>();
+    @Nonnull DeltaSet<UUID> deltaSet = new DeltaSet<>();
     try {
       synchronized (this) {
         if (null != output) {

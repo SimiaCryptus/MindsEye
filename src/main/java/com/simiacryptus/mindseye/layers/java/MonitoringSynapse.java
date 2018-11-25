@@ -27,13 +27,10 @@ import com.simiacryptus.util.data.PercentileStatistics;
 import com.simiacryptus.util.data.ScalarStatistics;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * A diagnostic pass-through layer that collects value statistics of forward and backprop signals.
+ * A diagnostic pass-through key that collects value statistics of forward and backprop signals.
  */
 @SuppressWarnings("serial")
 public final class MonitoringSynapse extends LayerBase implements MonitoredItem {
@@ -117,7 +114,7 @@ public final class MonitoringSynapse extends LayerBase implements MonitoredItem 
       forwardStatistics.add(t.getData());
       t.freeRef();
     });
-    return new Result(inputdata, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(inputdata, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       backpropStatistics.clear();
       data.addRef();
       input.accumulate(buffer, data);

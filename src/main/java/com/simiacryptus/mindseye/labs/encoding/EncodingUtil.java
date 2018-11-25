@@ -369,7 +369,7 @@ public class EncodingUtil {
   }
 
   /**
-   * Render layer.
+   * Render key.
    *
    * @param log          the log
    * @param dataPipeline the data pipeline
@@ -408,8 +408,8 @@ public class EncodingUtil {
   /**
    * Sets initial feature space.
    *
-   * @param convolutionLayer the convolution layer
-   * @param biasLayer        the bias layer
+   * @param convolutionLayer the convolution key
+   * @param biasLayer        the bias key
    * @param featureSpace     the feature space
    */
   public static void setInitialFeatureSpace(@Nonnull final ConvolutionLayer convolutionLayer, @Nonnull final ImgBandBiasLayer biasLayer, @Nonnull final FindFeatureSpace featureSpace) {

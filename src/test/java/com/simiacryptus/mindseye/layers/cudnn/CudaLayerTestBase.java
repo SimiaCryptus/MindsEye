@@ -34,14 +34,15 @@ import com.simiacryptus.notebook.NotebookOutput;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
- * The type Cudnn layer apply base.
+ * The type Cudnn key apply base.
  */
 public abstract class CudaLayerTestBase extends LayerTestBase {
 
   /**
-   * Instantiates a new Cudnn layer apply base.
+   * Instantiates a new Cudnn key apply base.
    */
   public CudaLayerTestBase() {
   }

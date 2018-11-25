@@ -26,10 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -54,7 +51,7 @@ public class GaussianNoiseLayer extends LayerBase {
   private double value;
 
   /**
-   * Instantiates a new Gaussian noise layer.
+   * Instantiates a new Gaussian noise key.
    */
   public GaussianNoiseLayer() {
     super();
@@ -62,7 +59,7 @@ public class GaussianNoiseLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Gaussian noise layer.
+   * Instantiates a new Gaussian noise key.
    *
    * @param json the json
    */
@@ -72,11 +69,11 @@ public class GaussianNoiseLayer extends LayerBase {
   }
 
   /**
-   * From json gaussian noise layer.
+   * From json gaussian noise key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the gaussian noise layer
+   * @return the gaussian noise key
    */
   public static GaussianNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GaussianNoiseLayer(json);
@@ -99,7 +96,7 @@ public class GaussianNoiseLayer extends LayerBase {
       input.freeRef();
       return output;
     }).toArray(i -> new Tensor[i]);
-    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (in0.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor tensor = delta.get(dataIndex);

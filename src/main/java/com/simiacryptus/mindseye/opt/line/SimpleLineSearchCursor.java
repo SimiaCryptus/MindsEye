@@ -26,6 +26,7 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 import javax.annotation.Nonnull;
+import java.util.UUID;
 
 /**
  * A basic line search cursor representing a linear parametric path.
@@ -34,7 +35,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
   /**
    * The Direction.
    */
-  public final DeltaSet<Layer> direction;
+  public final DeltaSet<UUID> direction;
   /**
    * The Origin.
    */
@@ -53,7 +54,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
    * @param origin    the origin
    * @param direction the direction
    */
-  public SimpleLineSearchCursor(final Trainable subject, @Nonnull final PointSample origin, final DeltaSet<Layer> direction) {
+  public SimpleLineSearchCursor(final Trainable subject, @Nonnull final PointSample origin, final DeltaSet<UUID> direction) {
     this.origin = origin.copyFull();
     this.direction = direction;
     this.direction.addRef();
@@ -80,7 +81,7 @@ public class SimpleLineSearchCursor extends LineSearchCursorBase {
 
   @Nonnull
   @Override
-  public DeltaSet<Layer> position(final double alpha) {
+  public DeltaSet<UUID> position(final double alpha) {
     return direction.scale(alpha);
   }
 

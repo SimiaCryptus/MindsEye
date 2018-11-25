@@ -31,9 +31,10 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
+ * This key multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
  * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
@@ -43,13 +44,13 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
   private double alpha = 1.0;
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    */
   public SquareActivationLayer() {
   }
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    *
    * @param id the id
    */
@@ -60,20 +61,20 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
   }
 
   /**
-   * From json product inputs layer.
+   * From json product inputs key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the product inputs layer
+   * @return the product inputs key
    */
   public static SquareActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SquareActivationLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -120,7 +121,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
       opDescriptor.freeRef();
       CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, dimensions, precision);
-    }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, inputData), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
         @Nonnull TensorList data = CudaSystem.run(gpu -> {
           @Nonnull final CudaResource<cudnnOpTensorDescriptor> opDescriptor = gpu.newOpDescriptor(cudnnOpTensorOp.CUDNN_OP_TENSOR_MUL, precision);
@@ -158,7 +159,7 @@ public class SquareActivationLayer extends LayerBase implements MultiPrecision<S
     }) {
 
       @Override
-      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+      public void accumulate(final DeltaSet<UUID> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
 

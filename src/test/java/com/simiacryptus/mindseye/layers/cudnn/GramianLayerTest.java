@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Fully connected layer apply.
+ * The type Fully connected key apply.
  */
 public abstract class GramianLayerTest extends CudaLayerTestBase {
 
   /**
-   * Instantiates a new Gramian layer test.
+   * Instantiates a new Gramian key test.
    */
   public GramianLayerTest() {
     testingBatchSize = 1;

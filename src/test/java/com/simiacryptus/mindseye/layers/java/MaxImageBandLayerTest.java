@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Max png band layer apply.
+ * The type Max png band key apply.
  */
 public abstract class MaxImageBandLayerTest extends LayerTestBase {
 

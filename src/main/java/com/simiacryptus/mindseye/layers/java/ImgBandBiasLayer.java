@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
@@ -47,7 +48,7 @@ public class ImgBandBiasLayer extends LayerBase {
   private final double[] bias;
 
   /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Img band bias key.
    */
   protected ImgBandBiasLayer() {
     super();
@@ -55,7 +56,7 @@ public class ImgBandBiasLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Img band bias key.
    *
    * @param bands the bands
    */
@@ -66,7 +67,7 @@ public class ImgBandBiasLayer extends LayerBase {
 
 
   /**
-   * Instantiates a new Img band bias layer.
+   * Instantiates a new Img band bias key.
    *
    * @param json the json
    */
@@ -76,11 +77,11 @@ public class ImgBandBiasLayer extends LayerBase {
   }
 
   /**
-   * From json img band bias layer.
+   * From json img band bias key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img band bias layer
+   * @return the img band bias key
    */
   public static ImgBandBiasLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandBiasLayer(json);
@@ -109,10 +110,10 @@ public class ImgBandBiasLayer extends LayerBase {
   }
 
   /**
-   * Add weights img band bias layer.
+   * Add weights img band bias key.
    *
    * @param f the f
-   * @return the img band bias layer
+   * @return the img band bias key
    */
   @Nonnull
   public ImgBandBiasLayer addWeights(@Nonnull final DoubleSupplier f) {
@@ -149,9 +150,9 @@ public class ImgBandBiasLayer extends LayerBase {
           r.freeRef();
           return tensor;
         })
-        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (!isFrozen()) {
-        final Delta<Layer> deltaBuffer = buffer.get(ImgBandBiasLayer.this, bias);
+        final Delta<UUID> deltaBuffer = buffer.get(ImgBandBiasLayer.this.getId(), bias);
         data.stream().parallel().forEach(d -> {
           final double[] array = RecycleBin.DOUBLES.obtain(bias.length);
           @Nullable final double[] signal = d.getData();
@@ -209,10 +210,10 @@ public class ImgBandBiasLayer extends LayerBase {
   }
 
   /**
-   * Set nn layer.
+   * Set nn key.
    *
    * @param ds the ds
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer set(@Nonnull final double[] ds) {
@@ -274,10 +275,10 @@ public class ImgBandBiasLayer extends LayerBase {
   }
 
   /**
-   * Set img band bias layer.
+   * Set img band bias key.
    *
    * @param tensor the tensor
-   * @return the img band bias layer
+   * @return the img band bias key
    */
   public ImgBandBiasLayer set(final Tensor tensor) {
     return (ImgBandBiasLayer) set(tensor.getData());

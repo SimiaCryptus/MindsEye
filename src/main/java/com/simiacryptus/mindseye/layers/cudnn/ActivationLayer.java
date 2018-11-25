@@ -35,9 +35,10 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * The generic Activation layer, exposing the activation types provided by CudaSystem. This layer is stateless and is
+ * The generic Activation key, exposing the activation types provided by CudaSystem. This key is stateless and is
  * determined by a univariate function, e.g. ReLU or Sigmoid.
  */
 @SuppressWarnings("serial")
@@ -53,7 +54,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
 
 
   /**
-   * Instantiates a new Activation layer.
+   * Instantiates a new Activation key.
    *
    * @param id the id
    */
@@ -62,7 +63,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   }
 
   /**
-   * Instantiates a new Activation layer.
+   * Instantiates a new Activation key.
    *
    * @param json the json
    */
@@ -74,7 +75,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   }
 
   /**
-   * Instantiates a new Activation layer.
+   * Instantiates a new Activation key.
    *
    * @param mode the mode
    */
@@ -83,11 +84,11 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   }
 
   /**
-   * From json activation layer.
+   * From json activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the activation layer
+   * @return the activation key
    */
   public static ActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ActivationLayer(json);
@@ -108,9 +109,9 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -171,7 +172,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
         }
       }, inputData);
       return new Result(CudaTensorList.create(outPtr, length, outputSize, precision),
-          (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+          (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
             if (inputResult.isAlive()) {
               final TensorList data = CudaSystem.run(gpu -> {
                 @Nullable CudaTensor inputTensor = gpu.getTensor(inputData, precision, MemoryType.Device, true);
@@ -237,7 +238,7 @@ public class ActivationLayer extends LayerBase implements MultiPrecision<Activat
           }) {
 
         @Override
-        public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+        public final void accumulate(DeltaSet<UUID> buffer, TensorList delta) {
           getAccumulator().accept(buffer, delta);
         }
 

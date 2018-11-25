@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -43,7 +44,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
 
 
   /**
-   * Instantiates a new Monitoring wrapper layer.
+   * Instantiates a new Monitoring wrapper key.
    *
    * @param json the json
    * @param rs   the rs
@@ -53,7 +54,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   }
 
   /**
-   * Instantiates a new Monitoring wrapper layer.
+   * Instantiates a new Monitoring wrapper key.
    *
    * @param inner the heapCopy
    */
@@ -62,11 +63,11 @@ public final class LoggingWrapperLayer extends WrapperLayer {
   }
 
   /**
-   * From json monitoring wrapper layer.
+   * From json monitoring wrapper key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the monitoring wrapper layer
+   * @return the monitoring wrapper key
    */
   public static LoggingWrapperLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new LoggingWrapperLayer(json, rs);
@@ -77,14 +78,14 @@ public final class LoggingWrapperLayer extends WrapperLayer {
     final Result[] wrappedInput = IntStream.range(0, inObj.length).mapToObj(i -> {
       final Result inputToWrap = inObj[i];
       inputToWrap.addRef();
-      return new Result(inputToWrap.getData(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+      return new Result(inputToWrap.getData(), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
         @Nonnull final String formatted = data.stream().map(x -> {
           String str = x.prettyPrint();
           x.freeRef();
           return str;
         })
             .reduce((a, b) -> a + "\n" + b).get();
-        log.info(String.format("Feedback Output %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+        log.info(String.format("Feedback Output %s for key %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
         data.addRef();
         inputToWrap.accumulate(buffer, data);
       }) {
@@ -107,7 +108,7 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         x.freeRef();
         return str;
       }).reduce((a, b) -> a + "\n" + b).get();
-      log.info(String.format("Input %s for layer %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+      log.info(String.format("Input %s for key %s: \n\t%s", i, getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
     @Nullable final Result output = getInner().eval(wrappedInput);
     Arrays.stream(wrappedInput).forEach(ReferenceCounting::freeRef);
@@ -119,16 +120,16 @@ public final class LoggingWrapperLayer extends WrapperLayer {
         return str;
       })
           .reduce((a, b) -> a + "\n" + b).get();
-      log.info(String.format("Output for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+      log.info(String.format("Output for key %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
     }
-    return new Result(output.getData(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(output.getData(), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       @Nonnull final String formatted = data.stream().map(x -> {
         String str = x.prettyPrint();
         x.freeRef();
         return str;
       })
           .reduce((a, b) -> a + "\n" + b).get();
-      log.info(String.format("Feedback Input for layer %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
+      log.info(String.format("Feedback Input for key %s: \n\t%s", getInner().getName(), formatted.replaceAll("\n", "\n\t")));
       data.addRef();
       output.accumulate(buffer, data);
     }) {

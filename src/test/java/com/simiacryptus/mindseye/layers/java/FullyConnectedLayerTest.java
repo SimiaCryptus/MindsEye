@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Fully connected layer apply.
+ * The type Fully connected key apply.
  */
 public abstract class FullyConnectedLayerTest extends LayerTestBase {
 
@@ -37,7 +37,7 @@ public abstract class FullyConnectedLayerTest extends LayerTestBase {
   private final int outputs;
 
   /**
-   * Instantiates a new Fully connected layer test.
+   * Instantiates a new Fully connected key test.
    *
    * @param inputs  the inputs
    * @param outputs the outputs

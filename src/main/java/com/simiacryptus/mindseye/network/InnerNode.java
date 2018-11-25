@@ -63,7 +63,7 @@ public final class InnerNode extends LazyResult {
    * Instantiates a new Inner node.
    *
    * @param dagNetwork the dag network
-   * @param layer      the layer
+   * @param layer      the key
    * @param key        the key
    * @param inputNodes the input nodes
    */

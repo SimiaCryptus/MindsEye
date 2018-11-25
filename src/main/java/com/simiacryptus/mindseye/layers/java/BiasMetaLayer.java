@@ -29,11 +29,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Bias meta layer.
+ * The type Bias meta key.
  */
 @SuppressWarnings("serial")
 public class BiasMetaLayer extends LayerBase {
@@ -43,13 +44,13 @@ public class BiasMetaLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(BiasMetaLayer.class);
 
   /**
-   * Instantiates a new Bias meta layer.
+   * Instantiates a new Bias meta key.
    */
   public BiasMetaLayer() {
   }
 
   /**
-   * Instantiates a new Bias meta layer.
+   * Instantiates a new Bias meta key.
    *
    * @param id the id
    */
@@ -58,11 +59,11 @@ public class BiasMetaLayer extends LayerBase {
   }
 
   /**
-   * From json bias meta layer.
+   * From json bias meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the bias meta layer
+   * @return the bias meta key
    */
   public static BiasMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BiasMetaLayer(json);
@@ -88,7 +89,7 @@ public class BiasMetaLayer extends LayerBase {
     Tensor tensor0 = tensors[0];
     tensor0.addRef();
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    return new Result(TensorArray.wrap(tensors), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(tensors), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         data.addRef();
         inObj[0].accumulate(buffer, data);

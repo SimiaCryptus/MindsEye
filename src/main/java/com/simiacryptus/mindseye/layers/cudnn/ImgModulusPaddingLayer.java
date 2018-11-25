@@ -49,13 +49,13 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   private ImgModulusPaddingLayer() {
   }
 
   /**
-   * Instantiates a new Img zero padding layer.
+   * Instantiates a new Img zero padding key.
    *
    * @param sizeX   the size x
    * @param sizeY   the size y
@@ -70,7 +70,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * Instantiates a new Img modulus padding layer.
+   * Instantiates a new Img modulus padding key.
    *
    * @param sizeX the size x
    * @param sizeY the size y
@@ -80,7 +80,7 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -95,11 +95,11 @@ public class ImgModulusPaddingLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ImgModulusPaddingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgModulusPaddingLayer(json, rs);

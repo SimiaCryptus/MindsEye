@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -224,9 +225,9 @@ class ExplodedConvolutionLeg extends ReferenceCountingBase {
    * @return the tensor
    */
   @Nonnull
-  public Tensor read(@Nonnull DeltaSet<Layer> deltaSet, boolean remove) {
+  public Tensor read(@Nonnull DeltaSet<UUID> deltaSet, boolean remove) {
     return read((sublayer) -> {
-      final Delta<Layer> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer);
+      final Delta<UUID> subnetDelta = remove ? deltaSet.getMap().remove(sublayer) : deltaSet.getMap().get(sublayer.getId());
       if (null == subnetDelta) throw new RuntimeException("No Delta for " + sublayer);
       double[] delta = subnetDelta.getDelta();
       return new Tensor(delta, sublayer.kernel.getDimensions());

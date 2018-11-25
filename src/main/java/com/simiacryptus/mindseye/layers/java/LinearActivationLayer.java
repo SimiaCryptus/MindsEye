@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -45,7 +46,7 @@ public class LinearActivationLayer extends LayerBase {
   private final Tensor weights;
 
   /**
-   * Instantiates a new Linear activation layer.
+   * Instantiates a new Linear activation key.
    */
   public LinearActivationLayer() {
     super();
@@ -55,7 +56,7 @@ public class LinearActivationLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Linear activation layer.
+   * Instantiates a new Linear activation key.
    *
    * @param json      the json
    * @param resources the resources
@@ -66,11 +67,11 @@ public class LinearActivationLayer extends LayerBase {
   }
 
   /**
-   * From json linear activation layer.
+   * From json linear activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the linear activation layer
+   * @return the linear activation key
    */
   public static LinearActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new LinearActivationLayer(json, rs);
@@ -98,7 +99,7 @@ public class LinearActivationLayer extends LayerBase {
       @Nullable Tensor map = input.map(v -> scale * v + bias);
       input.freeRef();
       return map;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           @Nullable Tensor deltaT = delta.get(dataIndex);
@@ -110,7 +111,7 @@ public class LinearActivationLayer extends LayerBase {
             weightDelta.add(0, deltaData[i] * inputData[inputData.length == 1 ? 0 : i]);
             weightDelta.add(1, deltaData[i]);
           }
-          buffer.get(LinearActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData()).freeRef();
+          buffer.get(LinearActivationLayer.this.getId(), weights.getData()).addInPlace(weightDelta.getData()).freeRef();
           inputT.freeRef();
           deltaT.freeRef();
           weightDelta.freeRef();

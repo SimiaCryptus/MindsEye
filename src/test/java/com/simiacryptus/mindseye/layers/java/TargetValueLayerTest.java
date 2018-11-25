@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Target value layer apply.
+ * The type Target value key apply.
  */
 public class TargetValueLayerTest {
   /**

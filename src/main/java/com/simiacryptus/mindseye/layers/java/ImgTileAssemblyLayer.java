@@ -24,10 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -47,7 +44,7 @@ public class ImgTileAssemblyLayer extends LayerBase {
   private int offsetY = 0;
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param columns the size x
    * @param rows    the size y
@@ -59,7 +56,7 @@ public class ImgTileAssemblyLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param json the json
    */
@@ -161,11 +158,11 @@ public class ImgTileAssemblyLayer extends LayerBase {
 
 
   /**
-   * From json img crop layer.
+   * From json img crop key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img crop layer
+   * @return the img crop key
    */
   public static ImgTileAssemblyLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileAssemblyLayer(json);
@@ -213,7 +210,7 @@ public class ImgTileAssemblyLayer extends LayerBase {
 
           return outputData;
         })
-        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       final AtomicInteger positionY = new AtomicInteger(offsetX);
       int inputIndex = 0;
       for (int row = 0; row < rows; row++) {

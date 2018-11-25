@@ -62,6 +62,9 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
   @Nullable
   protected volatile double[] data;
 
+  @Nullable
+  protected volatile UUID id;
+
   /**
    * Instantiates a new Tensor.
    */
@@ -91,7 +94,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     if (Tensor.length(dims) > Integer.MAX_VALUE) throw new IllegalArgumentException();
     if (null != data && Tensor.length(dims) != data.length)
       throw new IllegalArgumentException(Arrays.toString(dims) + " != " + data.length);
-    dimensions = (null == dims || 0 == dims.length) ? new int[]{data.length} : Arrays.copyOf(dims, dims.length);
+    dimensions = (null == dims || 0 == dims.length) ? new int[]{} : Arrays.copyOf(dims, dims.length);
     strides = Tensor.getSkips(dims);
     //this.data = data;// Arrays.copyOf(data, data.length);
     if (null != data) {
@@ -206,6 +209,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
         tensor.setBytes(Base64.getDecoder().decode(base64.getAsString()), precision);
       }
       assert tensor.isValid();
+      JsonElement id = jsonObject.get("id");
+      if(null != id) {
+        tensor.setId(UUID.fromString(id.getAsString()));
+      }
       return tensor;
     } else {
       @Nonnull Tensor tensor = new Tensor(json.getAsJsonPrimitive().getAsDouble());
@@ -716,10 +723,10 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
     @Nullable final Tensor other = (Tensor) obj;
     if (0 == currentRefCount()) return false;
     if (0 == other.currentRefCount()) return false;
-    if (!Arrays.equals(getData(), other.getData())) {
+    if (!Arrays.equals(dimensions, other.dimensions)) {
       return false;
     }
-    return Arrays.equals(dimensions, other.dimensions);
+    return Arrays.equals(getData(), other.getData());
   }
 
   /**
@@ -1513,6 +1520,7 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       @Nonnull JsonObject obj = new JsonObject();
       @Nonnull int[] dimensions = getDimensions();
       obj.add("length", toJsonArray(dimensions));
+      if(null != id) obj.addProperty("id", id.toString());
       @Nonnull byte[] bytes = getBytes(dataSerializer);
       obj.addProperty("precision", ((SerialPrecision) dataSerializer).name());
       if (null != resources) {
@@ -1836,6 +1844,23 @@ public final class Tensor extends ReferenceCountingBase implements Serializable 
       return this;
     }
     return Tensor.fromRGB(TestUtil.resize(toImage(), width, height));
+  }
+
+  @Nullable
+  public UUID getId() {
+    if(id == null) {
+      synchronized (this) {
+        if(id == null) {
+          id = UUID.randomUUID();
+        }
+      }
+    }
+    return id;
+  }
+
+  public Tensor setId(@Nullable UUID id) {
+    this.id = id;
+    return this;
   }
 
   /**

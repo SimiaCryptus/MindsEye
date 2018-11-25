@@ -27,10 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -44,14 +41,14 @@ public class MaxImageBandLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(MaxImageBandLayer.class);
 
   /**
-   * Instantiates a new Max png band layer.
+   * Instantiates a new Max png band key.
    */
   public MaxImageBandLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Max png band layer.
+   * Instantiates a new Max png band key.
    *
    * @param id         the id
    * @param kernelDims the kernel dims
@@ -61,11 +58,11 @@ public class MaxImageBandLayer extends LayerBase {
   }
 
   /**
-   * From json max png band layer.
+   * From json max png band key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the max png band layer
+   * @return the max png band key
    */
   public static MaxImageBandLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxImageBandLayer(json,
@@ -102,7 +99,7 @@ public class MaxImageBandLayer extends LayerBase {
       Tensor tensor1 = new Tensor(1, 1, inputDims[2]).set(Tensor.getDoubles(doubleStream, inputDims[2]));
       tensor.freeRef();
       return tensor1;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (inObj[0].isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).parallel().mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);

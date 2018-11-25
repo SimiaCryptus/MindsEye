@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Mean sq loss layer apply.
+ * The type Mean sq loss key apply.
  */
 public abstract class MeanSqLossLayerTest extends LayerTestBase {
 

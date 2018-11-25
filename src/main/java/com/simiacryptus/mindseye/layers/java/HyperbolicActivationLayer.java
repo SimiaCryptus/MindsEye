@@ -29,10 +29,11 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
- * This activation layer uses a parameterized hyperbolic function. This function, ion various parameterizations, can
+ * This activation key uses a parameterized hyperbolic function. This function, ion various parameterizations, can
  * resemble: x^2, abs(x), x^3, x However, at high +/- x, the behavior is nearly linear.
  */
 @SuppressWarnings("serial")
@@ -46,7 +47,7 @@ public class HyperbolicActivationLayer extends LayerBase {
   private int negativeMode = 1;
 
   /**
-   * Instantiates a new Hyperbolic activation layer.
+   * Instantiates a new Hyperbolic activation key.
    */
   public HyperbolicActivationLayer() {
     super();
@@ -56,7 +57,7 @@ public class HyperbolicActivationLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Hyperbolic activation layer.
+   * Instantiates a new Hyperbolic activation key.
    *
    * @param json      the json
    * @param resources the resources
@@ -68,11 +69,11 @@ public class HyperbolicActivationLayer extends LayerBase {
   }
 
   /**
-   * From json hyperbolic activation layer.
+   * From json hyperbolic activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the hyperbolic activation layer
+   * @return the hyperbolic activation key
    */
   public static HyperbolicActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new HyperbolicActivationLayer(json, rs);
@@ -102,7 +103,7 @@ public class HyperbolicActivationLayer extends LayerBase {
       });
       input.freeRef();
       return map;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         IntStream.range(0, delta.length()).forEach(dataIndex -> {
           @Nullable Tensor deltaI = delta.get(dataIndex);
@@ -119,7 +120,7 @@ public class HyperbolicActivationLayer extends LayerBase {
           }
           deltaI.freeRef();
           inputI.freeRef();
-          buffer.get(HyperbolicActivationLayer.this, weights.getData()).addInPlace(weightDelta.getData()).freeRef();
+          buffer.get(HyperbolicActivationLayer.this.getId(), weights.getData()).addInPlace(weightDelta.getData()).freeRef();
           weightDelta.freeRef();
         });
       }

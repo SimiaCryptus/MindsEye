@@ -47,13 +47,13 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   private ImgMinSizeLayer() {
   }
 
   /**
-   * Instantiates a new Img zero padding layer.
+   * Instantiates a new Img zero padding key.
    *
    * @param sizeX the size x
    * @param sizeY the size y
@@ -64,7 +64,7 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -77,11 +77,11 @@ public class ImgMinSizeLayer extends LayerBase implements MultiPrecision<ImgMinS
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ImgMinSizeLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgMinSizeLayer(json, rs);

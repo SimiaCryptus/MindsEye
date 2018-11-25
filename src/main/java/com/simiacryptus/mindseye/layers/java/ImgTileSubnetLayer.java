@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
+ * This key works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
  * across larger png regions.
  */
 @SuppressWarnings("serial")
@@ -46,7 +46,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   private final int strideY;
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param subnetwork the subnetwork
    * @param width      the width
@@ -63,7 +63,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   }
 
   /**
-   * Instantiates a new Img tile subnet layer.
+   * Instantiates a new Img tile subnet key.
    *
    * @param subnetwork the subnetwork
    * @param width      the width
@@ -74,7 +74,7 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   }
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
@@ -89,11 +89,11 @@ public class ImgTileSubnetLayer extends WrapperLayer {
   }
 
   /**
-   * From json rescaled subnet layer.
+   * From json rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the rescaled subnet layer
+   * @return the rescaled subnet key
    */
   public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSubnetLayer(json, rs);

@@ -39,7 +39,7 @@ public class StackCounter {
    * The Stats.
    */
   @Nonnull
-  ConcurrentHashMap<StackFrame, DoubleStatistics> stats = new ConcurrentHashMap<>();
+  Map<StackFrame, DoubleStatistics> stats = new ConcurrentHashMap<>();
 
   /**
    * To string string.

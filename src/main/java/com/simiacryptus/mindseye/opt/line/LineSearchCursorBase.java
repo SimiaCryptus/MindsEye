@@ -24,6 +24,8 @@ import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.ReferenceCountingBase;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
+import java.util.UUID;
+
 /**
  * A mutable cursor which represents a 1-d optimization problem.
  */
@@ -42,7 +44,7 @@ public abstract class LineSearchCursorBase extends ReferenceCountingBase impleme
    * @param alpha the alphaList
    * @return the evalInputDelta setByCoord
    */
-  public abstract DeltaSet<Layer> position(double alpha);
+  public abstract DeltaSet<UUID> position(double alpha);
 
   /**
    * Reset.

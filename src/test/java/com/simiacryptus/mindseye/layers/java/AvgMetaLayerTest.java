@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Avg meta layer apply.
+ * The type Avg meta key apply.
  */
 public abstract class AvgMetaLayerTest extends MetaLayerTestBase {
 

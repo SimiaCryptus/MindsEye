@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Sum reducer layer apply.
+ * The type Sum reducer key apply.
  */
 public abstract class SumReducerLayerTest extends LayerTestBase {
 

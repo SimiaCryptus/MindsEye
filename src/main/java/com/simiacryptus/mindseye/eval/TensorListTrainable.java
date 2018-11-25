@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -84,14 +85,14 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
       if (null == mask || col >= mask.length || !mask[col]) {
         return new ConstantResult(tensorArray);
       } else {
-        return new Result(tensorArray, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+        return new Result(tensorArray, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
           for (int index = 0; index < delta.length(); index++) {
             final Tensor dt = delta.get(index);
             @Nullable final double[] d = dt.getData();
             final Tensor t = tensors[index];
             @Nullable final double[] p = t.getData();
             @Nonnull PlaceholderLayer<double[]> layer = new PlaceholderLayer<>(p);
-            buffer.get(layer, p).addInPlace(d).freeRef();
+            buffer.get(layer.getId(), p).addInPlace(d).freeRef();
             dt.freeRef();
             layer.freeRef();
           }
@@ -134,12 +135,12 @@ public class TensorListTrainable extends ReferenceCountingBase implements Traina
             return Arrays.stream(array);
           }).summaryStatistics();
       final double sum = statistics.getSum();
-      @Nonnull final DeltaSet<Layer> deltaSet = new DeltaSet<Layer>();
+      @Nonnull final DeltaSet<UUID> deltaSet = new DeltaSet<UUID>();
       @Nonnull PointSample pointSample;
       try {
         result.accumulate(deltaSet, 1.0);
         //log.info(String.format("Evaluated to %s evalInputDelta buffers, %s mag", DeltaSet<LayerBase>.getMap().size(), DeltaSet<LayerBase>.getMagnitude()));
-        @Nonnull StateSet<Layer> stateSet = new StateSet<>(deltaSet);
+        @Nonnull StateSet<UUID> stateSet = new StateSet<>(deltaSet);
         pointSample = new PointSample(deltaSet, stateSet, sum, 0.0, items);
         stateSet.freeRef();
       } finally {

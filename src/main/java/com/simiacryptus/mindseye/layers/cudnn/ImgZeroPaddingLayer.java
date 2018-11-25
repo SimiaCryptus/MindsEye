@@ -50,13 +50,13 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   private ImgZeroPaddingLayer() {
   }
 
   /**
-   * Instantiates a new Img zero padding layer.
+   * Instantiates a new Img zero padding key.
    *
    * @param sizeX the size x
    * @param sizeY the size y
@@ -68,7 +68,7 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -82,11 +82,11 @@ public class ImgZeroPaddingLayer extends LayerBase implements MultiPrecision<Img
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ImgZeroPaddingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgZeroPaddingLayer(json, rs);

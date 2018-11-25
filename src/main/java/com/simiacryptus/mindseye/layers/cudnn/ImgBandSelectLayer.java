@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -43,7 +44,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Img band select layer.
+   * Instantiates a new Img band select key.
    *
    * @param from the from
    * @param to   the to
@@ -54,7 +55,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    */
@@ -66,20 +67,20 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ImgBandSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandSelectLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -119,7 +120,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
       CudaTensor cudaTensor = CudaTensor.wrap(cudaInputMemory.withByteOffset(byteOffset), inputDescriptor, precision);
       Stream.<ReferenceCounting>of(cudaInput, cudaInputMemory).forEach(ReferenceCounting::freeRef);
       return CudaTensorList.wrap(cudaTensor, length, outputDimensions, precision);
-    }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, inputData), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
         throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }
@@ -164,7 +165,7 @@ public class ImgBandSelectLayer extends LayerBase implements MultiPrecision<ImgB
     }) {
 
       @Override
-      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+      public void accumulate(final DeltaSet<UUID> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
 

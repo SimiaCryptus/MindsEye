@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Avg reducer layer apply.
+ * The type Avg reducer key apply.
  */
 public abstract class AvgReducerLayerTest extends LayerTestBase {
 

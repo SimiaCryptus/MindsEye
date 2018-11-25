@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
- * The type Std dev meta layer.
+ * The type Std dev meta key.
  */
 @SuppressWarnings("serial")
 public class StdDevMetaLayer extends PipelineNetwork {
@@ -39,14 +39,14 @@ public class StdDevMetaLayer extends PipelineNetwork {
   private static final Logger log = LoggerFactory.getLogger(StdDevMetaLayer.class);
 
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Std dev meta key.
    */
   public StdDevMetaLayer() {
     this(1);
   }
 
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Std dev meta key.
    *
    * @param minBatchCount the min batch count
    */
@@ -64,7 +64,7 @@ public class StdDevMetaLayer extends PipelineNetwork {
   }
 
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Std dev meta key.
    *
    * @param json the json
    * @param rs   the rs
@@ -74,11 +74,11 @@ public class StdDevMetaLayer extends PipelineNetwork {
   }
 
   /**
-   * From json std dev meta layer.
+   * From json std dev meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the std dev meta layer
+   * @return the std dev meta key
    */
   public static StdDevMetaLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new StdDevMetaLayer(json, rs);

@@ -39,16 +39,16 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer apply base.
+ * The type Activation key apply base.
  */
 public abstract class ActivationLayerTestBase extends LayerTestBase {
 
   private final Layer layer;
 
   /**
-   * Instantiates a new Activation layer apply base.
+   * Instantiates a new Activation key apply base.
    *
-   * @param layer the layer
+   * @param layer the key
    */
   public ActivationLayerTestBase(final Layer layer) {
     this.layer = layer;

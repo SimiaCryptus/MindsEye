@@ -20,13 +20,14 @@
 package com.simiacryptus.mindseye.lang;
 
 import javax.annotation.Nonnull;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 /**
  * An on-heap implementation of the TensorList data container.
  */
-public class TensorArray extends RegisteredObjectBase implements TensorList {
+public class TensorArray extends RegisteredObjectBase implements TensorList, Serializable {
   @Nonnull
   private final Tensor[] data;
 

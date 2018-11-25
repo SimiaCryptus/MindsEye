@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Gaussian noise layer apply.
+ * The type Gaussian noise key apply.
  */
 public abstract class GaussianNoiseLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Gaussian noise layer apply.
+   * Instantiates a new Gaussian noise key apply.
    */
   public GaussianNoiseLayerTest() {
     super(new GaussianNoiseLayer());

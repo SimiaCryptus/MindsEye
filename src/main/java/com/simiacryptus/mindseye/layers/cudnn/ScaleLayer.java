@@ -31,7 +31,7 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
- * The type Std dev meta layer.
+ * The type Std dev meta key.
  */
 @SuppressWarnings("serial")
 public class ScaleLayer extends PipelineNetwork {
@@ -40,14 +40,14 @@ public class ScaleLayer extends PipelineNetwork {
   private static final Logger log = LoggerFactory.getLogger(ScaleLayer.class);
 
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Std dev meta key.
    */
   public ScaleLayer() {
     this(new Tensor(1));
   }
 
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Std dev meta key.
    *
    * @param weights the weights
    */
@@ -58,7 +58,7 @@ public class ScaleLayer extends PipelineNetwork {
   }
 
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Std dev meta key.
    *
    * @param json the json
    * @param rs   the rs
@@ -69,11 +69,11 @@ public class ScaleLayer extends PipelineNetwork {
   }
 
   /**
-   * From json std dev meta layer.
+   * From json std dev meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the std dev meta layer
+   * @return the std dev meta key
    */
   public static ScaleLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ScaleLayer(json, rs);

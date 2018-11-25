@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * @param <K> the type parameter
  * @param <T> the type parameter
  */
-public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends DoubleBuffer<K>> extends ReferenceCountingBase {
+public abstract class DoubleBufferSet<K, T extends DoubleBuffer<K>> extends ReferenceCountingBase {
   /**
    * The Log.
    */
@@ -76,7 +76,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   public DoubleBufferSet(@Nonnull final Map<K, ? extends T> collect) {
     map.putAll(collect);
     map.forEach((k, v) -> {
-      k.addRef(this);
+      if(k instanceof ReferenceCounting) ((ReferenceCounting)k).addRef(this);
       v.addRef(this);
     });
   }
@@ -95,7 +95,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   /**
    * Factory t.
    *
-   * @param layer  the layer
+   * @param layer  the key
    * @param target the target
    * @return the t
    */
@@ -104,13 +104,13 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   /**
    * Get evalInputDelta.
    *
-   * @param layer the layer
+   * @param layer the key
    * @param ptr   the ptr
    * @return the evalInputDelta
    */
   public T get(final K layer, final double[] ptr) {
     final T delta = get(layer, () -> factory(layer, ptr));
-    assert delta.layer.equals(layer);
+    assert delta.key.equals(layer);
     assert delta.target == ptr;
     return delta;
   }
@@ -118,7 +118,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   /**
    * Get t.
    *
-   * @param layer   the layer
+   * @param layer   the key
    * @param factory the factory
    * @return the t
    */
@@ -128,10 +128,10 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
     if (null == layer) throw new IllegalArgumentException();
     synchronized (map) {
       T v = map.computeIfAbsent(layer, l -> {
-        l.addRef(this);
+        if(l instanceof ReferenceCounting) ((ReferenceCounting)l).addRef(this);
         T delta = factory.get();
         if (log.isDebugEnabled())
-          log.debug(String.format("Init layer buffer for %s - %s params", l.getClass(), delta.target.length));
+          log.debug(String.format("Init key buffer for %s - %s params", l.getClass(), delta.target.length));
         return delta;
       });
       v.addRef();
@@ -142,7 +142,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   /**
    * Get evalInputDelta.
    *
-   * @param layer the layer
+   * @param layer the key
    * @param ptr   the ptr
    * @return the evalInputDelta
    */
@@ -156,7 +156,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
    * @return the buildMap
    */
   @Nonnull
-  public ConcurrentHashMap<K, T> getMap() {
+  public Map<K, T> getMap() {
     return map;
   }
 
@@ -191,7 +191,7 @@ public abstract class DoubleBufferSet<K extends ReferenceCounting, T extends Dou
   @Override
   protected void _free() {
     map.forEach((k, v) -> {
-      k.freeRef();
+      if(k instanceof ReferenceCounting) ((ReferenceCounting)k).freeRef();
       v.freeRef();
     });
     map.clear();

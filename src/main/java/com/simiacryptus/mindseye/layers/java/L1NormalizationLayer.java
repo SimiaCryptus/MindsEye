@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -46,13 +47,13 @@ public class L1NormalizationLayer extends LayerBase {
   double maxInput = 50;
 
   /**
-   * Instantiates a new L 1 normalization layer.
+   * Instantiates a new L 1 normalization key.
    */
   public L1NormalizationLayer() {
   }
 
   /**
-   * Instantiates a new L 1 normalization layer.
+   * Instantiates a new L 1 normalization key.
    *
    * @param id the id
    */
@@ -61,11 +62,11 @@ public class L1NormalizationLayer extends LayerBase {
   }
 
   /**
-   * From json l 1 normalization layer.
+   * From json l 1 normalization key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the l 1 normalization layer
+   * @return the l 1 normalization key
    */
   public static L1NormalizationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new L1NormalizationLayer(json);
@@ -91,7 +92,7 @@ public class L1NormalizationLayer extends LayerBase {
       } finally {
         value.freeRef();
       }
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList outDelta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList outDelta) -> {
       if (in.isAlive()) {
         final Tensor[] passbackArray = IntStream.range(0, outDelta.length()).mapToObj(dataIndex -> {
           Tensor inputTensor = inData.get(dataIndex);

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.LinkedList;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
@@ -89,7 +90,7 @@ public class CountingResult extends Result {
   /**
    * The type Counting accumulator.
    */
-  static class CountingAccumulator extends ReferenceCountingBase implements BiConsumer<DeltaSet<Layer>, TensorList> {
+  static class CountingAccumulator extends ReferenceCountingBase implements BiConsumer<DeltaSet<UUID>, TensorList> {
     @Nonnull
     private final AtomicInteger references;
     @Nonnull
@@ -133,7 +134,7 @@ public class CountingResult extends Result {
     }
 
     @Override
-    public void accept(DeltaSet<Layer> buffer, @Nonnull TensorList data) {
+    public void accept(DeltaSet<UUID> buffer, @Nonnull TensorList data) {
       //assert null == CudaSystem.getThreadHandle();
       assertAlive();
       data.assertAlive();

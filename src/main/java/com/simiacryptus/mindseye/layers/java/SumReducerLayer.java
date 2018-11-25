@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -41,13 +42,13 @@ public class SumReducerLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(SumReducerLayer.class);
 
   /**
-   * Instantiates a new Sum reducer layer.
+   * Instantiates a new Sum reducer key.
    */
   public SumReducerLayer() {
   }
 
   /**
-   * Instantiates a new Sum reducer layer.
+   * Instantiates a new Sum reducer key.
    *
    * @param id the id
    */
@@ -56,11 +57,11 @@ public class SumReducerLayer extends LayerBase {
   }
 
   /**
-   * From json sum reducer layer.
+   * From json sum reducer key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the sum reducer layer
+   * @return the sum reducer key
    */
   public static SumReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumReducerLayer(json);
@@ -82,7 +83,7 @@ public class SumReducerLayer extends LayerBase {
         tensor.freeRef();
       }
       return sum;
-    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    }).mapToObj(x -> new Tensor(new double[]{x}, new int[]{1})).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       for (@Nonnull final Result in_l : inObj) {
         if (in_l.isAlive()) {
           @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in_l.getData().length()).parallel().mapToObj(dataIndex -> {

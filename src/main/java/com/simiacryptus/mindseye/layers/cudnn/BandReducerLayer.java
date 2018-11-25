@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Similar to the pooling layer, but the pool size is always the png size. The output dimensions are always 1x1xN.
+ * Similar to the pooling key, but the pool size is always the png size. The output dimensions are always 1x1xN.
  */
 @SuppressWarnings("serial")
 public class BandReducerLayer extends LayerBase implements MultiPrecision<BandReducerLayer> {
@@ -43,14 +43,14 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   private double alpha = 1.0;
 
   /**
-   * Instantiates a new Pooling layer.
+   * Instantiates a new Pooling key.
    */
   public BandReducerLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Pooling layer.
+   * Instantiates a new Pooling key.
    *
    * @param json the json
    */
@@ -62,20 +62,20 @@ public class BandReducerLayer extends LayerBase implements MultiPrecision<BandRe
   }
 
   /**
-   * From json pooling layer.
+   * From json pooling key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the pooling layer
+   * @return the pooling key
    */
   public static BandReducerLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new BandReducerLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {

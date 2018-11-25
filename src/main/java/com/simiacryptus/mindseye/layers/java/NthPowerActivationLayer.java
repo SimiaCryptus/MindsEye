@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -39,13 +40,13 @@ public final class NthPowerActivationLayer extends LayerBase {
   private double power = 1.0;
 
   /**
-   * Instantiates a new Nth power activation layer.
+   * Instantiates a new Nth power activation key.
    */
   public NthPowerActivationLayer() {
   }
 
   /**
-   * Instantiates a new Nth power activation layer.
+   * Instantiates a new Nth power activation key.
    *
    * @param id the id
    */
@@ -55,11 +56,11 @@ public final class NthPowerActivationLayer extends LayerBase {
   }
 
   /**
-   * From json nth power activation layer.
+   * From json nth power activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the nth power activation layer
+   * @return the nth power activation key
    */
   public static NthPowerActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new NthPowerActivationLayer(json);
@@ -141,7 +142,7 @@ public final class NthPowerActivationLayer extends LayerBase {
       }
       input.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
           @Nonnull final Tensor passback = new Tensor(data.getDimensions());

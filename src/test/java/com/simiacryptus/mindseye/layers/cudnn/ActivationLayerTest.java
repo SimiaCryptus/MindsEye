@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Activation layer apply.
+ * The type Activation key apply.
  */
 public abstract class ActivationLayerTest extends CudaLayerTestBase {
 
@@ -49,7 +49,7 @@ public abstract class ActivationLayerTest extends CudaLayerTestBase {
   private final int largeSize;
 
   /**
-   * Instantiates a new Activation layer apply.
+   * Instantiates a new Activation key apply.
    *
    * @param mode      the mode
    * @param precision the precision

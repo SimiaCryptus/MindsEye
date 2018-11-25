@@ -17,40 +17,37 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.models;
+package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.network.PipelineNetwork;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
-import java.util.Map;
-import java.util.UUID;
+import javax.annotation.Nonnull;
+import java.util.Random;
 
 /**
- * The interface Multi layer png network.
- *
- * @param <T> the type parameter
+ * The type Img eval key apply.
  */
-public interface CVPipe<T extends LayerEnum<T>> {
+public abstract class TensorConcatLayerTest extends LayerTestBase {
 
-  ;
+  @Nonnull
+  @Override
+  public int[][] getSmallDims(Random random) {
+    return new int[][]{
+        {8}, {6}
+    };
+  }
 
-  /**
-   * Gets nodes.
-   *
-   * @return the nodes
-   */
-  Map<T, UUID> getNodes();
-
-  /**
-   * Gets prototypes.
-   *
-   * @return the prototypes
-   */
-  Map<T, PipelineNetwork> getPrototypes();
+  @Nonnull
+  @Override
+  public Layer getLayer(final int[][] inputSize, Random random) {
+    return new TensorConcatLayer();
+  }
 
   /**
-   * Gets network.
-   *
-   * @return the network
+   * Basic Test
    */
-  PipelineNetwork getNetwork();
+  public static class Basic extends TensorConcatLayerTest {
+  }
+
 }

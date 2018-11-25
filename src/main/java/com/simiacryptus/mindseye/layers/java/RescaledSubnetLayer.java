@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
- * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
+ * This key works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
  * across larger png regions.
  */
 @SuppressWarnings("serial")
@@ -44,7 +44,7 @@ public class RescaledSubnetLayer extends LayerBase {
   private final Layer subnetwork;
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param scale      the scale
    * @param subnetwork the subnetwork
@@ -57,7 +57,7 @@ public class RescaledSubnetLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
@@ -70,11 +70,11 @@ public class RescaledSubnetLayer extends LayerBase {
   }
 
   /**
-   * From json rescaled subnet layer.
+   * From json rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the rescaled subnet layer
+   * @return the rescaled subnet key
    */
   public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);

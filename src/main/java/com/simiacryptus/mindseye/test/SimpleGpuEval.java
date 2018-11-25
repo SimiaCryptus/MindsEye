@@ -38,7 +38,7 @@ public class SimpleGpuEval extends SimpleListEval {
   /**
    * Instantiates a new Simple gpu apply.
    *
-   * @param layer the layer
+   * @param layer the key
    * @param gpu   the gpu
    * @param input the input
    */
@@ -50,7 +50,7 @@ public class SimpleGpuEval extends SimpleListEval {
   /**
    * Run simple result.
    *
-   * @param layer  the layer
+   * @param layer  the key
    * @param gpu    the gpu
    * @param tensor the tensor
    * @return the simple result

@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -42,7 +43,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   private static final Logger log = LoggerFactory.getLogger(SigmoidActivationLayer.class);
 
   /**
-   * Instantiates a new Simple activation layer.
+   * Instantiates a new Simple activation key.
    */
   public SimpleActivationLayer() {
     super();
@@ -50,7 +51,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
   }
 
   /**
-   * Instantiates a new Simple activation layer.
+   * Instantiates a new Simple activation key.
    *
    * @param id the id
    */
@@ -88,7 +89,7 @@ public abstract class SimpleActivationLayer<T extends SimpleActivationLayer<T>> 
       }
       input.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, itemCnt).parallel().mapToObj(dataIndex -> {
           @Nonnull final Tensor passback = new Tensor(data.getDimensions());

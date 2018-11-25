@@ -23,16 +23,18 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.layers.java.FullyConnectedLayer;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Abstract base class for a trainable wrapper that adds per-layer L1 and L2 normalization constants. It allows the
- * implementing class to choose the coefficients for each layer.
+ * Abstract base class for a trainable wrapper that adds per-key L1 and L2 normalization constants. It allows the
+ * implementing class to choose the coefficients for each key.
  */
 public abstract class L12Normalizer extends TrainableBase {
   /**
@@ -59,7 +61,7 @@ public abstract class L12Normalizer extends TrainableBase {
   /**
    * Gets l 1.
    *
-   * @param layer the layer
+   * @param layer the key
    * @return the l 1
    */
   protected abstract double getL1(Layer layer);
@@ -67,10 +69,14 @@ public abstract class L12Normalizer extends TrainableBase {
   /**
    * Gets l 2.
    *
-   * @param layer the layer
+   * @param layer the key
    * @return the l 2
    */
   protected abstract double getL2(Layer layer);
+
+  public Layer toLayer(UUID id) {
+    return ((DAGNetwork)inner.getLayer()).getLayersById().get(id);
+  }
 
   /**
    * Gets layers.
@@ -78,11 +84,9 @@ public abstract class L12Normalizer extends TrainableBase {
    * @param layers the layers
    * @return the layers
    */
-  public Collection<Layer> getLayers(@Nonnull final Collection<Layer> layers) {
-    return layers.stream()
-        .filter(layer -> {
-          return layer instanceof FullyConnectedLayer;
-        })
+  public Collection<Layer> getLayers(@Nonnull final Collection<UUID> layers) {
+    return layers.stream().map(this::toLayer)
+        .filter(layer -> layer instanceof FullyConnectedLayer)
         .collect(Collectors.toList());
   }
 
@@ -91,11 +95,11 @@ public abstract class L12Normalizer extends TrainableBase {
   @Override
   public PointSample measure(final TrainingMonitor monitor) {
     final PointSample innerMeasure = inner.measure(monitor);
-    @Nonnull final DeltaSet<Layer> normalizationVector = new DeltaSet<Layer>();
+    @Nonnull final DeltaSet<UUID> normalizationVector = new DeltaSet<UUID>();
     double valueAdj = 0;
     for (@Nonnull final Layer layer : getLayers(innerMeasure.delta.getMap().keySet())) {
-      final double[] weights = innerMeasure.delta.getMap().get(layer).target;
-      @Nullable final double[] gradientAdj = normalizationVector.get(layer, weights).getDelta();
+      final double[] weights = innerMeasure.delta.getMap().get(layer.getId()).target;
+      @Nullable final double[] gradientAdj = normalizationVector.get(layer.getId(), weights).getDelta();
       final double factor_L1 = getL1(layer);
       final double factor_L2 = getL2(layer);
       assert null != gradientAdj;

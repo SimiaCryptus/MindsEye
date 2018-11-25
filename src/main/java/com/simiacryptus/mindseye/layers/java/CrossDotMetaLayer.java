@@ -29,9 +29,10 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * The type Cross dot meta layer.
+ * The type Cross dot meta key.
  */
 @SuppressWarnings("serial")
 public class CrossDotMetaLayer extends LayerBase {
@@ -40,13 +41,13 @@ public class CrossDotMetaLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(CrossDotMetaLayer.class);
 
   /**
-   * Instantiates a new Cross dot meta layer.
+   * Instantiates a new Cross dot meta key.
    */
   public CrossDotMetaLayer() {
   }
 
   /**
-   * Instantiates a new Cross dot meta layer.
+   * Instantiates a new Cross dot meta key.
    *
    * @param id the id
    */
@@ -55,11 +56,11 @@ public class CrossDotMetaLayer extends LayerBase {
   }
 
   /**
-   * From json cross dot meta layer.
+   * From json cross dot meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the cross dot meta layer
+   * @return the cross dot meta key
    */
   public static CrossDotMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new CrossDotMetaLayer(json);
@@ -90,7 +91,7 @@ public class CrossDotMetaLayer extends LayerBase {
         results.set(new int[]{i, j}, v);
       }
     }
-    return new Result(TensorArray.wrap(results), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    return new Result(TensorArray.wrap(results), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
         @Nullable final Tensor deltaTensor = delta.get(0);
         @Nonnull final Tensor feedback[] = new Tensor[itemCnt];

@@ -26,14 +26,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
- * The type Max meta layer.
+ * The type Max meta key.
  */
 @SuppressWarnings("serial")
 public class MaxMetaLayer extends LayerBase {
@@ -43,13 +40,13 @@ public class MaxMetaLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(MaxMetaLayer.class);
 
   /**
-   * Instantiates a new Max meta layer.
+   * Instantiates a new Max meta key.
    */
   public MaxMetaLayer() {
   }
 
   /**
-   * Instantiates a new Max meta layer.
+   * Instantiates a new Max meta key.
    *
    * @param id the id
    */
@@ -58,11 +55,11 @@ public class MaxMetaLayer extends LayerBase {
   }
 
   /**
-   * From json max meta layer.
+   * From json max meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the max meta layer
+   * @return the max meta key
    */
   public static MaxMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxMetaLayer(json);
@@ -92,7 +89,7 @@ public class MaxMetaLayer extends LayerBase {
       double v1 = tensor.getData()[c];
       tensor.freeRef();
       return v1;
-    })), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    })), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         @Nullable final Tensor delta = data.get(0);
         @Nonnull final Tensor feedback[] = new Tensor[itemCnt];

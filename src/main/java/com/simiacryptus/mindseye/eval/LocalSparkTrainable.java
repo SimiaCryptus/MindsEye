@@ -94,8 +94,8 @@
 //    if (isVerbose()) {
 //      log.info(String.format("Measure timing: %.3f / %.3f for %s items", (time2 - time1) * 1e-9, (System.nanoTime() - time2) * 1e-9, sampledRDD.count()));
 //    }
-//    @Nonnull final DeltaSet<Layer> xxx = getDelta(result);
-//    return new PointSample(xxx, new StateSet<Layer>(xxx), result.sum, 0.0, result.count).normalize();
+//    @Nonnull final DeltaSet<UUID> xxx = getDelta(result);
+//    return new PointSample(xxx, new StateSet<UUID>(xxx), result.sum, 0.0, result.count).normalize();
 //  }
 //
 //}

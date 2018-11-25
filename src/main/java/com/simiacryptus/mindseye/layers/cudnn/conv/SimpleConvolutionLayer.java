@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
@@ -41,7 +42,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * This convolution layer only supports an equal number of input and output bands. It is used as the foundational
+ * This convolution key only supports an equal number of input and output bands. It is used as the foundational
  * component for ConvolutionLayer, since the CudaSystem api has this restriction (in recent versions).
  */
 @SuppressWarnings("serial")
@@ -67,14 +68,14 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   private int strideY = 1;
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    */
   protected SimpleConvolutionLayer() {
     this(null);
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param width  the width
    * @param height the height
@@ -88,7 +89,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param json      the json
    * @param resources the resources
@@ -104,7 +105,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param kernel the filter
    */
@@ -123,11 +124,11 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * From json convolution layer.
+   * From json convolution key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the convolution layer
+   * @return the convolution key
    */
   public static SimpleConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SimpleConvolutionLayer(json, rs);
@@ -150,10 +151,10 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * Add weights convolution layer.
+   * Add weights convolution key.
    *
    * @param f the f
-   * @return the convolution layer
+   * @return the convolution key
    */
   @Nonnull
   public SimpleConvolutionLayer addWeights(@Nonnull final DoubleSupplier f) {
@@ -228,7 +229,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       } finally {
         Stream.of(inputTensor, filterDescriptor, outputDescriptor, forwardWorkspace, convolutionDescriptor).forEach(ReferenceCounting::freeRef);
       }
-    }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, inputData), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       delta.assertAlive();
       buffer.assertAlive();
       inputData.assertAlive();
@@ -280,7 +281,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
               Stream.of(filterDescriptor, convolutionDescriptor, backwardsFilterWorkSpace).forEach(ReferenceCounting::freeRef);
             }
           }, delta);
-          buffer.get(SimpleConvolutionLayer.this, kernel.getData()).addInPlace(weightGradient.getData()).freeRef();
+          buffer.get(SimpleConvolutionLayer.this.getId(), kernel.getData()).addInPlace(weightGradient.getData()).freeRef();
           weightGradient.freeRef();
           clearCudaFilters();
         } else {
@@ -344,7 +345,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
     }) {
 
       @Override
-      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+      public final void accumulate(DeltaSet<UUID> buffer, TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
 
@@ -475,13 +476,13 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
-    log.info(String.format("Using compatibility layer for %s", this));
+    log.info(String.format("Using compatibility key for %s", this));
     int bands = (int) Math.sqrt(this.kernel.getDimensions()[2]);
     @Nonnull final com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer convolutionLayer = new com.simiacryptus.mindseye.layers.aparapi.ConvolutionLayer(this.kernel.getDimensions()[0], this.kernel.getDimensions()[1], this.kernel.getDimensions()[2], true);
     @Nonnull final Tensor tensor = new Tensor(kernel.getDimensions());
@@ -500,7 +501,7 @@ public class SimpleConvolutionLayer extends LayerBase implements MultiPrecision<
       public Result eval(@Nonnull Result... array) {
         Arrays.stream(array).forEach(x -> x.addRef());
         @Nonnull Result result = convolutionLayer.eval(array);
-        return new Result(result.getData(), (DeltaSet<Layer> buffer, TensorList data) -> {
+        return new Result(result.getData(), (DeltaSet<UUID> buffer, TensorList data) -> {
           throw new IllegalStateException();
         }) {
 

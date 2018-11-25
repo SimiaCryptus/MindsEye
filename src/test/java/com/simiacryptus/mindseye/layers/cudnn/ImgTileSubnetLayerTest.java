@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Rascaled subnet layer apply.
+ * The type Rascaled subnet key apply.
  */
 public abstract class ImgTileSubnetLayerTest extends CudaLayerTestBase {
 

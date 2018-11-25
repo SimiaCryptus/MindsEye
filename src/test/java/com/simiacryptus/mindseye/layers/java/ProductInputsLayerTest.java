@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Product inputs layer apply.
+ * The type Product inputs key apply.
  */
 public abstract class ProductInputsLayerTest extends LayerTestBase {
   @Nonnull

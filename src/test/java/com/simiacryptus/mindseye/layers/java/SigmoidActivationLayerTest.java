@@ -20,11 +20,11 @@
 package com.simiacryptus.mindseye.layers.java;
 
 /**
- * The type Sigmoid activation layer apply.
+ * The type Sigmoid activation key apply.
  */
 public abstract class SigmoidActivationLayerTest extends ActivationLayerTestBase {
   /**
-   * Instantiates a new Sigmoid activation layer apply.
+   * Instantiates a new Sigmoid activation key apply.
    */
   public SigmoidActivationLayerTest() {
     super(new SigmoidActivationLayer());

@@ -92,7 +92,7 @@ public class PolynomialNetwork extends DAGNetwork {
   protected PolynomialNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     head = getNodeById(UUID.fromString(json.get("head").getAsString()));
-    Map<Object, Layer> layersById = getLayersById();
+    Map<UUID, Layer> layersById = getLayersById();
     if (json.get("alpha") != null) {
       alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
     }
@@ -207,11 +207,11 @@ public class PolynomialNetwork extends DAGNetwork {
   }
 
   /**
-   * New bias nn layer.
+   * New bias nn key.
    *
    * @param dims   the dims
    * @param weight the weight
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer newBias(final int[] dims, final double weight) {
@@ -219,10 +219,10 @@ public class PolynomialNetwork extends DAGNetwork {
   }
 
   /**
-   * New nth power layer nn layer.
+   * New nth power key nn key.
    *
    * @param power the power
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer newNthPowerLayer(final double power) {
@@ -230,9 +230,9 @@ public class PolynomialNetwork extends DAGNetwork {
   }
 
   /**
-   * New product layer nn layer.
+   * New product key nn key.
    *
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer newProductLayer() {
@@ -240,10 +240,10 @@ public class PolynomialNetwork extends DAGNetwork {
   }
 
   /**
-   * New synapse nn layer.
+   * New synapse nn key.
    *
    * @param weight the weight
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer newSynapse(final double weight) {
@@ -287,7 +287,7 @@ public class PolynomialNetwork extends DAGNetwork {
      */
     public Correcton(@Nonnull final JsonObject json) {
       power = json.get("power").getAsDouble();
-      Map<Object, Layer> layersById = getLayersById();
+      Map<UUID, Layer> layersById = getLayersById();
       bias = layersById.get(UUID.fromString(json.get("bias").getAsString()));
       factor = layersById.get(UUID.fromString(json.get("factor").getAsString()));
     }

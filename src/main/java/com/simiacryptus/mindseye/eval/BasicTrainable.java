@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -113,8 +114,8 @@ public class BasicTrainable extends ReferenceCountingBase implements DataTrainab
         nnResult.freeRef();
       }
       final TensorList resultData = result.getData();
-      @Nonnull final DeltaSet<Layer> deltaSet = new DeltaSet<Layer>();
-      @Nonnull StateSet<Layer> stateSet = null;
+      @Nonnull final DeltaSet<UUID> deltaSet = new DeltaSet<UUID>();
+      @Nonnull StateSet<UUID> stateSet = null;
       try {
         final DoubleSummaryStatistics statistics = resultData.stream()
             .flatMapToDouble(x -> {

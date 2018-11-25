@@ -24,10 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -43,7 +40,7 @@ public class ImgReshapeLayer extends LayerBase {
   private final int kernelSizeY;
 
   /**
-   * Instantiates a new Img reshapeCast layer.
+   * Instantiates a new Img reshapeCast key.
    *
    * @param kernelSizeX the kernel size x
    * @param kernelSizeY the kernel size y
@@ -57,7 +54,7 @@ public class ImgReshapeLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img reshapeCast layer.
+   * Instantiates a new Img reshapeCast key.
    *
    * @param json the json
    */
@@ -140,11 +137,11 @@ public class ImgReshapeLayer extends LayerBase {
   }
 
   /**
-   * From json img reshapeCast layer.
+   * From json img reshapeCast key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img reshapeCast layer
+   * @return the img reshapeCast key
    */
   public static ImgReshapeLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgReshapeLayer(json);
@@ -183,7 +180,7 @@ public class ImgReshapeLayer extends LayerBase {
         })
         .toArray(i -> new Tensor[i]));
     outputDims.freeRef();
-    return new Result(data, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+    return new Result(data, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList error) -> {
       //assert error.stream().flatMapToDouble(x-> Arrays.stream(x.getData())).allMatch(v->Double.isFinite(v));
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()

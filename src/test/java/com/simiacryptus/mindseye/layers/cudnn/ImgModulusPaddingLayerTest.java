@@ -26,7 +26,7 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer apply.
+ * The type Img crop key apply.
  */
 public abstract class ImgModulusPaddingLayerTest extends CudaLayerTestBase {
 
@@ -40,7 +40,7 @@ public abstract class ImgModulusPaddingLayerTest extends CudaLayerTestBase {
   final int offset;
 
   /**
-   * Instantiates a new Img modulus padding layer test.
+   * Instantiates a new Img modulus padding key test.
    *
    * @param inputSize the input size
    * @param modulus   the modulus

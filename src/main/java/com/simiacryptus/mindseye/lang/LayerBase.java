@@ -44,7 +44,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   private String name;
 
   /**
-   * Instantiates a new Nn layer.
+   * Instantiates a new Nn key.
    */
   protected LayerBase() {
     id = UUID.randomUUID();
@@ -52,7 +52,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   }
 
   /**
-   * Instantiates a new Nn layer.
+   * Instantiates a new Nn key.
    *
    * @param json the json
    */
@@ -70,7 +70,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   }
 
   /**
-   * Instantiates a new Nn layer.
+   * Instantiates a new Nn key.
    *
    * @param id   the id
    * @param name the name
@@ -112,7 +112,7 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
    * @return the id
    */
   @Nullable
-  public Object getId() {
+  public UUID getId() {
     return id;
   }
 
@@ -165,9 +165,9 @@ public abstract class LayerBase extends RegisteredObjectBase implements Layer {
   }
 
   /**
-   * Self nn layer.
+   * Self nn key.
    *
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   protected final Layer self() {

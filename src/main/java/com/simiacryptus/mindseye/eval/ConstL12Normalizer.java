@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 
 /**
  * This Trainable wrapper adds additional L1 and L2 terms for weight normalization. Both coefficients are universal for
- * the network (does not depend on layer) and are setByCoord statically.
+ * the network (does not depend on key) and are setByCoord statically.
  */
 public class ConstL12Normalizer extends L12Normalizer implements SampledTrainable, TrainableDataMask {
   private double factor_L1 = 0.0;

@@ -28,14 +28,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
+ * This key works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
  * across larger png regions.
  */
 @SuppressWarnings("serial")
@@ -50,7 +47,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
   private boolean parallel = true;
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param subnetwork the subnetwork
    * @param width      the width
@@ -67,7 +64,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
   }
 
   /**
-   * Instantiates a new Img tile subnet layer.
+   * Instantiates a new Img tile subnet key.
    *
    * @param subnetwork the subnetwork
    * @param width      the width
@@ -78,7 +75,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
   }
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
@@ -94,11 +91,11 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
   }
 
   /**
-   * From json rescaled subnet layer.
+   * From json rescaled subnet key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the rescaled subnet layer
+   * @return the rescaled subnet key
    */
   public static ImgTileSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSubnetLayer(json, rs);
@@ -150,7 +147,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
 
           passback.addRef();
           tileResults[row][col] = getInner().evalAndFree(new Result(CudaTensorList.wrap(tile, length, tileDimensions, precision),
-              (DeltaSet<Layer> ctx, TensorList delta) -> {
+              (DeltaSet<UUID> ctx, TensorList delta) -> {
                 CudaSystem.run(gpu -> {
                   ImgTileSelectLayer.copy(gpu, delta, tileDimensions, -positionX, -positionY, precision, passback).freeRef();
                 });
@@ -177,7 +174,7 @@ public class ImgTileSubnetLayer extends WrapperLayer implements MultiPrecision<I
       }) {
 
         @Override
-        public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+        public void accumulate(final DeltaSet<UUID> buffer, final TensorList delta) {
           getAccumulator().accept(buffer, delta);
         }
 

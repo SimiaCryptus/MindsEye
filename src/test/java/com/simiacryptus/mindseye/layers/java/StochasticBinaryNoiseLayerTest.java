@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Product layer apply.
+ * The type Product key apply.
  */
 public abstract class StochasticBinaryNoiseLayerTest extends LayerTestBase {
 

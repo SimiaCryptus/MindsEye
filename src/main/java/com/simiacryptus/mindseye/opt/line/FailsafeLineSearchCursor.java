@@ -25,6 +25,7 @@ import com.simiacryptus.mindseye.lang.PointSample;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 
 import javax.annotation.Nonnull;
+import java.util.UUID;
 
 /**
  * A wrapper for a line search cursor which tracks the best-known point.
@@ -85,7 +86,7 @@ public class FailsafeLineSearchCursor extends LineSearchCursorBase {
   }
 
   @Override
-  public DeltaSet<Layer> position(final double alpha) {
+  public DeltaSet<UUID> position(final double alpha) {
     return direction.position(alpha);
   }
 

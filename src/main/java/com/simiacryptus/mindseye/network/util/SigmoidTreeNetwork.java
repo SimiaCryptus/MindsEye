@@ -73,7 +73,7 @@ public class SigmoidTreeNetwork extends DAGNetwork implements EvolvingNetwork {
   protected SigmoidTreeNetwork(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     super(json, rs);
     head = getNodeById(UUID.fromString(json.get("head").getAsString()));
-    Map<Object, Layer> layersById = getLayersById();
+    Map<UUID, Layer> layersById = getLayersById();
     if (json.get("alpha") != null) {
       alpha = layersById.get(UUID.fromString(json.get("alpha").getAsString()));
     }

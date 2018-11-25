@@ -29,6 +29,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -54,14 +55,8 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @return the id
    */
   @Nonnull
-  public static CharSequence getId(@Nonnull final DoubleBuffer<Layer> x) {
-    final String name = x.layer.getName();
-    @Nonnull final CharSequence className = x.layer.getClass().getSimpleName();
-    return name.contains(className) ? className : name;
-//    if(x.layer instanceof PlaceholderLayer) {
-//      return "Input";
-//    }
-//    return x.layer.toStream();
+  public static CharSequence getId(@Nonnull final DoubleBuffer<UUID> x) {
+    return x.key.toString();
   }
 
   /**
@@ -71,7 +66,7 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param dirDelta    the dir evalInputDelta
    * @return the string
    */
-  public static CharSequence render(@Nonnull final DoubleBuffer<Layer> weightDelta, @Nonnull final DoubleBuffer<Layer> dirDelta) {
+  public static CharSequence render(@Nonnull final DoubleBuffer<UUID> weightDelta, @Nonnull final DoubleBuffer<UUID> dirDelta) {
     @Nonnull final CharSequence weightString = Arrays.toString(weightDelta.getDelta());
     @Nonnull final CharSequence deltaString = Arrays.toString(dirDelta.getDelta());
     return String.format("pos: %s\nvec: %s", weightString, deltaString);
@@ -84,17 +79,17 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
    * @param direction the direction
    * @return the string
    */
-  public static CharSequence render(@Nonnull final StateSet<Layer> weights, @Nonnull final DeltaSet<Layer> direction) {
+  public static CharSequence render(@Nonnull final StateSet<UUID> weights, @Nonnull final DeltaSet<UUID> direction) {
     final Map<CharSequence, CharSequence> data = weights.stream()
         .collect(Collectors.groupingBy(x -> DescribeOrientationWrapper.getId(x), Collectors.toList())).entrySet().stream()
-        .collect(Collectors.toMap(x -> x.getKey(), (@Nonnull final Map.Entry<CharSequence, List<State<Layer>>> list) -> {
-          final List<State<Layer>> deltaList = list.getValue();
+        .collect(Collectors.toMap(x -> x.getKey(), (@Nonnull final Map.Entry<CharSequence, List<State<UUID>>> list) -> {
+          final List<State<UUID>> deltaList = list.getValue();
           if (1 == deltaList.size()) {
-            final State<Layer> weightDelta = deltaList.get(0);
-            return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
+            final State<UUID> weightDelta = deltaList.get(0);
+            return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.key));
           } else {
             return deltaList.stream().map(weightDelta -> {
-              return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.layer));
+              return DescribeOrientationWrapper.render(weightDelta, direction.getMap().get(weightDelta.key));
             }).limit(10)
                 .reduce((a, b) -> a + "\n" + b).orElse("");
           }
@@ -108,8 +103,8 @@ public class DescribeOrientationWrapper extends OrientationStrategyBase<LineSear
   public LineSearchCursor orient(final Trainable subject, final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
     final LineSearchCursor cursor = inner.orient(subject, measurement, monitor);
     if (cursor instanceof SimpleLineSearchCursor) {
-      final DeltaSet<Layer> direction = ((SimpleLineSearchCursor) cursor).direction;
-      @Nonnull final StateSet<Layer> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
+      final DeltaSet<UUID> direction = ((SimpleLineSearchCursor) cursor).direction;
+      @Nonnull final StateSet<UUID> weights = ((SimpleLineSearchCursor) cursor).origin.weights;
       final CharSequence asString = DescribeOrientationWrapper.render(weights, direction);
       monitor.log(String.format("Orientation Details: %s", asString));
     } else {

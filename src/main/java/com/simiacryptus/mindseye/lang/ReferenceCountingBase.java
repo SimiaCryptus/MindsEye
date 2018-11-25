@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
+import java.io.ObjectStreamException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -57,21 +58,25 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
     if (CoreSettings.INSTANCE() == null) throw new RuntimeException();
   }
 
-  private final UUID objectId = CoreSettings.INSTANCE().isLifecycleDebug() ? UUID.randomUUID() : jvmId;
-  private final AtomicInteger references = new AtomicInteger(1);
-  private final AtomicBoolean isFreed = new AtomicBoolean(false);
+  private transient final UUID objectId = CoreSettings.INSTANCE().isLifecycleDebug() ? UUID.randomUUID() : jvmId;
+  private transient final AtomicInteger references = new AtomicInteger(1);
+  private transient final AtomicBoolean isFreed = new AtomicBoolean(false);
   @Nullable
-  private final StackTraceElement[] createdBy = CoreSettings.INSTANCE().isLifecycleDebug() ? Thread.currentThread().getStackTrace() : null;
-  private final LinkedList<StackTraceElement[]> addRefs = new LinkedList<>();
-  private final LinkedList<StackTraceElement[]> freeRefs = new LinkedList<>();
-  private final LinkedList<UUID> addRefObjs = new LinkedList<>();
-  private final LinkedList<UUID> freeRefObjs = new LinkedList<>();
-  private volatile boolean isFinalized = false;
-  private boolean detached = false;
+  private transient final StackTraceElement[] createdBy = CoreSettings.INSTANCE().isLifecycleDebug() ? Thread.currentThread().getStackTrace() : null;
+  private transient final LinkedList<StackTraceElement[]> addRefs = new LinkedList<>();
+  private transient final LinkedList<StackTraceElement[]> freeRefs = new LinkedList<>();
+  private transient final LinkedList<UUID> addRefObjs = new LinkedList<>();
+  private transient final LinkedList<UUID> freeRefObjs = new LinkedList<>();
+  private transient volatile boolean isFinalized = false;
+  private transient boolean detached = false;
 
   @Nonnull
   private static String getString(@Nullable StackTraceElement[] trace) {
     return null == trace ? "" : Arrays.stream(trace).map(x -> "at " + x).skip(2).reduce((a, b) -> a + "\n" + b).orElse("");
+  }
+
+  protected final Object readResolve() throws ObjectStreamException {
+    return detach();
   }
 
   /**
@@ -273,7 +278,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       return;
     }
     int refs = references.decrementAndGet();
-    if (refs < 0) {
+    if (refs < 0 && !detached) {
       logger.warn(String.format("Error freeing reference for %s", getClass().getSimpleName()));
       logger.warn(referenceReport(true, isFinalized()));
       throw new LifecycleException(this);
@@ -283,7 +288,7 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
       if (CoreSettings.INSTANCE().isLifecycleDebug()) freeRefs.add(Thread.currentThread().getStackTrace());
       freeRefObjs.add(obj.getObjectId());
     }
-    if (refs == 0) {
+    if (refs == 0 && !detached) {
       if (!isFreed.getAndSet(true)) {
         try {
           _free();
@@ -330,8 +335,9 @@ public abstract class ReferenceCountingBase implements ReferenceCounting {
   /**
    * Sets floating.
    */
-  public void detach() {
+  public ReferenceCountingBase detach() {
     this.detached = true;
+    return this;
   }
 
   @Override

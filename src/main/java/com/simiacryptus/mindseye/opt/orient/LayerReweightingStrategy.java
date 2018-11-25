@@ -24,16 +24,18 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.DoubleBuffer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.ArrayUtil;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * This wrapping strategy alters the (Simple)LineCursor returned by the heapCopy strategy to effectively tune the
- * learning rate for each layer.
+ * learning rate for each key.
  */
 public abstract class LayerReweightingStrategy extends OrientationStrategyBase<SimpleLineSearchCursor> {
 
@@ -55,7 +57,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
   /**
    * Gets region policy.
    *
-   * @param layer the layer
+   * @param layer the key
    * @return the region policy
    */
   public abstract Double getRegionPolicy(Layer layer);
@@ -63,12 +65,13 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, final PointSample measurement, final TrainingMonitor monitor) {
     final SimpleLineSearchCursor orient = inner.orient(subject, measurement, monitor);
-    final DeltaSet<Layer> direction = orient.direction;
-    direction.getMap().forEach((layer, buffer) -> {
+    final DeltaSet<UUID> direction = orient.direction;
+    direction.getMap().forEach((uuid, buffer) -> {
       if (null == buffer.getDelta()) return;
+      Layer layer = ((DAGNetwork) subject.getLayer()).getLayersById().get(uuid);
       final Double weight = getRegionPolicy(layer);
       if (null != weight && 0 < weight) {
-        final DoubleBuffer<Layer> deltaBuffer = direction.get(layer, buffer.target);
+        final DoubleBuffer<UUID> deltaBuffer = direction.get(uuid, buffer.target);
         @Nonnull final double[] adjusted = ArrayUtil.multiply(deltaBuffer.getDelta(), weight);
         for (int i = 0; i < adjusted.length; i++) {
           deltaBuffer.getDelta()[i] = adjusted[i];
@@ -84,7 +87,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
   }
 
   /**
-   * The type Hash buildMap layer reweighting strategy.
+   * The type Hash buildMap key reweighting strategy.
    */
   public static class HashMapLayerReweightingStrategy extends LayerReweightingStrategy {
 
@@ -92,7 +95,7 @@ public abstract class LayerReweightingStrategy extends OrientationStrategyBase<S
     private final HashMap<Layer, Double> map = new HashMap<>();
 
     /**
-     * Instantiates a new Hash buildMap layer reweighting strategy.
+     * Instantiates a new Hash buildMap key reweighting strategy.
      *
      * @param inner the heapCopy
      */

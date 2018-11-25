@@ -33,12 +33,13 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.Stream;
 
 /**
- * This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
+ * This key multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
  * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
@@ -48,7 +49,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   private Tensor bias;
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    *
    * @param bands the bands
    */
@@ -58,7 +59,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   }
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    *
    * @param bias the bias
    */
@@ -68,7 +69,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   }
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    *
    * @param id the id
    * @param rs the rs
@@ -80,20 +81,20 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   }
 
   /**
-   * From json product inputs layer.
+   * From json product inputs key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the product inputs layer
+   * @return the product inputs key
    */
   public static ImgBandBiasLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandBiasLayer(json, rs);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -153,7 +154,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
       opDescriptor.freeRef();
       CudaTensor cudaTensor = CudaTensor.wrap(outputPtr, outputDescriptor, precision);
       return CudaTensorList.wrap(cudaTensor, length, inputDimensions, precision);
-    }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, inputData), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
         @Nonnull double[] biasDelta = CudaSystem.run(gpu -> {
           @Nullable final CudaTensor deltaTensor = gpu.getTensor(delta, precision, MemoryType.Device, false);
@@ -173,7 +174,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
           Stream.<ReferenceCounting>of(biasMem, deltaTensorMemory, deltaTensor, biasDescriptor).forEach(ReferenceCounting::freeRef);
           return biasV;
         }, delta);
-        buffer.get(ImgBandBiasLayer.this, bias).addInPlace(biasDelta).freeRef();
+        buffer.get(ImgBandBiasLayer.this.getId(), bias).addInPlace(biasDelta).freeRef();
       }
       if (input.isAlive()) {
         input.accumulate(buffer, delta);
@@ -183,7 +184,7 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
     }) {
 
       @Override
-      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+      public final void accumulate(DeltaSet<UUID> buffer, TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
 
@@ -235,10 +236,10 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   }
 
   /**
-   * Add weights img band bias layer.
+   * Add weights img band bias key.
    *
    * @param f the f
-   * @return the img band bias layer
+   * @return the img band bias key
    */
   @Nonnull
   public ImgBandBiasLayer addWeights(@Nonnull final DoubleSupplier f) {
@@ -247,10 +248,10 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   }
 
   /**
-   * Add weights img band bias layer.
+   * Add weights img band bias key.
    *
    * @param f the f
-   * @return the img band bias layer
+   * @return the img band bias key
    */
   @Nonnull
   public ImgBandBiasLayer setWeights(@Nonnull final IntToDoubleFunction f) {
@@ -283,10 +284,10 @@ public class ImgBandBiasLayer extends LayerBase implements MultiPrecision<ImgBan
   }
 
   /**
-   * Set img band bias layer.
+   * Set img band bias key.
    *
    * @param tensor the tensor
-   * @return the img band bias layer
+   * @return the img band bias key
    */
   public ImgBandBiasLayer set(final Tensor tensor) {
     bias.set(tensor);

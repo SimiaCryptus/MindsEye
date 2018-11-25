@@ -41,7 +41,7 @@ public class ImgZeroPaddingLayer extends LayerBase {
   private final int sizeY;
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param sizeX the size x
    * @param sizeY the size y
@@ -53,7 +53,7 @@ public class ImgZeroPaddingLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param json the json
    */
@@ -64,11 +64,11 @@ public class ImgZeroPaddingLayer extends LayerBase {
   }
 
   /**
-   * From json img crop layer.
+   * From json img crop key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img crop layer
+   * @return the img crop key
    */
   public static ImgZeroPaddingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgZeroPaddingLayer(json);

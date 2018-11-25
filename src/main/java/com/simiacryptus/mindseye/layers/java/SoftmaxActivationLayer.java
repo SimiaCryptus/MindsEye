@@ -26,15 +26,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.DoubleSummaryStatistics;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
- * The classic "softmax" layer. All outputs will sum to 1 and be proportional to the log of the input.
+ * The classic "softmax" key. All outputs will sum to 1 and be proportional to the log of the input.
  */
 @SuppressWarnings("serial")
 public class SoftmaxActivationLayer extends LayerBase {
@@ -47,13 +44,13 @@ public class SoftmaxActivationLayer extends LayerBase {
   double maxInput = 50;
 
   /**
-   * Instantiates a new Softmax activation layer.
+   * Instantiates a new Softmax activation key.
    */
   public SoftmaxActivationLayer() {
   }
 
   /**
-   * Instantiates a new Softmax activation layer.
+   * Instantiates a new Softmax activation key.
    *
    * @param id the id
    */
@@ -62,11 +59,11 @@ public class SoftmaxActivationLayer extends LayerBase {
   }
 
   /**
-   * From json softmax activation layer.
+   * From json softmax activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the softmax activation layer
+   * @return the softmax activation key
    */
   public static SoftmaxActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SoftmaxActivationLayer(json);
@@ -103,7 +100,7 @@ public class SoftmaxActivationLayer extends LayerBase {
       return result;
     }).toArray(i -> new Tensor[i]);
     assert Arrays.stream(outputA).flatMapToDouble(x -> Arrays.stream(x.getData())).allMatch(v -> Double.isFinite(v));
-    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passbackA = IntStream.range(0, itemCnt).mapToObj(dataIndex -> {
           Tensor deltaTensor = data.get(dataIndex);

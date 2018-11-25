@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
- * The type Simple convolution layer apply.
+ * The type Simple convolution key apply.
  */
 public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
 
@@ -61,7 +61,7 @@ public abstract class SimpleConvolutionLayerTest extends CudaLayerTestBase {
 
 
   /**
-   * Instantiates a new Simple convolution layer apply.
+   * Instantiates a new Simple convolution key apply.
    *
    * @param radius    the radius
    * @param bands     the bands

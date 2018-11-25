@@ -48,14 +48,14 @@ public class MaxDropoutNoiseLayer extends LayerBase {
   private final Function<IntArray, List<List<Coordinate>>> getCellMap_cached = Util.cache(this::getCellMap);
 
   /**
-   * Instantiates a new Max dropout noise layer.
+   * Instantiates a new Max dropout noise key.
    */
   public MaxDropoutNoiseLayer() {
     this(2, 2);
   }
 
   /**
-   * Instantiates a new Max dropout noise layer.
+   * Instantiates a new Max dropout noise key.
    *
    * @param dims the dims
    */
@@ -65,7 +65,7 @@ public class MaxDropoutNoiseLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Max dropout noise layer.
+   * Instantiates a new Max dropout noise key.
    *
    * @param json the json
    */
@@ -75,11 +75,11 @@ public class MaxDropoutNoiseLayer extends LayerBase {
   }
 
   /**
-   * From json max dropout noise layer.
+   * From json max dropout noise key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the max dropout noise layer
+   * @return the max dropout noise key
    */
   public static MaxDropoutNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxDropoutNoiseLayer(json);
@@ -114,7 +114,7 @@ public class MaxDropoutNoiseLayer extends LayerBase {
       }
       inputData.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (in0.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);

@@ -29,11 +29,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * The type Sum meta layer.
+ * The type Sum meta key.
  */
 @SuppressWarnings("serial")
 public class SumMetaLayer extends LayerBase {
@@ -46,13 +47,13 @@ public class SumMetaLayer extends LayerBase {
   private int minBatches = 1;
 
   /**
-   * Instantiates a new Sum meta layer.
+   * Instantiates a new Sum meta key.
    */
   public SumMetaLayer() {
   }
 
   /**
-   * Instantiates a new Sum meta layer.
+   * Instantiates a new Sum meta key.
    *
    * @param json      the id
    * @param resources the resources
@@ -64,11 +65,11 @@ public class SumMetaLayer extends LayerBase {
   }
 
   /**
-   * From json sum meta layer.
+   * From json sum meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the sum meta layer
+   * @return the sum meta key
    */
   public static SumMetaLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumMetaLayer(json, rs);
@@ -87,7 +88,7 @@ public class SumMetaLayer extends LayerBase {
               .sum();
       lastResult = input.getData().get(0).mapCoords(f);
     }
-    return new Result(TensorArray.wrap(lastResult), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(lastResult), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         @Nullable final Tensor delta = data.get(0);
         @Nonnull final Tensor feedback[] = new Tensor[itemCnt];

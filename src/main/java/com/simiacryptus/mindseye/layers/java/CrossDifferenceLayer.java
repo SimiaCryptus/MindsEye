@@ -27,22 +27,23 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
- * The type Cross difference layer.
+ * The type Cross difference key.
  */
 @SuppressWarnings("serial")
 public class CrossDifferenceLayer extends LayerBase {
 
   /**
-   * Instantiates a new Cross difference layer.
+   * Instantiates a new Cross difference key.
    */
   public CrossDifferenceLayer() {
   }
 
   /**
-   * Instantiates a new Cross difference layer.
+   * Instantiates a new Cross difference key.
    *
    * @param id the id
    */
@@ -51,11 +52,11 @@ public class CrossDifferenceLayer extends LayerBase {
   }
 
   /**
-   * From json cross difference layer.
+   * From json cross difference key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the cross difference layer
+   * @return the cross difference key
    */
   public static CrossDifferenceLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new CrossDifferenceLayer(json);
@@ -91,7 +92,7 @@ public class CrossDifferenceLayer extends LayerBase {
       });
       tensor.freeRef();
       return result;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       final Result input = inObj[0];
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(data.stream().parallel().map(tensor -> {

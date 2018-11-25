@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.function.DoubleSupplier;
 
 /**
- * A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all
+ * A dense matrix operator using vector-matrix multiplication. Represents a fully connected key of synapses, where all
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
@@ -65,7 +65,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   private int batchBands = 0;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   private FullyConnectedLayer() {
     outputDims = null;
@@ -74,7 +74,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   }
 
   /**
-   * Instantiates a new Fully connected layer.
+   * Instantiates a new Fully connected key.
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims
@@ -94,7 +94,7 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -109,11 +109,11 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static FullyConnectedLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new FullyConnectedLayer(json, rs);
@@ -132,10 +132,10 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   }
 
   /**
-   * Set fully connected layer.
+   * Set fully connected key.
    *
    * @param data the data
-   * @return the fully connected layer
+   * @return the fully connected key
    */
   @Nonnull
   public FullyConnectedLayer set(@Nonnull final Tensor data) {
@@ -156,9 +156,9 @@ public class FullyConnectedLayer extends LayerBase implements MultiPrecision<Ful
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {

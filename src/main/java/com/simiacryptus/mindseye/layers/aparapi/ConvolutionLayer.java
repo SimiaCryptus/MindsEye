@@ -29,12 +29,13 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
- * This convolution layer is often used as the reference implementation for other convolution implementation. It uses
+ * This convolution key is often used as the reference implementation for other convolution implementation. It uses
  * OpenCL via Aparapi to compile Java into GPU-accellerated kernels. Due to its simple implementation and limitations of
  * Aparapi, it is not as fast as CudaSystem-powered layers.
  */
@@ -54,14 +55,14 @@ public class ConvolutionLayer extends LayerBase {
 
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    */
   protected ConvolutionLayer() {
     this(null, true);
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param width  the width
    * @param height the height
@@ -72,7 +73,7 @@ public class ConvolutionLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param width  the width
    * @param height the height
@@ -86,7 +87,7 @@ public class ConvolutionLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param width       the width
    * @param height      the height
@@ -98,7 +99,7 @@ public class ConvolutionLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param width       the width
    * @param height      the height
@@ -111,7 +112,7 @@ public class ConvolutionLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param json      the json
    * @param resources the resources
@@ -126,7 +127,7 @@ public class ConvolutionLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param kernel the kernel
    * @param simple the simple
@@ -145,21 +146,21 @@ public class ConvolutionLayer extends LayerBase {
   }
 
   /**
-   * From json convolution layer.
+   * From json convolution key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the convolution layer
+   * @return the convolution key
    */
   public static ConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ConvolutionLayer(json, rs);
   }
 
   /**
-   * Add weights convolution layer.
+   * Add weights convolution key.
    *
    * @param f the f
-   * @return the convolution layer
+   * @return the convolution key
    */
   @Nonnull
   public ConvolutionLayer addWeights(@Nonnull final DoubleSupplier f) {
@@ -194,7 +195,7 @@ public class ConvolutionLayer extends LayerBase {
       throw new RuntimeException("Error mapCoords png res " + Arrays.toString(inputDims), e);
     }
     int outputLength = output.length;
-    return new Result(TensorArray.wrap(output), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+    return new Result(TensorArray.wrap(output), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList error) -> {
       if (!isFrozen()) {
         final double[][] inputBuffers = batch.stream().map(x -> {
           @Nullable double[] data = x.getData();
@@ -209,7 +210,7 @@ public class ConvolutionLayer extends LayerBase {
         @Nonnull final Tensor weightGradient = new Tensor(kernelDims);
         convolutionController.gradient(inputBuffers, weightGradient.getData(), outputBuffers);
 
-        buffer.get(ConvolutionLayer.this, kernelData).addInPlace(weightGradient.getData()).freeRef();
+        buffer.get(ConvolutionLayer.this.getId(), kernelData).addInPlace(weightGradient.getData()).freeRef();
         weightGradient.freeRef();
       }
       if (input.isAlive()) {

@@ -37,7 +37,7 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 /**
- * The type Convolution layer apply.
+ * The type Convolution key apply.
  */
 public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
 
@@ -54,7 +54,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
    */
   final int radius;
   /**
-   * The Convolution layer.
+   * The Convolution key.
    */
   ConvolutionLayer convolutionLayer;
   /**
@@ -67,7 +67,7 @@ public abstract class ConvolutionLayerTest extends CudaLayerTestBase {
   int largeSize;
 
   /**
-   * Instantiates a new Convolution layer apply.
+   * Instantiates a new Convolution key apply.
    *
    * @param radius      the radius
    * @param inputBands  the input bands

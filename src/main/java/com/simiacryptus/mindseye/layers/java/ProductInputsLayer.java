@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -36,13 +37,13 @@ import java.util.stream.IntStream;
 public class ProductInputsLayer extends LayerBase {
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    */
   public ProductInputsLayer() {
   }
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    *
    * @param id the id
    */
@@ -51,11 +52,11 @@ public class ProductInputsLayer extends LayerBase {
   }
 
   /**
-   * From json product inputs layer.
+   * From json product inputs key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the product inputs layer
+   * @return the product inputs key
    */
   public static ProductInputsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ProductInputsLayer(json);
@@ -91,7 +92,7 @@ public class ProductInputsLayer extends LayerBase {
       l.freeRef();
       r.freeRef();
       return productArray;
-    }).get(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).get(), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       for (@Nonnull final Result input : inObj) {
         if (input.isAlive()) {
           @Nonnull TensorList passback = Arrays.stream(inObj).parallel().map(x -> {

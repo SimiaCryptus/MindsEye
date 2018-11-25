@@ -31,7 +31,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
@@ -100,7 +102,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public ToleranceStatistics testInterGpu(final NotebookOutput log, @Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     log.h2("Multi-GPU Compatibility");
-    log.p("This layer should be able to apply using a GPU context other than the one used to create the inputs.");
+    log.p("This key should be able to apply using a GPU context other than the one used to create the inputs.");
     return log.eval(() -> {
       final TensorList[] heapInput = Arrays.stream(inputPrototype).map(t ->
           TensorArray.wrap(IntStream.range(0, getBatchSize()).mapToObj(i -> t.map(v -> getRandom()))
@@ -145,7 +147,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   @Nonnull
   public ToleranceStatistics testNonstandardBounds(final NotebookOutput log, @Nullable final Layer reference, @Nonnull final Tensor[] inputPrototype) {
     log.h2("Irregular Input");
-    log.p("This layer should be able to accept non-dense inputs.");
+    log.p("This key should be able to accept non-dense inputs.");
     return log.eval(() -> {
       Tensor[] randomized = Arrays.stream(inputPrototype).map(x -> x.map(v -> getRandom())).toArray(i -> new Tensor[i]);
       logger.info("Input: " + Arrays.stream(randomized).map(Tensor::prettyPrint).collect(Collectors.toList()));
@@ -190,14 +192,14 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
    * Test nonstandard bounds backprop tolerance statistics.
    *
    * @param log            the log
-   * @param layer          the layer
+   * @param layer          the key
    * @param inputPrototype the input prototype
    * @return the tolerance statistics
    */
   @Nonnull
   public ToleranceStatistics testNonstandardBoundsBackprop(final NotebookOutput log, @Nullable final Layer layer, @Nonnull final Tensor[] inputPrototype) {
     log.h2("Irregular Backprop");
-    log.p("This layer should accept non-dense tensors as evalInputDelta input.");
+    log.p("This key should accept non-dense tensors as evalInputDelta input.");
     return log.eval(() -> {
       Tensor[] randomized = Arrays.stream(inputPrototype).map(x -> x.map(v -> getRandom())).toArray(i -> new Tensor[i]);
       logger.info("Input: " + Arrays.stream(randomized).map(Tensor::prettyPrint).collect(Collectors.toList()));
@@ -314,7 +316,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   }
 
   /**
-   * Compare layer derivatives tolerance statistics.
+   * Compare key derivatives tolerance statistics.
    *
    * @param expected the expected
    * @param actual   the actual
@@ -323,7 +325,7 @@ public class CudaLayerTester extends ComponentTestBase<ToleranceStatistics> {
   @Nullable
   public ToleranceStatistics compareLayerDerivatives(final SimpleResult expected, final SimpleResult actual) {
     @Nonnull final ToleranceStatistics derivativeAgreement = IntStream.range(0, getBatchSize()).mapToObj(batch -> {
-      @Nonnull Function<Layer, ToleranceStatistics> compareInputDerivative = input -> {
+      @Nonnull Function<UUID, ToleranceStatistics> compareInputDerivative = input -> {
         double[] b = actual.getLayerDerivative().getMap().get(input).getDelta();
         double[] a = expected.getLayerDerivative().getMap().get(input).getDelta();
         ToleranceStatistics statistics = new ToleranceStatistics().accumulate(a, b);

@@ -27,6 +27,7 @@ import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
 import javax.annotation.Nonnull;
+import java.util.UUID;
 
 /**
  * The most basic type of orientation, which uses the raw function gradient.
@@ -36,7 +37,7 @@ public class GradientDescent extends OrientationStrategyBase<SimpleLineSearchCur
   @Nonnull
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, @Nonnull final TrainingMonitor monitor) {
-    @Nonnull final DeltaSet<Layer> direction = measurement.delta.scale(-1);
+    @Nonnull final DeltaSet<UUID> direction = measurement.delta.scale(-1);
     final double magnitude = direction.getMagnitude();
     if (Math.abs(magnitude) < 1e-10) {
       monitor.log(String.format("Zero gradient: %s", magnitude));

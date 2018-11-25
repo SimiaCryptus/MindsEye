@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.opt;
 
 import com.simiacryptus.mindseye.eval.Trainable;
 import com.simiacryptus.mindseye.lang.*;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.line.LineSearchStrategy;
 import com.simiacryptus.mindseye.opt.line.QuadraticSearch;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
@@ -36,11 +37,12 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This trains a subject apply a diagnostic goal: trainCjGD each layer individually, and measureStyle the ideal rate for each
+ * This trains a subject apply a diagnostic goal: trainCjGD each key individually, and measureStyle the ideal rate for each
  * phase. This can indicate how balanced a network is, and how to trainCjGD it.
  */
 public class LayerRateDiagnosticTrainer {
@@ -69,11 +71,15 @@ public class LayerRateDiagnosticTrainer {
     setOrientation(new GradientDescent());
   }
 
+  public Layer toLayer(UUID id) {
+    return ((DAGNetwork)subject.getLayer()).getLayersById().get(id);
+  }
+
   @Nonnull
-  private DeltaSet<Layer> filterDirection(@Nonnull final DeltaSet<Layer> direction, @Nonnull final Layer layer) {
-    @Nonnull final DeltaSet<Layer> maskedDelta = new DeltaSet<Layer>();
+  private DeltaSet<UUID> filterDirection(@Nonnull final DeltaSet<UUID> direction, @Nonnull final Layer layer) {
+    @Nonnull final DeltaSet<UUID> maskedDelta = new DeltaSet<UUID>();
     direction.getMap().forEach((layer2, delta) -> maskedDelta.get(layer2, delta.target));
-    maskedDelta.get(layer, layer.state().get(0)).addInPlace(direction.get(layer, (double[]) null).getDelta());
+    maskedDelta.get(layer.getId(), layer.state().get(0)).addInPlace(direction.get(layer.getId(), (double[]) null).getDelta());
     return maskedDelta;
   }
 
@@ -120,9 +126,9 @@ public class LayerRateDiagnosticTrainer {
   }
 
   /**
-   * Gets layer rates.
+   * Gets key rates.
    *
-   * @return the layer rates
+   * @return the key rates
    */
   @Nonnull
   public Map<Layer, LayerStats> getLayerRates() {
@@ -291,7 +297,7 @@ public class LayerRateDiagnosticTrainer {
   public Map<Layer, LayerStats> run() {
     final long timeoutMs = System.currentTimeMillis() + timeout.toMillis();
     PointSample measure = measure();
-    @Nonnull final ArrayList<Layer> layers = new ArrayList<>(measure.weights.getMap().keySet());
+    @Nonnull final ArrayList<UUID> layers = new ArrayList<>(measure.weights.getMap().keySet());
     while (timeoutMs > System.currentTimeMillis() && measure.sum > terminateThreshold) {
       if (currentIteration.get() > maxIterations) {
         break;
@@ -307,15 +313,15 @@ public class LayerRateDiagnosticTrainer {
         {
           @Nonnull final SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
           final double stepSize = 1e-12 * orient.origin.sum;
-          @Nonnull final DeltaSet<Layer> pointB = orient.step(stepSize, monitor).point.delta.copy();
-          @Nonnull final DeltaSet<Layer> pointA = orient.step(0.0, monitor).point.delta.copy();
-          @Nonnull final DeltaSet<Layer> d1 = pointA;
-          @Nonnull final DeltaSet<Layer> d2 = d1.add(pointB.scale(-1)).scale(1.0 / stepSize);
-          @Nonnull final Map<Layer, Double> steps = new HashMap<>();
+          @Nonnull final DeltaSet<UUID> pointB = orient.step(stepSize, monitor).point.delta.copy();
+          @Nonnull final DeltaSet<UUID> pointA = orient.step(0.0, monitor).point.delta.copy();
+          @Nonnull final DeltaSet<UUID> d1 = pointA;
+          @Nonnull final DeltaSet<UUID> d2 = d1.add(pointB.scale(-1)).scale(1.0 / stepSize);
+          @Nonnull final Map<UUID, Double> steps = new HashMap<>();
           final double overallStepEstimate = d1.getMagnitude() / d2.getMagnitude();
-          for (final Layer layer : layers) {
-            final DoubleBuffer<Layer> a = d2.get(layer, (double[]) null);
-            final DoubleBuffer<Layer> b = d1.get(layer, (double[]) null);
+          for (final UUID layer : layers) {
+            final DoubleBuffer<UUID> a = d2.get(layer, (double[]) null);
+            final DoubleBuffer<UUID> b = d1.get(layer, (double[]) null);
             final double bmag = Math.sqrt(b.deltaStatistics().sumSq());
             final double amag = Math.sqrt(a.deltaStatistics().sumSq());
             final double dot = a.dot(b) / (amag * bmag);
@@ -330,11 +336,12 @@ public class LayerRateDiagnosticTrainer {
         @Nullable SimpleLineSearchCursor bestOrient = null;
         @Nullable PointSample bestPoint = null;
 layerLoop:
-        for (@Nonnull final Layer layer : layers) {
+        for (@Nonnull final UUID id : layers) {
+          Layer layer = toLayer(id);
           @Nonnull SimpleLineSearchCursor orient = (SimpleLineSearchCursor) getOrientation().orient(subject, measure, monitor);
-          @Nonnull final DeltaSet<Layer> direction = filterDirection(orient.direction, layer);
+          @Nonnull final DeltaSet<UUID> direction = filterDirection(orient.direction, layer);
           if (direction.getMagnitude() == 0) {
-            monitor.log(String.format("Zero derivative for layer %s; skipping", layer));
+            monitor.log(String.format("Zero derivative for key %s; skipping", layer));
             continue layerLoop;
           }
           orient = new SimpleLineSearchCursor(orient.subject, orient.origin, direction);
@@ -342,7 +349,7 @@ layerLoop:
           measure = getLineSearchStrategy().step(orient, monitor);
           if (isStrict()) {
             monitor.log(String.format("Iteration %s reverting. Error: %s", currentIteration.get(), measure.sum));
-            monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
+            monitor.log(String.format("Optimal rate for key %s: %s", layer.getName(), measure.getRate()));
             if (null == bestPoint || bestPoint.sum < measure.sum) {
               bestOrient = orient;
               bestPoint = measure;
@@ -354,7 +361,7 @@ layerLoop:
             monitor.log(String.format("Iteration %s failed. Error: %s", currentIteration.get(), measure.sum));
           } else {
             monitor.log(String.format("Iteration %s complete. Error: %s", currentIteration.get(), measure.sum));
-            monitor.log(String.format("Optimal rate for layer %s: %s", layer.getName(), measure.getRate()));
+            monitor.log(String.format("Optimal rate for key %s: %s", layer.getName(), measure.getRate()));
             getLayerRates().put(layer, new LayerStats(measure.getRate(), initialPhasePoint.sum - measure.sum));
           }
         }

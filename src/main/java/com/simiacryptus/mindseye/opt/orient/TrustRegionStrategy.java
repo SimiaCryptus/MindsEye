@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.DeltaSet;
 import com.simiacryptus.mindseye.lang.DoubleBuffer;
 import com.simiacryptus.mindseye.lang.Layer;
 import com.simiacryptus.mindseye.lang.PointSample;
+import com.simiacryptus.mindseye.network.DAGNetwork;
 import com.simiacryptus.mindseye.opt.TrainingMonitor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursor;
 import com.simiacryptus.mindseye.opt.line.LineSearchCursorBase;
@@ -36,12 +37,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
  * A generalization of the OWL-QN algorithm, this wrapping strategy projects an heapCopy cursor to the interior of a
- * trust region, which can be defined per-layer. Any simple orientation strategy can be used as the heapCopy, most
+ * trust region, which can be defined per-key. Any simple orientation strategy can be used as the heapCopy, most
  * commonly either GD or LBFGS. Many trust regions can be defined; see the com.simiacryptus.mindseye.opt.region
  * package.
  */
@@ -78,7 +80,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
    * @param b the b
    * @return the double
    */
-  public static double dot(@Nonnull final List<DoubleBuffer<Layer>> a, @Nonnull final List<DoubleBuffer<Layer>> b) {
+  public static double dot(@Nonnull final List<DoubleBuffer<UUID>> a, @Nonnull final List<DoubleBuffer<UUID>> b) {
     assert a.size() == b.size();
     return IntStream.range(0, a.size()).mapToDouble(i -> a.get(i).dot(b.get(i))).sum();
   }
@@ -112,7 +114,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
   /**
    * Gets the Trust Region for a particular LayerBase
    *
-   * @param layer the layer
+   * @param layer the key
    * @return the region policy
    */
   public abstract TrustRegion getRegionPolicy(Layer layer);
@@ -134,28 +136,32 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
 
       @Nonnull
       @Override
-      public DeltaSet<Layer> position(final double alpha) {
+      public DeltaSet<UUID> position(final double alpha) {
         reset();
-        @Nonnull final DeltaSet<Layer> adjustedPosVector = cursor.position(alpha);
+        @Nonnull final DeltaSet<UUID> adjustedPosVector = cursor.position(alpha);
         project(adjustedPosVector, new TrainingMonitor());
         return adjustedPosVector;
       }
 
+      public Layer toLayer(UUID id) {
+        return ((DAGNetwork)subject.getLayer()).getLayersById().get(id);
+      }
+
       @Nonnull
-      public DeltaSet<Layer> project(@Nonnull final DeltaSet<Layer> deltaIn, final TrainingMonitor monitor) {
-        final DeltaSet<Layer> originalAlphaDerivative = cursor.direction;
-        @Nonnull final DeltaSet<Layer> newAlphaDerivative = originalAlphaDerivative.copy();
-        deltaIn.getMap().forEach((layer, buffer) -> {
+      public DeltaSet<UUID> project(@Nonnull final DeltaSet<UUID> deltaIn, final TrainingMonitor monitor) {
+        final DeltaSet<UUID> originalAlphaDerivative = cursor.direction;
+        @Nonnull final DeltaSet<UUID> newAlphaDerivative = originalAlphaDerivative.copy();
+        deltaIn.getMap().forEach((id, buffer) -> {
           @Nullable final double[] delta = buffer.getDelta();
           if (null == delta) return;
           final double[] currentPosition = buffer.target;
-          @Nullable final double[] originalAlphaD = originalAlphaDerivative.get(layer, currentPosition).getDeltaAndFree();
-          @Nullable final double[] newAlphaD = newAlphaDerivative.get(layer, currentPosition).getDeltaAndFree();
+          @Nullable final double[] originalAlphaD = originalAlphaDerivative.get(id, currentPosition).getDeltaAndFree();
+          @Nullable final double[] newAlphaD = newAlphaDerivative.get(id, currentPosition).getDeltaAndFree();
           @Nonnull final double[] proposedPosition = ArrayUtil.add(currentPosition, delta);
-          final TrustRegion region = getRegionPolicy(layer);
+          final TrustRegion region = getRegionPolicy(toLayer(id));
           if (null != region) {
             final Stream<double[]> zz = history.stream().map((@Nonnull final PointSample x) -> {
-              final DoubleBuffer<Layer> d = x.weights.getMap().get(layer);
+              final DoubleBuffer<UUID> d = x.weights.getMap().get(id);
               @Nullable final double[] z = null == d ? null : d.getDelta();
               return z;
             });
@@ -166,7 +172,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
               }
               @Nonnull final double[] normal = ArrayUtil.subtract(projectedPosition, proposedPosition);
               final double normalMagSq = ArrayUtil.dot(normal, normal);
-//              monitor.log(String.format("%s: evalInputDelta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", layer,
+//              monitor.log(String.format("%s: evalInputDelta = %s, projectedPosition = %s, proposedPosition = %s, currentPosition = %s, normalMagSq = %s", key,
 //                ArrayUtil.dot(evalInputDelta,evalInputDelta),
 //                ArrayUtil.dot(projectedPosition,projectedPosition),
 //                ArrayUtil.dot(proposedPosition,proposedPosition),
@@ -183,7 +189,7 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
 //                  double originalAlphaDerivSq = ArrayUtil.dot(originalAlphaD, originalAlphaD);
 //                  assert(newAlphaDerivSq <= originalAlphaDerivSq);
 //                  assert(Math.abs(ArrayUtil.dot(tangent, normal)) <= 1e-4);
-//                  monitor.log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", layer, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
+//                  monitor.log(String.format("%s: normalMagSq = %s, newAlphaDerivSq = %s, originalAlphaDerivSq = %s", key, normalMagSq, newAlphaDerivSq, originalAlphaDerivSq));
                 }
               }
 
@@ -203,8 +209,8 @@ public abstract class TrustRegionStrategy extends OrientationStrategyBase<LineSe
       @Override
       public LineSearchPoint step(final double alpha, final TrainingMonitor monitor) {
         cursor.reset();
-        @Nonnull final DeltaSet<Layer> adjustedPosVector = cursor.position(alpha);
-        @Nonnull final DeltaSet<Layer> adjustedGradient = project(adjustedPosVector, monitor);
+        @Nonnull final DeltaSet<UUID> adjustedPosVector = cursor.position(alpha);
+        @Nonnull final DeltaSet<UUID> adjustedGradient = project(adjustedPosVector, monitor);
         adjustedPosVector.accumulate(1);
         adjustedPosVector.freeRef();
         @Nonnull final PointSample sample = subject.measure(monitor).setRate(alpha);

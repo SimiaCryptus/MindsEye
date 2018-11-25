@@ -66,7 +66,7 @@ public class CudaSystem {
   /**
    * The constant propertyCache.
    */
-  protected static final ConcurrentHashMap<Integer, cudaDeviceProp> propertyCache = new ConcurrentHashMap<>();
+  protected static final Map<Integer, cudaDeviceProp> propertyCache = new ConcurrentHashMap<>();
   /**
    * The constant currentDevice.
    */

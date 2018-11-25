@@ -94,8 +94,8 @@ public class ImageDecompositionLab {
    *
    * @param log              the log
    * @param features         the features
-   * @param convolutionLayer the convolution layer
-   * @param biasLayer        the bias layer
+   * @param convolutionLayer the convolution key
+   * @param biasLayer        the bias key
    */
   protected void initialize(final NotebookOutput log, @Nonnull final Supplier<Stream<Tensor[]>> features, @Nonnull final ConvolutionLayer convolutionLayer, @Nonnull final ImgBandBiasLayer biasLayer) {
     final Tensor prototype = features.get().findAny().get()[1];
@@ -230,7 +230,7 @@ public class ImageDecompositionLab {
   }
 
   /**
-   * The type Add layer runStep.
+   * The type Add key runStep.
    */
   protected class AddLayerStep {
     /**
@@ -242,12 +242,12 @@ public class ImageDecompositionLab {
      */
     public final int band2;
     /**
-     * The Bias layer.
+     * The Bias key.
      */
     @Nonnull
     public final ImgBandBiasLayer biasLayer;
     /**
-     * The Convolution layer.
+     * The Convolution key.
      */
     @Nonnull
     public final ConvolutionLayer convolutionLayer;
@@ -310,12 +310,12 @@ public class ImageDecompositionLab {
     private final int fromSize;
 
     /**
-     * Instantiates a new Add layer runStep.
+     * Instantiates a new Add key runStep.
      *
      * @param log             the log
      * @param trainingData    the training data
      * @param priorModel      the prior model
-     * @param layerNumber     the layer number
+     * @param layerNumber     the key number
      * @param fromSize        the from size
      * @param pretrainMinutes the pretrain minutes
      * @param timeoutMinutes  the timeout minutes
@@ -394,9 +394,9 @@ public class ImageDecompositionLab {
     }
 
     /**
-     * Invoke add layer runStep.
+     * Invoke add key runStep.
      *
-     * @return the add layer runStep
+     * @return the add key runStep
      */
     @Nonnull
     public AddLayerStep invoke() {
@@ -475,12 +475,12 @@ public class ImageDecompositionLab {
      */
     public final int band1;
     /**
-     * The Bias layer.
+     * The Bias key.
      */
     @Nonnull
     public final ImgBandBiasLayer biasLayer;
     /**
-     * The Convolution layer.
+     * The Convolution key.
      */
     @Nonnull
     public final ConvolutionLayer convolutionLayer;

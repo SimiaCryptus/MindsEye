@@ -34,12 +34,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * A local-pooling layer which sets all elements to the average value.
+ * A local-pooling key which sets all elements to the average value.
  */
 @SuppressWarnings("serial")
 public class AvgPoolingLayer extends LayerBase {
@@ -55,14 +56,14 @@ public class AvgPoolingLayer extends LayerBase {
 
 
   /**
-   * Instantiates a new Avg subsample layer.
+   * Instantiates a new Avg subsample key.
    */
   protected AvgPoolingLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Avg subsample layer.
+   * Instantiates a new Avg subsample key.
    *
    * @param kernelDims the kernel dims
    */
@@ -72,7 +73,7 @@ public class AvgPoolingLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Avg subsample layer.
+   * Instantiates a new Avg subsample key.
    *
    * @param id         the id
    * @param kernelDims the kernel dims
@@ -83,11 +84,11 @@ public class AvgPoolingLayer extends LayerBase {
   }
 
   /**
-   * From json avg subsample layer.
+   * From json avg subsample key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the avg subsample layer
+   * @return the avg subsample key
    */
   public static AvgPoolingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AvgPoolingLayer(json,
@@ -127,7 +128,7 @@ public class AvgPoolingLayer extends LayerBase {
       return output;
     }).toArray(i -> new Tensor[i]);
     Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    return new Result(TensorArray.wrap(outputValues), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    return new Result(TensorArray.wrap(outputValues), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (inObj[0].isAlive()) {
         final Tensor[] passback = IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           @Nullable Tensor tensor = delta.get(dataIndex);

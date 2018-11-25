@@ -19,6 +19,7 @@
 
 package com.simiacryptus.mindseye.layers.java;
 
+import com.google.common.hash.Hashing;
 import com.google.gson.JsonObject;
 import com.simiacryptus.mindseye.lang.DataSerializer;
 import com.simiacryptus.mindseye.lang.LayerBase;
@@ -29,9 +30,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * An ephemeral, non-serializable, non-evaluatable layer. Used when a layer is required as an identifier, e.g. DeltaSet
+ * An ephemeral, non-serializable, non-evaluatable key. Used when a key is required as an identifier, e.g. DeltaSet
  *
  * @param <T> the type parameter
  */
@@ -42,7 +44,7 @@ public final class PlaceholderLayer<T> extends LayerBase {
   private final T key;
 
   /**
-   * Instantiates a new Placeholder layer.
+   * Instantiates a new Placeholder key.
    *
    * @param key the key
    */
@@ -63,8 +65,9 @@ public final class PlaceholderLayer<T> extends LayerBase {
 
   @Nullable
   @Override
-  public Object getId() {
-    return this.getKey();
+  public UUID getId() {
+    T key = this.getKey();
+    return key==null?UUID.randomUUID():UUID.fromString(key.toString());
   }
 
   @Nonnull

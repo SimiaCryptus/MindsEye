@@ -32,6 +32,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -77,7 +79,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     for (int j = 0; j < outputPrototype.length(); j++) {
       final int j_ = j;
       @Nonnull final PlaceholderLayer<Tensor> inputKey = new PlaceholderLayer<Tensor>(new Tensor());
-      @Nonnull final Result copyInput = new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+      @Nonnull final Result copyInput = new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
         @Nonnull final Tensor gradientBuffer = new Tensor(inputDims, outputPrototype.length());
         if (!Arrays.equals(inputTensor.getDimensions(), data.get(inputIndex).getDimensions())) {
           throw new AssertionError();
@@ -85,7 +87,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
         for (int i = 0; i < inputDims; i++) {
           gradientBuffer.set(new int[]{i, j_}, data.get(inputIndex).getData()[i]);
         }
-        buffer.get(inputKey, new double[gradientBuffer.length()]).addInPlace(gradientBuffer.getData());
+        buffer.get(inputKey.getId(), new double[gradientBuffer.length()]).addInPlace(gradientBuffer.getData());
       }) {
 
         @Override
@@ -95,14 +97,14 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
 
       };
       @Nullable final Result eval = component.eval(copyInput);
-      @Nonnull final DeltaSet<Layer> xxx = new DeltaSet<Layer>();
+      @Nonnull final DeltaSet<UUID> xxx = new DeltaSet<UUID>();
       @Nonnull TensorArray tensorArray = TensorArray.wrap(eval.getData().stream().map(x -> {
         @Nonnull Tensor set = x.set(j_, 1);
         x.freeRef();
         return set;
       }).toArray(i -> new Tensor[i]));
       eval.accumulate(xxx, tensorArray);
-      final Delta<Layer> inputDelta = xxx.getMap().get(inputKey);
+      final Delta<UUID> inputDelta = xxx.getMap().get(inputKey);
       if (null != inputDelta) {
         result.addInPlace(new Tensor(inputDelta.getDelta(), result.getDimensions()));
       }
@@ -118,13 +120,13 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
     @Nonnull final Tensor gradient = new Tensor(stateLen, outputPrototype.length());
     for (int j = 0; j < outputPrototype.length(); j++) {
       final int j_ = j;
-      @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
+      @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
       @Nonnull final Tensor data = new Tensor(outputPrototype.getDimensions()).set((k) -> k == j_ ? 1 : 0);
       @Nullable final Result eval = component.eval(ConstantResult.singleResultArray(new Tensor[][]{inputPrototype}));
       eval.getData().get(0);
       @Nonnull TensorArray tensorArray = TensorArray.wrap(data);
       eval.accumulate(buffer, tensorArray);
-      final DoubleBuffer<Layer> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
+      final DoubleBuffer<UUID> deltaFlushBuffer = buffer.getMap().values().stream().filter(x -> x.target == stateArray).findFirst().orElse(null);
       if (null != deltaFlushBuffer) {
         for (int i = 0; i < stateLen; i++) {
           gradient.set(new int[]{i, j_}, deltaFlushBuffer.getDelta()[i]);
@@ -433,7 +435,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   public void testFrozen(@Nonnull final Layer component, @Nonnull final Tensor[] inputPrototype) {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     @Nonnull final Layer frozen = component.copy().freeze();
-    @Nullable final Result eval = frozen.eval(new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    @Nullable final Result eval = frozen.eval(new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
 
@@ -444,10 +446,10 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
 
 
     });
-    @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
+    @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     TensorList tensorList = eval.getData().copy();
     eval.accumulate(buffer, tensorList);
-    final List<Delta<Layer>> deltas = component.state().stream().map(doubles -> {
+    final List<Delta<UUID>> deltas = component.state().stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
     if (!deltas.isEmpty() && !component.state().isEmpty()) {
@@ -468,7 +470,7 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
   public void testUnFrozen(@Nonnull final Layer component, final Tensor[] inputPrototype) {
     @Nonnull final AtomicBoolean reachedInputFeedback = new AtomicBoolean(false);
     @Nonnull final Layer frozen = component.copy().setFrozen(false);
-    @Nullable final Result eval = frozen.eval(new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    @Nullable final Result eval = frozen.eval(new Result(TensorArray.create(inputPrototype), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       reachedInputFeedback.set(true);
     }) {
 
@@ -478,11 +480,11 @@ public class BatchDerivativeTester extends ComponentTestBase<ToleranceStatistics
       }
 
     });
-    @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
+    @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     TensorList data = eval.getData();
     eval.accumulate(buffer, data);
     @Nullable final List<double[]> stateList = frozen.state();
-    final List<Delta<Layer>> deltas = stateList.stream().map(doubles -> {
+    final List<Delta<UUID>> deltas = stateList.stream().map(doubles -> {
       return buffer.stream().filter(x -> x.target == doubles).findFirst().orElse(null);
     }).filter(x -> x != null).collect(Collectors.toList());
     if (deltas.isEmpty() && !stateList.isEmpty()) {

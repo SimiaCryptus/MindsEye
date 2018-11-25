@@ -17,23 +17,36 @@
  * under the License.
  */
 
-package com.simiacryptus.mindseye.applications;
+package com.simiacryptus.mindseye.layers.java;
 
-import com.simiacryptus.mindseye.models.CVPipe_VGG19;
+import com.simiacryptus.mindseye.lang.Layer;
+import com.simiacryptus.mindseye.lang.Tensor;
+import com.simiacryptus.mindseye.layers.LayerTestBase;
 
 import javax.annotation.Nonnull;
+import java.util.Random;
 
 /**
- * The type Artistry app base vgg 19.
+ * The type Target value key apply.
  */
-public abstract class ArtistryAppBase_VGG19 extends ArtistryAppBase {
+public class ValueLayerTest {
   /**
-   * Gets target class.
-   *
-   * @return the target class
+   * Basic apply.
    */
-  @Nonnull
-  protected final Class<?> getTargetClass() {
-    return CVPipe_VGG19.class;
+  public static class Normal extends LayerTestBase {
+
+    @Nonnull
+    @Override
+    public int[][] getSmallDims(Random random) {
+      return new int[][]{};
+    }
+
+
+    @Nonnull
+    @Override
+    public Layer getLayer(final int[][] inputSize, Random random) {
+      return new ValueLayer(new Tensor(0.1));
+    }
   }
+
 }

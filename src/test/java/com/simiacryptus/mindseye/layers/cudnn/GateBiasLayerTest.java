@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Product layer apply.
+ * The type Product key apply.
  */
 public abstract class GateBiasLayerTest extends CudaLayerTestBase {
 
@@ -37,7 +37,7 @@ public abstract class GateBiasLayerTest extends CudaLayerTestBase {
   final Precision precision;
 
   /**
-   * Instantiates a new Product layer apply.
+   * Instantiates a new Product key apply.
    *
    * @param precision the precision
    */

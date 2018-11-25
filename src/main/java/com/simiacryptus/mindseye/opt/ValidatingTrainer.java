@@ -122,20 +122,18 @@ public class ValidatingTrainer {
   }
 
   @Nonnull
-  private static CharSequence getId(@Nonnull final DoubleBuffer<Layer> x) {
-    final String name = x.layer.getName();
-    @Nonnull final CharSequence className = x.layer.getClass().getSimpleName();
-    return name.contains(className) ? className : name;
+  private static CharSequence getId(@Nonnull final DoubleBuffer<UUID> x) {
+    return x.key.toString();
   }
 
   private String compare(@Nonnull final PointSample previousPoint, @Nonnull final PointSample nextPoint) {
-    @Nonnull final StateSet<Layer> nextWeights = nextPoint.weights;
-    @Nonnull final StateSet<Layer> prevWeights = previousPoint.weights;
+    @Nonnull final StateSet<UUID> nextWeights = nextPoint.weights;
+    @Nonnull final StateSet<UUID> prevWeights = previousPoint.weights;
     return String.format("Overall network state change: %s", prevWeights.stream()
-        .collect(Collectors.groupingBy(x -> ValidatingTrainer.getId(x), Collectors.toList())).entrySet().stream()
+        .collect(Collectors.groupingBy(x -> x, Collectors.toList())).entrySet().stream()
         .collect(Collectors.toMap(x -> x.getKey(), list -> {
           final List<Double> doubleList = list.getValue().stream().map(prevWeight -> {
-            final DoubleBuffer<Layer> dirDelta = nextWeights.getMap().get(prevWeight.layer);
+            final DoubleBuffer<UUID> dirDelta = nextWeights.getMap().get(prevWeight.key);
             final double numerator = prevWeight.deltaStatistics().rms();
             final double denominator = null == dirDelta ? 0 : dirDelta.deltaStatistics().rms();
             return numerator / (0 == denominator ? 1 : denominator);

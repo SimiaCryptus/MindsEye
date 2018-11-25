@@ -34,6 +34,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -173,8 +175,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
 
   /**
    * Test.
-   *
-   * @param log
+   *  @param log
    * @param component      the component
    * @param inputPrototype the input prototype
    */
@@ -219,7 +220,7 @@ public class PerformanceTester extends ComponentTestBase<ToleranceStatistics> {
       return result;
     });
     final Result result = timedEval.result;
-    @Nonnull final DeltaSet<Layer> buffer = new DeltaSet<Layer>();
+    @Nonnull final DeltaSet<UUID> buffer = new DeltaSet<UUID>();
     try {
       long timedBackprop = TimedResult.time(() -> {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(result.getData().stream().map(x -> {

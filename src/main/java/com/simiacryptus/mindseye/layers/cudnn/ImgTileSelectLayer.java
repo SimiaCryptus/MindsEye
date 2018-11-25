@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
@@ -47,13 +48,13 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   private ImgTileSelectLayer() {
   }
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param sizeX     the size y
    * @param sizeY     the size x
@@ -68,7 +69,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -83,11 +84,11 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ImgTileSelectLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgTileSelectLayer(json, rs);
@@ -243,9 +244,9 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -276,7 +277,7 @@ public class ImgTileSelectLayer extends LayerBase implements MultiPrecision<ImgT
     }, inputData);
     int[] outputDimensions = outputData.getDimensions();
     assert length == outputData.length();
-    return new Result(outputData, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+    return new Result(outputData, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList error) -> {
       if (!Arrays.equals(error.getDimensions(), outputDimensions)) {
         throw new AssertionError(Arrays.toString(error.getDimensions()) + " != " + Arrays.toString(outputDimensions));
       }

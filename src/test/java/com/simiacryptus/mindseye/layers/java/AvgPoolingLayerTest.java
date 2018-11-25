@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Avg subsample layer apply.
+ * The type Avg subsample key apply.
  */
 public abstract class AvgPoolingLayerTest extends LayerTestBase {
 

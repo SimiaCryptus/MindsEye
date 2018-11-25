@@ -30,7 +30,7 @@ import java.util.function.DoubleUnaryOperator;
  *
  * @param <K> the type parameter
  */
-public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
+public class Delta<K> extends DoubleBuffer<K> {
   /**
    * The Delta compensation.
    */
@@ -40,7 +40,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   /**
    * Instantiates a new Delta.
    *
-   * @param layer  the layer
+   * @param layer  the key
    * @param target the target
    */
   public Delta(@Nonnull final K layer, @Nullable final double[] target) {
@@ -50,7 +50,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   /**
    * Instantiates a new Delta.
    *
-   * @param layer  the layer
+   * @param layer  the key
    * @param target the target
    * @param delta  the evalInputDelta
    */
@@ -61,7 +61,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   /**
    * Instantiates a new Delta.
    *
-   * @param layer             the layer
+   * @param layer             the key
    * @param target            the target
    * @param delta             the doubles
    * @param deltaCompensation the evalInputDelta compensation
@@ -158,7 +158,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   @Override
   public Delta<K> copy() {
     assertAlive();
-    return new Delta<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()), RecycleBin.DOUBLES.copyOf(deltaCompensation, length()));
+    return new Delta<K>(key, target, RecycleBin.DOUBLES.copyOf(delta, length()), RecycleBin.DOUBLES.copyOf(deltaCompensation, length()));
   }
 
   @Override
@@ -175,7 +175,7 @@ public class Delta<K extends ReferenceCounting> extends DoubleBuffer<K> {
   @Nonnull
   @Override
   public Delta<K> map(@Nonnull final DoubleUnaryOperator mapper) {
-    return new Delta<K>(layer, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
+    return new Delta<K>(key, target, Arrays.stream(getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
 
   /**

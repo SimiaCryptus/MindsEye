@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 import com.simiacryptus.util.ArrayUtil;
 
 import javax.annotation.Nonnull;
+import java.util.UUID;
 
 /**
  * A simple momentum module which uses a cumulative decay algorithm to add a momentum term to any orientation strategy
@@ -45,7 +46,7 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
    * The Prev evalInputDelta.
    */
   @Nonnull
-  DeltaSet<Layer> prevDelta = new DeltaSet<Layer>();
+  DeltaSet<UUID> prevDelta = new DeltaSet<UUID>();
   private double carryOver = 0.1;
 
   /**
@@ -87,10 +88,10 @@ public class MomentumStrategy extends OrientationStrategyBase<SimpleLineSearchCu
   @Override
   public SimpleLineSearchCursor orient(final Trainable subject, @Nonnull final PointSample measurement, final TrainingMonitor monitor) {
     final LineSearchCursor orient = inner.orient(subject, measurement, monitor);
-    final DeltaSet<Layer> direction = ((SimpleLineSearchCursor) orient).direction;
-    @Nonnull final DeltaSet<Layer> newDelta = new DeltaSet<Layer>();
+    final DeltaSet<UUID> direction = ((SimpleLineSearchCursor) orient).direction;
+    @Nonnull final DeltaSet<UUID> newDelta = new DeltaSet<UUID>();
     direction.getMap().forEach((layer, delta) -> {
-      final DoubleBuffer<Layer> prevBuffer = prevDelta.get(layer, delta.target);
+      final DoubleBuffer<UUID> prevBuffer = prevDelta.get(layer, delta.target);
       newDelta.get(layer, delta.target).addInPlace(ArrayUtil.add(ArrayUtil.multiply(prevBuffer.getDelta(), carryOver), delta.getDelta()));
     });
     prevDelta = newDelta;

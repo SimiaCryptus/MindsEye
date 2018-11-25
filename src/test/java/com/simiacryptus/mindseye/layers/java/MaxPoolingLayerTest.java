@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Max subsample layer apply.
+ * The type Max subsample key apply.
  */
 public abstract class MaxPoolingLayerTest extends LayerTestBase {
 

@@ -26,7 +26,7 @@ import java.util.Arrays;
 
 /**
  * This constraint ensures that the L2 magnitude of the weight evalInputDelta cannot exceed a simple threshold. A simpler version
- * of AdaptiveTrustSphere, it places a limit on the step size for a given layer.
+ * of AdaptiveTrustSphere, it places a limit on the step size for a given key.
  */
 public class RangeConstraint implements TrustRegion {
 

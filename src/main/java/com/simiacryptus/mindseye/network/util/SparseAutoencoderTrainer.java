@@ -52,15 +52,15 @@ public class SparseAutoencoderTrainer extends SupervisedNetwork {
    */
   public final DAGNode sparsity;
   /**
-   * The Sparsity throttle layer.
+   * The Sparsity throttle key.
    */
   public final DAGNode sparsityThrottleLayer;
   /**
-   * The Sum fitness layer.
+   * The Sum fitness key.
    */
   public final DAGNode sumFitnessLayer;
   /**
-   * The Sum sparsity layer.
+   * The Sum sparsity key.
    */
   public final DAGNode sumSparsityLayer;
 

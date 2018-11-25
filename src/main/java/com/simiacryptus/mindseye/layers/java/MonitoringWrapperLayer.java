@@ -29,10 +29,7 @@ import com.simiacryptus.util.data.ScalarStatistics;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -52,7 +49,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   private int totalItems = 0;
 
   /**
-   * Instantiates a new Monitoring wrapper layer.
+   * Instantiates a new Monitoring wrapper key.
    *
    * @param json the json
    * @param rs   the rs
@@ -77,7 +74,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
 
   /**
-   * Instantiates a new Monitoring wrapper layer.
+   * Instantiates a new Monitoring wrapper key.
    *
    * @param inner the heapCopy
    */
@@ -86,21 +83,21 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
 
   /**
-   * From json monitoring wrapper layer.
+   * From json monitoring wrapper key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the monitoring wrapper layer
+   * @return the monitoring wrapper key
    */
   public static MonitoringWrapperLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MonitoringWrapperLayer(json, rs);
   }
 
   /**
-   * Add to monitoring wrapper layer.
+   * Add to monitoring wrapper key.
    *
    * @param obj the obj
-   * @return the monitoring wrapper layer
+   * @return the monitoring wrapper key
    */
   @Nonnull
   public MonitoringWrapperLayer addTo(@Nonnull final MonitoredObject obj) {
@@ -108,11 +105,11 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
 
   /**
-   * Add to monitoring wrapper layer.
+   * Add to monitoring wrapper key.
    *
    * @param obj  the obj
    * @param name the name
-   * @return the monitoring wrapper layer
+   * @return the monitoring wrapper key
    */
   @Nonnull
   public MonitoringWrapperLayer addTo(@Nonnull final MonitoredObject obj, final String name) {
@@ -125,7 +122,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   public Result evalAndFree(@Nonnull final Result... inObj) {
     @Nonnull final AtomicLong passbackNanos = new AtomicLong(0);
     final Result[] wrappedInput = Arrays.stream(inObj).map(result -> {
-      return new Result(result.getData(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+      return new Result(result.getData(), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
         data.addRef();
         passbackNanos.addAndGet(TimedResult.time(() -> result.accumulate(buffer, data)).timeNanos);
       }) {
@@ -155,7 +152,7 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
         t.freeRef();
       });
     }
-    return new Result(output.getData(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(output.getData(), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (recordSignalMetrics) {
         backwardSignal.clear();
         data.stream().parallel().forEach(t -> {
@@ -292,10 +289,10 @@ public final class MonitoringWrapperLayer extends WrapperLayer implements Monito
   }
 
   /**
-   * Should record signal metrics monitoring wrapper layer.
+   * Should record signal metrics monitoring wrapper key.
    *
    * @param recordSignalMetrics the record signal metrics
-   * @return the monitoring wrapper layer
+   * @return the monitoring wrapper key
    */
   @Nonnull
   public MonitoringWrapperLayer shouldRecordSignalMetrics(final boolean recordSignalMetrics) {

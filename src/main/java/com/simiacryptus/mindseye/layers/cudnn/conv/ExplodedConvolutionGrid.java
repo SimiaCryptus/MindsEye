@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -146,7 +147,7 @@ class ExplodedConvolutionGrid extends ReferenceCountingBase {
    * @param remove   the remove
    * @return the tensor
    */
-  public Tensor read(@Nonnull DeltaSet<Layer> deltaSet, boolean remove) {
+  public Tensor read(@Nonnull DeltaSet<UUID> deltaSet, boolean remove) {
     return read(l -> l.read(deltaSet, remove));
   }
 

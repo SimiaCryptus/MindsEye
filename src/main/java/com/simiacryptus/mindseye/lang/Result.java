@@ -19,7 +19,9 @@
 
 package com.simiacryptus.mindseye.lang;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 /**
@@ -31,11 +33,11 @@ public class Result extends ReferenceCountingBase {
   /**
    * The Data.
    */
-  protected final TensorList data;
+  @Nonnull protected final TensorList data;
   /**
    * The Accumulator.
    */
-  protected final BiConsumer<DeltaSet<Layer>, TensorList> accumulator;
+  @Nonnull protected final BiConsumer<DeltaSet<UUID>, TensorList> accumulator;
 
   /**
    * Instantiates a new Nn result.
@@ -43,7 +45,7 @@ public class Result extends ReferenceCountingBase {
    * @param data        the data
    * @param accumulator the accumulator
    */
-  public Result(final TensorList data, BiConsumer<DeltaSet<Layer>, TensorList> accumulator) {
+  public Result(@Nonnull final TensorList data, @Nonnull BiConsumer<DeltaSet<UUID>, TensorList> accumulator) {
     super();
     this.data = data;
     this.accumulator = accumulator;
@@ -55,7 +57,7 @@ public class Result extends ReferenceCountingBase {
    * @return the double [ ]
    */
   public double[] getSingleDelta() {
-    DeltaSet<Layer> deltaBuffer = new DeltaSet<>();
+    DeltaSet<UUID> deltaBuffer = new DeltaSet<>();
     accumulate(deltaBuffer);
     if (deltaBuffer.getMap().size() != 1) throw new AssertionError(deltaBuffer.getMap().size());
     double[] delta = copy(deltaBuffer.getMap().values().iterator().next().getDelta());
@@ -79,7 +81,7 @@ public class Result extends ReferenceCountingBase {
    *
    * @param buffer the buffer
    */
-  public final void accumulate(final DeltaSet<Layer> buffer) {
+  public final void accumulate(final DeltaSet<UUID> buffer) {
     accumulate(buffer, 1.0);
   }
 
@@ -89,7 +91,7 @@ public class Result extends ReferenceCountingBase {
    * @param buffer the buffer
    * @param value  the value
    */
-  public final void accumulate(final DeltaSet<Layer> buffer, final double value) {
+  public final void accumulate(final DeltaSet<UUID> buffer, final double value) {
     accumulate(buffer, TensorArray.wrap(getData().stream().map(t -> t.mapAndFree(v -> value)).toArray(i -> new Tensor[i])));
   }
 
@@ -100,7 +102,7 @@ public class Result extends ReferenceCountingBase {
    * @param buffer the buffer
    * @param delta  the evalInputDelta
    */
-  public void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+  public void accumulate(DeltaSet<UUID> buffer, TensorList delta) {
     try {
       getAccumulator().accept(buffer, delta);
     } finally {
@@ -131,7 +133,7 @@ public class Result extends ReferenceCountingBase {
    *
    * @return the accumulator
    */
-  public BiConsumer<DeltaSet<Layer>, TensorList> getAccumulator() {
+  public BiConsumer<DeltaSet<UUID>, TensorList> getAccumulator() {
     assertAlive();
     return accumulator;
   }

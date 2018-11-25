@@ -42,7 +42,7 @@ public class TestError extends RuntimeException {
    *
    * @param cause the cause
    * @param test  the test
-   * @param layer the layer
+   * @param layer the key
    */
   public TestError(Throwable cause, ComponentTest<?> test, @Nonnull Layer layer) {
     super(String.format("Error in %s apply %s", test, layer), cause);

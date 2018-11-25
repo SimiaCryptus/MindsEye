@@ -26,9 +26,9 @@ import com.simiacryptus.mindseye.lang.Layer;
  */
 public interface Explodable {
   /**
-   * Explode nn layer.
+   * Explode nn key.
    *
-   * @return the nn layer
+   * @return the nn key
    */
   Layer explode();
 }

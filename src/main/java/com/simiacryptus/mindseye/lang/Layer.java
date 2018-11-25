@@ -42,10 +42,10 @@ import java.util.zip.ZipOutputStream;
 public interface Layer extends ReferenceCounting, Serializable {
 
   /**
-   * From json nn layer.
+   * From json nn key.
    *
    * @param json the json
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   static Layer fromJson(@Nonnull final JsonObject json) {
@@ -53,10 +53,10 @@ public interface Layer extends ReferenceCounting, Serializable {
   }
 
   /**
-   * From zip nn layer.
+   * From zip nn key.
    *
    * @param zipfile the zipfile
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   static Layer fromZip(@Nonnull final ZipFile zipfile) {
@@ -82,11 +82,11 @@ public interface Layer extends ReferenceCounting, Serializable {
 
 
   /**
-   * From json nn layer.
+   * From json nn key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   static Layer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
@@ -109,10 +109,10 @@ public interface Layer extends ReferenceCounting, Serializable {
   }
 
   /**
-   * And then layer.
+   * And then key.
    *
    * @param append the append
-   * @return the layer
+   * @return the key
    */
   default PipelineNetwork andThen(Layer append) {
     return PipelineNetwork.build(1,
@@ -183,9 +183,9 @@ public interface Layer extends ReferenceCounting, Serializable {
   }
 
   /**
-   * Copy nn layer.
+   * Copy nn key.
    *
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   default Layer copy() {
@@ -193,10 +193,10 @@ public interface Layer extends ReferenceCounting, Serializable {
   }
 
   /**
-   * Copy nn layer.
+   * Copy nn key.
    *
    * @param precision the precision
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   default Layer copy(SerialPrecision precision) {
@@ -264,9 +264,9 @@ public interface Layer extends ReferenceCounting, Serializable {
   }
 
   /**
-   * Freeze nn layer.
+   * Freeze nn key.
    *
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   default Layer freeze() {
@@ -286,7 +286,7 @@ public interface Layer extends ReferenceCounting, Serializable {
    * @return the id
    */
   @Nullable
-  Object getId();
+  UUID getId();
 
   /**
    * Gets json.
@@ -438,9 +438,9 @@ public interface Layer extends ReferenceCounting, Serializable {
   List<double[]> state();
 
   /**
-   * Copy and free layer.
+   * Copy and free key.
    *
-   * @return the layer
+   * @return the key
    */
   default Layer copyAndFree() {
     Layer copy = copy();

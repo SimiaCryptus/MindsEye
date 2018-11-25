@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
@@ -48,7 +49,7 @@ public class ImgBandScaleLayer extends LayerBase {
   private final double[] weights;
 
   /**
-   * Instantiates a new Img band scale layer.
+   * Instantiates a new Img band scale key.
    */
   protected ImgBandScaleLayer() {
     super();
@@ -56,7 +57,7 @@ public class ImgBandScaleLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img band scale layer.
+   * Instantiates a new Img band scale key.
    *
    * @param bands the bands
    */
@@ -67,7 +68,7 @@ public class ImgBandScaleLayer extends LayerBase {
 
 
   /**
-   * Instantiates a new Img band scale layer.
+   * Instantiates a new Img band scale key.
    *
    * @param json the json
    */
@@ -77,21 +78,21 @@ public class ImgBandScaleLayer extends LayerBase {
   }
 
   /**
-   * From json img band scale layer.
+   * From json img band scale key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img band scale layer
+   * @return the img band scale key
    */
   public static ImgBandScaleLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgBandScaleLayer(json);
   }
 
   /**
-   * Add weights img band scale layer.
+   * Add weights img band scale key.
    *
    * @param f the f
-   * @return the img band scale layer
+   * @return the img band scale key
    */
   @Nonnull
   public ImgBandScaleLayer addWeights(@Nonnull final DoubleSupplier f) {
@@ -130,9 +131,9 @@ public class ImgBandScaleLayer extends LayerBase {
       return tensor1;
     };
     Tensor[] data = inData.stream().parallel().map(tensorTensorFunction).toArray(i -> new Tensor[i]);
-    return new Result(TensorArray.wrap(data), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    return new Result(TensorArray.wrap(data), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (!isFrozen()) {
-        final Delta<Layer> deltaBuffer = buffer.get(ImgBandScaleLayer.this, weights);
+        final Delta<UUID> deltaBuffer = buffer.get(ImgBandScaleLayer.this.getId(), weights);
         IntStream.range(0, delta.length()).forEach(index -> {
           @Nonnull int[] dimensions = delta.getDimensions();
           int z = dimensions[2];
@@ -220,10 +221,10 @@ public class ImgBandScaleLayer extends LayerBase {
   }
 
   /**
-   * Set nn layer.
+   * Set nn key.
    *
    * @param ds the ds
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer set(@Nonnull final double[] ds) {

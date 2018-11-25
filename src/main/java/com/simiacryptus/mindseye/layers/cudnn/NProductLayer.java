@@ -32,11 +32,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * This layer multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
+ * This key multiplies together the inputs, element-by-element. It can be used to implement integer-power activation
  * layers, such as the square needed in MeanSqLossLayer.
  */
 @SuppressWarnings("serial")
@@ -45,13 +46,13 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    */
   public NProductLayer() {
   }
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    *
    * @param id the id
    */
@@ -61,20 +62,20 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
   }
 
   /**
-   * From json product inputs layer.
+   * From json product inputs key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the product inputs layer
+   * @return the product inputs key
    */
   public static NProductLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new NProductLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -131,7 +132,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
       }).get();
       Arrays.stream(new ReferenceCounting[]{opDescriptor, outputDescriptor}).forEach(ReferenceCounting::freeRef);
       return result1;
-    }, Arrays.stream(inObj).map(Result::getData).toArray()), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, Arrays.stream(inObj).map(Result::getData).toArray()), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       for (int index = 0; index < inObj.length; index++) {
         final Result input = inObj[index];
         if (input.isAlive()) {
@@ -171,7 +172,7 @@ public class NProductLayer extends LayerBase implements MultiPrecision<NProductL
     }) {
 
       @Override
-      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+      public final void accumulate(DeltaSet<UUID> buffer, TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
 

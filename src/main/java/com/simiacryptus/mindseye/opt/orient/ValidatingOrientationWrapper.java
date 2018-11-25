@@ -29,6 +29,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchCursorBase;
 import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 
 import javax.annotation.Nonnull;
+import java.util.UUID;
 
 /**
  * This strategy uses finite-difference methods to estimate a numerical derivative, and compares it apply the derivative
@@ -84,7 +85,7 @@ public class ValidatingOrientationWrapper extends OrientationStrategyBase<LineSe
     }
 
     @Override
-    public DeltaSet<Layer> position(final double alpha) {
+    public DeltaSet<UUID> position(final double alpha) {
       return cursor.position(alpha);
     }
 

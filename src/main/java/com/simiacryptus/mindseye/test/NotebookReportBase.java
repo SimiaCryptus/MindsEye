@@ -72,16 +72,17 @@ public abstract class NotebookReportBase {
    * Gets test report location.
    *
    * @param sourceClass the source class
+   * @param reportingFolder
    * @param suffix      the suffix
    * @return the test report location
    */
   @Nonnull
-  public static File getTestReportLocation(@Nonnull final Class<?> sourceClass, @Nonnull final CharSequence... suffix) {
+  public static File getTestReportLocation(@Nonnull final Class<?> sourceClass, String reportingFolder, @Nonnull final CharSequence... suffix) {
     final StackTraceElement callingFrame = Thread.currentThread().getStackTrace()[2];
     final CharSequence methodName = callingFrame.getMethodName();
     final String className = sourceClass.getCanonicalName();
     String classFilename = className.replaceAll("\\.", "/").replaceAll("\\$", "/");
-    @Nonnull File path = new File(Util.mkString(File.separator, "reports", classFilename));
+    @Nonnull File path = new File(Util.mkString(File.separator, reportingFolder, classFilename));
     for (int i = 0; i < suffix.length - 1; i++) path = new File(path, suffix[i].toString());
     String testName = suffix.length == 0 ? String.valueOf(methodName) : suffix[suffix.length - 1].toString();
     File parent = path;
@@ -166,8 +167,9 @@ public abstract class NotebookReportBase {
   @Nonnull
   public NotebookOutput getLog(CharSequence... logPath) {
     if (null == logPath || logPath.length == 0) logPath = new String[]{getClass().getSimpleName()};
-    return getLog(getTestReportLocation(getTargetClass(), logPath));
+    return getLog(getTestReportLocation(getTargetClass(), reportingFolder, logPath));
   }
+  protected String reportingFolder = "reports/_reports";
 
   /**
    * Gets target class.

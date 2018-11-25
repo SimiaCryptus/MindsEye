@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -40,7 +41,7 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
   private static final Logger log = LoggerFactory.getLogger(ImgPixelSoftmaxLayer.class);
 
   /**
-   * Instantiates a new Img band scale layer.
+   * Instantiates a new Img band scale key.
    */
   public ImgPixelSoftmaxLayer() {
     super();
@@ -48,7 +49,7 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
 
 
   /**
-   * Instantiates a new Img band scale layer.
+   * Instantiates a new Img band scale key.
    *
    * @param json the json
    */
@@ -57,11 +58,11 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
   }
 
   /**
-   * From json img band scale layer.
+   * From json img band scale key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img band scale layer
+   * @return the img band scale key
    */
   public static ImgPixelSoftmaxLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgPixelSoftmaxLayer(json);
@@ -141,7 +142,7 @@ public class ImgPixelSoftmaxLayer extends LayerBase {
         expTensor.freeRef();
       }
     }).toArray(i -> new Tensor[i]));
-    return new Result(output, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    return new Result(output, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (input.isAlive()) {
 
         TensorArray dots = TensorArray.wrap(IntStream.range(0, inputData.length()).mapToObj(index -> {

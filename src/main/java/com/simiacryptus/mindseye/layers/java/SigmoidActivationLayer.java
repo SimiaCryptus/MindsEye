@@ -40,13 +40,13 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   private boolean balanced = true;
 
   /**
-   * Instantiates a new Sigmoid activation layer.
+   * Instantiates a new Sigmoid activation key.
    */
   public SigmoidActivationLayer() {
   }
 
   /**
-   * Instantiates a new Sigmoid activation layer.
+   * Instantiates a new Sigmoid activation key.
    *
    * @param id the id
    */
@@ -56,11 +56,11 @@ public final class SigmoidActivationLayer extends SimpleActivationLayer<SigmoidA
   }
 
   /**
-   * From json sigmoid activation layer.
+   * From json sigmoid activation key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the sigmoid activation layer
+   * @return the sigmoid activation key
    */
   public static SigmoidActivationLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SigmoidActivationLayer(json);

@@ -27,10 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -49,14 +46,14 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
   private double value;
 
   /**
-   * Instantiates a new Dropout noise layer.
+   * Instantiates a new Dropout noise key.
    */
   public DropoutNoiseLayer() {
     this(0.5);
   }
 
   /**
-   * Instantiates a new Dropout noise layer.
+   * Instantiates a new Dropout noise key.
    *
    * @param value the value
    */
@@ -66,7 +63,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
   }
 
   /**
-   * Instantiates a new Dropout noise layer.
+   * Instantiates a new Dropout noise key.
    *
    * @param json the json
    */
@@ -76,11 +73,11 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
   }
 
   /**
-   * From json dropout noise layer.
+   * From json dropout noise key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the dropout noise layer
+   * @return the dropout noise key
    */
   public static DropoutNoiseLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new DropoutNoiseLayer(json);
@@ -114,7 +111,7 @@ public class DropoutNoiseLayer extends LayerBase implements StochasticComponent 
       }
       inputTensor.freeRef();
       return output;
-    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (inputResult.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {
           Tensor deltaTensor = delta.get(dataIndex);

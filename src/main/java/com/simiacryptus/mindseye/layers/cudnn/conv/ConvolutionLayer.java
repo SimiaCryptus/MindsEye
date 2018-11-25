@@ -34,11 +34,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntToDoubleFunction;
 
 /**
- * This is the general convolution layer, allowing any number of input and output bands at high scale. It implements an
+ * This is the general convolution key, allowing any number of input and output bands at high scale. It implements an
  * explosion operation to produce a convolution network whose components have a managabe size and the same overall
  * function.
  */
@@ -59,14 +60,14 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   private int batchBands = 0;
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    */
   protected ConvolutionLayer() {
     this(1, 1, 1, 1);
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param width       the width
    * @param height      the height
@@ -92,7 +93,7 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   }
 
   /**
-   * Instantiates a new Convolution layer.
+   * Instantiates a new Convolution key.
    *
    * @param json      the json
    * @param resources the resources
@@ -137,11 +138,11 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   }
 
   /**
-   * From json convolution layer.
+   * From json convolution key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the convolution layer
+   * @return the convolution key
    */
   public static ConvolutionLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ConvolutionLayer(json, rs);
@@ -154,10 +155,10 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   }
 
   /**
-   * Add weights convolution layer.
+   * Add weights convolution key.
    *
    * @param f the f
-   * @return the convolution layer
+   * @return the convolution key
    */
   @Nonnull
   public ConvolutionLayer addWeights(@Nonnull final DoubleSupplier f) {
@@ -166,9 +167,9 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -176,9 +177,9 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   }
 
   /**
-   * Explode nn layer.
+   * Explode nn key.
    *
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   @Override
@@ -247,17 +248,17 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
     assert 3 == resultData.getDimensions().length;
     assert outputBands == resultData.getDimensions()[2];
     ConvolutionLayer.this.addRef();
-    return new Result(resultData, (@Nonnull final DeltaSet<Layer> deltaSet, @Nonnull final TensorList delta) -> {
+    return new Result(resultData, (@Nonnull final DeltaSet<UUID> deltaSet, @Nonnull final TensorList delta) -> {
       result.accumulate(deltaSet, delta);
       if (!isFrozen()) {
         Tensor read = grid.read(deltaSet, true);
-        deltaSet.get(ConvolutionLayer.this, kernel.getData()).addInPlace(read.getData()).freeRef();
+        deltaSet.get(ConvolutionLayer.this.getId(), kernel.getData()).addInPlace(read.getData()).freeRef();
         read.freeRef();
       }
     }) {
 
       @Override
-      public void accumulate(final DeltaSet<Layer> buffer, final TensorList delta) {
+      public void accumulate(final DeltaSet<UUID> buffer, final TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
 
@@ -316,10 +317,10 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   }
 
   /**
-   * Set convolution layer.
+   * Set convolution key.
    *
    * @param tensor the tensor
-   * @return the convolution layer
+   * @return the convolution key
    */
   @Nonnull
   public ConvolutionLayer set(@Nonnull final Tensor tensor) {
@@ -341,10 +342,10 @@ public class ConvolutionLayer extends LayerBase implements MultiPrecision<Convol
   }
 
   /**
-   * Set convolution layer.
+   * Set convolution key.
    *
    * @param f the f
-   * @return the convolution layer
+   * @return the convolution key
    */
   @Nonnull
   public ConvolutionLayer set(@Nonnull final IntToDoubleFunction f) {

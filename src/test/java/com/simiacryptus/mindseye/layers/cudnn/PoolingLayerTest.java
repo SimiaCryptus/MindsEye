@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Pooling layer apply.
+ * The type Pooling key apply.
  */
 public abstract class PoolingLayerTest extends CudaLayerTestBase {
 
@@ -37,7 +37,7 @@ public abstract class PoolingLayerTest extends CudaLayerTestBase {
   final Precision precision;
 
   /**
-   * Instantiates a new Pooling layer apply.
+   * Instantiates a new Pooling key apply.
    *
    * @param precision the precision
    */

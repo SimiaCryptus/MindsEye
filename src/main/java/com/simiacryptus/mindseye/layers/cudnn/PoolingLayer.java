@@ -32,10 +32,11 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
- * The standard png-pixel pooling layer. Using a configurable stride and window size, reduces pixels using either the
+ * The standard png-pixel pooling key. Using a configurable stride and window size, reduces pixels using either the
  * Max or Avg operation.
  */
 @SuppressWarnings("serial")
@@ -52,7 +53,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   private double alpha;
 
   /**
-   * Instantiates a new Pooling layer.
+   * Instantiates a new Pooling key.
    */
   public PoolingLayer() {
     super();
@@ -60,7 +61,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   }
 
   /**
-   * Instantiates a new Pooling layer.
+   * Instantiates a new Pooling key.
    *
    * @param json the json
    */
@@ -79,20 +80,20 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
   }
 
   /**
-   * From json pooling layer.
+   * From json pooling key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the pooling layer
+   * @return the pooling key
    */
   public static PoolingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new PoolingLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -141,7 +142,7 @@ public class PoolingLayer extends LayerBase implements MultiPrecision<PoolingLay
       }
     }, inputData);
     return new Result(CudaTensorList.create(outputData, length, new int[]{outputSize[3], outputSize[2], outputSize[1]}, precision),
-        (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+        (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList error) -> {
           assert error.length() == inputData.length();
           if (input.isAlive()) {
             TensorList data = CudaSystem.run(gpu -> {

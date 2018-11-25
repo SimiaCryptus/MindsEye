@@ -30,16 +30,17 @@ import com.simiacryptus.notebook.NotebookOutput;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Random;
 
 
 /**
- * The type Img crop layer apply.
+ * The type Img crop key apply.
  */
 public abstract class ImgCropLayerTest extends CudaLayerTestBase {
 
   /**
-   * Instantiates a new Img crop layer apply.
+   * Instantiates a new Img crop key apply.
    */
   public ImgCropLayerTest() {
     validateBatchExecution = false;
@@ -123,10 +124,10 @@ public abstract class ImgCropLayerTest extends CudaLayerTestBase {
     }
 
     /**
-     * Wrap nn layer.
+     * Wrap nn key.
      *
-     * @param imgCropLayer the img crop layer
-     * @return the nn layer
+     * @param imgCropLayer the img crop key
+     * @return the nn key
      */
     @Nonnull
     public Layer wrap(ImgCropLayer imgCropLayer) {

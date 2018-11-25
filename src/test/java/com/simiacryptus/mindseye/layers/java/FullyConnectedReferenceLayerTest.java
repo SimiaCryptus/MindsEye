@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Fully connected layer apply.
+ * The type Fully connected key apply.
  */
 public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
   @Nonnull
@@ -37,7 +37,7 @@ public abstract class FullyConnectedReferenceLayerTest extends LayerTestBase {
 
 
   /**
-   * Instantiates a new Fully connected reference layer allocationOverflow.
+   * Instantiates a new Fully connected reference key allocationOverflow.
    *
    * @param inputDims  the input dims
    * @param outputDims the output dims

@@ -39,14 +39,14 @@ public abstract class WrapperLayer extends LayerBase {
   private Layer inner;
 
   /**
-   * Instantiates a new Wrapper layer.
+   * Instantiates a new Wrapper key.
    */
   protected WrapperLayer() {
     inner = null;
   }
 
   /**
-   * Instantiates a new Wrapper layer.
+   * Instantiates a new Wrapper key.
    *
    * @param json the json
    * @param rs   the rs
@@ -57,7 +57,7 @@ public abstract class WrapperLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Wrapper layer.
+   * Instantiates a new Wrapper key.
    *
    * @param inner the heapCopy
    */

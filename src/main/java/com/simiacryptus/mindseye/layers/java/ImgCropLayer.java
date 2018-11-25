@@ -24,10 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -42,7 +39,7 @@ public class ImgCropLayer extends LayerBase {
   private final int sizeY;
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param sizeX the size x
    * @param sizeY the size y
@@ -54,7 +51,7 @@ public class ImgCropLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Img crop layer.
+   * Instantiates a new Img crop key.
    *
    * @param json the json
    */
@@ -106,11 +103,11 @@ public class ImgCropLayer extends LayerBase {
   }
 
   /**
-   * From json img crop layer.
+   * From json img crop key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img crop layer
+   * @return the img crop key
    */
   public static ImgCropLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgCropLayer(json);
@@ -132,7 +129,7 @@ public class ImgCropLayer extends LayerBase {
           inputData.freeRef();
           return outputData;
         })
-        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList error) -> {
+        .toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList error) -> {
       if (input.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, error.length()).parallel()
             .mapToObj(dataIndex -> {

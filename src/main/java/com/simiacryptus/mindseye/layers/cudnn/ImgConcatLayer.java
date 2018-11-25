@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -43,13 +44,13 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   private boolean parallel = true;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   public ImgConcatLayer() {
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    */
@@ -61,11 +62,11 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static ImgConcatLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ImgConcatLayer(json);
@@ -87,9 +88,9 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -164,7 +165,7 @@ public class ImgConcatLayer extends LayerBase implements MultiPrecision<ImgConca
       });
       CudaDevice.CudaTensorDescriptor outDesc = gpu.newTensorDescriptor(precision, length, outputDimensions[2], outputDimensions[1], outputDimensions[0]);
       return CudaTensorList.wrap(CudaTensor.wrap(cudaOutput, outDesc, precision), length, outputDimensions, precision);
-    }, Arrays.stream(inObj).map(Result::getData).toArray()), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, Arrays.stream(inObj).map(Result::getData).toArray()), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       assert delta.getDimensions()[0] == outputDimensions[0];
       assert delta.getDimensions()[1] == outputDimensions[1];
       assert delta.getDimensions()[2] == outputDimensions[2];

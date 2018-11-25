@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
- * The type Std dev meta layer.
+ * The type Std dev meta key.
  */
 @SuppressWarnings("serial")
 public class AutoEntropyLayer extends PipelineNetwork {
@@ -38,7 +38,7 @@ public class AutoEntropyLayer extends PipelineNetwork {
   private static final Logger log = LoggerFactory.getLogger(AutoEntropyLayer.class);
 
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Std dev meta key.
    */
   public AutoEntropyLayer() {
     super(1);
@@ -47,7 +47,7 @@ public class AutoEntropyLayer extends PipelineNetwork {
   }
 
   /**
-   * Instantiates a new Std dev meta layer.
+   * Instantiates a new Std dev meta key.
    *
    * @param json the json
    * @param rs   the rs
@@ -57,11 +57,11 @@ public class AutoEntropyLayer extends PipelineNetwork {
   }
 
   /**
-   * From json std dev meta layer.
+   * From json std dev meta key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the std dev meta layer
+   * @return the std dev meta key
    */
   public static AutoEntropyLayer fromJson(final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new AutoEntropyLayer(json, rs);

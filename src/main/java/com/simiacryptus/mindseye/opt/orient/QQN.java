@@ -30,6 +30,7 @@ import com.simiacryptus.mindseye.opt.line.LineSearchPoint;
 import com.simiacryptus.mindseye.opt.line.SimpleLineSearchCursor;
 
 import javax.annotation.Nonnull;
+import java.util.UUID;
 
 /**
  * Quadratic Quasi-Newton optimization This method hybridizes pure gradient descent apply higher-order quasinewton
@@ -92,12 +93,12 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
   public LineSearchCursor orient(@Nonnull final Trainable subject, @Nonnull final PointSample origin, @Nonnull final TrainingMonitor monitor) {
     inner.addToHistory(origin, monitor);
     final SimpleLineSearchCursor lbfgsCursor = inner.orient(subject, origin, monitor);
-    final DeltaSet<Layer> lbfgs = lbfgsCursor.direction;
-    @Nonnull final DeltaSet<Layer> gd = origin.delta.scale(-1.0);
+    final DeltaSet<UUID> lbfgs = lbfgsCursor.direction;
+    @Nonnull final DeltaSet<UUID> gd = origin.delta.scale(-1.0);
     final double lbfgsMag = lbfgs.getMagnitude();
     final double gdMag = gd.getMagnitude();
     if (Math.abs(lbfgsMag - gdMag) / (lbfgsMag + gdMag) > 1e-2) {
-      @Nonnull final DeltaSet<Layer> scaledGradient = gd.scale(lbfgsMag / gdMag);
+      @Nonnull final DeltaSet<UUID> scaledGradient = gd.scale(lbfgsMag / gdMag);
       monitor.log(String.format("Returning Quadratic Cursor %s GD, %s QN", gdMag, lbfgsMag));
       gd.freeRef();
       return new LineSearchCursorBase() {
@@ -109,7 +110,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
         }
 
         @Override
-        public DeltaSet<Layer> position(final double t) {
+        public DeltaSet<UUID> position(final double t) {
           if (!Double.isFinite(t)) throw new IllegalArgumentException();
           return scaledGradient.scale(t - t * t).add(lbfgs.scale(t * t));
         }
@@ -128,7 +129,7 @@ public class QQN extends OrientationStrategyBase<LineSearchCursor> {
           @Nonnull final PointSample sample = subject.measure(monitor).setRate(t);
           //monitor.log(String.format("evalInputDelta buffers %d %d %d %d %d", sample.evalInputDelta.apply.size(), origin.evalInputDelta.apply.size(), lbfgs.apply.size(), gd.apply.size(), scaledGradient.apply.size()));
           inner.addToHistory(sample, monitor);
-          @Nonnull final DeltaSet<Layer> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
+          @Nonnull final DeltaSet<UUID> tangent = scaledGradient.scale(1 - 2 * t).add(lbfgs.scale(2 * t));
           return new LineSearchPoint(sample, tangent.dot(sample.delta));
         }
 

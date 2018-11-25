@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.function.DoubleSupplier;
 
 /**
- * The type Inception layer.
+ * The type Inception key.
  */
 @SuppressWarnings("serial")
 public class InceptionLayer extends DAGNetwork {
@@ -51,7 +51,7 @@ public class InceptionLayer extends DAGNetwork {
   List<ConvolutionLayer> convolutionLayers = new ArrayList<>();
 
   /**
-   * Instantiates a new Inception layer.
+   * Instantiates a new Inception key.
    *
    * @param kernels the kernels
    */

@@ -27,9 +27,10 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * This layer does not require any input, and produces a constant output. This constant can be tuned by optimization
+ * This key does not require any input, and produces a constant output. This constant can be tuned by optimization
  * processes.
  */
 @SuppressWarnings("serial")
@@ -39,7 +40,7 @@ public class ValueLayer extends LayerBase {
   private final CudaTensorList tensorList;
 
   /**
-   * Instantiates a new Const nn layer.
+   * Instantiates a new Const nn key.
    *
    * @param json      the json
    * @param resources the resources
@@ -53,7 +54,7 @@ public class ValueLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Const nn layer.
+   * Instantiates a new Const nn key.
    *
    * @param data the data
    */
@@ -66,11 +67,11 @@ public class ValueLayer extends LayerBase {
   }
 
   /**
-   * From json const nn layer.
+   * From json const nn key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the const nn layer
+   * @return the const nn key
    */
   public static ValueLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new ValueLayer(json, rs);
@@ -99,7 +100,7 @@ public class ValueLayer extends LayerBase {
   public Result evalAndFree(@Nonnull final Result... array) {
     assert 0 == array.length;
     ValueLayer.this.tensorList.addRef();
-    return new Result(tensorList, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(tensorList, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
     }) {
 
       @Override

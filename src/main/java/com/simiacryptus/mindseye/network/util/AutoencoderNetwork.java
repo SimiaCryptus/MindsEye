@@ -110,7 +110,7 @@ public class AutoencoderNetwork {
   }
 
   /**
-   * New layer autoencoder network . builder.
+   * New key autoencoder network . builder.
    *
    * @param outerSize the outer size
    * @param innerSize the heapCopy size
@@ -494,9 +494,9 @@ public class AutoencoderNetwork {
     }
 
     /**
-     * Echo nn layer.
+     * Echo nn key.
      *
-     * @return the nn layer
+     * @return the nn key
      */
     @Nonnull
     public Layer echo() {
@@ -545,7 +545,7 @@ public class AutoencoderNetwork {
     }
 
     /**
-     * Grow layer autoencoder network.
+     * Grow key autoencoder network.
      *
      * @param dims the dims
      * @return the autoencoder network
@@ -556,7 +556,7 @@ public class AutoencoderNetwork {
     }
 
     /**
-     * Grow layer autoencoder network.
+     * Grow key autoencoder network.
      *
      * @param pretrainingSize    the pretraining size
      * @param pretrainingMinutes the pretraining minutes

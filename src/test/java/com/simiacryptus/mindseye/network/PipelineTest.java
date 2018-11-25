@@ -40,7 +40,7 @@ import java.util.List;
 
 
 /**
- * The type N layer apply.
+ * The type N key apply.
  */
 public abstract class PipelineTest {
 
@@ -51,7 +51,7 @@ public abstract class PipelineTest {
 
 
   /**
-   * Instantiates a new N layer apply.
+   * Instantiates a new N key apply.
    *
    * @param pipeline the pipeline
    */
@@ -69,10 +69,10 @@ public abstract class PipelineTest {
   }
 
   /**
-   * Build network nn layer.
+   * Build network nn key.
    *
    * @param layers the length list
-   * @return the nn layer
+   * @return the nn key
    */
   @Nonnull
   public Layer buildNetwork(@Nonnull final Layer... layers) {
@@ -95,7 +95,7 @@ public abstract class PipelineTest {
    * Graphviz.
    *
    * @param log   the log
-   * @param layer the layer
+   * @param layer the key
    */
   public void graphviz(@Nonnull final NotebookOutput log, final Layer layer) {
     if (layer instanceof DAGNetwork) {
@@ -133,7 +133,7 @@ public abstract class PipelineTest {
    */
   @Test
   public void test() throws Throwable {
-    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(NotebookReportBase.getTestReportLocation(((Object) this).getClass()), Util.AUTO_BROWSE)) {
+    try (@Nonnull NotebookOutput log = MarkdownNotebookOutput.get(NotebookReportBase.getTestReportLocation(((Object) this).getClass(), "reports/_reports"), Util.AUTO_BROWSE)) {
       test(log);
     }
   }
@@ -158,7 +158,7 @@ public abstract class PipelineTest {
    * Test double.
    *
    * @param log       the log
-   * @param layer     the layer
+   * @param layer     the key
    * @param header    the header
    * @param inputDims the input dims
    * @return the double

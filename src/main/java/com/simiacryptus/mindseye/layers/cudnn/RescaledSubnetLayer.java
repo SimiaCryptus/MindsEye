@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This layer works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
+ * This key works as a scaling function, similar to a father wavelet. Allows convolutional and pooling layers to work
  * across larger png regions. Implemented via CudaSystem.
  */
 @SuppressWarnings("serial")
@@ -49,16 +49,16 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   private Precision precision = Precision.Double;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   private RescaledSubnetLayer() {
   }
 
   /**
-   * Instantiates a new Rescaled subnet layer.
+   * Instantiates a new Rescaled subnet key.
    *
    * @param scale the scale
-   * @param layer the layer
+   * @param layer the key
    */
   public RescaledSubnetLayer(int scale, Layer layer) {
     this.scale = scale;
@@ -66,7 +66,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -79,20 +79,20 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static RescaledSubnetLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new RescaledSubnetLayer(json, rs);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -112,7 +112,7 @@ public class RescaledSubnetLayer extends LayerBase implements MultiPrecision<Res
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
     json.addProperty("scale", scale);
-    json.add("layer", layer.getJson(resources, dataSerializer));
+    json.add("key", layer.getJson(resources, dataSerializer));
     json.addProperty("precision", precision.name());
     return json;
   }

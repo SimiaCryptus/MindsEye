@@ -30,19 +30,19 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Rescaled subnet layer apply.
+ * The type Rescaled subnet key apply.
  */
 public abstract class RescaledSubnetLayerTest extends LayerTestBase // CudaLayerTestBase
 {
 
   /**
-   * The Convolution layer.
+   * The Convolution key.
    */
   @Nonnull
   ConvolutionLayer convolutionLayer = new ConvolutionLayer(3, 3, 1, 1);
 
   /**
-   * Instantiates a new Rescaled subnet layer allocationOverflow.
+   * Instantiates a new Rescaled subnet key allocationOverflow.
    */
   public RescaledSubnetLayerTest() {
 

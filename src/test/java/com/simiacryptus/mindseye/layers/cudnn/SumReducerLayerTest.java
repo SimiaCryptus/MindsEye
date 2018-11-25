@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * The type Img band bias layer apply.
+ * The type Img band bias key apply.
  */
 public abstract class SumReducerLayerTest extends CudaLayerTestBase {
 
@@ -37,7 +37,7 @@ public abstract class SumReducerLayerTest extends CudaLayerTestBase {
   final Precision precision;
 
   /**
-   * Instantiates a new Img band bias layer apply.
+   * Instantiates a new Img band bias key apply.
    *
    * @param precision the precision
    */

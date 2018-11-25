@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Acts as a mutable placeholder layer, whose heapCopy implementation can be setByCoord and changed.
+ * Acts as a mutable placeholder key, whose heapCopy implementation can be setByCoord and changed.
  */
 @SuppressWarnings("serial")
 public class VariableLayer extends WrapperLayer {
 
   /**
-   * Instantiates a new Variable layer.
+   * Instantiates a new Variable key.
    *
    * @param json the json
    * @param rs   the rs
@@ -44,7 +44,7 @@ public class VariableLayer extends WrapperLayer {
   }
 
   /**
-   * Instantiates a new Variable layer.
+   * Instantiates a new Variable key.
    *
    * @param inner the heapCopy
    */
@@ -53,11 +53,11 @@ public class VariableLayer extends WrapperLayer {
   }
 
   /**
-   * From json variable layer.
+   * From json variable key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the variable layer
+   * @return the variable key
    */
   public static VariableLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new VariableLayer(json, rs);

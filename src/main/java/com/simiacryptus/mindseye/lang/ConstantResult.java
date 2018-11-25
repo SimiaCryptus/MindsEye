@@ -21,6 +21,7 @@ package com.simiacryptus.mindseye.lang;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -34,7 +35,7 @@ public final class ConstantResult extends Result {
    * @param data the data
    */
   public ConstantResult(final Tensor... data) {
-    super(TensorArray.create(data), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList tensorList) -> {
+    super(TensorArray.create(data), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList tensorList) -> {
     });
   }
 
@@ -44,7 +45,7 @@ public final class ConstantResult extends Result {
    * @param tensorList the tensor array
    */
   public ConstantResult(final TensorList tensorList) {
-    super(tensorList, (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    super(tensorList, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
     });
   }
 

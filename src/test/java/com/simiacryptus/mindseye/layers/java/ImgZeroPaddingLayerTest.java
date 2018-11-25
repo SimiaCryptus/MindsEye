@@ -27,12 +27,12 @@ import java.util.Random;
 
 
 /**
- * The type Img crop layer apply.
+ * The type Img crop key apply.
  */
 public abstract class ImgZeroPaddingLayerTest extends LayerTestBase {
 
   /**
-   * Instantiates a new Img crop layer apply.
+   * Instantiates a new Img crop key apply.
    */
   public ImgZeroPaddingLayerTest() {
     validateBatchExecution = false;

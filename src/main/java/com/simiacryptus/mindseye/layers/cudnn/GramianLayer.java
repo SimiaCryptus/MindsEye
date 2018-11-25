@@ -31,10 +31,11 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
- * A dense matrix operator using vector-matrix multiplication. Represents a fully connected layer of synapses, where all
+ * A dense matrix operator using vector-matrix multiplication. Represents a fully connected key of synapses, where all
  * inputs are connected to all outputs via seperate coefficients.
  */
 @SuppressWarnings("serial")
@@ -46,13 +47,13 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   private double alpha = 1.0;
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    */
   public GramianLayer() {
   }
 
   /**
-   * Instantiates a new Img eval layer.
+   * Instantiates a new Img eval key.
    *
    * @param json the json
    * @param rs   the rs
@@ -64,11 +65,11 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
   }
 
   /**
-   * From json img eval layer.
+   * From json img eval key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the img eval layer
+   * @return the img eval key
    */
   public static GramianLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new GramianLayer(json, rs);
@@ -86,7 +87,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
       CudaTensorList output = getOutput(gpu, tensor);
       tensor.freeRef();
       return output;
-    }, inputData), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, inputData), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       @Nonnull final int[] outputDimensions = {1, 1, inputDimensions[2] * inputDimensions[2]};
       if (!Arrays.equals(delta.getDimensions(), outputDimensions)) {
         throw new AssertionError(Arrays.toString(delta.getDimensions()) + " != " + Arrays.toString(outputDimensions));
@@ -108,7 +109,7 @@ public class GramianLayer extends LayerBase implements MultiPrecision<GramianLay
     }) {
 
       @Override
-      public final void accumulate(DeltaSet<Layer> buffer, TensorList delta) {
+      public final void accumulate(DeltaSet<UUID> buffer, TensorList delta) {
         getAccumulator().accept(buffer, delta);
       }
 

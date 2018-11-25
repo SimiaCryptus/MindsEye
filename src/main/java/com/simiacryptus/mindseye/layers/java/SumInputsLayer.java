@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -36,13 +37,13 @@ import java.util.stream.IntStream;
 public class SumInputsLayer extends LayerBase {
 
   /**
-   * Instantiates a new Sum inputs layer.
+   * Instantiates a new Sum inputs key.
    */
   public SumInputsLayer() {
   }
 
   /**
-   * Instantiates a new Sum inputs layer.
+   * Instantiates a new Sum inputs key.
    *
    * @param id the id
    */
@@ -51,11 +52,11 @@ public class SumInputsLayer extends LayerBase {
   }
 
   /**
-   * From json sum inputs layer.
+   * From json sum inputs key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the sum inputs layer
+   * @return the sum inputs key
    */
   public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumInputsLayer(json);
@@ -90,7 +91,7 @@ public class SumInputsLayer extends LayerBase {
       l.freeRef();
       r.freeRef();
       return sum;
-    }).get(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }).get(), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       for (@Nonnull final Result input : inObj) {
         if (input.isAlive()) {
           @Nonnull TensorList projectedDelta = delta;

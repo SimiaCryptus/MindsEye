@@ -20,6 +20,7 @@
 package com.simiacryptus.mindseye.lang;
 
 import javax.annotation.Nonnull;
+import java.util.UUID;
 
 /**
  * Represents an evaluation record used during optimization of a function apply one scalar output and many inputs. We
@@ -34,7 +35,7 @@ public final class PointSample extends ReferenceCountingBase {
    * The Delta.
    */
   @Nonnull
-  public final DeltaSet<Layer> delta;
+  public final DeltaSet<UUID> delta;
   /**
    * The Sum.
    */
@@ -43,7 +44,7 @@ public final class PointSample extends ReferenceCountingBase {
    * The Weights.
    */
   @Nonnull
-  public final StateSet<Layer> weights;
+  public final StateSet<UUID> weights;
   /**
    * The Rate.
    */
@@ -58,7 +59,7 @@ public final class PointSample extends ReferenceCountingBase {
    * @param rate    the rate
    * @param count   the count
    */
-  public PointSample(@Nonnull final DeltaSet<Layer> delta, @Nonnull final StateSet<Layer> weights, final double sum, final double rate, final int count) {
+  public PointSample(@Nonnull final DeltaSet<UUID> delta, @Nonnull final StateSet<UUID> weights, final double sum, final double rate, final int count) {
     assert delta.getMap().size() == weights.getMap().size();
     this.delta = new DeltaSet<>(delta);
     this.weights = new StateSet<>(weights);
@@ -129,8 +130,8 @@ public final class PointSample extends ReferenceCountingBase {
    */
   @Nonnull
   public PointSample copyFull() {
-    @Nonnull DeltaSet<Layer> deltaCopy = delta.copy();
-    @Nonnull StateSet<Layer> weightsCopy = weights.copy();
+    @Nonnull DeltaSet<UUID> deltaCopy = delta.copy();
+    @Nonnull StateSet<UUID> weightsCopy = weights.copy();
     @Nonnull PointSample pointSample = new PointSample(deltaCopy, weightsCopy, sum, rate, count);
     deltaCopy.freeRef();
     weightsCopy.freeRef();
@@ -178,7 +179,7 @@ public final class PointSample extends ReferenceCountingBase {
       this.addRef();
       return this;
     } else {
-      @Nonnull DeltaSet<Layer> scale = delta.scale(1.0 / count);
+      @Nonnull DeltaSet<UUID> scale = delta.scale(1.0 / count);
       @Nonnull PointSample pointSample = new PointSample(scale, weights, sum / count, rate, 1);
       scale.freeRef();
       return pointSample;

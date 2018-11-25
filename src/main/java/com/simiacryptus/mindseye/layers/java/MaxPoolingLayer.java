@@ -32,13 +32,14 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The type Max subsample layer.
+ * The type Max subsample key.
  */
 @SuppressWarnings("serial")
 public class MaxPoolingLayer extends LayerBase {
@@ -50,14 +51,14 @@ public class MaxPoolingLayer extends LayerBase {
 
 
   /**
-   * Instantiates a new Max subsample layer.
+   * Instantiates a new Max subsample key.
    */
   protected MaxPoolingLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Max subsample layer.
+   * Instantiates a new Max subsample key.
    *
    * @param kernelDims the kernel dims
    */
@@ -67,7 +68,7 @@ public class MaxPoolingLayer extends LayerBase {
   }
 
   /**
-   * Instantiates a new Max subsample layer.
+   * Instantiates a new Max subsample key.
    *
    * @param id         the id
    * @param kernelDims the kernel dims
@@ -107,11 +108,11 @@ public class MaxPoolingLayer extends LayerBase {
   }
 
   /**
-   * From json max subsample layer.
+   * From json max subsample key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the max subsample layer
+   * @return the max subsample key
    */
   public static MaxPoolingLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new MaxPoolingLayer(json,
@@ -161,7 +162,7 @@ public class MaxPoolingLayer extends LayerBase {
       input.freeRef();
       gradientMapA[dataIndex] = gradientMap;
     });
-    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+    return new Result(TensorArray.wrap(outputA), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (in.isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, in.getData().length()).parallel().mapToObj(dataIndex -> {
           @Nonnull final Tensor backSignal = new Tensor(inputDims);

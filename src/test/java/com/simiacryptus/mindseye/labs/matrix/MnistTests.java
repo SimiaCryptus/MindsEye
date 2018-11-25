@@ -39,7 +39,7 @@ public class MnistTests {
    */
   @Nonnull
   public static FwdNetworkFactory fwd_conv_1 = (log, features) -> {
-    log.p("The png-to-vector network is a single layer convolutional:");
+    log.p("The png-to-vector network is a single key convolutional:");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new ConvolutionLayer(5, 5, 1, 32).set(i -> 1e-8 * (Math.random() - 0.5)));
@@ -67,7 +67,7 @@ public class MnistTests {
    */
   @Nonnull
   public static FwdNetworkFactory fwd_conv_1_n = (log, features) -> {
-    log.p("The png-to-vector network is a single layer convolutional:");
+    log.p("The png-to-vector network is a single key convolutional:");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       double weight = 1e-3;
@@ -103,7 +103,7 @@ public class MnistTests {
    */
   @Nonnull
   public static FwdNetworkFactory fwd_linear_1 = (log, features) -> {
-    log.p("The png-to-vector network is a single layer, fully connected:");
+    log.p("The png-to-vector network is a single key, fully connected:");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new BiasLayer(28, 28, 1));
@@ -118,7 +118,7 @@ public class MnistTests {
    */
   @Nonnull
   public static RevNetworkFactory rev_conv_1 = (log, features) -> {
-    log.p("The vector-to-png network uses a fully connected layer then a single convolutional layer:");
+    log.p("The vector-to-png network uses a fully connected key then a single convolutional key:");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{1024})
@@ -148,7 +148,7 @@ public class MnistTests {
    */
   @Nonnull
   public static RevNetworkFactory rev_linear_1 = (log, features) -> {
-    log.p("The vector-to-png network is a single fully connected layer:");
+    log.p("The vector-to-png network is a single fully connected key:");
     return log.eval(() -> {
       @Nonnull final PipelineNetwork network = new PipelineNetwork();
       network.add(new FullyConnectedLayer(new int[]{features}, new int[]{28, 28, 1})

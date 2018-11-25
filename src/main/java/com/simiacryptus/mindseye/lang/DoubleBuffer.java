@@ -33,14 +33,14 @@ import java.util.stream.IntStream;
  *
  * @param <K> the type parameter
  */
-public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCountingBase {
+public class DoubleBuffer<K> extends ReferenceCountingBase {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(DoubleBuffer.class);
   /**
    * The LayerBase.
    */
   @Nonnull
-  public final K layer;
+  public final K key;
   /**
    * The Target.
    */
@@ -54,12 +54,12 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   /**
    * Instantiates a new Double buffer.
    *
-   * @param layer  the layer
+   * @param key  the key
    * @param target the target
    */
-  public DoubleBuffer(@Nonnull final K layer, final double[] target) {
-    this.layer = layer;
-    layer.addRef(this);
+  public DoubleBuffer(@Nonnull final K key, final double[] target) {
+    this.key = key;
+    if(key instanceof ReferenceCounting) ((ReferenceCounting) key).addRef(this);
     this.target = target;
     this.delta = null;
   }
@@ -67,13 +67,13 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   /**
    * Instantiates a new Double buffer.
    *
-   * @param layer  the layer
+   * @param key  the key
    * @param target the target
    * @param delta  the evalInputDelta
    */
-  public DoubleBuffer(@Nonnull final K layer, final double[] target, final double[] delta) {
-    this.layer = layer;
-    layer.addRef(this);
+  public DoubleBuffer(@Nonnull final K key, final double[] target, final double[] delta) {
+    this.key = key;
+    if(key instanceof ReferenceCounting) ((ReferenceCounting) key).addRef(this);
     this.target = target;
     this.delta = delta;
   }
@@ -101,7 +101,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
   @Nullable
   public DoubleBuffer<K> copy() {
     assertAlive();
-    return new DoubleBuffer<K>(layer, target, RecycleBin.DOUBLES.copyOf(delta, length()));
+    return new DoubleBuffer<K>(key, target, RecycleBin.DOUBLES.copyOf(delta, length()));
   }
 
   /**
@@ -122,10 +122,10 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    */
   public double dot(@Nonnull final DoubleBuffer<K> right) {
     if (this.target != right.target) {
-      throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.layer, right.layer));
+      throw new IllegalArgumentException(String.format("Deltas are not based on same buffer. %s != %s", this.key, right.key));
     }
-    if (!this.layer.equals(right.layer)) {
-      throw new IllegalArgumentException(String.format("Deltas are not based on same layer. %s != %s", this.layer, right.layer));
+    if (!this.key.equals(right.key)) {
+      throw new IllegalArgumentException(String.format("Deltas are not based on same key. %s != %s", this.key, right.key));
     }
     @Nullable final double[] l = this.getDelta();
     @Nullable final double[] r = right.getDelta();
@@ -170,7 +170,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    * @return the id
    */
   public CharSequence getId() {
-    return this.layer.toString();
+    return this.key.toString();
   }
 
   /**
@@ -190,7 +190,7 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
    */
   @Nonnull
   public DoubleBuffer<K> map(@Nonnull final DoubleUnaryOperator mapper) {
-    return new DoubleBuffer<K>(this.layer, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
+    return new DoubleBuffer<K>(this.key, this.target, Arrays.stream(this.getDelta()).map(x -> mapper.applyAsDouble(x)).toArray());
   }
 
   /**
@@ -223,13 +223,13 @@ public class DoubleBuffer<K extends ReferenceCounting> extends ReferenceCounting
     @Nonnull final StringBuilder builder = new StringBuilder();
     builder.append(getClass().getSimpleName());
     builder.append("/");
-    builder.append(this.layer);
+    builder.append(this.key);
     return builder.toString();
   }
 
   @Override
   protected void _free() {
-    layer.freeRef();
+    if(key instanceof ReferenceCounting) ((ReferenceCounting) key).freeRef();
     @Nullable double[] delta = this.delta;
     if (null != delta) {
       if (RecycleBin.DOUBLES.want(delta.length)) {

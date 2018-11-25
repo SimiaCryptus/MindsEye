@@ -71,11 +71,11 @@ public abstract class DeepLinear extends NLayerTest {
   }
 
   /**
-   * The type Four layer.
+   * The type Four key.
    */
   public static class NarrowingPipeline extends DeepLinear {
     /**
-     * Instantiates a new Four layer.
+     * Instantiates a new Four key.
      */
     public NarrowingPipeline() {
       super(
@@ -89,11 +89,11 @@ public abstract class DeepLinear extends NLayerTest {
   }
 
   /**
-   * The type Four layer.
+   * The type Four key.
    */
   public static class SigmoidPipeline extends DeepLinear {
     /**
-     * Instantiates a new Four layer.
+     * Instantiates a new Four key.
      */
     public SigmoidPipeline() {
       super(
@@ -113,11 +113,11 @@ public abstract class DeepLinear extends NLayerTest {
   }
 
   /**
-   * The type Four layer.
+   * The type Four key.
    */
   public static class UniformPipeline extends DeepLinear {
     /**
-     * Instantiates a new Four layer.
+     * Instantiates a new Four key.
      */
     public UniformPipeline() {
       super(

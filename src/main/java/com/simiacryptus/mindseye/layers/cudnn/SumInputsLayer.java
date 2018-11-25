@@ -30,11 +30,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
  * Computes a weighted binary sum of two layers. Provides two weighting coefficients, one for each input. This can be
- * used to implement a summation layer, a difference layer, a scaling layer, or any combination.
+ * used to implement a summation key, a difference key, a scaling key, or any combination.
  */
 @SuppressWarnings("serial")
 public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInputsLayer> {
@@ -43,14 +44,14 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   private boolean parallel = true;
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    */
   public SumInputsLayer() {
     super();
   }
 
   /**
-   * Instantiates a new Product inputs layer.
+   * Instantiates a new Product inputs key.
    *
    * @param json the id
    */
@@ -61,20 +62,20 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
   }
 
   /**
-   * From json product inputs layer.
+   * From json product inputs key.
    *
    * @param json the json
    * @param rs   the rs
-   * @return the product inputs layer
+   * @return the product inputs key
    */
   public static SumInputsLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     return new SumInputsLayer(json);
   }
 
   /**
-   * Gets compatibility layer.
+   * Gets compatibility key.
    *
-   * @return the compatibility layer
+   * @return the compatibility key
    */
   @Nonnull
   public Layer getCompatibilityLayer() {
@@ -99,7 +100,7 @@ public class SumInputsLayer extends LayerBase implements MultiPrecision<SumInput
     if (!CoreSettings.INSTANCE().isSingleThreaded() && parallel) tensorListStream = tensorListStream.parallel();
     return new Result(tensorListStream.reduce((leftData, rightData) -> CudaSystem.run(gpu -> {
       return gpu.addAndFree(precision, leftData, rightData);
-    }, leftData, rightData)).get(), (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList delta) -> {
+    }, leftData, rightData)).get(), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       @Nonnull Stream<Result> deltaStream = Arrays.stream(inObj);
       if (!CoreSettings.INSTANCE().isSingleThreaded() && parallel) deltaStream = deltaStream.parallel();
       deltaStream.filter(Result::isAlive).forEach(obj -> {

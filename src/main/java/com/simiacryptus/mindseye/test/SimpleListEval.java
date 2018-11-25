@@ -24,6 +24,7 @@ import com.simiacryptus.mindseye.lang.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 
@@ -37,12 +38,12 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   private final Layer layer;
   private TensorList[] inputDerivative;
   private TensorList output;
-  private DeltaSet<Layer> layerDerivative;
+  private DeltaSet<UUID> layerDerivative;
 
   /**
    * Instantiates a new Simple list trainAll.
    *
-   * @param layer the layer
+   * @param layer the key
    * @param input the input
    */
   public SimpleListEval(@Nonnull final Layer layer, @Nonnull final TensorList... input) {
@@ -50,7 +51,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     this.input = input;
     for (@Nonnull TensorList x : input) x.addRef();
     layer.addRef();
-    layerDerivative = new DeltaSet<Layer>();
+    layerDerivative = new DeltaSet<UUID>();
   }
 
   /**
@@ -72,7 +73,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
   /**
    * Run simple list trainAll.
    *
-   * @param layer  the layer
+   * @param layer  the key
    * @param tensor the tensor
    * @return the simple list trainAll
    */
@@ -103,7 +104,7 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
         .toArray(i -> new Tensor[i]))
     ).toArray(i -> new TensorList[i]);
     Result[] inputs = IntStream.range(0, inputCopy.length).mapToObj(i -> {
-      return new Result(inputCopy[i], (@Nonnull final DeltaSet<Layer> buffer, @Nonnull final TensorList data) -> {
+      return new Result(inputCopy[i], (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
         SimpleListEval.accumulate(inputDerivative[i], data);
       }) {
         @Override
@@ -176,16 +177,16 @@ public class SimpleListEval extends ReferenceCountingBase implements Callable<Si
     return output;
   }
 
-  public DeltaSet<Layer> getLayerDerivative() {
+  public DeltaSet<UUID> getLayerDerivative() {
     return layerDerivative;
   }
 
   /**
-   * Sets layer derivative.
+   * Sets key derivative.
    *
-   * @param layerDerivative the layer derivative
+   * @param layerDerivative the key derivative
    */
-  public void setLayerDerivative(DeltaSet<Layer> layerDerivative) {
+  public void setLayerDerivative(DeltaSet<UUID> layerDerivative) {
     this.layerDerivative = layerDerivative;
   }
 }
