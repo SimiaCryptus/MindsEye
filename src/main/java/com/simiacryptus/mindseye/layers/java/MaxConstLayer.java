@@ -26,12 +26,12 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
- * Enforces a maximum-value constraint on the input signal, rounding down any values exceeding a setByCoord threshold.
+ * Enforces a maximum-maxValue constraint on the input signal, rounding down any values exceeding a setByCoord threshold.
  */
 @SuppressWarnings("serial")
 public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
 
-  private double value = 0;
+  private double maxValue = 0;
 
   /**
    * Instantiates a new Max const key.
@@ -59,14 +59,14 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   @Nonnull
   public static MaxConstLayer fromJson(@Nonnull final JsonObject json, Map<CharSequence, byte[]> rs) {
     @Nonnull final MaxConstLayer obj = new MaxConstLayer(json);
-    obj.value = json.get("value").getAsDouble();
+    obj.maxValue = json.get("maxValue").getAsDouble();
     return obj;
   }
 
   @Override
   protected void eval(final double x, final double[] results) {
-    final double d = x < value ? 0 : 1;
-    final double f = x < value ? value : x;
+    final double d = x > maxValue ? 0 : 1;
+    final double f = x > maxValue ? maxValue : x;
     assert Double.isFinite(d);
     results[0] = f;
     results[1] = d;
@@ -76,28 +76,28 @@ public class MaxConstLayer extends SimpleActivationLayer<MaxConstLayer> {
   @Override
   public JsonObject getJson(Map<CharSequence, byte[]> resources, DataSerializer dataSerializer) {
     @Nonnull final JsonObject json = super.getJsonStub();
-    json.addProperty("value", value);
+    json.addProperty("maxValue", maxValue);
     return json;
   }
 
   /**
-   * Gets value.
+   * Gets maxValue.
    *
-   * @return the value
+   * @return the maxValue
    */
-  public double getValue() {
-    return value;
+  public double getMaxValue() {
+    return maxValue;
   }
 
   /**
-   * Sets value.
+   * Sets maxValue.
    *
-   * @param value the value
-   * @return the value
+   * @param maxValue the maxValue
+   * @return the maxValue
    */
   @Nonnull
-  public MaxConstLayer setValue(final double value) {
-    this.value = value;
+  public MaxConstLayer setMaxValue(final double maxValue) {
+    this.maxValue = maxValue;
     return this;
   }
 }

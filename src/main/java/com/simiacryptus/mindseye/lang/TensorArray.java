@@ -40,9 +40,9 @@ public class TensorArray extends RegisteredObjectBase implements TensorList, Ser
     assert null != data;
     assert 0 < data.length;
     this.data = Arrays.copyOf(data, data.length);
-    assert null != this.data;
-    for (@Nonnull Tensor tensor : this.data) {
-      assert Arrays.equals(tensor.getDimensions(), this.data[0].getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(tensor.getDimensions());
+    assert null != this.getData();
+    for (@Nonnull Tensor tensor : this.getData()) {
+      assert Arrays.equals(tensor.getDimensions(), this.getData()[0].getDimensions()) : Arrays.toString(tensor.getDimensions()) + " != " + Arrays.toString(tensor.getDimensions());
       tensor.addRef();
     }
   }
@@ -87,7 +87,7 @@ public class TensorArray extends RegisteredObjectBase implements TensorList, Ser
   @Override
   @Nonnull
   public Tensor get(final int i) {
-    Tensor datum = data[i];
+    Tensor datum = getData()[i];
     datum.addRef();
     return datum;
   }
@@ -95,18 +95,18 @@ public class TensorArray extends RegisteredObjectBase implements TensorList, Ser
   @Nonnull
   @Override
   public int[] getDimensions() {
-    return data[0].getDimensions();
+    return getData()[0].getDimensions();
   }
 
   @Override
   public int length() {
-    return data.length;
+    return getData().length;
   }
 
   @Nonnull
   @Override
   public Stream<Tensor> stream() {
-    return Arrays.stream(data).map(x -> {
+    return Arrays.stream(getData()).map(x -> {
       x.addRef();
       return x;
     });
@@ -114,13 +114,13 @@ public class TensorArray extends RegisteredObjectBase implements TensorList, Ser
 
   @Override
   public String toString() {
-    return String.format("TensorArray{data=%s}", toString(9, data));
+    return String.format("TensorArray{data=%s}", toString(9, getData()));
   }
 
   @Override
   protected void _free() {
     try {
-      for (@Nonnull final Tensor d : data) {
+      for (@Nonnull final Tensor d : getData()) {
         d.freeRef();
       }
     } catch (@Nonnull final RuntimeException e) {
@@ -128,5 +128,10 @@ public class TensorArray extends RegisteredObjectBase implements TensorList, Ser
     } catch (@Nonnull final Throwable e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Nonnull
+  public Tensor[] getData() {
+    return data;
   }
 }

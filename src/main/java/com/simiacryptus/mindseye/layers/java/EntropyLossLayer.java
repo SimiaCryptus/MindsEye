@@ -81,7 +81,9 @@ public class EntropyLossLayer extends LayerBase {
     return new Result(TensorArray.wrap(IntStream.range(0, indata.length()).mapToObj(dataIndex -> {
       @Nullable final Tensor l = indata.get(dataIndex);
       @Nullable final Tensor r = inObj[1].getData().get(dataIndex);
-      assert l.length() == r.length() : l.length() + " != " + r.length();
+      if (l.length() != r.length()) {
+        throw new IllegalArgumentException(l.length() + " != " + r.length());
+      }
       @Nonnull final Tensor gradientTensor = new Tensor(l.getDimensions());
       @Nullable final double[] gradientData = gradientTensor.getData();
       double total = 0;
@@ -101,8 +103,7 @@ public class EntropyLossLayer extends LayerBase {
       r.freeRef();
       assert total >= 0;
       gradient[dataIndex] = gradientTensor;
-      @Nonnull final Tensor outValue = new Tensor(new double[]{total}, 1);
-      return outValue;
+      return new Tensor(new double[]{total}, 1);
     }).toArray(i -> new Tensor[i])), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList delta) -> {
       if (inObj[1].isAlive()) {
         @Nonnull TensorArray tensorArray = TensorArray.wrap(IntStream.range(0, delta.length()).mapToObj(dataIndex -> {

@@ -532,7 +532,7 @@ public abstract class DAGNetwork extends LayerBase {
 
   @Override
   public List<double[]> state() {
-    return getChildren().stream().flatMap(l -> l.state().stream()).distinct().collect(Collectors.toList());
+    return getChildren().stream().filter(x->!x.isFrozen()).flatMap(l -> l.state().stream()).distinct().collect(Collectors.toList());
   }
 
   /**

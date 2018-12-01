@@ -75,7 +75,7 @@ public abstract class RecycleBin<T> {
   private int purgeFreq;
   private int profilingThreshold = Integer.MAX_VALUE;
   private PersistanceMode persistanceMode = WEAK;
-  private int minLengthPerBuffer = 256;
+  private int minLengthPerBuffer = 16;
   private double maxLengthPerBuffer = 1e9;
   private int maxItemsPerBuffer = 100;
 

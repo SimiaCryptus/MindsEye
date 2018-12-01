@@ -103,7 +103,7 @@ public class ImgTileAssemblyLayer extends LayerBase {
     assert 3 == outDim.length;
     assert inDim[2] == outDim[2] : Arrays.toString(inDim) + "; " + Arrays.toString(outDim);
 //    outputData.coordStream(true).forEach((outputCoord) -> {
-//      double value = getValue(inputData, outputCoord, offsetX, offsetY, paddingX, paddingY, toroidal);
+//      double value = getMaxValue(inputData, outputCoord, offsetX, offsetY, paddingX, paddingY, toroidal);
 //      if (Double.isFinite(value)) outputData.set(outputCoord, value);
 //    });
     inputData.coordStream(true).forEach(inputCoord -> {

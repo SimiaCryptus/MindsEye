@@ -132,7 +132,7 @@
 //   */
 //  protected static SparkTrainable.ReducableResult getResult(@Nonnull final DeltaSet<UUID> delta, @Nonnull final double[] values) {
 //    final Map<CharSequence, double[]> deltas = delta.getMap().entrySet().stream().collect(Collectors.toMap(
-//      e -> e.getKey().getId().toString(), e -> e.getValue().getDelta()
+//      e -> e.getKey().getId().toString(), e -> e.getMaxValue().getDelta()
 //    ));
 //    return new SparkTrainable.ReducableResult(deltas, values.length, Arrays.stream(values).sum());
 //  }

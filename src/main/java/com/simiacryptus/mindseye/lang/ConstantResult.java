@@ -35,7 +35,16 @@ public final class ConstantResult extends Result {
    * @param data the data
    */
   public ConstantResult(final Tensor... data) {
-    super(TensorArray.create(data), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList tensorList) -> {
+    this(TensorArray.create(data));
+  }
+
+  /**
+   * Instantiates a new Nn constant.
+   *
+   * @param tensorArray
+   */
+  public ConstantResult(TensorArray tensorArray) {
+    super(tensorArray, (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList tensorList) -> {
     });
   }
 

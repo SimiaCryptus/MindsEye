@@ -77,29 +77,34 @@ public class SumMetaLayer extends LayerBase {
 
   @Nullable
   @Override
-  public Result eval(@Nonnull final Result... inObj) {
+  public Result evalAndFree(@Nonnull final Result... inObj) {
+    if (1 != inObj.length) throw new IllegalArgumentException();
     final Result input = inObj[0];
-    Arrays.stream(inObj).forEach(nnResult -> nnResult.addRef());
-    final int itemCnt = input.getData().length();
+    TensorList inputData = input.getData();
+    final int itemCnt = inputData.length();
     if (null == lastResult || minBatches < itemCnt) {
+      if(null != lastResult) lastResult.freeRef();
       @Nonnull final ToDoubleFunction<Coordinate> f = (c) ->
           IntStream.range(0, itemCnt)
-              .mapToDouble(dataIndex -> input.getData().get(dataIndex).get(c))
+              .mapToDouble(dataIndex -> {
+                Tensor tensor = inputData.get(dataIndex);
+                double v = tensor.get(c);
+                tensor.freeRef();
+                return v;
+              })
               .sum();
-      lastResult = input.getData().get(0).mapCoords(f);
+      lastResult = inputData.get(0).mapCoordsAndFree(f);
     }
-    return new Result(TensorArray.wrap(lastResult), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
+    return new Result(TensorArray.create(lastResult), (@Nonnull final DeltaSet<UUID> buffer, @Nonnull final TensorList data) -> {
       if (input.isAlive()) {
         @Nullable final Tensor delta = data.get(0);
         @Nonnull final Tensor feedback[] = new Tensor[itemCnt];
         Arrays.parallelSetAll(feedback, i -> new Tensor(delta.getDimensions()));
-        @Nonnull final ToDoubleFunction<Coordinate> f = (inputCoord) -> {
+        delta.coordStream(false).forEach((inputCoord) -> {
           for (int inputItem = 0; inputItem < itemCnt; inputItem++) {
             feedback[inputItem].add(inputCoord, delta.get(inputCoord));
           }
-          return 0;
-        };
-        delta.mapCoords(f);
+        });
         @Nonnull TensorArray tensorArray = TensorArray.wrap(feedback);
         input.accumulate(buffer, tensorArray);
       }
@@ -107,7 +112,8 @@ public class SumMetaLayer extends LayerBase {
 
       @Override
       protected void _free() {
-        Arrays.stream(inObj).forEach(nnResult -> nnResult.freeRef());
+        inputData.freeRef();
+        input.freeRef();
       }
 
       @Override
